@@ -3,6 +3,7 @@ import { IsOptional, IsString } from "class-validator";
 import { defineStore } from "pinia";
 
 import { Entity } from "@/utils/api/BaseEntity";
+import { logger } from "@/utils/logger";
 import { OptionalDateTransform } from "@/utils/OptionalDate";
 
 const storePeristantName = "authStore";
@@ -130,8 +131,7 @@ function getFromLocalStorageOrDefault(): AuthStoreState {
     const parsed = JSON.parse(authState) as AuthStoreState;
     return Entity.unMarshal<AuthStoreState>(parsed, AuthStoreState);
   } catch (err) {
-    console.error(err);
-
+    logger.warn("Could not restore the saved session", {}, err);
     return defaultValues();
   }
 }

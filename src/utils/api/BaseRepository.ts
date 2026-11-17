@@ -4,6 +4,13 @@ import router from "@/router";
 
 import { APIErrors } from "./ApiErrors";
 
+// Parses a JSON body; a 204 or an empty body gives undefined.
+async function readBody(response: Response): Promise<unknown> {
+  if (response.status === 204) return undefined;
+  const text = await response.text();
+  return text === "" ? undefined : (JSON.parse(text) as unknown);
+}
+
 /**
  * @class BaseRepository
  *
@@ -97,7 +104,7 @@ export class BaseRepository {
    */
   protected async getRequest<R>(options: GetRequestOptions): Promise<R> {
     const response = await this.sendGet(options);
-    const result = (await response.json()) as R;
+    const result = (await readBody(response)) as R;
 
     // Check the response
     if (response.ok) {
@@ -199,7 +206,7 @@ export class BaseRepository {
 
     // Send the request
     const response = await fetch(url.toString(), fetchOptions);
-    const result = (await response.json()) as R;
+    const result = (await readBody(response)) as R;
 
     // Check the response
     if (response.ok) {
@@ -274,7 +281,7 @@ export class BaseRepository {
 
     // Send the request
     const response = await fetch(url.toString(), fetchOptions);
-    const result = (await response.json()) as R;
+    const result = (await readBody(response)) as R;
 
     // Check the response
     if (response.ok) {
@@ -344,7 +351,7 @@ export class BaseRepository {
 
     // Send the request
     const response = await fetch(url.toString(), fetchOptions);
-    const result = (await response.json()) as R;
+    const result = (await readBody(response)) as R;
 
     // Check the response
     if (response.ok) {
@@ -416,7 +423,7 @@ export class BaseRepository {
 
     // Send the request
     const response = await fetch(url.toString(), fetchOptions);
-    const result = (await response.json()) as R;
+    const result = (await readBody(response)) as R;
 
     // Check the response
     if (response.ok) {

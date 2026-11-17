@@ -36,6 +36,7 @@ import { loadAuthStoreFromLocalStorage, useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
+import { logger } from "@/utils/logger";
 import { pageTitle } from "@/utils/page-title";
 
 // Helper functions to reduce complexity in beforeEach guard
@@ -65,7 +66,7 @@ async function refreshTokenIfNeeded(
         authStore.tokenExpiry = newToken.token_expiry;
         return true;
       } catch (error) {
-        console.error(error);
+        logger.warn("Could not refresh the session token", {}, error);
         return false;
       }
     }
@@ -104,7 +105,7 @@ async function fetchAuthenticatedUser(
     ) {
       return "not_activated";
     }
-    console.error(error);
+    logger.error("Could not fetch the signed-in user", {}, error);
     return "failed";
   }
 }
@@ -164,7 +165,7 @@ async function fetchFallbackOrg(
     userStore.setDefaultOrg(org);
     return true;
   } catch (error) {
-    console.error(error);
+    logger.error("Could not fetch a fallback organization", {}, error);
     return false;
   }
 }

@@ -30,6 +30,17 @@ const executedSbomPlugins = computed(() =>
     .map((result) => result.Name),
 );
 
+// Patch status filters need a patching result.
+const hasPatching = computed(() =>
+  props.analysis.steps
+    .flat()
+    .some(
+      (result) =>
+        result.Status === AnalysisStatus.SUCCESS &&
+        result.Name === "js-patching",
+    ),
+);
+
 const selectedWorkspace = ref(".");
 const ecosystemFilter = ref<string | null>(null);
 </script>
@@ -75,6 +86,7 @@ const ecosystemFilter = ref<string | null>(null);
         :project-i-d="project.id"
         :workspace="selectedWorkspace"
         :ecosystem-filter="ecosystemFilter"
+        :has-patching="hasPatching"
       />
     </section>
   </div>

@@ -9,6 +9,7 @@ import {
   createNewFilterState,
   type FilterState,
   FilterType,
+  getActiveState,
 } from "@/base_components/filters/filterTypes";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
 import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
@@ -36,8 +37,9 @@ const props = withDefaults(
     projectID: string;
     workspace?: string;
     ecosystemFilter?: string | null;
+    hasPatching?: boolean;
   }>(),
-  { workspace: ".", ecosystemFilter: null },
+  { workspace: ".", ecosystemFilter: null, hasPatching: false },
 );
 
 const PAGE_SIZE = 20;
@@ -75,7 +77,35 @@ const filterState = ref<FilterState>(
   }),
 );
 
+// Offered only when the analysis has a patching result.
+const PATCH_FILTERS = {
+  name: "Patch status",
+  type: FilterType.CHECKBOX,
+  showCounts: true,
+  data: {
+    patch_full: { title: "Patchable", value: false },
+    patch_partial: { title: "Partially patchable", value: false },
+    patch_none: { title: "Not patchable", value: false },
+  },
+};
+
+watch(
+  () => props.hasPatching,
+  (hasPatching) => {
+    const state = filterState.value;
+    if (hasPatching && !state.filterConfig.PatchState) {
+      state.addFilterCategory(structuredClone(PATCH_FILTERS), "PatchState");
+    } else if (!hasPatching && state.filterConfig.PatchState) {
+      delete state.filterConfig.PatchState;
+      state.activeFilters = getActiveState(state.filterConfig);
+    }
+  },
+  { immediate: true },
+);
+
 const findings = ref<VulnerabilityMerged[]>([]);
+// How many vulnerabilities each filter would leave, from the API.
+const filterCount = ref<Record<string, number>>({});
 const total = ref(0);
 const loading = ref(true);
 const failed = ref(false);
@@ -147,6 +177,7 @@ async function load(): Promise<void> {
     });
     if (request !== latestRequest) return;
     findings.value = res.data;
+    filterCount.value = res.filter_count ?? {};
     total.value = res.matching_count ?? res.total_entries;
     failed.value = false;
   } catch {
@@ -204,7 +235,7 @@ watch(
           class="pl-9"
         />
       </div>
-      <VulnFilters v-model:filter-state="filterState" />
+      <VulnFilters v-model:filter-state="filterState" :counts="filterCount" />
       <div class="ml-auto flex items-center gap-3">
         <Select v-if="view === 'list'" v-model="sortValue">
           <SelectTrigger aria-label="Sort by" class="w-60">

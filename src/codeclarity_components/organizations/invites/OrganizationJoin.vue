@@ -3,6 +3,7 @@ import { Building2, CircleAlert } from "@lucide/vue";
 import { computed, onMounted, type Ref, ref } from "vue";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
+import { loginRoute } from "@/codeclarity_components/authentication/signin/login-route";
 import router from "@/router";
 import {
   Accordion,
@@ -16,6 +17,7 @@ import { Card, CardContent } from "@/shadcn/ui/card";
 import { Skeleton } from "@/shadcn/ui/skeleton";
 import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { formatDate } from "@/utils/dateUtils";
@@ -29,6 +31,7 @@ import {
 import { OrgRepository } from "../organization.repository";
 
 const authStore = useAuthStore();
+const userStore = useUserStore();
 const orgRepository = new OrgRepository();
 
 const inviteToken = ref<string>();
@@ -71,29 +74,58 @@ const faqs = [
   },
 ];
 
-// Expired or unknown invitations cannot succeed on a retry.
-const fetchRetryable = computed(
+type Failure = "wrongAccount" | "gone" | "other";
+
+// Sorts an API error code into what the page tells the user.
+function failureOf(code: string | undefined): Failure {
+  if (code === APIErrors.NotAuthorized) return "wrongAccount";
+  if (
+    code === APIErrors.EntityNotFound ||
+    code === APIErrors.InvitationInvalidOrExpired
+  ) {
+    return "gone";
+  }
+  return "other";
+}
+
+const fetchFailure = computed(() => failureOf(fetchErrorCode.value));
+const joinFailure = computed(() => failureOf(joinErrorCode.value));
+
+const signedInEmail = computed(() => userStore.getUser?.email);
+const wrongAccountMessage = computed(
   () =>
-    fetchErrorCode.value !== APIErrors.NotAuthorized &&
-    fetchErrorCode.value !== APIErrors.EntityNotFound,
-);
-const joinRetryable = computed(
-  () =>
-    joinErrorCode.value !== APIErrors.NotAuthorized &&
-    joinErrorCode.value !== APIErrors.EntityNotFound &&
-    joinErrorCode.value !== APIErrors.InvitationInvalidOrExpired,
+    `This invitation was sent to a different account than the one you are signed in with${
+      signedInEmail.value ? ` (${signedInEmail.value})` : ""
+    }. Sign in with the invited account to accept it.`,
 );
 
+function failureMessage(failure: Failure, otherMessage: string): string {
+  if (failure === "wrongAccount") return wrongAccountMessage.value;
+  if (failure === "gone")
+    return "This invitation does not exist or has expired.";
+  return otherMessage;
+}
+
 const fetchMessage = computed(() =>
-  fetchRetryable.value
-    ? "Something went wrong while loading the invitation."
-    : "This invitation does not exist or has expired.",
+  failureMessage(
+    fetchFailure.value,
+    "Something went wrong while loading the invitation.",
+  ),
 );
 const joinMessage = computed(() =>
-  joinRetryable.value
-    ? "Something went wrong while joining the organisation."
-    : "This invitation does not exist or has expired.",
+  failureMessage(
+    joinFailure.value,
+    "Something went wrong while joining the organisation.",
+  ),
 );
+
+// Signs out like Log out does, then comes back to this invitation after login.
+function switchAccount(): void {
+  const redirect = router.currentRoute.value.fullPath;
+  userStore.$reset();
+  authStore.$reset();
+  void router.push(loginRoute({ redirect }));
+}
 
 function personName(person: TeamMember | undefined): string {
   if (!person) return "Deleted user";
@@ -187,7 +219,12 @@ async function joinOrg(): Promise<void> {
         <AlertDescription>{{ fetchMessage }}</AlertDescription>
       </Alert>
       <div class="flex gap-2">
-        <Button v-if="fetchRetryable" @click="fetchOrgInfo">Try again</Button>
+        <Button v-if="fetchFailure === 'other'" @click="fetchOrgInfo"
+          >Try again</Button
+        >
+        <Button v-if="fetchFailure === 'wrongAccount'" @click="switchAccount"
+          >Sign out and switch account</Button
+        >
         <Button variant="outline" @click="router.back()">Go back</Button>
       </div>
     </template>
@@ -248,7 +285,13 @@ async function joinOrg(): Promise<void> {
 
           <div class="flex gap-2">
             <Button
-              v-if="!joinFailed || joinRetryable"
+              v-if="joinFailed && joinFailure === 'wrongAccount'"
+              @click="switchAccount"
+            >
+              Sign out and switch account
+            </Button>
+            <Button
+              v-if="!joinFailed || joinFailure === 'other'"
               :disabled="joining"
               arrow
               @click="joinOrg"

@@ -27,6 +27,8 @@ import { tokenIntegrationError } from "../integration-errors";
 import TokenIntegrationForm from "../TokenIntegrationForm.vue";
 
 const GITLAB_COM = "https://gitlab.com";
+// The longest instance URL the API stores.
+const MAX_URL_LENGTH = 255;
 const gitlabPersonalAccessTokenRegex = /glpat-[0-9a-zA-Z\-_]{20}/;
 const SCOPES = ["read_api", "read_user", "read_repository", "self_rotate"];
 
@@ -52,13 +54,15 @@ const instanceUrl = computed(() => {
   return url.endsWith("/") ? url.slice(0, -1) : url;
 });
 
+// Checked on the URL as sent, without its trailing slash.
 const urlError = computed(() => {
   if (instance.value === "cloud") return undefined;
   const result = z
     .string()
     .min(1, "Enter the URL of your GitLab instance")
     .url("Enter a full URL, such as https://gitlab.example.com")
-    .safeParse(selfHostedUrl.value);
+    .max(MAX_URL_LENGTH, `Enter a URL of at most ${MAX_URL_LENGTH} characters`)
+    .safeParse(instanceUrl.value);
   return result.success ? undefined : result.error.issues[0]?.message;
 });
 

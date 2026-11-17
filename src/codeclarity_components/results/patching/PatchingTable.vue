@@ -12,7 +12,6 @@ import { ResultsRepository } from "@/codeclarity_components/results/results.repo
 import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 
 import PatchComponent from "./patch/PatchComponent.vue";
 import { patchStatus, semverText } from "./patch-format";
@@ -52,10 +51,6 @@ async function load(): Promise<void> {
       analysisId: props.analysisID,
       workspace: ".",
       bearerToken: token,
-      pagination: { page: 0, entries_per_page: 100 },
-      sort: { sortKey: "patch_type", sortDirection: SortDirection.DESC },
-      active_filters: "",
-      search_key: "",
       handleBusinessErrors: true,
     });
     if (request !== latestRequest) return;

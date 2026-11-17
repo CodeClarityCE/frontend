@@ -3,6 +3,7 @@ import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { patchStatus } from "./vuln-format";
 import VulnFindings from "./VulnFindings.vue";
 
 vi.mock("@vueuse/core", async () => await vi.importActual("@vueuse/core"));
@@ -20,7 +21,7 @@ vi.mock("@/stores/user", () => ({
   useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
 }));
 
-const finding = (id: string, PatchType: string) => ({
+const finding = (id: string, PatchType: string | undefined) => ({
   Id: id,
   Vulnerability: id,
   Severity: { Severity: 7.5 },
@@ -36,12 +37,12 @@ const finding = (id: string, PatchType: string) => ({
       AffectedVersion: "1.0.0",
       VulnerabilityId: id,
       Severity: { Severity: 7.5 },
-      PatchType,
+      ...(PatchType ? { PatchType } : {}),
     },
   ],
 });
 
-const all = [
+let all = [
   finding("CVE-2024-0001", "FULL"),
   finding("CVE-2024-0002", "PARTIAL"),
   finding("CVE-2024-0003", "NONE"),
@@ -56,7 +57,7 @@ function answer({ active_filters }: { active_filters: string }) {
   const data = all.filter(
     (row) =>
       wanted.length === 0 ||
-      row.Affected.some((a) => wanted.includes(a.PatchType)),
+      row.Affected.some((a) => wanted.includes(a.PatchType ?? "")),
   );
   return Promise.resolve({
     data,
@@ -98,6 +99,55 @@ describe("VulnFindings patch status filters", () => {
     expect(screen.getByText("CVE-2024-0001")).toBeTruthy();
     expect(screen.queryByText("CVE-2024-0002")).toBeNull();
     expect(screen.queryByText("CVE-2024-0003")).toBeNull();
+  });
+
+  it("titles the patch filters like the badges", async () => {
+    await show(true);
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await user.click(screen.getByRole("button", { name: /Filters/ }));
+    const menu = await screen.findByRole("menu");
+
+    for (const type of ["FULL", "PARTIAL", "NONE"]) {
+      expect(
+        within(menu).getByRole("menuitemcheckbox", {
+          name: `${patchStatus(type).label} (1)`,
+        }),
+      ).toBeTruthy();
+    }
+  });
+
+  it("shows a finding without a patch type as not checked, not as not patchable", async () => {
+    all = [finding("CVE-2024-0004", undefined)];
+    try {
+      await show(true);
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      await user.click(screen.getByRole("tab", { name: "Table" }));
+
+      expect(screen.getByText("Not checked")).toBeTruthy();
+      expect(screen.queryByText("Not patchable")).toBeNull();
+    } finally {
+      all = [
+        finding("CVE-2024-0001", "FULL"),
+        finding("CVE-2024-0002", "PARTIAL"),
+        finding("CVE-2024-0003", "NONE"),
+      ];
+    }
+  });
+
+  it("drops the filter counts when the request fails", async () => {
+    await show(true);
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    repo.getVulnerabilities.mockRejectedValue(new Error("offline"));
+    await user.click(screen.getByRole("button", { name: /Filters/ }));
+    const menu = await screen.findByRole("menu");
+    await user.click(
+      within(menu).getByRole("menuitemcheckbox", { name: "Patchable (1)" }),
+    );
+    await flushPromises();
+
+    expect(
+      within(menu).getByRole("menuitemcheckbox", { name: "Patchable" }),
+    ).toBeTruthy();
   });
 
   it("offers no patch status group without a patching result", async () => {

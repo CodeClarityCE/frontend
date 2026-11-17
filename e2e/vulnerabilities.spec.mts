@@ -120,9 +120,7 @@ test.describe("Vulnerability results", () => {
       "AI assessmentNVD: Critical, 87% confident",
     );
     await expect(vulns.cards.nth(1)).toContainText("express Not patchable");
-    await expect(vulns.cards.nth(2)).toContainText(
-      "axios Patch status unknown",
-    );
+    await expect(vulns.cards.nth(2)).toContainText("axios Not checked");
     await expect(vulns.cards.nth(1)).not.toContainText("AI assessment");
     await expect(vulns.cards.nth(2)).not.toContainText("AI assessment");
     await expect(page.getByText("Not patchable")).toHaveCount(1);
@@ -134,7 +132,7 @@ test.describe("Vulnerability results", () => {
       "AI (NVD): Critical, 87% confident",
     );
     await expect(vulns.rows().nth(1)).toContainText("Not patchable");
-    await expect(vulns.rows().nth(2)).toContainText("Patch status unknown");
+    await expect(vulns.rows().nth(2)).toContainText("Not checked");
     await expect(vulns.rows().nth(1)).not.toContainText("AI (");
     await expect(vulns.rows().nth(2)).not.toContainText("AI (");
   });

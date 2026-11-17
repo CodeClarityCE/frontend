@@ -27,6 +27,7 @@ import { useUserStore } from "@/stores/user";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 
 import VulnFilters from "./components/VulnFilters.vue";
+import { patchStatus } from "./vuln-format";
 import VulnList from "./VulnList.vue";
 import type { VulnerabilityMerged } from "./VulnStats";
 import VulnTable from "./VulnTable.vue";
@@ -82,10 +83,11 @@ const PATCH_FILTERS = {
   name: "Patch status",
   type: FilterType.CHECKBOX,
   showCounts: true,
+  // Titled like the badges, so a filter names what its rows show.
   data: {
-    patch_full: { title: "Patchable", value: false },
-    patch_partial: { title: "Partially patchable", value: false },
-    patch_none: { title: "Not patchable", value: false },
+    patch_full: { title: patchStatus("FULL").label, value: false },
+    patch_partial: { title: patchStatus("PARTIAL").label, value: false },
+    patch_none: { title: patchStatus("NONE").label, value: false },
   },
 };
 
@@ -183,6 +185,7 @@ async function load(): Promise<void> {
   } catch {
     if (request !== latestRequest) return;
     findings.value = [];
+    filterCount.value = {};
     total.value = 0;
     failed.value = true;
   } finally {

@@ -14,6 +14,7 @@ export enum AnalysisStatus {
   FAILED = "failed",
   FAILURE = "failure",
   SUCCESS = "success",
+  CANCELLED = "cancelled",
   UPDATING_DB = "updating_db",
   ONGOING = "ongoing",
   SKIPPED = "skipped",

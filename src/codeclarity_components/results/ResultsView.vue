@@ -111,6 +111,11 @@ const statusNotice = computed((): { title: string; text: string } | null => {
           analysis.value.failure_reason ??
           "The analysis stopped before it finished.",
       };
+    case AnalysisStatus.CANCELLED:
+      return {
+        title: "Analysis cancelled",
+        text: "The analysis was cancelled before it finished.",
+      };
     case AnalysisStatus.STARTED:
     case AnalysisStatus.ONGOING:
     case AnalysisStatus.UPDATING_DB:

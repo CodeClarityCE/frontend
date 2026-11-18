@@ -6,7 +6,7 @@ const ORG = "org-123";
 export const PROJECT = "9b0f6a4e-2c1d-4c3b-8f7a-1e2d3c4b5a69";
 export const ANALYSIS = "5d6e7f80-91a2-4b3c-8d4e-5f6a7b8c9d0e";
 
-type StepStatus = "success" | "failure" | "requested" | "started";
+type StepStatus = "success" | "failure" | "requested" | "started" | "cancelled";
 
 /** One plugin step as the dispatcher records it. */
 export function step(

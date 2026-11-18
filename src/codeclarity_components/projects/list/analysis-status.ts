@@ -27,9 +27,13 @@ export function isFailed(analysis: Analysis): boolean {
   return FAILED.has(analysis.status);
 }
 
+export function isCancelled(analysis: Analysis): boolean {
+  return analysis.status === AnalysisStatus.CANCELLED;
+}
+
 // Still being worked on, so the list keeps refreshing.
 export function isActive(analysis: Analysis): boolean {
-  return !isFinished(analysis) && !isFailed(analysis);
+  return !isFinished(analysis) && !isFailed(analysis) && !isCancelled(analysis);
 }
 
 export function isRunning(analysis: Analysis): boolean {
@@ -42,6 +46,8 @@ export function analysisStatus(analysis: Analysis): StatusView {
     return { tone: "success", label: "Completed", busy: false };
   if (isFailed(analysis))
     return { tone: "danger", label: "Failed", busy: false };
+  if (isCancelled(analysis))
+    return { tone: "neutral", label: "Cancelled", busy: false };
   if (isRunning(analysis))
     return { tone: "neutral", label: "Running", busy: true };
   return { tone: "neutral", label: "Queued", busy: false };
@@ -57,6 +63,8 @@ export function stepStatus(stage: AnalysisStage): StatusView {
     case AnalysisStatus.FAILED:
     case AnalysisStatus.FAILURE:
       return { tone: "danger", label: "Failed", busy: false };
+    case AnalysisStatus.CANCELLED:
+      return { tone: "neutral", label: "Cancelled", busy: false };
     case AnalysisStatus.STARTED:
       return { tone: "neutral", label: "Running", busy: true };
     default:

@@ -7,16 +7,12 @@ import router from "@/router";
 
 import ManageMembers from "./ManageMembers.vue";
 
-const { getOrgMembers, revokeMembership, orgInfo, features } = vi.hoisted(
-  () => ({
-    getOrgMembers: vi.fn(),
-    revokeMembership: vi.fn(),
-    orgInfo: { current: {} },
-    features: { memberRemoval: false },
-  }),
-);
-
-vi.mock("@/utils/server-features", () => ({ serverFeatures: features }));
+const { getOrgMembers, revokeMembership, orgInfo, toasts } = vi.hoisted(() => ({
+  getOrgMembers: vi.fn(),
+  revokeMembership: vi.fn(),
+  orgInfo: { current: {} },
+  toasts: { successToast: vi.fn(), errorToast: vi.fn() },
+}));
 
 vi.mock("@/router", () => ({ default: { back: vi.fn(), push: vi.fn() } }));
 
@@ -28,10 +24,7 @@ vi.mock("@/stores/user", () => ({
   useUserStore: () => ({ getUser: { id: "u-me" } }),
 }));
 
-vi.mock("@/utils/toasts", () => ({
-  successToast: vi.fn(),
-  errorToast: vi.fn(),
-}));
+vi.mock("@/utils/toasts", () => toasts);
 
 // The global @vueuse/core mock leaves shadcn Input inert, so use a plain input.
 vi.mock("@/shadcn/ui/input", () => ({
@@ -50,8 +43,7 @@ vi.mock("@/shadcn/ui/input", () => ({
   }),
 }));
 
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class {},
+const { BusinessLogicError } = vi.hoisted(() => ({
   BusinessLogicError: class BusinessLogicError extends Error {
     error_code: string;
     constructor(error_code: string) {
@@ -59,6 +51,11 @@ vi.mock("@/utils/api/BaseRepository", () => ({
       this.error_code = error_code;
     }
   },
+}));
+
+vi.mock("@/utils/api/BaseRepository", () => ({
+  BaseRepository: class {},
+  BusinessLogicError,
 }));
 
 vi.mock(
@@ -125,6 +122,8 @@ const sample = [
   member("u-me", "Jane", MemberRole.ADMIN),
   member("u-2", "Bob", MemberRole.USER),
   member("u-3", "Olga", MemberRole.OWNER),
+  member("u-4", "Mia", MemberRole.MODERATOR),
+  member("u-5", "Adam", MemberRole.ADMIN),
 ];
 
 function page(data: object[], totalPages = 1): object {
@@ -149,7 +148,6 @@ function button(name: string): HTMLElement | undefined {
 describe("ManageMembers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    features.memberRemoval = false;
     orgInfo.current = {
       id: "org-1",
       role: MemberRole.ADMIN,
@@ -288,24 +286,52 @@ describe("ManageMembers", () => {
     expect(router.back).toHaveBeenCalled();
   });
 
-  it("offers no Remove while the server cannot remove members", async () => {
+  it("offers an admin Remove for a moderator, a user and another admin", async () => {
+    await render();
+
+    expect(button("Remove Bob Doe")).toBeDefined();
+    expect(button("Remove Mia Doe")).toBeDefined();
+    expect(button("Remove Adam Doe")).toBeDefined();
+  });
+
+  it("offers an admin no Remove for an owner or themselves", async () => {
+    await render();
+
+    expect(button("Remove Olga Doe")).toBeUndefined();
+    expect(button("Remove Jane Doe")).toBeUndefined();
+  });
+
+  it("offers a moderator no Remove at all", async () => {
+    orgInfo.current = { ...orgInfo.current, role: MemberRole.MODERATOR };
     await render();
 
     expect(button("Remove Bob Doe")).toBeUndefined();
     expect(document.body.textContent).not.toContain("Actions");
   });
 
-  it("offers Remove for lower roles but never for yourself", async () => {
-    features.memberRemoval = true;
+  it("offers no Remove in a personal organisation", async () => {
+    orgInfo.current = { ...orgInfo.current, personal: true };
     await render();
 
-    expect(button("Remove Bob Doe")).toBeDefined();
-    expect(button("Remove Jane Doe")).toBeUndefined();
-    expect(button("Remove Olga Doe")).toBeUndefined();
+    expect(button("Remove Bob Doe")).toBeUndefined();
+  });
+
+  it.each([
+    ["NotAuthorized", "Your role does not allow removing this member"],
+    ["CannotRevokeOwnMembership", "You cannot remove yourself"],
+  ])("says plainly why the API refused with %s", async (code, message) => {
+    revokeMembership.mockRejectedValue(new BusinessLogicError(code));
+    await render();
+
+    button("Remove Bob Doe")?.click();
+    await flushPromises();
+    button("Remove member")?.click();
+    await flushPromises();
+
+    expect(toasts.errorToast).toHaveBeenCalledWith(message);
   });
 
   it("removes a member after confirming and reloads the list", async () => {
-    features.memberRemoval = true;
     revokeMembership.mockResolvedValue(undefined);
     await render();
 

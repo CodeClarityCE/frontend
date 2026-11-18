@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnDef } from "@tanstack/vue-table";
+import type { ColumnDef, SortingState } from "@tanstack/vue-table";
 
 import { DataTable } from "@/base_components/data-table";
 import { StatusBadge, type StatusTone } from "@/base_components/page";
@@ -10,7 +10,17 @@ import {
 import RoleBadge from "@/codeclarity_components/organizations/members/RoleBadge.vue";
 import { formatDate } from "@/utils/dateUtils";
 
-defineProps<{ logs: AuditLog[]; loading: boolean }>();
+// One page of entries; the parent loads the page, search and sort the table asks for.
+defineProps<{
+  logs: AuditLog[];
+  loading: boolean;
+  total: number;
+  pageSize: number;
+  emptyText: string;
+}>();
+const search = defineModel<string>("filter", { default: "" });
+const pageIndex = defineModel<number>("pageIndex", { default: 0 });
+const emit = defineEmits<{ "update:sorting": [sorting: SortingState] }>();
 
 const severities: Record<ActionSeverity, { label: string; tone: StatusTone }> =
   {
@@ -32,15 +42,14 @@ function actionLabel(action: string): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
+// Column ids are the API's sort keys.
 const columns: ColumnDef<AuditLog, unknown>[] = [
   {
-    id: "severity",
+    id: "action_severity",
     accessorFn: (log) => severity(log).label,
-    sortingFn: (a, b) =>
-      a.original.action_severity - b.original.action_severity,
     header: "Severity",
   },
-  { id: "class", accessorKey: "action_class", header: "Area" },
+  { id: "action_class", accessorKey: "action_class", header: "Area" },
   {
     id: "action",
     accessorFn: (log) => actionLabel(log.action),
@@ -53,34 +62,38 @@ const columns: ColumnDef<AuditLog, unknown>[] = [
     enableSorting: false,
   },
   {
-    id: "by",
+    id: "blame_on_email",
     accessorFn: (log) => log.blame_on?.email ?? log.blame_on_email,
     header: "By",
   },
   {
-    id: "date",
+    id: "created_on",
     accessorFn: (log) => new Date(log.created_on).getTime(),
     header: "Date",
-    enableGlobalFilter: false,
   },
 ];
 </script>
 
 <template>
   <DataTable
+    v-model:filter="search"
+    v-model:page-index="pageIndex"
     :columns="columns"
     :data="logs"
     :loading="loading"
+    :total="total"
+    :page-size="pageSize"
     :row-key="(log: AuditLog) => log.id"
-    :initial-sorting="[{ id: 'date', desc: true }]"
+    :initial-sorting="[{ id: 'created_on', desc: true }]"
     caption="Audit logs"
     filter-label="Filter audit logs"
-    empty-text="No audit logs match."
+    :empty-text="emptyText"
+    @update:sorting="emit('update:sorting', $event)"
   >
-    <template #cell-severity="{ row }">
+    <template #cell-action_severity="{ row }">
       <StatusBadge v-bind="severity(row)" />
     </template>
-    <template #cell-by="{ row }">
+    <template #cell-blame_on_email="{ row }">
       <div v-if="row.blame_on" class="flex items-center gap-2">
         <span>{{ row.blame_on.email }}</span>
         <RoleBadge :role="row.blame_on.role" />
@@ -90,7 +103,7 @@ const columns: ColumnDef<AuditLog, unknown>[] = [
         <span class="text-xs text-muted-foreground">No longer a member</span>
       </div>
     </template>
-    <template #cell-date="{ row }">
+    <template #cell-created_on="{ row }">
       <span class="whitespace-nowrap tabular-nums">
         {{ formatDate(row.created_on, "MMM DD, YYYY") }},
         {{

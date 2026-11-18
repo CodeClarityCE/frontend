@@ -634,10 +634,6 @@ vi.mock("@lucide/vue", () => ({
     name: "MailX",
     template: '<svg data-testid="mail-x-icon"><path/></svg>',
   },
-  RefreshCw: {
-    name: "RefreshCw",
-    template: '<svg data-testid="refresh-cw-icon"><path/></svg>',
-  },
   UserMinus: {
     name: "UserMinus",
     template: '<svg data-testid="user-minus-icon"><path/></svg>',

@@ -104,6 +104,16 @@ describe("SbomDetails", () => {
     expect(screen.getByText("Fix critical and high first.")).toBeTruthy();
   });
 
+  it("says Direct for a dependency that is both direct and transitive", async () => {
+    await show({ direct: true, transitive: true });
+    expect(tile("Added as").slice(0, 2)).toEqual(["Added as", "Direct"]);
+  });
+
+  it("says Transitive for a dependency that is only transitive", async () => {
+    await show({ direct: false, transitive: true });
+    expect(tile("Added as").slice(0, 2)).toEqual(["Added as", "Transitive"]);
+  });
+
   it("links back to the results of its analysis", async () => {
     await show();
     expect(

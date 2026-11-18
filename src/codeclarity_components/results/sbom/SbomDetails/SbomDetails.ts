@@ -33,13 +33,16 @@ export class DependencyDetails {
   latest_version!: string;
   dependencies!: Record<string, string>;
   dev_dependencies!: Record<string, string>;
+  // Listed in the workspace's own manifest, as in the SBOM table
+  direct!: boolean;
   transitive!: boolean;
   source?: Source;
   package_manager!: string;
   license!: string;
   engines?: Record<string, string>;
-  release_date!: Date;
-  lastest_release_date!: Date;
+  // Null when the release date is unknown
+  release_date!: Date | null;
+  lastest_release_date!: Date | null;
   vulnerabilities!: string[];
   severity_dist!: SeverityDist;
   // file_path!: string;

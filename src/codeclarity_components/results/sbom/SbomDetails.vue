@@ -203,7 +203,7 @@ const LINK =
         <StatTile label="License" :value="dependency.license || 'Unlicensed'" />
         <StatTile
           label="Added as"
-          :value="dependency.transitive ? 'Transitive' : 'Direct'"
+          :value="dependency.direct ? 'Direct' : 'Transitive'"
         />
       </ul>
 

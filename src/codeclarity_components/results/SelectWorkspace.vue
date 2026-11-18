@@ -31,7 +31,10 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  "package-manager-loaded": [packageManager: string];
+  "package-manager-loaded": [
+    packageManager: string,
+    byEcosystem: Record<string, string>,
+  ];
   "ecosystem-filter-changed": [ecosystem: string | null];
 }>();
 
@@ -137,12 +140,16 @@ function detectAvailableEcosystems(): void {
   availableEcosystems.value = ecosystems;
 }
 
-// Emits the selected workspace's package manager, else the analysis one.
+// Emits the selected workspace's package manager, else the analysis one,
+// with the manager of each ecosystem in that workspace.
 function emitPackageManager(): void {
   const manager =
     workspaces.value.package_managers?.[selected_workspace.value] ??
     workspaces.value.package_manager;
-  if (manager) void emit("package-manager-loaded", manager);
+  const byEcosystem =
+    workspaces.value.ecosystem_package_managers?.[selected_workspace.value] ??
+    {};
+  if (manager) void emit("package-manager-loaded", manager, byEcosystem);
 }
 
 watch(selected_workspace, emitPackageManager);

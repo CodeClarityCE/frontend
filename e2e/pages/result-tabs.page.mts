@@ -367,6 +367,7 @@ export interface ResultTabsOptions {
     workspaces: string[];
     package_manager: string;
     package_managers?: Record<string, string>;
+    ecosystem_package_managers?: Record<string, Record<string, string>>;
   };
   /** The dependency details answer, merged over the lodash sample. */
   details?: Record<string, unknown>;

@@ -1,0 +1,27 @@
+# The dev stack's self-signed TLS key, tracked on purpose for local development.
+7f20e5bd908db90239c4277e2ecb9c153a1c0f75:.cloud/docker/conf/certs/tls.key:private-key:1
+.cloud/docker/conf/certs/tls.key:private-key:1
+
+# The all-x token placeholder shown in the integration form.
+cab381501aea6f4d91354b79f5783c6b6df2b729:src/codeclarity_components/organizations/integrations/github/AddGithub.vue:github-token-any-entropy:257
+d5852505d1f304c9bd55fcc12f3adbdbc8608ba9:src/codeclarity_components/organizations/integrations/github/AddGithub.vue:github-token-any-entropy:245
+cab381501aea6f4d91354b79f5783c6b6df2b729:src/codeclarity_components/organizations/integrations/gitlab/AddGitlab.vue:gitlab-pat-any-entropy:301
+d5852505d1f304c9bd55fcc12f3adbdbc8608ba9:src/codeclarity_components/organizations/integrations/gitlab/AddGitlab.vue:gitlab-pat-any-entropy:289
+
+# An all-x GitLab placeholder in a test.
+0cc257b16bef11640144d412c762f1ecca10ac21:src/codeclarity_components/organizations/integrations/gitlab/AddGitlab.test.ts:gitlab-pat-any-entropy:43
+src/codeclarity_components/organizations/integrations/gitlab/AddGitlab.test.ts:gitlab-pat-any-entropy:43
+
+# A made-up password in a unit test.
+03a322e82463699948fa2acd0f6d8761f2065701:tests/unit/codeclarity_components/authentication/email/PasswordResetForm.spec.ts:generic-api-key:80
+03a322e82463699948fa2acd0f6d8761f2065701:tests/unit/codeclarity_components/authentication/email/PasswordResetForm.spec.ts:generic-api-key:81
+tests/unit/codeclarity_components/authentication/email/PasswordResetForm.spec.ts:generic-api-key:97
+tests/unit/codeclarity_components/authentication/email/PasswordResetForm.spec.ts:generic-api-key:98
+
+# A made-up SBOM key UUID in a contract fixture.
+c18690b23ca3d17162576d85cd8cffbaeb416618:e2e/contracts/analysis.json:generic-api-key:29
+e2e/contracts/analysis.json:generic-api-key:29
+
+# A made-up, unsigned JWT in an auth test fixture.
+12531004777c2867b7846c5e8f0abab1b7ce0c6c:cypress/fixtures/auth.json:generic-api-key:15
+e2e/fixtures/auth.json:generic-api-key:15

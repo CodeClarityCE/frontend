@@ -45,6 +45,7 @@ async function poll(): Promise<void> {
       experimentId: props.experimentId,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     if (response.data.total > 0) progress.value = response.data;
     else if (progress.value) {

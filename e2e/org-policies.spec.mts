@@ -43,6 +43,20 @@ test.describe("Organisation policies list", () => {
     ).toBeVisible();
   });
 
+  test("describes license policies as licenses that analyses flag", async ({
+    page,
+  }) => {
+    const policies = new OrgPoliciesPage(page);
+    await policies.signIn();
+    await policies.gotoList();
+
+    const main = page.locator("#main-content");
+    await expect(main).toContainText(
+      "Name the licenses projects in this organisation should not use. Analyses flag them.",
+    );
+    await expect(main).not.toContainText(/\ballow\b|\bblock\b/i);
+  });
+
   test("deleting a license policy asks first, then removes it", async ({
     page,
   }) => {

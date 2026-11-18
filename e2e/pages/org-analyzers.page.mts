@@ -13,7 +13,7 @@ export function analyzer(
   return {
     id,
     name,
-    description: `${name} workflow for JavaScript projects`,
+    description: `${name} for JavaScript projects`,
     created_on: "2026-10-01T09:00:00Z",
     steps: [
       [

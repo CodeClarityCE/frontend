@@ -114,7 +114,7 @@ const faqs = [
   {
     question: "What are policies?",
     answer:
-      "Rules the analyzers apply, such as licenses to allow or block and vulnerabilities to flag.",
+      "Rules the analyzers apply, such as licenses projects should not use and vulnerabilities to flag.",
   },
   {
     question: "How do I add people?",

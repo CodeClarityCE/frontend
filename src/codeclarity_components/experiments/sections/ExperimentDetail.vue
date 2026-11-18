@@ -175,6 +175,7 @@ async function loadExperiment(): Promise<void> {
       experimentId: experimentId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     experiment.value = response.data;
     notFound.value = false;
@@ -208,6 +209,7 @@ async function loadFigureCatalog(): Promise<void> {
       experimentId: experimentId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     figureCatalog.value = response.data;
   } catch {
@@ -226,6 +228,7 @@ async function loadPublishedVersions(): Promise<void> {
       experimentId: experimentId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     };
     const [versions, current] = await Promise.all([
       experimentsRepository.getPublishedVersions(request),
@@ -250,6 +253,7 @@ async function loadResults(): Promise<void> {
       experimentId: experimentId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     };
     const response = requested
       ? await experimentsRepository.getPublishedResults({
@@ -297,6 +301,7 @@ async function downloadExport(file: ExperimentExportFile): Promise<void> {
       ...(metricVersion === null ? {} : { metricVersion }),
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     saveBlob(
       blob,
@@ -322,6 +327,7 @@ async function downloadPackage(metricVersion: number): Promise<void> {
       metricVersion,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     saveBlob(blob, exportFilename(`v${metricVersion}-package.zip`));
   } catch {
@@ -341,6 +347,7 @@ async function loadRuns(): Promise<void> {
       pagination: { page: runsPage.value, entries_per_page: RUNS_PER_PAGE },
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     runs.value = response.data;
     runsTotalPages.value = response.total_pages;
@@ -367,6 +374,7 @@ async function cancelExperiment(): Promise<void> {
       experimentId: experimentId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     successToast("Experiment cancelled");
   } catch (err) {
@@ -392,6 +400,7 @@ async function publishExperiment(): Promise<void> {
       experimentId: experimentId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     pickedMetricVersion.value = null;
     successToast("Experiment published");
@@ -418,6 +427,7 @@ async function deleteExperiment(): Promise<void> {
       experimentId: experimentId.value,
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     successToast("Experiment deleted");
     void router.push({ name: "experiments" });

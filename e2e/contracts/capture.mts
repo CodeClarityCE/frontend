@@ -49,9 +49,10 @@ for (const id of orgIds) {
     `/org/${id}/policies/license_policy?page=0&entries_per_page=1`,
     token,
   )) as List;
-  if (policies.data.length > 0) {
+  const [first] = policies.data;
+  if (first) {
     org = id;
-    policy = policies.data[0].id;
+    policy = first.id;
     break;
   }
 }

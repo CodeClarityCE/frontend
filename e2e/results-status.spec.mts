@@ -88,7 +88,7 @@ test.describe("Results page for an unfinished analysis", () => {
   for (const [state, text] of [
     ["requested", "Analysis queued"],
     ["started", "Analysis running"],
-  ]) {
+  ] as const) {
     test(`a ${state} analysis says it is not finished`, async ({ page }) => {
       const results = new ResultsStatusPage(page);
       await results.signIn({

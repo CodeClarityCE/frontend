@@ -65,7 +65,7 @@ export function member(
   };
 }
 
-export const sampleMembers = [
+export const sampleMembers: [Membership, Membership, Membership] = [
   member(user.id, "John", "Doe", 0, {
     handle: "JohnDoe",
     email: user.email,

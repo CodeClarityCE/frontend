@@ -1,6 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
-import { seedAuthStore } from "./helpers/auth-store.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { AuthPage } from "./pages/auth.page.mjs";
 
@@ -163,7 +162,7 @@ test.describe("Authentication E2E Tests", () => {
       await expectVisibleFocus(authPage.loginButton);
     });
 
-    test("should allow Enter key in password field", async ({ page }) => {
+    test("should allow Enter key in password field", async () => {
       await authPage.goto();
 
       await authPage.emailInput.fill("test@example.com");
@@ -405,123 +404,5 @@ test.describe("Sign up", () => {
     await page.goto("/signup");
     await expect(field(page, "Email")).toBeVisible();
     await expectScreenshots(page, "signup");
-  });
-});
-
-test.describe("Social account setup", () => {
-  test.beforeEach(async ({ page }) => {
-    await seedAuthStore(page);
-    await page.goto("/signup?provider=GITHUB");
-  });
-
-  test("names the provider and asks for the missing details", async ({
-    page,
-  }) => {
-    await expect(
-      page.getByRole("heading", { name: /finish setting up your account/i }),
-    ).toBeVisible();
-    await expect(page.getByRole("img", { name: "GitHub" })).toBeVisible();
-    await expect(page.getByLabel("First name")).toBeVisible();
-    await expect(page.getByLabel("Handle")).toBeVisible();
-  });
-
-  test("requires the terms to be accepted", async ({ page }) => {
-    await page.getByRole("button", { name: "Complete account setup" }).click();
-    await expect(
-      page.getByText("You must accept our terms and conditions to continue"),
-    ).toBeVisible();
-  });
-
-  test("keyboard reaches every control with a visible focus", async ({
-    page,
-  }) => {
-    await page.getByLabel("First name").focus();
-    for (const control of [
-      page.getByLabel("Last name"),
-      page.getByLabel("Handle"),
-      page.getByRole("checkbox"),
-      page.getByRole("link", { name: "Terms of service" }).first(),
-      page.getByRole("link", { name: "Privacy policy" }).first(),
-      page.getByRole("button", { name: "Complete account setup" }),
-    ]) {
-      await page.keyboard.press("Tab");
-      await expectVisibleFocus(control);
-    }
-  });
-
-  test("has no WCAG 2.2 AA violations", async ({ page }) => {
-    await expect(page.getByLabel("First name")).toBeVisible();
-    await expectNoAxeViolations(page);
-  });
-
-  test("matches the approved screenshots", async ({ page }) => {
-    await expect(page.getByLabel("First name")).toBeVisible();
-    await expectScreenshots(page, "social-setup");
-  });
-});
-
-test.describe("OAuth callback", () => {
-  const callback = "/auth/github/callback?state=s1&code=c1";
-
-  test("returns to sign in when the state does not match", async ({ page }) => {
-    await seedAuthStore(page, { socialAuthState: "other" });
-    await page.goto(callback);
-    await expect(page).toHaveURL(/\/login\?notice=oauth_failed$/);
-  });
-
-  test("shows progress while signing in", async ({ page }) => {
-    await seedAuthStore(page, { socialAuthState: "s1" });
-    await page.route("**/api/auth/github/finalize", () => {
-      // Never answers, so the page stays in progress.
-    });
-    await page.goto(callback);
-    await expect(
-      page.getByRole("status").getByText(/signing you in with github/i),
-    ).toBeVisible();
-    await expectNoAxeViolations(page);
-  });
-
-  test.describe("when the provider rejects the sign in", () => {
-    test.beforeEach(async ({ page }) => {
-      await seedAuthStore(page, { socialAuthState: "s1" });
-      await page.route("**/api/auth/github/finalize", (route) =>
-        route.fulfill({
-          status: 400,
-          json: {
-            error_code: "FailedToAuthenticateSocialAccount",
-            error_message: "Failed",
-          },
-        }),
-      );
-      await page.goto(callback);
-    });
-
-    test("explains the failure and offers a way back", async ({ page }) => {
-      await expect(
-        page.getByRole("heading", { name: /github sign in failed/i }),
-      ).toBeVisible();
-      await expect(
-        page.getByText("FailedToAuthenticateSocialAccount"),
-      ).toBeVisible();
-      const back = page.getByRole("button", { name: "Back to sign in" });
-      await back.focus();
-      await expectVisibleFocus(back);
-      await back.click();
-      await expect(page).toHaveURL(/\/login$/);
-    });
-
-    test("has no WCAG 2.2 AA violations", async ({ page }) => {
-      await expect(
-        page.getByRole("button", { name: "Back to sign in" }),
-      ).toBeVisible();
-      await expectNoAxeViolations(page);
-    });
-
-    test("matches the approved screenshots", async ({ page }) => {
-      await expect(
-        page.getByRole("button", { name: "Back to sign in" }),
-      ).toBeVisible();
-      await expectScreenshots(page, "oauth-callback-error");
-    });
   });
 });

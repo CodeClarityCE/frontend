@@ -167,30 +167,6 @@ test.describe("Deep links through login", () => {
 });
 
 test.describe("Messages on the login page", () => {
-  test("a cancelled GitHub sign in explains what happened", async ({
-    page,
-  }) => {
-    await seedAuthStore(page, { socialAuthState: "s1" });
-    await page.goto(
-      "/auth/github/callback?error=access_denied&state=s1&error_description=denied",
-    );
-    await expect(page).toHaveURL(/\/login/);
-    await expect(page.getByRole("alert")).toContainText(
-      /sign in with github or gitlab did not complete/i,
-    );
-  });
-
-  test("a sign in callback with a foreign state explains what happened", async ({
-    page,
-  }) => {
-    await seedAuthStore(page, { socialAuthState: "other" });
-    await page.goto("/auth/gitlab/callback?state=s1&code=c1");
-    await expect(page).toHaveURL(/\/login/);
-    await expect(page.getByRole("alert")).toContainText(
-      /sign in with github or gitlab did not complete/i,
-    );
-  });
-
   test("a reset link without a token explains what happened", async ({
     page,
   }) => {

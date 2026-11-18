@@ -9,12 +9,14 @@ import ManageInvites from "./ManageInvites.vue";
 const {
   getInvitations,
   revokeInvitation,
+  resendOrgInvitationEmail,
   orgInfo,
   toasts,
   BusinessLogicError,
 } = vi.hoisted(() => ({
   getInvitations: vi.fn(),
   revokeInvitation: vi.fn(),
+  resendOrgInvitationEmail: vi.fn(),
   orgInfo: { current: {} },
   toasts: { successToast: vi.fn(), errorToast: vi.fn() },
   BusinessLogicError: class BusinessLogicError extends Error {
@@ -43,6 +45,7 @@ vi.mock("../organization.repository", () => ({
   OrgRepository: class {
     getInvitations = getInvitations;
     revokeInvitation = revokeInvitation;
+    resendOrgInvitationEmail = resendOrgInvitationEmail;
   },
 }));
 
@@ -113,6 +116,7 @@ function button(name: string): HTMLElement | undefined {
 }
 
 const revokeLabel = "Revoke the invitation to new@example.com";
+const resendLabel = "Resend the invitation to new@example.com";
 
 describe("ManageInvites", () => {
   beforeEach(() => {
@@ -180,6 +184,47 @@ describe("ManageInvites", () => {
 
     expect(toasts.errorToast).toHaveBeenCalledWith(
       "Your role does not allow this",
+    );
+  });
+
+  it("offers an owner Resend, and an admin none", async () => {
+    await render();
+    expect(button(resendLabel)).toBeDefined();
+    wrapper?.unmount();
+    document.body.innerHTML = "";
+
+    orgInfo.current = { ...orgInfo.current, role: MemberRole.ADMIN };
+    await render();
+    expect(button(resendLabel)).toBeUndefined();
+  });
+
+  it("resends the invitation and says the email went out", async () => {
+    resendOrgInvitationEmail.mockResolvedValue({});
+    await render();
+
+    button(resendLabel)?.click();
+    await flushPromises();
+
+    expect(resendOrgInvitationEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ orgId: "org-1", invitationId: "inv-1" }),
+    );
+    expect(toasts.successToast).toHaveBeenCalledWith(
+      "Invitation emailed again to new@example.com",
+    );
+    expect(getInvitations).toHaveBeenCalledTimes(2);
+  });
+
+  it("says when the invitation email could not be sent", async () => {
+    resendOrgInvitationEmail.mockRejectedValue(
+      new BusinessLogicError("FailedToSendOrganizationInviteEmail"),
+    );
+    await render();
+
+    button(resendLabel)?.click();
+    await flushPromises();
+
+    expect(toasts.errorToast).toHaveBeenCalledWith(
+      "The invitation email could not be sent. Try again later.",
     );
   });
 });

@@ -89,8 +89,11 @@ async function confirm(): Promise<void> {
           {{ action === "delete" ? "Delete" : "Leave" }} {{ orgName }}?
         </AlertDialogTitle>
         <AlertDialogDescription v-if="action === 'delete'">
-          Its projects, analyses, integrations and policies are deleted for
-          every member. This cannot be undone.
+          Its projects, analyses and results, tickets, analyzers, integrations,
+          policies, invitations and audit log are deleted for every member.
+          Integrations and policies also used by another organisation are kept
+          there. Tasks already created in ClickUp are kept. This cannot be
+          undone.
         </AlertDialogDescription>
         <AlertDialogDescription v-else>
           You lose access to its projects and results until someone invites you

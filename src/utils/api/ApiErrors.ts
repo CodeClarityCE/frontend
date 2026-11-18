@@ -49,6 +49,7 @@ export const APIErrors = {
   EntityInUse: "EntityInUse",
   DatasetNotReady: "DatasetNotReady",
   AnalyzerMissingRequiredPlugins: "AnalyzerMissingRequiredPlugins",
+  IntegrationInstanceUrlChanged: "IntegrationInstanceUrlChanged",
   IntegrationIntegrationTokenMissingPermissions:
     "IntegrationIntegrationTokenMissingPermissions",
   FailedToSendAccountRegistrationVerificationEmail:

@@ -13,7 +13,6 @@ import router from "@/router";
 import { useAuthStore } from "@/stores/auth";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
-import { serverFeatures } from "@/utils/server-features";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import OrgIntegrationManageTokenBasedIntegration from "../IntegrationManageTokenBasedIntegration.vue";
@@ -95,18 +94,14 @@ else router.back();
     :error="error"
     :error-code="errorCode"
     :deleting="deleting"
-    :update-route="
-      serverFeatures.gitlabTokenReplacement
-        ? {
-            name: 'orgs',
-            params: { action: 'add', page: 'integrations', orgId: orgId },
-            query: {
-              update: integrationId,
-              provider: IntegrationProvider.GITLAB,
-            },
-          }
-        : undefined
-    "
+    :update-route="{
+      name: 'orgs',
+      params: { action: 'add', page: 'integrations', orgId: orgId },
+      query: {
+        update: integrationId,
+        provider: IntegrationProvider.GITLAB,
+      },
+    }"
     @refresh="fetchIntegration()"
     @delete="deleteIntegration()"
   >

@@ -25,7 +25,6 @@ import {
   Organization,
   OrganizationInfoForInvitee,
   OrganizationMetaData,
-  TeamMember,
 } from "./organization.entity";
 import { OrganizationMembership } from "./organization_membership.entity";
 
@@ -52,10 +51,6 @@ export interface GetOrgMembersRequestOptions
     SearchableRepoMethodRequestOptions,
     SortableRepoMethodRequestOptions,
     BaseOrgRequestOptions {}
-export interface GetOrgMemberRequestOptions
-  extends AuthRepoMethodGetRequestOptions, BaseOrgRequestOptions {
-  userId: string;
-}
 export interface RevokeOrgMembershipRequestOptions
   extends AuthRepoMethodEmptyDeleteRequestOptions, BaseOrgRequestOptions {
   userId: string;
@@ -198,20 +193,6 @@ export class OrgRepository extends BaseRepository {
     });
 
     return unMarshalMemberships(response);
-  }
-
-  async getOrgMember(options: GetOrgMemberRequestOptions): Promise<TeamMember> {
-    const RELATIVE_URL = `/org/${options.orgId}/members/${options.userId}`;
-
-    const response = await this.getRequest<DataResponse<TeamMember>>({
-      bearerToken: options.bearerToken,
-      url: this.buildUrl(RELATIVE_URL),
-      handleBusinessErrors: options.handleBusinessErrors,
-      handleHTTPErrors: options.handleHTTPErrors,
-      handleOtherErrors: options.handleOtherErrors,
-    });
-
-    return Entity.unMarshal<TeamMember>(response.data, TeamMember);
   }
 
   async revokeMembership(

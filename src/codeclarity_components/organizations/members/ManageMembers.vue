@@ -7,6 +7,7 @@ import { RouterLink, useRoute } from "vue-router";
 import { DataTable } from "@/base_components/data-table";
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
 import {
+  isMemberRoleGreaterOrEqualTo,
   isMemberRoleGreaterThan,
   MemberRole,
   type Organization,
@@ -23,7 +24,6 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { formatDate } from "@/utils/dateUtils";
-import { serverFeatures } from "@/utils/server-features";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import ConfirmDestructiveDialog from "./ConfirmDestructiveDialog.vue";
@@ -59,6 +59,13 @@ const canInvite = computed(
     isMemberRoleGreaterThan(orgInfo.value.role, MemberRole.USER),
 );
 
+const canManageMembers = computed(
+  () =>
+    !!orgInfo.value &&
+    !orgInfo.value.personal &&
+    isMemberRoleGreaterOrEqualTo(orgInfo.value.role, MemberRole.ADMIN),
+);
+
 const columns: ColumnDef<OrganizationMembership, unknown>[] = [
   {
     id: "member",
@@ -80,9 +87,13 @@ const columns: ColumnDef<OrganizationMembership, unknown>[] = [
     header: "Joined",
     enableGlobalFilter: false,
   },
-  // Shown only once the server can remove a member.
-  ...(serverFeatures.memberRemoval
+];
+
+// Admins and owners get a column to remove members.
+const tableColumns = computed(() =>
+  canManageMembers.value
     ? [
+        ...columns,
         {
           id: "actions",
           header: "Actions",
@@ -90,8 +101,8 @@ const columns: ColumnDef<OrganizationMembership, unknown>[] = [
           enableGlobalFilter: false,
         },
       ]
-    : []),
-];
+    : columns,
+);
 
 function fullName(m: OrganizationMembership): string {
   return `${m.user.first_name} ${m.user.last_name}`;
@@ -101,11 +112,10 @@ function isSelf(m: OrganizationMembership): boolean {
   return m.user.id === userStore.getUser?.id;
 }
 
+// Same rule as the API: an admin or owner removes anyone but themselves and those who outrank them.
 function canRemove(m: OrganizationMembership): boolean {
-  if (!serverFeatures.memberRemoval || !orgInfo.value || isSelf(m)) {
-    return false;
-  }
-  return isMemberRoleGreaterThan(orgInfo.value.role, m.role);
+  if (!canManageMembers.value || !orgInfo.value || isSelf(m)) return false;
+  return !isMemberRoleGreaterThan(m.role, orgInfo.value.role);
 }
 
 async function fetchAll(token: string): Promise<OrganizationMembership[]> {
@@ -251,7 +261,7 @@ onMounted(() => {
 
     <DataTable
       v-else
-      :columns="columns"
+      :columns="tableColumns"
       :data="members"
       :loading="!loaded"
       :row-key="(m: OrganizationMembership) => m.user.id"

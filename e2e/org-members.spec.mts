@@ -52,30 +52,36 @@ test.describe("Organisation members", () => {
     ]);
   });
 
-  test("member rows offer no remove action, which the server cannot do yet", async ({
-    page,
-  }) => {
+  test("an owner removes a member after confirming", async ({ page }) => {
     const members = new OrgMembersPage(page);
     await members.signIn();
     await members.gotoMembers();
     await expect(members.rows()).toHaveCount(3);
 
-    await expect(page.getByRole("button", { name: /^Remove/ })).toHaveCount(0);
     await expect(
-      members.table.getByRole("columnheader", { name: "Actions" }),
+      page.getByRole("button", { name: "Remove John Doe" }),
     ).toHaveCount(0);
+    await page.getByRole("button", { name: "Remove Bob Keller" }).click();
+    await page
+      .getByRole("dialog", { name: /Remove Bob Keller/ })
+      .getByRole("button", { name: "Remove member" })
+      .click();
+
+    await expect(members.rows()).toHaveCount(2);
+    expect(members.deleted).toEqual([`/api/org/org-123/members/u-bob`]);
   });
 
-  test("member rows link to no audit logs, which cannot be read yet", async ({
-    page,
-  }) => {
+  test("an admin cannot remove the owner", async ({ page }) => {
     const members = new OrgMembersPage(page);
-    await members.signIn();
+    await members.signIn({ org: { role: 1 } });
     await members.gotoMembers();
     await expect(members.rows()).toHaveCount(3);
 
     await expect(
-      page.getByRole("link", { name: /^Audit logs of/ }),
+      page.getByRole("button", { name: "Remove Bob Keller" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Remove John Doe" }),
     ).toHaveCount(0);
   });
 
@@ -120,16 +126,42 @@ test.describe("Organisation members", () => {
 });
 
 test.describe("Organisation audit logs", () => {
-  test("says plainly that audit logs cannot be read yet", async ({ page }) => {
+  test("lists the entries the API returns", async ({ page }) => {
     const members = new OrgMembersPage(page);
     await members.signIn();
     await members.gotoLogs();
 
     await expect(members.heading).toHaveText("Audit logs");
-    await expect(
-      page.getByText("Reading audit logs is not available yet."),
-    ).toBeVisible();
-    await expect(page.getByRole("table")).toHaveCount(0);
+    await expect(members.rows()).toHaveCount(3);
+    await expect(members.row("Removed eve@example.com")).toContainText(
+      "alice@example.com",
+    );
+    await expect(members.row("Updated Default analyzer")).toContainText(
+      "No longer a member",
+    );
+  });
+
+  test("searching asks the API for matching entries", async ({ page }) => {
+    const members = new OrgMembersPage(page);
+    await members.signIn();
+    await members.gotoLogs();
+    await expect(members.rows()).toHaveCount(3);
+
+    const searched = page.waitForRequest(
+      (r) =>
+        r.url().includes("/audit_logs") &&
+        new URL(r.url()).searchParams.get("search_key") === "eve",
+    );
+    await members.filter.fill("eve");
+    await searched;
+  });
+
+  test("with no entries the page says so", async ({ page }) => {
+    const members = new OrgMembersPage(page);
+    await members.signIn({ logs: [] });
+    await members.gotoLogs();
+
+    await expect(page.getByText("No audit log entries yet.")).toBeVisible();
   });
 
   test("a moderator is sent back to the overview", async ({ page }) => {
@@ -201,19 +233,34 @@ test.describe("Organisation invitations", () => {
     ).toBeVisible();
   });
 
-  test("invitations offer no resend or revoke, which the server cannot do yet", async ({
-    page,
-  }) => {
+  test("an owner revokes an invitation after confirming", async ({ page }) => {
     const members = new OrgMembersPage(page);
     await members.signIn();
     await members.gotoInvites();
     await expect(members.rows()).toHaveCount(2);
 
+    await page
+      .getByRole("button", {
+        name: "Revoke the invitation to carol@example.com",
+      })
+      .click();
+    await page
+      .getByRole("dialog", { name: /carol@example.com/ })
+      .getByRole("button", { name: "Revoke invitation" })
+      .click();
+
+    await expect(members.rows()).toHaveCount(1);
+    expect(members.deleted).toEqual([`/api/org/org-123/invitations/inv-1`]);
+  });
+
+  test("an admin is offered no revoke", async ({ page }) => {
+    const members = new OrgMembersPage(page);
+    await members.signIn({ org: { role: 1 } });
+    await members.gotoInvites();
+    await expect(members.rows()).toHaveCount(2);
+
     await expect(
-      page.getByRole("button", { name: /^(Resend|Revoke) the invitation/ }),
-    ).toHaveCount(0);
-    await expect(
-      members.table.getByRole("columnheader", { name: "Actions" }),
+      page.getByRole("button", { name: /^Revoke the invitation/ }),
     ).toHaveCount(0);
   });
 
@@ -253,11 +300,7 @@ test.describe("Organisation members, invitations and logs: keyboard, axe and scr
       if (view === "members") await members.gotoMembers();
       if (view === "invites") await members.gotoInvites();
       if (view === "logs") await members.gotoLogs();
-      if (view === "logs") {
-        await expect(page.getByText(/not available yet/)).toBeVisible();
-      } else {
-        await expect(members.rows().first()).toBeVisible();
-      }
+      await expect(members.rows().first()).toBeVisible();
 
       await expectNoAxeViolations(page);
       await expectScreenshots(page, `org-${view}`);

@@ -15,7 +15,6 @@ import router from "@/router";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
-import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
@@ -47,7 +46,6 @@ const props = defineProps<{
 
 const orgRepository = new OrgRepository();
 const authStore = useAuthStore();
-const userStore = useUserStore();
 
 const orgInfo = ref<Organization>();
 const invitations = ref<Invitation[]>([]);
@@ -95,9 +93,21 @@ const columns: ColumnDef<Invitation, unknown>[] = [
     header: "Expires",
     enableGlobalFilter: false,
   },
-  // Shown only once the server can resend or revoke an invitation.
-  ...(serverFeatures.invitationResend || serverFeatures.invitationRevoke
+];
+
+// Same rule as the API: only owners revoke invitations, outside personal organisations.
+const canRevoke = computed(
+  () =>
+    !!orgInfo.value &&
+    !orgInfo.value.personal &&
+    orgInfo.value.role === MemberRole.OWNER,
+);
+
+// The actions column shows once there is an action to offer.
+const tableColumns = computed(() =>
+  serverFeatures.invitationResend || canRevoke.value
     ? [
+        ...columns,
         {
           id: "actions",
           header: "Actions",
@@ -105,21 +115,12 @@ const columns: ColumnDef<Invitation, unknown>[] = [
           enableGlobalFilter: false,
         },
       ]
-    : []),
-];
+    : columns,
+);
 
 function inviterName(i: Invitation): string {
   if (!i.created_by) return "Deleted user";
   return `${i.created_by.first_name} ${i.created_by.last_name}`;
-}
-
-function canRevoke(i: Invitation): boolean {
-  if (!orgInfo.value) return false;
-  return (
-    !i.created_by ||
-    i.created_by.id === userStore.getUser?.id ||
-    isMemberRoleGreaterThan(orgInfo.value.role, i.created_by.role)
-  );
 }
 
 async function fetchAll(token: string): Promise<Invitation[]> {
@@ -272,7 +273,7 @@ onMounted(() => void load());
 
     <DataTable
       v-else
-      :columns="columns"
+      :columns="tableColumns"
       :data="invitations"
       :loading="!loaded"
       :row-key="(i: Invitation) => i.id"
@@ -323,7 +324,7 @@ onMounted(() => void load());
             Resend
           </Button>
           <Button
-            v-if="serverFeatures.invitationRevoke && canRevoke(row)"
+            v-if="canRevoke"
             variant="destructive"
             size="sm"
             :aria-label="`Revoke the invitation to ${row.user_email}`"

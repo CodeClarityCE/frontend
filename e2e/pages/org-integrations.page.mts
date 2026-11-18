@@ -68,6 +68,8 @@ export class OrgIntegrationsPage {
   readonly dialog: Locator;
   /** Paths of the DELETE requests the page sent. */
   readonly deleted: string[] = [];
+  /** Bodies of the token replacements the page sent. */
+  readonly patched: unknown[] = [];
 
   constructor(page: Page) {
     this.page = page;
@@ -107,6 +109,10 @@ export class OrgIntegrationsPage {
         integrations = integrations.filter(
           (i) => (i as { id: string }).id !== id,
         );
+        return fulfil(route, { status_code: 200, status: "success" });
+      }
+      if (request.method() === "PATCH") {
+        this.patched.push(request.postDataJSON());
         return fulfil(route, { status_code: 200, status: "success" });
       }
       if (path.endsWith("/integrations/vcs")) {

@@ -208,28 +208,18 @@ test.describe("Replacing a token", () => {
     ).toBeVisible();
   });
 
-  test("GitLab says replacing is unavailable and how to use a new token", async ({
-    page,
-  }) => {
+  test("GitLab offers to replace its token", async ({ page }) => {
     const integrations = new OrgIntegrationsPage(page);
     await integrations.signIn();
     await integrations.gotoManage("GITLAB", "gl-1");
 
     await expect(
-      page.getByRole("heading", { name: "GitLab integration" }),
+      page.getByRole("link", { name: "Replace token" }),
     ).toBeVisible();
-    await expect(page.getByRole("link", { name: "Replace token" })).toHaveCount(
-      0,
-    );
-    await expect(
-      page.getByText(
-        "Replacing a GitLab token is not available yet. To use a new token, delete this integration and connect GitLab again.",
-      ),
-    ).toBeVisible();
-    await expect(page.getByText(/"Replace token"/)).toHaveCount(0);
+    await expect(page.getByText(/not available yet/)).toHaveCount(0);
   });
 
-  test("the GitLab replace address shows the same message instead of a form", async ({
+  test("the GitLab replace form keeps the instance and sends the new token", async ({
     page,
   }) => {
     const integrations = new OrgIntegrationsPage(page);
@@ -237,14 +227,27 @@ test.describe("Replacing a token", () => {
     await integrations.gotoReplace("GITLAB", "gl-1");
 
     await expect(
-      page.getByRole("heading", {
-        name: "Replacing a GitLab token is not available",
-      }),
+      page.getByRole("heading", { name: "Replace the GitLab token" }),
     ).toBeVisible();
-    await expect(page.getByLabel("GitLab personal access token")).toHaveCount(
-      0,
-    );
+    await expect(
+      page.getByText("gitlab.example.com", { exact: true }),
+    ).toBeVisible();
+    await expect(page.getByRole("radio")).toHaveCount(0);
     await expectNoAxeViolations(page);
+
+    await page
+      .getByLabel("GitLab personal access token")
+      .fill(`glpat-${"a".repeat(20)}`);
+    await page.getByRole("button", { name: "Replace token" }).click();
+
+    await expect(page).toHaveURL(/\/orgs\/manage\/integrations\/org-123/);
+    expect(integrations.patched).toEqual([
+      {
+        token: `glpat-${"a".repeat(20)}`,
+        token_type: "PERSONAL_ACCESS_TOKEN",
+        gitlab_instance_url: "gitlab.example.com",
+      },
+    ]);
   });
 });
 

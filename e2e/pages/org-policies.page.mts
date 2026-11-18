@@ -129,7 +129,11 @@ export class OrgPoliciesPage {
       const path = new URL(request.url()).pathname.replace(/^\/api/, "");
       if (request.method() !== "GET") {
         this.writes.push(`${request.method()} ${path}`);
-        return fulfil(route, { id: "new-policy", status: "success" });
+        return fulfil(route, {
+          id: "new-policy",
+          status_code: 200,
+          status: "success",
+        });
       }
       const [, kind, id] =
         /\/policies\/(license_policy|vulnerability_policy)\/?(.*)$/.exec(

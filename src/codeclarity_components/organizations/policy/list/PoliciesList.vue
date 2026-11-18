@@ -6,8 +6,17 @@ import { RouterLink, useRouter } from "vue-router";
 import { OwlEmptyState, StatTile } from "@/base_components/page";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shadcn/ui/dialog";
+import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
-import { serverFeatures } from "@/utils/server-features";
+import { errorToast, successToast } from "@/utils/toasts";
 
 import type { LicensePolicy } from "../license_policy.entity";
 import { LicensePolicyRepository } from "../license_policy.repository";
@@ -27,6 +36,15 @@ const authStore = useAuthStore();
 const policies = ref<LicensePolicy[]>([]);
 const loaded = ref(false);
 const error = ref("");
+
+const policyToDelete = ref<LicensePolicy | null>(null);
+const deleting = ref(false);
+const deleteOpen = computed({
+  get: () => policyToDelete.value !== null,
+  set: (open: boolean) => {
+    if (!open && !deleting.value) policyToDelete.value = null;
+  },
+});
 
 const createRoute = computed(() => ({
   name: "orgs",
@@ -64,6 +82,28 @@ function handleEdit(policy: LicensePolicy): void {
     params: { action: "edit", page: "policy", orgId: props.orgId },
     query: { policyId: policy.id },
   });
+}
+
+async function confirmDelete(): Promise<void> {
+  const policy = policyToDelete.value;
+  if (!policy || !authStore.getToken) return;
+  deleting.value = true;
+  try {
+    await licensePolicyRepository.deletePolicy({
+      orgId: props.orgId,
+      policyId: policy.id,
+      bearerToken: authStore.getToken,
+      handleBusinessErrors: true,
+      handleHTTPErrors: true,
+    });
+    policies.value = policies.value.filter((p) => p.id !== policy.id);
+    successToast(`Deleted ${policy.name}`);
+  } catch {
+    errorToast("The policy could not be deleted");
+  } finally {
+    deleting.value = false;
+    policyToDelete.value = null;
+  }
 }
 
 onBeforeMount(() => void loadPolicies());
@@ -117,8 +157,40 @@ onBeforeMount(() => void loadPolicies());
       :loading="!loaded"
       caption="License policies"
       content-label="Licenses"
-      :can-edit="canManage && serverFeatures.licensePolicyChanges"
+      :can-edit="canManage"
+      :can-delete="canManage"
       @edit="handleEdit"
+      @delete="policyToDelete = $event"
     />
+
+    <Dialog v-model:open="deleteOpen">
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Delete {{ policyToDelete?.name }}?</DialogTitle>
+          <DialogDescription>
+            New analyses will no longer flag its
+            {{ policyToDelete?.content?.length ?? 0 }} licenses. This cannot be
+            undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            :disabled="deleting"
+            @click="deleteOpen = false"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            :disabled="deleting"
+            @click="confirmDelete"
+          >
+            <Spinner v-if="deleting" />
+            Delete policy
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </section>
 </template>

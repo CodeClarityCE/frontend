@@ -2,7 +2,6 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
-
 import {
   ExperimentDetailPage,
   samplePublishedVersion,

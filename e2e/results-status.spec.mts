@@ -3,8 +3,8 @@ import { expect, type Page, test } from "@playwright/test";
 import { expectNoAxeViolations } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
-  analysis,
   ANALYSIS,
+  analysis,
   NOT_FOUND,
   PROJECT,
   ResultsStatusPage,

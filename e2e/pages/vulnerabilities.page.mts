@@ -265,9 +265,10 @@ function sortFindings(
     key === "cve"
       ? String(f.Vulnerability)
       : ((f.Severity as { Severity: number }).Severity ?? 0);
-  const sorted = [...list].sort((a, b) =>
-    value(a) < value(b) ? -1 : value(a) > value(b) ? 1 : 0,
-  );
+  const sorted = [...list].sort((a, b) => {
+    if (value(a) < value(b)) return -1;
+    return value(a) > value(b) ? 1 : 0;
+  });
   return direction === "DESC" ? sorted.reverse() : sorted;
 }
 

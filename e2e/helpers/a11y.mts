@@ -1,6 +1,5 @@
-import { createRequire } from "node:module";
-
 import { expect, type Locator, type Page } from "@playwright/test";
+import { createRequire } from "node:module";
 
 const axePath = createRequire(import.meta.url).resolve("axe-core/axe.min.js");
 

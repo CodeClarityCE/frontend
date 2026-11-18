@@ -1,6 +1,5 @@
-import { readFile } from "node:fs/promises";
-
 import { expect, type Locator, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 import { dependency, ResultTabsPage } from "./pages/result-tabs.page.mjs";
 
@@ -62,7 +61,7 @@ test.describe("SBOM export", () => {
     await page.getByRole("button", { name: "Export SBOM" }).click();
     const download = page.waitForEvent("download");
     await page.getByRole("menuitem", { name: /CycloneDX/ }).click();
-    const text = await readFile((await (await download).path())!, "utf8");
+    const text = await readFile(await (await download).path(), "utf8");
 
     expect(text).not.toContain("undefined");
     const bom = JSON.parse(text) as {

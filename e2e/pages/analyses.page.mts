@@ -176,9 +176,7 @@ export class AnalysesPage {
         });
       }
       const id = path.split("/").pop();
-      const found = analyzers.find(
-        (a) => (a as { id: string }).id === id,
-      ) as unknown;
+      const found = analyzers.find((a) => (a as { id: string }).id === id);
       return route.fulfill({ json: { data: found } });
     });
     await this.page.route(

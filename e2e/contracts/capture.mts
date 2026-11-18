@@ -25,13 +25,13 @@ async function call(path: string, token?: string): Promise<unknown> {
   return response.json();
 }
 
-type List = {
+interface List {
   data: {
     id: string;
     organization?: { id: string };
     analyses?: { id: string; status: string }[];
   }[];
-};
+}
 
 const auth = (await call("/auth/authenticate")) as { data: { token: string } };
 const token = auth.data.token;
@@ -61,7 +61,9 @@ if (!org || !policy) {
 }
 
 // Picks the first organisation that has a ticket to read back.
-type TicketList = { data: { id: string; project_id: string }[] };
+interface TicketList {
+  data: { id: string; project_id: string }[];
+}
 let ticketPaths: Record<string, [string, string]> = {};
 for (const id of orgIds) {
   const tickets = (await call(

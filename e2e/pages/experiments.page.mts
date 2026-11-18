@@ -14,8 +14,11 @@ export function experiment(
   status: Status = "COMPLETED",
   overrides: Record<string, unknown> = {},
 ): Record<string, unknown> {
-  const finished =
-    status === "COMPLETED" ? 400 : status === "RUNNING" ? 120 : 0;
+  const finishedByStatus: Partial<Record<Status, number>> = {
+    COMPLETED: 400,
+    RUNNING: 120,
+  };
+  const finished = finishedByStatus[status] ?? 0;
   return {
     id,
     name,

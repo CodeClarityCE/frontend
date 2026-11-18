@@ -20,9 +20,7 @@ export default typescriptEslint.config(
       "**/*.d.ts",
       "**/coverage",
       "**/dist",
-      "**/shadcn",
       "**/cypress",
-      "**/e2e/**",
       "**/node_modules/**",
       "**/.pnpm-store/**",
       "**/public/**",
@@ -41,7 +39,7 @@ export default typescriptEslint.config(
   // TypeScript Type-Checked Configuration
   // ==========================================
   {
-    files: ["**/*.{ts,vue}"],
+    files: ["**/*.{ts,mts,vue}"],
     extends: [
       ...typescriptEslint.configs.recommendedTypeChecked,
       ...typescriptEslint.configs.stylisticTypeChecked,
@@ -57,6 +55,7 @@ export default typescriptEslint.config(
           "./tsconfig.app.json",
           "./tsconfig.node.json",
           "./tsconfig.vitest.json",
+          "./e2e/tsconfig.json",
         ],
         extraFileExtensions: [".vue"],
       },
@@ -77,7 +76,7 @@ export default typescriptEslint.config(
   // Main Rules Configuration
   // ==========================================
   {
-    files: ["**/*.{ts,vue}"],
+    files: ["**/*.{ts,mts,vue}"],
 
     plugins: {
       "simple-import-sort": simpleImportSort,
@@ -312,7 +311,7 @@ export default typescriptEslint.config(
   // Test Files Configuration
   // ==========================================
   {
-    files: ["**/*.spec.ts", "**/*.test.ts", "**/test/**/*.ts"],
+    files: ["**/*.spec.ts", "**/*.test.ts", "**/test/**/*.ts", "e2e/**/*.mts"],
     rules: {
       // More lenient rules for test files
       "@typescript-eslint/no-explicit-any": ["off"],
@@ -336,6 +335,31 @@ export default typescriptEslint.config(
       "vue/no-reserved-component-names": "off",
       "vue/one-component-per-file": "off",
       "vue/require-prop-types": "off",
+    },
+  },
+
+  // ==========================================
+  // Playwright e2e: Node globals, and no security rules (they only flag test regexes and fixture paths)
+  // ==========================================
+  {
+    files: ["e2e/**/*.mts"],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+    rules: Object.fromEntries(
+      Object.keys(security.rules).map((rule) => [`security/${rule}`, "off"]),
+    ),
+  },
+
+  // ==========================================
+  // Vendored shadcn components: upstream style differences are fine
+  // ==========================================
+  {
+    files: ["src/shadcn/**/*.{ts,vue}"],
+    rules: {
+      "simple-import-sort/imports": "off",
+      "simple-import-sort/exports": "off",
+      "no-duplicate-imports": "off",
+      "vue/require-default-prop": "off",
+      "vue/multi-word-component-names": "off",
     },
   },
 

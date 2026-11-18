@@ -80,6 +80,8 @@ export class OrganizationMetaData {
   integrations!: Integration[];
 }
 
+// Copy of the API's MemberRole in api/src/base_modules/organizations/memberships/organization.memberships.entity.ts.
+// The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
 export enum MemberRole {
   OWNER = 0,
   ADMIN = 1,

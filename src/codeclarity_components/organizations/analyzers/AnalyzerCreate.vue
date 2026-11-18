@@ -169,7 +169,7 @@ void init();
         Analyzers
       </RouterLink>
       <PageHeading
-        description="Pick a template or start from scratch, then shape the workflow of plugins it runs."
+        description="Pick a template or start from scratch, then choose the plugins it runs in stages."
       >
         New <BrandEmphasis>analyzer</BrandEmphasis>
       </PageHeading>
@@ -195,7 +195,7 @@ void init();
 
       <Card class="rounded-card shadow-card">
         <CardHeader>
-          <h2 class="text-lg font-semibold text-foreground-strong">Workflow</h2>
+          <h2 class="text-lg font-semibold text-foreground-strong">Plugins</h2>
           <CardDescription>
             Right-click the canvas to add a plugin. Select a plugin and press
             Delete to remove it.

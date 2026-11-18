@@ -150,7 +150,7 @@ defineExpose({ fetchAnalyzers, orgInfo });
     />
 
     <PageHeading
-      description="Analyzers are the workflows of plugins an analysis runs."
+      description="An analyzer is a named set of plugins that an analysis runs in stages."
     >
       <BrandEmphasis>Analyzers</BrandEmphasis>
       <template #actions>
@@ -173,7 +173,7 @@ defineExpose({ fetchAnalyzers, orgInfo });
     <OwlEmptyState
       v-else-if="loaded && analyzers.length === 0"
       title="No analyzers yet"
-      description="An analyzer chains plugins, such as an SBOM builder and a vulnerability finder, into the workflow an analysis runs."
+      description="An analyzer runs plugins in stages, such as an SBOM builder and then a vulnerability finder."
     >
       <Button :as="RouterLink" :to="createRoute" arrow>
         Create an analyzer

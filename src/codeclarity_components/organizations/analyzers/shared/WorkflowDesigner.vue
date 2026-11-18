@@ -387,7 +387,7 @@ onUnmounted(() => {
           v-else-if="availablePlugins.length === 0"
           class="px-4 py-6 text-center text-sm text-muted-foreground"
         >
-          Every plugin is already in the workflow
+          Every plugin is already in the analyzer
         </p>
       </div>
     </div>

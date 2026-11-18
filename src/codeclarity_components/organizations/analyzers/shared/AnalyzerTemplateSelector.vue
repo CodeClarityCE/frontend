@@ -109,8 +109,8 @@ onMounted(() => void loadTemplates());
         <span class="flex flex-col gap-1">
           <span class="font-semibold text-foreground-strong">Custom</span>
           <span class="text-sm text-muted-foreground">
-            Start from the SBOM and vulnerability plugins and build your own
-            workflow.
+            Start from the SBOM and vulnerability plugins and pick your own
+            stages.
           </span>
         </span>
       </label>

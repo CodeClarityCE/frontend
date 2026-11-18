@@ -369,6 +369,7 @@ async function refreshPreview(): Promise<void> {
       ...context,
       experimentId: props.experimentId,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     };
     const response =
       tiedVersion.value !== null && openFigureId.value
@@ -399,6 +400,7 @@ async function loadFigures(): Promise<void> {
       ...context,
       experimentId: props.experimentId,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     figures.value = response.data;
   } catch {
@@ -427,6 +429,7 @@ async function moveToChosenVersion(): Promise<void> {
       figureId: openFigureId.value,
       data: { metric_version: version },
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     successToast(
       version === null
@@ -454,6 +457,7 @@ async function saveFigure(): Promise<void> {
         figureId: openFigureId.value,
         data,
         handleBusinessErrors: true,
+        handleHTTPErrors: true,
       });
     } else {
       const created = await experimentsRepository.createFigure({
@@ -461,6 +465,7 @@ async function saveFigure(): Promise<void> {
         experimentId: props.experimentId,
         data,
         handleBusinessErrors: true,
+        handleHTTPErrors: true,
       });
       openFigureId.value = created.id;
     }
@@ -483,6 +488,7 @@ async function deleteFigure(figureId: string): Promise<void> {
       experimentId: props.experimentId,
       figureId,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     if (openFigureId.value === figureId) startNew();
     successToast("Figure deleted");

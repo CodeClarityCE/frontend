@@ -119,7 +119,8 @@ onBeforeMount(() => void loadPolicies());
           License policies
         </h2>
         <p class="text-sm text-muted-foreground">
-          Allow or block licenses in the projects of this organisation.
+          Name the licenses projects in this organisation should not use.
+          Analyses flag them.
         </p>
       </div>
       <Button v-if="canManage" :as="RouterLink" :to="createRoute">

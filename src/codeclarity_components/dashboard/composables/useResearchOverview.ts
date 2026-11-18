@@ -97,6 +97,7 @@ export function useResearchOverview(): {
           experimentId: experiment.id,
           bearerToken: token,
           handleBusinessErrors: true,
+          handleHTTPErrors: true,
         });
         return response.data.map((version) => ({ experiment, version }));
       }),
@@ -112,6 +113,7 @@ export function useResearchOverview(): {
       pagination: { page: 0, entries_per_page: EXPERIMENTS_PAGE_SIZE },
       bearerToken: token,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     experiments.value = response.data;
   }
@@ -128,6 +130,7 @@ export function useResearchOverview(): {
           pagination: { page: 0, entries_per_page: 1 },
           bearerToken: token,
           handleBusinessErrors: true,
+          handleHTTPErrors: true,
         }),
         loadExperiments(orgId, token),
       ]);

@@ -401,7 +401,7 @@ test.describe("Edit analyzer", () => {
     expect(analyzers.updated).toEqual([
       {
         name: "Patched audit",
-        description: "Patched audit workflow for JavaScript projects",
+        description: "Patched audit for JavaScript projects",
         steps: configuredAnalyzer.steps,
       },
     ]);
@@ -449,6 +449,40 @@ test.describe("Edit analyzer", () => {
         );
       }
     }).toPass({ timeout: 5000 });
+  });
+});
+
+test.describe("Analyzer wording", () => {
+  // The glossary calls an analyzer a set of plugin stages, never a workflow.
+  test("no analyzer page calls an analyzer a workflow", async ({ page }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    const main = page.locator("#main-content");
+    await analyzers.signIn();
+
+    await analyzers.gotoList();
+    await expect(analyzers.rows()).toHaveCount(2);
+    await expect(main).not.toContainText(/workflow/i);
+
+    await analyzers.gotoCreate();
+    await expect(analyzers.workflowNodes()).not.toHaveCount(0);
+    await expect(main).not.toContainText(/workflow/i);
+
+    await analyzers.gotoEdit("an-2");
+    await expect(page.getByLabel("Name")).toHaveValue("License audit");
+    await expect(main).not.toContainText(/workflow/i);
+  });
+
+  test("the empty analyzer list does not call an analyzer a workflow", async ({
+    page,
+  }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    await analyzers.signIn({ analyzers: [] });
+    await analyzers.gotoList();
+
+    await expect(
+      page.getByRole("heading", { name: "No analyzers yet" }),
+    ).toBeVisible();
+    await expect(page.locator("#main-content")).not.toContainText(/workflow/i);
   });
 });
 

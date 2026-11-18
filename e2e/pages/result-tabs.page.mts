@@ -319,6 +319,7 @@ export const sampleDetails = {
   latest_version: "4.17.21",
   dependencies: {},
   dev_dependencies: {},
+  direct: true,
   transitive: false,
   source: { Type: "git", Url: "git+https://github.com/lodash/lodash.git" },
   package_manager: "NPM",

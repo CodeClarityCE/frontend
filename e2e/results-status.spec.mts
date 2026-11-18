@@ -104,6 +104,21 @@ test.describe("Results page for an unfinished analysis", () => {
     });
   }
 
+  test("a cancelled analysis says so and does not ask for a reload", async ({
+    page,
+  }) => {
+    const results = new ResultsStatusPage(page);
+    await results.signIn({
+      analysis: analysis("cancelled", [[step("js-sbom", "cancelled")]]),
+    });
+    await results.goto();
+
+    const status = page.getByRole("status", { name: "Analysis status" });
+    await expect(status).toContainText("Analysis cancelled");
+    await expect(status).not.toContainText("Reload the page");
+    await expect(results.tabs).toHaveCount(0);
+  });
+
   test("a failed analysis still shows the tabs of plugins that succeeded", async ({
     page,
   }) => {

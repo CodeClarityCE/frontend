@@ -4,6 +4,7 @@ import { computed, type Ref, ref, watch } from "vue";
 
 import {
   byNewest,
+  isCancelled,
   isFailed,
   isFinished,
   isRunning,
@@ -36,6 +37,7 @@ const pending = computed(() => {
   const latest = analyses.value[0];
   if (!latest) return "Not analysed";
   if (isFailed(latest)) return "Analysis failed";
+  if (isCancelled(latest)) return "Analysis cancelled";
   if (isRunning(latest)) return "Analysis running";
   return "Analysis queued";
 });

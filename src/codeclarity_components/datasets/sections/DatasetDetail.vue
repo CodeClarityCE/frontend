@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ArrowLeft, FlaskConical, FolderInput, Info } from "@lucide/vue";
-import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { BrandEmphasis, PageHeading, StatTile } from "@/base_components/page";
 import {
   getImportErrorMessage,
@@ -289,7 +288,7 @@ function formatTime(date: Date | null): string | undefined {
   });
 }
 
-const entryColumns: ColumnDef<DatasetEntry, unknown>[] = [
+const entryColumns: DataTableColumn<DatasetEntry>[] = [
   {
     id: "rank",
     accessorKey: "rank",

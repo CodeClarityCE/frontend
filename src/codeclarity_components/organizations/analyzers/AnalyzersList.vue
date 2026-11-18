@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import { Pencil, Plus, Trash2 } from "@lucide/vue";
-import type { ColumnDef } from "@tanstack/vue-table";
 import { ref } from "vue";
 import { RouterLink } from "vue-router";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import {
   BrandEmphasis,
   OwlEmptyState,
@@ -54,7 +53,7 @@ const props = defineProps<{
   orgId: string;
 }>();
 
-const columns: ColumnDef<Analyzer, unknown>[] = [
+const columns: DataTableColumn<Analyzer>[] = [
   { id: "name", accessorKey: "name", header: "Name" },
   {
     id: "stages",

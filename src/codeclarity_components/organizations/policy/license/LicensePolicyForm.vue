@@ -1,13 +1,12 @@
 <script lang="ts" setup>
 import { ArrowLeft } from "@lucide/vue";
-import type { ColumnDef } from "@tanstack/vue-table";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { computed, onBeforeMount, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { z } from "zod";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
 import type { License } from "@/codeclarity_components/results/licenses/License";
 import { LicenseRepository } from "@/codeclarity_components/results/licenses/LicenseRepository";
@@ -102,7 +101,7 @@ const orderedLicenses = computed(() => {
   ];
 });
 
-const columns: ColumnDef<License, unknown>[] = [
+const columns: DataTableColumn<License>[] = [
   {
     id: "include",
     header: "Include",

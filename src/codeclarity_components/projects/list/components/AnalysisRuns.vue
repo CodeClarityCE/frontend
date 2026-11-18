@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import type { ColumnDef } from "@tanstack/vue-table";
 import { onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import type { Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
 import { Button } from "@/shadcn/ui/button";
@@ -39,7 +38,7 @@ const userStore = useUserStore();
 const loading = ref(true);
 const runs = ref<AnalysisRun[]>([]);
 
-const columns: ColumnDef<AnalysisRun, unknown>[] = [
+const columns: DataTableColumn<AnalysisRun>[] = [
   {
     id: "date",
     accessorFn: (run) => new Date(run.run_date).getTime(),

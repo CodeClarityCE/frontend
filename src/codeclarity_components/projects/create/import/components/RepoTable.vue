@@ -28,10 +28,9 @@ export type { GetRepositoriesRequestOptions };
 </script>
 <script lang="ts" setup>
 import { Star } from "@lucide/vue";
-import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, type Ref, ref, watch } from "vue";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { StatusBadge } from "@/base_components/page";
 import type { Repository } from "@/codeclarity_components/projects/project.entity";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
@@ -109,7 +108,7 @@ const invalidIntegration = computed(() =>
   INVALID_INTEGRATION.has(errorCode.value ?? ""),
 );
 
-const columns: ColumnDef<Repository, unknown>[] = [
+const columns: DataTableColumn<Repository>[] = [
   {
     id: "select",
     header: "Select",

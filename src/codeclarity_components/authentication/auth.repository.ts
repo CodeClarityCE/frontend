@@ -14,7 +14,6 @@ import { NoDataResponse } from "../../utils/api/responses/NoDataResponse";
 
 import type { AuthenticateBody } from "./authenticate.http";
 import { AuthenticatedUser } from "./authenticated_user.entity";
-import type { Oauth2FinalizeBody } from "./oauth/oauth2_finalize.http";
 import type { PasswordResetBody } from "./password_reset.http";
 import type { PasswordResetRequestBody } from "./password_reset_request.http";
 import type { RegisterBody } from "./register.http";
@@ -26,8 +25,6 @@ export interface GetAuthenticatedUserRequestOptions extends AuthRepoMethodGetReq
   validate?: boolean;
 }
 export interface RegisterRequestOptions extends RepoMethodPostRequestOptions<RegisterBody> {}
-export interface GithubAuthenticateFinalizeRequestOptions extends RepoMethodPostRequestOptions<Oauth2FinalizeBody> {}
-export interface GitlabAuthenticateFinalizeRequestOptions extends RepoMethodPostRequestOptions<Oauth2FinalizeBody> {}
 export interface PasswordResetRequestOptions extends RepoMethodPostRequestOptions<PasswordResetRequestBody> {}
 export interface PasswordResetOptions extends RepoMethodPostRequestOptions<PasswordResetBody> {}
 
@@ -98,44 +95,6 @@ export class AuthRepository extends BaseRepository {
       AuthenticatedUser,
       options.validate,
     );
-  }
-
-  async gitlabAuthFinalize(
-    options: GitlabAuthenticateFinalizeRequestOptions,
-  ): Promise<Token> {
-    const RELATIVE_URL = `/auth/gitlab/finalize`;
-
-    const response = await this.postRequest<
-      DataResponse<Token>,
-      Oauth2FinalizeBody
-    >({
-      data: options.data,
-      url: this.buildUrl(RELATIVE_URL),
-      handleBusinessErrors: options.handleBusinessErrors,
-      handleHTTPErrors: options.handleHTTPErrors,
-      handleOtherErrors: options.handleOtherErrors,
-    });
-
-    return Entity.unMarshal<Token>(response.data, Token);
-  }
-
-  async githubAuthFinalize(
-    options: GithubAuthenticateFinalizeRequestOptions,
-  ): Promise<Token> {
-    const RELATIVE_URL = `/auth/github/finalize`;
-
-    const response = await this.postRequest<
-      DataResponse<Token>,
-      Oauth2FinalizeBody
-    >({
-      data: options.data,
-      url: this.buildUrl(RELATIVE_URL),
-      handleBusinessErrors: options.handleBusinessErrors,
-      handleHTTPErrors: options.handleHTTPErrors,
-      handleOtherErrors: options.handleOtherErrors,
-    });
-
-    return Entity.unMarshal<Token>(response.data, Token);
   }
 
   async requestPasswordReset(

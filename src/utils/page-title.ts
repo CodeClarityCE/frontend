@@ -56,8 +56,6 @@ const fixedNames: Record<string, string> = {
   recoveryRequest: "Reset password",
   settings: "Account settings",
   help: "Help",
-  gitlabAuthCallback: "Signing in",
-  githubAuthCallback: "Signing in",
   clickupOAuthCallback: "Connecting ClickUp",
   notfound: "Page not found",
   terms: "Terms of service",

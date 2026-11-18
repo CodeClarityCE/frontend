@@ -19,7 +19,6 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { formatDate, formatRelativeTime } from "@/utils/dateUtils";
-import { serverFeatures } from "@/utils/server-features";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import ConfirmDestructiveDialog from "../members/ConfirmDestructiveDialog.vue";
@@ -95,8 +94,8 @@ const columns: ColumnDef<Invitation, unknown>[] = [
   },
 ];
 
-// Same rule as the API: only owners revoke invitations, outside personal organisations.
-const canRevoke = computed(
+// Same rule as the API: only owners resend or revoke invitations, outside personal organisations.
+const canResendOrRevoke = computed(
   () =>
     !!orgInfo.value &&
     !orgInfo.value.personal &&
@@ -105,7 +104,7 @@ const canRevoke = computed(
 
 // The actions column shows once there is an action to offer.
 const tableColumns = computed(() =>
-  serverFeatures.invitationResend || canRevoke.value
+  canResendOrRevoke.value
     ? [
         ...columns,
         {
@@ -167,6 +166,9 @@ function actionError(code: string, verb: string): string {
   if (code === APIErrors.NotAuthorized) {
     return "Your role does not allow this";
   }
+  if (code === APIErrors.FailedToSendOrganizationInviteEmail) {
+    return "The invitation email could not be sent. Try again later.";
+  }
   return `Failed to ${verb} the invitation`;
 }
 
@@ -180,7 +182,7 @@ async function resend(i: Invitation): Promise<void> {
       bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
-    successToast(`Invitation sent again to ${i.user_email}`);
+    successToast(`Invitation emailed again to ${i.user_email}`);
   } catch (err) {
     const code = err instanceof BusinessLogicError ? err.error_code : "";
     errorToast(actionError(code, "resend"));
@@ -306,7 +308,7 @@ onMounted(() => void load());
       <template #cell-actions="{ row }">
         <div class="flex items-center gap-2">
           <Button
-            v-if="serverFeatures.invitationResend"
+            v-if="canResendOrRevoke"
             variant="outline"
             size="sm"
             :disabled="resending === row.id"
@@ -324,7 +326,7 @@ onMounted(() => void load());
             Resend
           </Button>
           <Button
-            v-if="canRevoke"
+            v-if="canResendOrRevoke"
             variant="destructive"
             size="sm"
             :aria-label="`Revoke the invitation to ${row.user_email}`"

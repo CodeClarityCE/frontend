@@ -253,14 +253,36 @@ test.describe("Organisation invitations", () => {
     expect(members.deleted).toEqual([`/api/org/org-123/invitations/inv-1`]);
   });
 
-  test("an admin is offered no revoke", async ({ page }) => {
+  test("an owner resends an invitation and is told the email went out", async ({
+    page,
+  }) => {
+    const members = new OrgMembersPage(page);
+    await members.signIn();
+    await members.gotoInvites();
+    await expect(members.rows()).toHaveCount(2);
+
+    await page
+      .getByRole("button", {
+        name: "Resend the invitation to carol@example.com",
+      })
+      .click();
+
+    await expect(
+      page.getByText("Invitation emailed again to carol@example.com"),
+    ).toBeVisible();
+    expect(members.resent).toEqual([
+      "/api/org/org-123/invitations/inv-1/resend",
+    ]);
+  });
+
+  test("an admin is offered no resend or revoke", async ({ page }) => {
     const members = new OrgMembersPage(page);
     await members.signIn({ org: { role: 1 } });
     await members.gotoInvites();
     await expect(members.rows()).toHaveCount(2);
 
     await expect(
-      page.getByRole("button", { name: /^Revoke the invitation/ }),
+      page.getByRole("button", { name: /^(Resend|Revoke) the invitation/ }),
     ).toHaveCount(0);
   });
 

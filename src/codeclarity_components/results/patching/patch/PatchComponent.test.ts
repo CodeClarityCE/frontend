@@ -87,4 +87,36 @@ describe("PatchComponent", () => {
       within(dialog).queryByRole("heading", { name: /Fixed by the upgrade/ }),
     ).toBeNull();
   });
+
+  it("lists what the upgrade introduces", async () => {
+    const unscored = {
+      DependencyName: "ms",
+      DependencyVersion: "2.0.0",
+      Path: [],
+      Vulnerability: {
+        VulnerabilityId: "GHSA-aaaa-bbbb-cccc",
+        Severity: { Severity: 0, SeverityType: "", Vector: "" },
+      },
+    } as unknown as ToPatch;
+    const dialog = await open(
+      patch({
+        IsPatchable: "PARTIAL",
+        Introduced: [vuln("debug", "CVE-2024-0001"), unscored],
+      }),
+    );
+
+    const heading = within(dialog).getByRole("heading", {
+      name: "Introduced by the upgrade (2)",
+    });
+    const group = within(heading.parentElement!);
+    expect(group.getByText("CVE-2024-0001")).toBeTruthy();
+    expect(group.getByText("Medium")).toBeTruthy();
+    expect(group.getByText("Unknown severity")).toBeTruthy();
+    expect(group.queryByText("No fixed version")).toBeNull();
+  });
+
+  it("shows no introduced group when the upgrade introduces nothing", async () => {
+    const dialog = await open(patch({ IsPatchable: "PARTIAL" }));
+    expect(within(dialog).queryByText(/Introduced by the upgrade/)).toBeNull();
+  });
 });

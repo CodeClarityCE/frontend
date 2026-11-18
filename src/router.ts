@@ -9,7 +9,6 @@ import AnalysesView from "@/codeclarity_components/analyses/AnalysesView.vue";
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
 import type { AuthenticatedUser } from "@/codeclarity_components/authentication/authenticated_user.entity";
 import EmailActionView from "@/codeclarity_components/authentication/email/EmailActionView.vue";
-import OAuthCallbackView from "@/codeclarity_components/authentication/oauth/OAuthCallbackView.vue";
 import PasswordResetRequestView from "@/codeclarity_components/authentication/password_reset/PasswordResetRequestView.vue";
 import {
   loginRoute,
@@ -20,7 +19,6 @@ import SignupView from "@/codeclarity_components/authentication/signup/SignupVie
 import DashboardView from "@/codeclarity_components/dashboard/DashboardView.vue";
 import DatasetsView from "@/codeclarity_components/datasets/DatasetsView.vue";
 import ExperimentsView from "@/codeclarity_components/experiments/ExperimentsView.vue";
-import { SocialProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
 import type { Organization } from "@/codeclarity_components/organizations/organization.entity";
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
 import OrganizationView from "@/codeclarity_components/organizations/OrganizationView.vue";
@@ -36,6 +34,7 @@ import { loadAuthStoreFromLocalStorage, useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
+import { logger } from "@/utils/logger";
 import { pageTitle } from "@/utils/page-title";
 
 // Helper functions to reduce complexity in beforeEach guard
@@ -65,7 +64,7 @@ async function refreshTokenIfNeeded(
         authStore.tokenExpiry = newToken.token_expiry;
         return true;
       } catch (error) {
-        console.error(error);
+        logger.warn("Could not refresh the session token", {}, error);
         return false;
       }
     }
@@ -104,7 +103,7 @@ async function fetchAuthenticatedUser(
     ) {
       return "not_activated";
     }
-    console.error(error);
+    logger.error("Could not fetch the signed-in user", {}, error);
     return "failed";
   }
 }
@@ -164,7 +163,7 @@ async function fetchFallbackOrg(
     userStore.setDefaultOrg(org);
     return true;
   } catch (error) {
-    console.error(error);
+    logger.error("Could not fetch a fallback organization", {}, error);
     return false;
   }
 }
@@ -262,24 +261,6 @@ const router = createRouter({
       name: "settings",
       component: SettingsView as Component,
       props: true,
-    },
-    {
-      path: "/auth/gitlab/callback",
-      name: "gitlabAuthCallback",
-      meta: { public: true, loggedOutLayout: true },
-      component: OAuthCallbackView as Component,
-      props: {
-        provider: SocialProvider.GITLAB,
-      },
-    },
-    {
-      path: "/auth/github/callback",
-      name: "githubAuthCallback",
-      meta: { public: true, loggedOutLayout: true },
-      component: OAuthCallbackView as Component,
-      props: {
-        provider: SocialProvider.GITHUB,
-      },
     },
     {
       path: "/404",
@@ -411,11 +392,6 @@ router.beforeEach(async (to) => {
   }
 
   const user = userStore.getUser;
-
-  // A social account that has not finished its setup cannot use the app yet.
-  if (authRequired && user?.social && user.setup_done === false) {
-    return signOut();
-  }
 
   if (authRequired && user?.activated === false) {
     return signOut("not_activated");

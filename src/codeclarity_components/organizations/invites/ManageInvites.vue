@@ -15,12 +15,10 @@ import router from "@/router";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
-import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { formatDate, formatRelativeTime } from "@/utils/dateUtils";
-import { serverFeatures } from "@/utils/server-features";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import ConfirmDestructiveDialog from "../members/ConfirmDestructiveDialog.vue";
@@ -47,7 +45,6 @@ const props = defineProps<{
 
 const orgRepository = new OrgRepository();
 const authStore = useAuthStore();
-const userStore = useUserStore();
 
 const orgInfo = ref<Organization>();
 const invitations = ref<Invitation[]>([]);
@@ -95,9 +92,21 @@ const columns: ColumnDef<Invitation, unknown>[] = [
     header: "Expires",
     enableGlobalFilter: false,
   },
-  // Shown only once the server can resend or revoke an invitation.
-  ...(serverFeatures.invitationResend || serverFeatures.invitationRevoke
+];
+
+// Same rule as the API: only owners resend or revoke invitations, outside personal organisations.
+const canResendOrRevoke = computed(
+  () =>
+    !!orgInfo.value &&
+    !orgInfo.value.personal &&
+    orgInfo.value.role === MemberRole.OWNER,
+);
+
+// The actions column shows once there is an action to offer.
+const tableColumns = computed(() =>
+  canResendOrRevoke.value
     ? [
+        ...columns,
         {
           id: "actions",
           header: "Actions",
@@ -105,21 +114,12 @@ const columns: ColumnDef<Invitation, unknown>[] = [
           enableGlobalFilter: false,
         },
       ]
-    : []),
-];
+    : columns,
+);
 
 function inviterName(i: Invitation): string {
   if (!i.created_by) return "Deleted user";
   return `${i.created_by.first_name} ${i.created_by.last_name}`;
-}
-
-function canRevoke(i: Invitation): boolean {
-  if (!orgInfo.value) return false;
-  return (
-    !i.created_by ||
-    i.created_by.id === userStore.getUser?.id ||
-    isMemberRoleGreaterThan(orgInfo.value.role, i.created_by.role)
-  );
 }
 
 async function fetchAll(token: string): Promise<Invitation[]> {
@@ -166,6 +166,9 @@ function actionError(code: string, verb: string): string {
   if (code === APIErrors.NotAuthorized) {
     return "Your role does not allow this";
   }
+  if (code === APIErrors.FailedToSendOrganizationInviteEmail) {
+    return "The invitation email could not be sent. Try again later.";
+  }
   return `Failed to ${verb} the invitation`;
 }
 
@@ -179,7 +182,7 @@ async function resend(i: Invitation): Promise<void> {
       bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
-    successToast(`Invitation sent again to ${i.user_email}`);
+    successToast(`Invitation emailed again to ${i.user_email}`);
   } catch (err) {
     const code = err instanceof BusinessLogicError ? err.error_code : "";
     errorToast(actionError(code, "resend"));
@@ -272,7 +275,7 @@ onMounted(() => void load());
 
     <DataTable
       v-else
-      :columns="columns"
+      :columns="tableColumns"
       :data="invitations"
       :loading="!loaded"
       :row-key="(i: Invitation) => i.id"
@@ -305,7 +308,7 @@ onMounted(() => void load());
       <template #cell-actions="{ row }">
         <div class="flex items-center gap-2">
           <Button
-            v-if="serverFeatures.invitationResend"
+            v-if="canResendOrRevoke"
             variant="outline"
             size="sm"
             :disabled="resending === row.id"
@@ -323,7 +326,7 @@ onMounted(() => void load());
             Resend
           </Button>
           <Button
-            v-if="serverFeatures.invitationRevoke && canRevoke(row)"
+            v-if="canResendOrRevoke"
             variant="destructive"
             size="sm"
             :aria-label="`Revoke the invitation to ${row.user_email}`"

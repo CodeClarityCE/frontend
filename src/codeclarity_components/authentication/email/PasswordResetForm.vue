@@ -26,11 +26,9 @@ import {
   ValidationError,
 } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
-import { serverFeatures } from "@/utils/server-features";
 
 import AuthLayout from "../layout/AuthLayout.vue";
 import TextLink from "../layout/TextLink.vue";
-import PasswordResetUnavailable from "../password_reset/PasswordResetUnavailable.vue";
 
 // Repositories
 const authRepository: AuthRepository = new AuthRepository();
@@ -40,7 +38,6 @@ const nonRecoverableError: Ref<boolean> = ref(false);
 const loading: Ref<boolean> = ref(false);
 const token: Ref<string> = ref("");
 const userIdHash: Ref<string> = ref("");
-const success: Ref<boolean> = ref(false);
 const error: Ref<boolean> = ref(false);
 const errorCode: Ref<string | undefined> = ref();
 const validationError: Ref<ValidationError | undefined> = ref();
@@ -67,7 +64,6 @@ const onSubmit = handleSubmit((values): void => {
 // Methods
 async function submit(values: FormValues): Promise<void> {
   loading.value = true;
-  success.value = false;
   errorCode.value = undefined;
   error.value = false;
   validationError.value = undefined;
@@ -83,7 +79,8 @@ async function submit(values: FormValues): Promise<void> {
       handleBusinessErrors: true,
     });
 
-    success.value = true;
+    // The link works once, so leave it out of the history.
+    void router.replace(loginRoute({ notice: "password_reset" }));
   } catch (_err) {
     error.value = true;
 
@@ -121,12 +118,10 @@ onMounted(() => {
 });
 </script>
 <template>
-  <PasswordResetUnavailable v-if="!serverFeatures.passwordReset" />
-  <AuthLayout v-else>
+  <AuthLayout>
     <template #title>
-      <template v-if="success">Password updated</template>
       <template
-        v-else-if="
+        v-if="
           nonRecoverableError &&
           errorCode === APIErrors.PasswordResetTokenInvalidOrExpired
         "
@@ -137,30 +132,18 @@ onMounted(() => {
       <template v-else>Choose a new password</template>
     </template>
     <template #description>
-      <template v-if="success">
-        Your password has been successfully updated.
-      </template>
-      <template v-else-if="nonRecoverableError">
+      <template v-if="nonRecoverableError">
         Your password was not reset.
       </template>
       <template v-else>Enter the new password for your account.</template>
     </template>
 
-    <div v-if="success" class="flex flex-col gap-6">
-      <RouterLink
-        :to="{ name: 'login' }"
-        :class="cn(buttonVariants(), 'w-full')"
-      >
-        Back to sign in
-      </RouterLink>
-    </div>
-
-    <div v-else-if="nonRecoverableError" class="flex flex-col gap-6">
+    <div v-if="nonRecoverableError" class="flex flex-col gap-6">
       <p
         v-if="errorCode === APIErrors.PasswordResetTokenInvalidOrExpired"
         class="text-sm"
       >
-        The link in the email is only valid for 5 minutes. Request a new
+        The link in the email is only valid for 30 minutes. Request a new
         password reset and follow the link in the new email.
       </p>
       <p v-else class="text-sm">
@@ -229,7 +212,7 @@ onMounted(() => {
       </form>
     </template>
 
-    <template v-if="!success" #footer>
+    <template #footer>
       <TextLink :to="{ name: 'login' }">Back to sign in</TextLink>
     </template>
   </AuthLayout>

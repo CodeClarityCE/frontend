@@ -22,6 +22,8 @@ export function tokenIntegrationError(
       return "Your token appears invalid or expired.";
     case APIErrors.IntegrationIntegrationTokenMissingPermissions:
       return `Your token does not have the required permissions. Select the ${options.scopes} scopes.`;
+    case APIErrors.IntegrationInstanceUrlChanged:
+      return `The instance cannot change. Delete the integration and connect ${options.provider} again.`;
     case APIErrors.DuplicateIntegration:
       return `You already have an integration with ${options.provider} for this host.`;
     case APIErrors.EntityNotFound:

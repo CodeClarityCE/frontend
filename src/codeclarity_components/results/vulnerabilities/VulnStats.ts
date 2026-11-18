@@ -118,7 +118,7 @@ export interface Vulnerability {
   Vulnerability: string;
   Severity: Severity;
   Weaknesses?: WeaknessInfo[];
-  PatchType: PatchType;
+  PatchType?: PatchType;
   Description: string;
   Conflict: Conflict;
 }
@@ -157,7 +157,7 @@ export interface AffectedDeps {
   AffectedDependencyFilePath: string;
   AffectedDependencyImportPaths: string[];
   AffectedDependencyObject?: DependencyObject;
-  PatchType: PatchType;
+  PatchType?: PatchType;
 }
 
 export declare interface AffectedRange {

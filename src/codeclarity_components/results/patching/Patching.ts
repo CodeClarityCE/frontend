@@ -79,15 +79,6 @@ interface AnalysisInfo {
   self_managed_workspace_name: string;
 }
 
-export interface PatchOccurenceInfo {
-  affected_deps: string[];
-  vulnerability_id: string;
-  all_occurences: string[][];
-  introduced_occurences: string[][];
-  unpatched_occurences: string[][];
-  patched_occurences: string[][];
-}
-
 export enum Status {
   Success = "success",
   Failure = "failure",
@@ -168,17 +159,10 @@ export enum IntroductionType {
   Mixed = "MIXED",
 }
 
+/** The direct dependency entries of a workspace's manifest, keyed by package name. */
 export interface PatchedManifest {
-  [key: string]: string | UpgradeInfo | undefined;
-  name: string;
-  version: string;
-  description: string;
-  dependencies?: UpgradeInfo;
-  devDependencies?: UpgradeInfo;
-  optionalDependencies?: UpgradeInfo;
-  peerDependencies?: UpgradeInfo;
-  bundleDependencies?: UpgradeInfo;
-  bundledDependencies?: UpgradeInfo;
+  dependencies: Record<string, UpgradeInfo>;
+  devDependencies: Record<string, UpgradeInfo>;
 }
 
 export interface OtherInfo {
@@ -187,20 +171,22 @@ export interface OtherInfo {
 }
 
 export class PatchedManifestData {
-  patched_manifest_raw: unknown;
+  /** The dependencies and devDependencies blocks with upgraded constraints, as JSON text. */
+  patched_manifest_raw = "";
   patched_manifest!: PatchedManifest;
   other_info!: OtherInfo;
 }
 
 export interface UpgradeInfo {
   [key: string]:
-    string | UpgradeInfo | boolean | FullPatch | NonePatch | undefined;
+    string | UpgradeInfo | boolean | FullPatch | NonePatch | null | undefined;
   vulnerable: boolean;
   upgrade_to_installed_ver: boolean;
-  upgrade_to: string;
+  upgrade_to: string | null;
   original_constraint: string;
   potential_breaking_changes: boolean;
-  patch_type: PatchType;
+  /** FULL, PARTIAL or NONE for a vulnerable dependency, null otherwise. */
+  patch_type: PatchType | null;
   // severity_dist:               SeverityDist;
   // after_upgrade_severity_dist: SeverityDist;
   partial_patch?: FullPatch;

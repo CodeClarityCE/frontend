@@ -162,6 +162,27 @@ describe("ProjectsList", () => {
     expect(await screen.findByText("example/web-frontend")).toBeTruthy();
   });
 
+  it.each([
+    ["example/api-server", "its 1 analysis, its tickets"],
+    ["Local archive", "The project and its tickets are deleted."],
+  ])(
+    "warns that deleting %s deletes its tickets but not ClickUp tasks",
+    async (name, wording) => {
+      renderList();
+      await screen.findByText(name);
+
+      await fireEvent.click(
+        screen.getByRole("button", { name: `Delete ${name}` }),
+      );
+
+      const dialog = await screen.findByRole("dialog");
+      expect(dialog.textContent).toContain(wording);
+      expect(dialog.textContent).toContain(
+        "Tasks already created in ClickUp are kept.",
+      );
+    },
+  );
+
   it("deletes a project only after the confirmation", async () => {
     deleteProject.mockResolvedValue({});
     renderList();

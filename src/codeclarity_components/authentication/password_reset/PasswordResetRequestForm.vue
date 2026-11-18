@@ -104,7 +104,7 @@ async function submit(values: FormValues): Promise<void> {
     <div v-if="success" class="flex flex-col gap-6">
       <p class="text-sm text-muted-foreground">
         If you do not see the email, check your spam folder. The link is only
-        valid for 5 minutes.
+        valid for 30 minutes.
       </p>
       <RouterLink
         :to="{ name: 'login' }"

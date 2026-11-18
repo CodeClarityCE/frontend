@@ -24,6 +24,8 @@ export interface FilterCategory {
   name: string;
   type: FilterType;
   data: Record<string, FilterOption>;
+  /** Show each option's count next to its title, when counts are given. */
+  showCounts?: boolean;
 }
 
 export type FilterConfig = Record<string, FilterCategory>;

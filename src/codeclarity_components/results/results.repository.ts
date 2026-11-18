@@ -12,11 +12,7 @@ import { PaginatedResponse } from "../../utils/api/responses/PaginatedResponse";
 
 import type { Dependency, GraphDependency } from "./graph.entity";
 import type { License } from "./licenses/License";
-import type {
-  PatchedManifestData,
-  PatchOccurenceInfo,
-  Workspace,
-} from "./patching/Patching";
+import type { PatchedManifestData, Workspace } from "./patching/Patching";
 import type { Result } from "./result.entity";
 import { type DependencyDetails } from "./sbom/SbomDetails/SbomDetails";
 import type { AnalysisStats, PatchingStats, SbomStats } from "./stats.entity";
@@ -30,6 +26,13 @@ export interface GetSbomStatsRequestOptions extends AuthRepoMethodGetRequestOpti
   workspace: string;
   ecosystem_filter?: string;
   runIndex?: number | null;
+}
+
+export interface GetPatchesRequestOptions extends AuthRepoMethodGetRequestOptions {
+  orgId: string;
+  projectId: string;
+  analysisId: string;
+  workspace: string;
 }
 
 export interface GetSbomWorkspacesRequestOptions extends AuthRepoMethodGetRequestOptions {
@@ -441,24 +444,13 @@ export class ResultsRepository extends BaseRepository {
     );
   }
 
+  /** Every patch of the workspace; the API takes no other parameter. */
   async getPatches(
-    options: GetSbomRequestOptions,
+    options: GetPatchesRequestOptions,
   ): Promise<DataResponse<Workspace>> {
     const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching`;
 
-    const queryParams: Record<string, string | number | undefined> = {
-      workspace: options.workspace,
-      page: options.pagination.page,
-      entries_per_page: options.pagination.entries_per_page,
-      sort_by: options.sort.sortKey,
-      sort_direction: options.sort.sortDirection,
-      active_filters: options.active_filters,
-      search_key: options.search_key,
-    };
-
-    if (options.runIndex !== null && options.runIndex !== undefined) {
-      queryParams.run_index = options.runIndex;
-    }
+    const queryParams = { workspace: options.workspace };
 
     const response = await this.getRequest<DataResponse<Workspace>>({
       queryParams,
@@ -494,30 +486,6 @@ export class ResultsRepository extends BaseRepository {
     return Entity.unMarshal<DataResponse<PatchedManifestData>>(
       response,
       DataResponse<PatchedManifestData>,
-    );
-  }
-
-  async getPatchingGraph(
-    options: GetSbomStatsRequestOptions,
-  ): Promise<DataResponse<Map<string, PatchOccurenceInfo>>> {
-    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching/tree`;
-
-    const response = await this.getRequest<
-      DataResponse<Map<string, PatchOccurenceInfo>>
-    >({
-      queryParams: {
-        workspace: options.workspace,
-      },
-      bearerToken: options.bearerToken,
-      url: this.buildUrl(RELATIVE_URL),
-      handleBusinessErrors: options.handleBusinessErrors,
-      handleHTTPErrors: options.handleHTTPErrors,
-      handleOtherErrors: options.handleOtherErrors,
-    });
-
-    return Entity.unMarshal<DataResponse<Map<string, PatchOccurenceInfo>>>(
-      response,
-      DataResponse<Map<string, PatchOccurenceInfo>>,
     );
   }
 

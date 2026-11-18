@@ -30,7 +30,6 @@ import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { guardFormSubmit } from "@/utils/form/guardSubmit";
-import { serverFeatures } from "@/utils/server-features";
 import { successToast } from "@/utils/toasts";
 
 import { LicensePolicyType } from "../license_policy.entity";
@@ -44,10 +43,6 @@ const authStore = useAuthStore();
 const route = useRoute();
 
 const isEdit = computed(() => props.mode === "edit");
-// The server cannot change a saved policy yet, so an edit link only shows it.
-const readOnly = computed(
-  () => isEdit.value && !serverFeatures.licensePolicyChanges,
-);
 const policyId = computed(() =>
   typeof route.query.policyId === "string" ? route.query.policyId : "",
 );
@@ -58,9 +53,7 @@ const submitting = ref(false);
 const failure = ref("");
 // An edit form stays disabled until its policy has loaded
 const policyLoaded = ref(false);
-const formDisabled = computed(
-  () => readOnly.value || (isEdit.value && !policyLoaded.value),
-);
+const formDisabled = computed(() => isEdit.value && !policyLoaded.value);
 
 const formSchema = z.object({
   name: z
@@ -231,10 +224,7 @@ onBeforeMount(() => {
       <PageHeading
         description="Pick the licenses your projects should not use."
       >
-        <template v-if="readOnly">
-          <BrandEmphasis>License policy</BrandEmphasis>
-        </template>
-        <template v-else-if="isEdit">
+        <template v-if="isEdit">
           Edit <BrandEmphasis>license policy</BrandEmphasis>
         </template>
         <template v-else>
@@ -245,13 +235,6 @@ onBeforeMount(() => {
 
     <Alert v-if="failure" variant="destructive">
       <AlertDescription>{{ failure }}</AlertDescription>
-    </Alert>
-
-    <Alert v-else-if="readOnly">
-      <AlertDescription>
-        Changing a license policy is not available yet. You can create a new
-        policy instead.
-      </AlertDescription>
     </Alert>
 
     <Card class="rounded-card shadow-card">
@@ -349,10 +332,9 @@ onBeforeMount(() => {
 
             <div class="flex justify-end gap-3">
               <Button variant="outline" :as="RouterLink" :to="listRoute">
-                {{ readOnly ? "Back" : "Cancel" }}
+                Cancel
               </Button>
               <Button
-                v-if="!readOnly"
                 type="submit"
                 :disabled="submitting || isSubmitting || formDisabled"
               >

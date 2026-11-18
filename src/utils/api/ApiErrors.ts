@@ -25,12 +25,9 @@ export const APIErrors = {
   IntegrationInvalidToken: "IntegrationInvalidToken",
   RegistrationNotVerified: "RegistrationNotVerified",
   CannotPerformActionOnSocialAccount: "CannotPerformActionOnSocialAccount",
-  SetupAlreadyDone: "SetupAlreadyDone",
-  CannotPerformActionOnNormalAccount: "CannotPerformActionOnNormalAccount",
   PersonalOrgCannotBeModified: "PersonalOrgCannotBeModified",
   InvitationOrgAlreadyExists: "InvitationOrgAlreadyExists",
   FailedToCreateApiKey: "FailedToCreateApiKey",
-  FailedToAuthenticateSocialAccount: "FailedToAuthenticateSocialAccount",
   WrongCredentials: "WrongCredentials",
   InvitationExpired: "InvitationExpired",
   HandleAlreadyExists: "HandleAlreadyExists",
@@ -49,6 +46,7 @@ export const APIErrors = {
   EntityInUse: "EntityInUse",
   DatasetNotReady: "DatasetNotReady",
   AnalyzerMissingRequiredPlugins: "AnalyzerMissingRequiredPlugins",
+  IntegrationInstanceUrlChanged: "IntegrationInstanceUrlChanged",
   IntegrationIntegrationTokenMissingPermissions:
     "IntegrationIntegrationTokenMissingPermissions",
   FailedToSendAccountRegistrationVerificationEmail:

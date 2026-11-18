@@ -6,6 +6,10 @@ import { computed, onMounted, ref } from "vue";
 
 import { StatusBadge } from "@/base_components/page";
 import DeleteIntegrationDialog from "@/codeclarity_components/organizations/integrations/DeleteIntegrationDialog.vue";
+import {
+  isMemberRoleGreaterOrEqualTo,
+  MemberRole,
+} from "@/codeclarity_components/organizations/organization.entity";
 import { Button } from "@/shadcn/ui/button";
 import { Spinner } from "@/shadcn/ui/spinner";
 import { useAuthStore } from "@/stores/auth";
@@ -28,6 +32,14 @@ const { defaultOrg } = storeToRefs(useUserStore());
 const auth = useAuthStore();
 
 const ticketsRepository = new TicketsRepository();
+
+// Only org admins and owners may set up, test or remove integrations.
+const canManage = computed(() => {
+  const role = defaultOrg?.value?.role;
+  return (
+    role !== undefined && isMemberRoleGreaterOrEqualTo(role, MemberRole.ADMIN)
+  );
+});
 
 const integrations = ref<IntegrationConfigSummary[]>([]);
 const isLoading = ref(false);
@@ -146,7 +158,7 @@ async function confirmDisconnect(): Promise<void> {
 }
 
 function openConfigModal(provider: ExternalTicketProvider): void {
-  if (provider === ExternalTicketProvider.CLICKUP) {
+  if (canManage.value && provider === ExternalTicketProvider.CLICKUP) {
     showClickUpModal.value = true;
   }
 }
@@ -192,6 +204,10 @@ onMounted(() => {
         Refresh
       </Button>
     </div>
+
+    <p v-if="!canManage" class="text-sm text-muted-foreground">
+      Ask an organisation admin or owner to set up or change integrations.
+    </p>
 
     <div
       v-if="isLoading && integrations.length === 0"
@@ -277,7 +293,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="flex shrink-0 items-center gap-2">
+        <div v-if="canManage" class="flex shrink-0 items-center gap-2">
           <template v-if="getIntegration(providerInfo.provider)">
             <Button
               variant="outline"
@@ -320,7 +336,7 @@ onMounted(() => {
     </ul>
 
     <ClickUpConfigModal
-      v-if="showClickUpModal"
+      v-if="canManage && showClickUpModal"
       :existing-config="getIntegration(ExternalTicketProvider.CLICKUP)"
       @close="showClickUpModal = false"
       @configured="handleClickUpConfigured"

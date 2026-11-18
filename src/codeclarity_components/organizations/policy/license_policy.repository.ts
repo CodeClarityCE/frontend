@@ -1,5 +1,6 @@
 import { Entity } from "../../../utils/api/BaseEntity";
 import {
+  type AuthRepoMethodEmptyDeleteRequestOptions,
   type AuthRepoMethodGetRequestOptions,
   type AuthRepoMethodPatchRequestOptions,
   type AuthRepoMethodPostRequestOptions,
@@ -30,6 +31,11 @@ export interface GetLicensePolicyRequestOptions extends AuthRepoMethodGetRequest
   policyId: string;
 }
 export interface UpdatePolicyRequestOptions extends AuthRepoMethodPatchRequestOptions<PolicyUpdate> {
+  orgId: string;
+  policyId: string;
+}
+
+export interface DeletePolicyRequestOptions extends AuthRepoMethodEmptyDeleteRequestOptions {
   orgId: string;
   policyId: string;
 }
@@ -102,6 +108,23 @@ export class LicensePolicyRepository extends BaseRepository {
 
     const response = await this.patchRequest<NoDataResponse, PolicyUpdate>({
       data: options.data,
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
+  }
+
+  async deletePolicy(
+    options: DeletePolicyRequestOptions,
+  ): Promise<NoDataResponse> {
+    const RELATIVE_URL = `/org/${options.orgId}/policies/license_policy/${options.policyId}`;
+
+    const response = await this.deleteRequest<NoDataResponse, undefined>({
+      data: undefined,
       bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,

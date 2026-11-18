@@ -8,6 +8,7 @@ import VueCookies from "vue-cookies";
 
 import App from "./App.vue";
 import router from "./router.ts";
+import { installLogger } from "./utils/logger.ts";
 
 import "./assets/main.css";
 
@@ -33,6 +34,8 @@ window.addEventListener("vite:preloadError", (event) => {
 const app = createApp(App as Component);
 const pinia = createPinia();
 app.use(pinia);
+// Sends error reports for uncaught component errors and promise rejections.
+installLogger(app);
 app.use(router);
 app.use(VueCookies);
 

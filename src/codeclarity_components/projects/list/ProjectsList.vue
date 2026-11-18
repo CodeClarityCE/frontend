@@ -403,11 +403,13 @@ onUnmounted(() => clearTimeout(pollTimer));
       <DialogHeader>
         <DialogTitle>Delete {{ toDelete?.name }}?</DialogTitle>
         <DialogDescription v-if="toDelete?.analyses?.length">
-          The project, its {{ analysesCount(toDelete) }} and every result, SBOM
-          and report are deleted. This cannot be undone.
+          The project, its {{ analysesCount(toDelete) }}, its tickets and every
+          result, SBOM and report are deleted. Tasks already created in ClickUp
+          are kept. This cannot be undone.
         </DialogDescription>
         <DialogDescription v-else>
-          The project is deleted. It has no analyses. This cannot be undone.
+          The project and its tickets are deleted. It has no analyses. Tasks
+          already created in ClickUp are kept. This cannot be undone.
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>

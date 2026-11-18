@@ -5,7 +5,6 @@ import {
   type AuthRepoMethodPostRequestOptions,
   BaseRepository,
 } from "../../utils/api/BaseRepository";
-import { CreatedResponse } from "../../utils/api/responses/CreatedResponse";
 import type { DataResponse } from "../../utils/api/responses/DataResponse";
 import { NoDataResponse } from "../../utils/api/responses/NoDataResponse";
 import type { UpdateDefaultOrgBody } from "../organizations/update_default_org.http";
@@ -16,7 +15,6 @@ import type { ConfirmRegistrationBody } from "./confirm_registration.http";
 import type { PasswordPatchBody } from "./password_patch.http";
 import type { SocialSetupBody } from "./social_setup.http";
 
-export interface CompleteSocialAccountRequestOptions extends AuthRepoMethodPostRequestOptions<SocialSetupBody> {}
 export interface SetDefaultOrgRequestOptions extends AuthRepoMethodPatchRequestOptions<UpdateDefaultOrgBody> {
   userId: string;
 }
@@ -57,23 +55,6 @@ export class UserRepository extends BaseRepository {
       response.data,
       AuthenticatedUser,
     );
-  }
-
-  async completeSocialAccount(
-    options: CompleteSocialAccountRequestOptions,
-  ): Promise<CreatedResponse> {
-    const RELATIVE_URL = `/users/complete_social_setup`;
-
-    const response = await this.postRequest<CreatedResponse, SocialSetupBody>({
-      bearerToken: options.bearerToken,
-      data: options.data,
-      url: this.buildUrl(RELATIVE_URL),
-      handleBusinessErrors: options.handleBusinessErrors,
-      handleHTTPErrors: options.handleHTTPErrors,
-      handleOtherErrors: options.handleOtherErrors,
-    });
-
-    return Entity.unMarshal<CreatedResponse>(response, CreatedResponse);
   }
 
   async setDefaultOrg(

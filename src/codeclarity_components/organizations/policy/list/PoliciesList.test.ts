@@ -4,13 +4,16 @@ import { defineComponent, h } from "vue";
 
 import PoliciesList from "./PoliciesList.vue";
 
-const { getLicensePolicies, push, features } = vi.hoisted(() => ({
-  getLicensePolicies: vi.fn(),
-  push: vi.fn(),
-  features: { licensePolicyChanges: false },
-}));
+const { getLicensePolicies, deletePolicy, push, successToast, errorToast } =
+  vi.hoisted(() => ({
+    getLicensePolicies: vi.fn(),
+    deletePolicy: vi.fn(),
+    push: vi.fn(),
+    successToast: vi.fn(),
+    errorToast: vi.fn(),
+  }));
 
-vi.mock("@/utils/server-features", () => ({ serverFeatures: features }));
+vi.mock("@/utils/toasts", () => ({ successToast, errorToast }));
 
 vi.mock("@/stores/auth", () => ({
   useAuthStore: () => ({ getAuthenticated: true, getToken: "test-token" }),
@@ -49,6 +52,7 @@ vi.mock(
   () => ({
     LicensePolicyRepository: class {
       getLicensePolicies = getLicensePolicies;
+      deletePolicy = deletePolicy;
     },
   }),
 );
@@ -93,9 +97,9 @@ const sample = [
 
 let wrapper: VueWrapper | undefined;
 
-async function render(): Promise<void> {
+async function render(canManage = true): Promise<void> {
   wrapper = mount(PoliciesList, {
-    props: { page: "policy", orgId: "org-1", canManage: true },
+    props: { page: "policy", orgId: "org-1", canManage },
     attachTo: document.body,
   });
   await flushPromises();
@@ -118,7 +122,6 @@ function tile(label: string): string {
 describe("PoliciesList", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    features.licensePolicyChanges = false;
     getLicensePolicies.mockResolvedValue({ data: sample });
   });
 
@@ -161,14 +164,14 @@ describe("PoliciesList", () => {
     );
   });
 
-  it("offers no Edit while the server cannot change a policy", async () => {
-    await render();
+  it("offers no Edit or Delete to members who cannot manage policies", async () => {
+    await render(false);
 
     expect(button("Edit Strict")).toBeUndefined();
+    expect(button("Delete Strict")).toBeUndefined();
   });
 
   it("opens the editor for a policy", async () => {
-    features.licensePolicyChanges = true;
     await render();
 
     button("Edit Strict")?.click();
@@ -177,5 +180,39 @@ describe("PoliciesList", () => {
     expect(push).toHaveBeenCalledWith(
       expect.objectContaining({ query: { policyId: "p-2" } }),
     );
+  });
+
+  it("deletes a policy after confirmation", async () => {
+    deletePolicy.mockResolvedValue({});
+    await render();
+
+    button("Delete Strict")?.click();
+    await flushPromises();
+    expect(document.body.textContent).toContain("Delete Strict?");
+    expect(deletePolicy).not.toHaveBeenCalled();
+
+    button("Delete policy")?.click();
+    await flushPromises();
+
+    expect(deletePolicy).toHaveBeenCalledWith(
+      expect.objectContaining({ orgId: "org-1", policyId: "p-2" }),
+    );
+    expect(document.querySelector("table")?.textContent).not.toContain(
+      "Strict",
+    );
+    expect(successToast).toHaveBeenCalledWith("Deleted Strict");
+  });
+
+  it("keeps a policy that could not be deleted", async () => {
+    deletePolicy.mockRejectedValue(new Error("boom"));
+    await render();
+
+    button("Delete Strict")?.click();
+    await flushPromises();
+    button("Delete policy")?.click();
+    await flushPromises();
+
+    expect(document.querySelector("table")?.textContent).toContain("Strict");
+    expect(errorToast).toHaveBeenCalledWith("The policy could not be deleted");
   });
 });

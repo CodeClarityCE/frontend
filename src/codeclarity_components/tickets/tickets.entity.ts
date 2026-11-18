@@ -41,6 +41,7 @@ export enum ExternalTicketProvider {
   LINEAR = "LINEAR",
 }
 
+// Matches the API's TicketEventType; an event of any other type is dropped.
 export enum TicketEventType {
   CREATED = "CREATED",
   STATUS_CHANGED = "STATUS_CHANGED",
@@ -48,10 +49,14 @@ export enum TicketEventType {
   ASSIGNED = "ASSIGNED",
   UNASSIGNED = "UNASSIGNED",
   SYNCED_EXTERNAL = "SYNCED_EXTERNAL",
+  SYNCED_FROM_EXTERNAL = "SYNCED_FROM_EXTERNAL",
+  UNLINKED_EXTERNAL = "UNLINKED_EXTERNAL",
   OCCURRENCE_ADDED = "OCCURRENCE_ADDED",
   OCCURRENCE_RESOLVED = "OCCURRENCE_RESOLVED",
+  RESOLVED = "RESOLVED",
+  REOPENED = "REOPENED",
   COMMENT_ADDED = "COMMENT_ADDED",
-  UPDATED = "UPDATED",
+  DUE_DATE_CHANGED = "DUE_DATE_CHANGED",
 }
 
 // ============================================

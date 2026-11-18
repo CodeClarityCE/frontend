@@ -3,6 +3,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import LoginView from "@/codeclarity_components/authentication/signin/LoginView.vue";
 
+const route = vi.hoisted((): { query: Record<string, string> } => ({
+  query: {},
+}));
+
+vi.mock("vue-router", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("vue-router")>()),
+  useRoute: () => route,
+}));
+
 // Mock the stores
 const mockStateStore = {
   $reset: vi.fn(),
@@ -24,8 +33,12 @@ describe("LoginView.vue", () => {
     // Reset mocks
     vi.clearAllMocks();
     mockStateStore.$reset.mockClear();
+    route.query = {};
+    wrapper = mountLogin();
+  });
 
-    wrapper = mount(LoginView, {
+  function mountLogin() {
+    return mount(LoginView, {
       global: {
         stubs: {
           RouterLink: {
@@ -39,6 +52,30 @@ describe("LoginView.vue", () => {
           },
         },
       },
+    });
+  }
+
+  describe("Notices", () => {
+    it("shows no notice without one in the URL", () => {
+      expect(wrapper.find('[role="alert"]').exists()).toBe(false);
+    });
+
+    it("confirms a password reset as good news, not an error", () => {
+      route.query = { notice: "password_reset" };
+      const alert = mountLogin().find('[role="alert"]');
+
+      expect(alert.text()).toContain(
+        "Your password was changed. Sign in with your new password.",
+      );
+      expect(alert.classes()).not.toContain("text-destructive");
+    });
+
+    it("shows a problem notice as an error", () => {
+      route.query = { notice: "reset_link_invalid" };
+      const alert = mountLogin().find('[role="alert"]');
+
+      expect(alert.text()).toContain("This password reset link is incomplete.");
+      expect(alert.classes()).toContain("text-destructive");
     });
   });
 

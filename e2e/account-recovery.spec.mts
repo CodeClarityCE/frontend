@@ -6,57 +6,128 @@ import { expectScreenshots } from "./helpers/screenshots.mjs";
 // The body the API sends for a request that returns no data.
 const okBody = { status_code: 200, status: "success" };
 
-// Password reset is not built on the server yet, so both pages say so plainly.
-for (const entry of [
-  { name: "request page", url: "/password_reset_request" },
-  {
-    name: "emailed link",
-    url: "/email_action/reset_password?token=t1&userid=u1",
-  },
-]) {
-  test.describe(`Password reset ${entry.name}`, () => {
-    test("says the feature is unavailable and sends nothing", async ({
-      page,
-    }) => {
-      const calls: string[] = [];
-      await page.route("**/api/auth/**password_reset", (route) => {
-        calls.push(route.request().url());
-        return route.abort();
-      });
-      await page.goto(entry.url);
-
-      await expect(
-        page.getByRole("heading", { name: "Password reset is not available" }),
-      ).toBeVisible();
-      await expect(
-        page.getByText(/ask an administrator of your organisation/i),
-      ).toBeVisible();
-      await expect(page.getByLabel("Email")).toHaveCount(0);
-      await expect(page.getByLabel(/new password/i)).toHaveCount(0);
-      expect(calls).toEqual([]);
-
-      await page.getByRole("link", { name: "Back to sign in" }).click();
-      await expect(page).toHaveURL(/\/login$/);
+test.describe("Password reset request", () => {
+  test("sends the reset request and says to check the email", async ({
+    page,
+  }) => {
+    const bodies: unknown[] = [];
+    await page.route("**/api/auth/request_password_reset", (route) => {
+      bodies.push(route.request().postDataJSON());
+      return route.fulfill({ json: okBody });
     });
+    await page.goto("/password_reset_request");
 
-    test("has no WCAG 2.2 AA violations", async ({ page }) => {
-      await page.goto(entry.url);
-      await expect(
-        page.getByRole("heading", { name: "Password reset is not available" }),
-      ).toBeVisible();
-      await expectNoAxeViolations(page);
-    });
+    await page.getByLabel("Email").fill("jane@example.com");
+    await page.getByRole("button", { name: "Send reset link" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Check your email" }),
+    ).toBeVisible();
+    await expect(page.getByText(/valid for 30 minutes/)).toBeVisible();
+    expect(bodies).toEqual([{ email: "jane@example.com" }]);
+    await expectNoAxeViolations(page);
   });
-}
 
-test("the unavailable password reset matches the approved screenshots", async ({
-  page,
-}) => {
-  await page.goto("/password_reset_request");
-  await expect(
-    page.getByRole("heading", { name: "Password reset is not available" }),
-  ).toBeVisible();
-  await expectScreenshots(page, "password-reset-unavailable");
+  test("is reached from the sign in page", async ({ page }) => {
+    await page.goto("/login");
+    await page.getByRole("link", { name: "Forgot your password?" }).click();
+    await expect(page).toHaveURL(/\/password_reset_request$/);
+    await expect(
+      page.getByRole("heading", { name: "Reset your password" }),
+    ).toBeVisible();
+  });
+
+  test("has no WCAG 2.2 AA violations", async ({ page }) => {
+    await page.goto("/password_reset_request");
+    await expect(
+      page.getByRole("heading", { name: "Reset your password" }),
+    ).toBeVisible();
+    await expectNoAxeViolations(page);
+  });
+
+  test("matches the approved screenshots", async ({ page }) => {
+    await page.goto("/password_reset_request");
+    await expect(
+      page.getByRole("heading", { name: "Reset your password" }),
+    ).toBeVisible();
+    await expectScreenshots(page, "password-reset-request");
+  });
+});
+
+test.describe("Password reset from the emailed link", () => {
+  const resetUrl = "/email_action/reset_password?token=t1&userid=u1";
+
+  test("sets the new password and sends the user to sign in", async ({
+    page,
+  }) => {
+    const bodies: unknown[] = [];
+    await page.route("**/api/auth/password_reset", (route) => {
+      bodies.push(route.request().postDataJSON());
+      return route.fulfill({ json: okBody });
+    });
+    await page.goto(resetUrl);
+
+    await page.getByLabel("New password", { exact: true }).fill("NewPass4567!");
+    await page.getByLabel("Confirm new password").fill("NewPass4567!");
+    await page.getByRole("button", { name: "Update password" }).click();
+
+    await expect(page).toHaveURL(/\/login\?notice=password_reset$/);
+    await expect(
+      page.getByText(
+        "Your password was changed. Sign in with your new password.",
+      ),
+    ).toBeVisible();
+    expect(bodies).toEqual([
+      {
+        new_password: "NewPass4567!",
+        new_password_confirmation: "NewPass4567!",
+        token: "t1",
+        user_id_hash: "u1",
+      },
+    ]);
+    await expectNoAxeViolations(page);
+  });
+
+  test("offers a new link when this one expired", async ({ page }) => {
+    await page.route("**/api/auth/password_reset", (route) =>
+      route.fulfill({
+        status: 400,
+        json: {
+          error_code: "PasswordResetTokenInvalidOrExpired",
+          error_message: "Expired",
+        },
+      }),
+    );
+    await page.goto(resetUrl);
+
+    await page.getByLabel("New password", { exact: true }).fill("NewPass4567!");
+    await page.getByLabel("Confirm new password").fill("NewPass4567!");
+    await page.getByRole("button", { name: "Update password" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Reset link expired" }),
+    ).toBeVisible();
+    await page
+      .getByRole("link", { name: "Request a new password reset" })
+      .click();
+    await expect(page).toHaveURL(/\/password_reset_request$/);
+  });
+
+  test("has no WCAG 2.2 AA violations", async ({ page }) => {
+    await page.goto(resetUrl);
+    await expect(
+      page.getByRole("heading", { name: "Choose a new password" }),
+    ).toBeVisible();
+    await expectNoAxeViolations(page);
+  });
+
+  test("matches the approved screenshots", async ({ page }) => {
+    await page.goto(resetUrl);
+    await expect(
+      page.getByRole("heading", { name: "Choose a new password" }),
+    ).toBeVisible();
+    await expectScreenshots(page, "password-reset-form");
+  });
 });
 
 test.describe("Registration confirmation", () => {

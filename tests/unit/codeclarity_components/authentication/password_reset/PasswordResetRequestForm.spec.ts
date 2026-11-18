@@ -65,7 +65,7 @@ describe("PasswordResetRequestForm", () => {
       data: { email: "john.doe@codeclarity.io" },
       handleBusinessErrors: true,
     });
-    expect(wrapper.text()).toContain("5 minutes");
+    expect(wrapper.text()).toContain("30 minutes");
     expect(wrapper.find("form").exists()).toBe(false);
   });
 

@@ -18,7 +18,8 @@ export interface LogContext {
 }
 
 // Only these context keys leave the browser; the server filters again.
-// Keep in sync with ALLOWED_FIELDS in api/src/base_modules/logs/logs.controller.ts.
+// Must equal ALLOWED_FIELDS in api/src/base_modules/logs/logs.controller.ts;
+// the umbrella type-sync check (scripts/type-sync) fails CI when they differ.
 const ALLOWED_FIELDS = [
   "route",
   "component",

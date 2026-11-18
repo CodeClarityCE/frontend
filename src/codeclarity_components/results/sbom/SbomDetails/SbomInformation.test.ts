@@ -60,6 +60,12 @@ describe("SbomInformation", () => {
     );
   });
 
+  it("says Unknown for release dates the knowledge base does not have", () => {
+    show({ release_date: null, lastest_release_date: null });
+    expect(detail("Release age")).toBe("Unknown");
+    expect(screen.queryByText(/today/i)).toBeNull();
+  });
+
   it("flags a dependency without a license", () => {
     show({ license: "" });
     expect(detail("License")).toBe("Unlicensed");

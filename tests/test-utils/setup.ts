@@ -89,7 +89,8 @@ export function mountWithSetup<T extends ComponentPublicInstance>(
 
       // Import mount function
       const { mount } = await import("@vue/test-utils");
-      this.wrapper = mount(component, finalOptions) as VueWrapper<T>;
+      // T is chosen by the caller, so the mounted type cannot be checked here.
+      this.wrapper = mount(component, finalOptions) as unknown as VueWrapper<T>;
       return this.wrapper;
     },
   };

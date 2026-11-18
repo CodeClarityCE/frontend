@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleAlert } from "@lucide/vue";
+import { CircleAlert, CircleCheck } from "@lucide/vue";
 import { useRoute } from "vue-router";
 
 import BrandEmphasis from "@/base_components/page/BrandEmphasis.vue";
@@ -9,7 +9,7 @@ import { useStateStore } from "@/stores/state";
 import AuthLayout from "../layout/AuthLayout.vue";
 import TextLink from "../layout/TextLink.vue";
 
-import { loginNoticeMessage } from "./login-route";
+import { loginNoticeIsSuccess, loginNoticeMessage } from "./login-route";
 import UserAuthForm from "./UserAuthForm.vue";
 
 const state = useStateStore();
@@ -19,7 +19,9 @@ state.page = "signup";
 state.publicPage = true;
 
 // Why another page sent the visitor here, if it said.
-const notice = loginNoticeMessage(useRoute().query.notice);
+const noticeKey = useRoute().query.notice;
+const notice = loginNoticeMessage(noticeKey);
+const noticeIsSuccess = loginNoticeIsSuccess(noticeKey);
 </script>
 
 <template>
@@ -31,8 +33,13 @@ const notice = loginNoticeMessage(useRoute().query.notice);
       Welcome back. Please enter your credentials.
     </template>
 
-    <Alert v-if="notice" variant="destructive" class="mb-4">
-      <CircleAlert aria-hidden="true" />
+    <Alert
+      v-if="notice"
+      :variant="noticeIsSuccess ? 'default' : 'destructive'"
+      class="mb-4"
+    >
+      <CircleCheck v-if="noticeIsSuccess" aria-hidden="true" />
+      <CircleAlert v-else aria-hidden="true" />
       <AlertDescription>{{ notice }}</AlertDescription>
     </Alert>
     <UserAuthForm />

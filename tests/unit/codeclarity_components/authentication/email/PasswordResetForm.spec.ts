@@ -5,13 +5,9 @@ import PasswordResetForm from "@/codeclarity_components/authentication/email/Pas
 import router from "@/router";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 
-const { resetPassword, serverFeatures } = vi.hoisted(() => ({
+const { resetPassword } = vi.hoisted(() => ({
   resetPassword: vi.fn(),
-  // The form is covered as if the server supported password reset.
-  serverFeatures: { passwordReset: true, gitlabTokenReplacement: false },
 }));
-
-vi.mock("@/utils/server-features", () => ({ serverFeatures }));
 
 vi.mock("@/codeclarity_components/authentication/auth.repository", () => ({
   AuthRepository: class {
@@ -59,16 +55,6 @@ describe("PasswordResetForm", () => {
 
   afterEach(() => {
     window.history.replaceState({}, "", "/");
-    serverFeatures.passwordReset = true;
-  });
-
-  it("says password reset is unavailable while the server lacks it", async () => {
-    serverFeatures.passwordReset = false;
-    const wrapper = mountAt("?token=t1&userid=u1");
-    await flushPromises();
-
-    expect(wrapper.text()).toContain("Password reset is not available");
-    expect(wrapper.find("form").exists()).toBe(false);
   });
 
   it("asks for the new password twice", () => {
@@ -87,10 +73,13 @@ describe("PasswordResetForm", () => {
     });
   });
 
-  it("resets the password with the link's token", async () => {
-    const wrapper = await submitPasswords("ThisIs4Str0ng", "ThisIs4Str0ng");
+  it("resets the password with the link's token, then sends the user to sign in", async () => {
+    await submitPasswords("ThisIs4Str0ng", "ThisIs4Str0ng");
     await vi.waitFor(() =>
-      expect(wrapper.find("h1").text()).toBe("Password updated"),
+      expect(router.replace).toHaveBeenCalledWith({
+        name: "login",
+        query: { notice: "password_reset" },
+      }),
     );
     expect(resetPassword).toHaveBeenCalledWith({
       data: {
@@ -101,10 +90,23 @@ describe("PasswordResetForm", () => {
       },
       handleBusinessErrors: true,
     });
-    // The logo links to login too, so look among every login link.
-    expect(wrapper.findAll('a[href="login"]').map((a) => a.text())).toContain(
-      "Back to sign in",
+  });
+
+  it("explains passwords the server says do not match", async () => {
+    resetPassword.mockRejectedValue(
+      new BusinessLogicError("PasswordsDoNotMatch", ""),
     );
+    const wrapper = await submitPasswords("ThisIs4Str0ng", "ThisIs4Str0ng");
+    await vi.waitFor(() =>
+      expect(wrapper.text()).toContain("Passwords do not match."),
+    );
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+
+  it("does not submit a password shorter than 10 characters", async () => {
+    const wrapper = await submitPasswords("Short1!", "Short1!");
+    await vi.waitFor(() => expect(wrapper.text()).toContain("Too short"));
+    expect(resetPassword).not.toHaveBeenCalled();
   });
 
   it("does not submit passwords that do not match", async () => {
@@ -123,6 +125,7 @@ describe("PasswordResetForm", () => {
     await vi.waitFor(() =>
       expect(wrapper.find("h1").text()).toBe("Reset link expired"),
     );
+    expect(wrapper.text()).toContain("only valid for 30 minutes");
     expect(wrapper.find('a[href="recoveryRequest"]').text()).toBe(
       "Request a new password reset",
     );

@@ -33,6 +33,18 @@ describe("PasswordResetRequestView", () => {
     });
   });
 
+  it("shows the reset request form", () => {
+    const wrapper = mount(PasswordResetRequestView, {
+      global: {
+        stubs: ["PasswordResetRequestForm"],
+      },
+    });
+
+    expect(
+      wrapper.findComponent({ name: "PasswordResetRequestForm" }).exists(),
+    ).toBe(true);
+  });
+
   describe("State Management", () => {
     it("should reset the state store on component setup", () => {
       mount(PasswordResetRequestView, {

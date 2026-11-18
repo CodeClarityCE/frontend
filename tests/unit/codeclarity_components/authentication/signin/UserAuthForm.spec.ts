@@ -229,6 +229,12 @@ describe("UserAuthForm.vue", () => {
       expect(inputs[1].attributes("placeholder")).toBe("Enter your password");
     });
 
+    it("links to password reset", () => {
+      const link = wrapper.find('a[href="recoveryRequest"]');
+      expect(link.exists()).toBe(true);
+      expect(link.text()).toBe("Forgot your password?");
+    });
+
     it("has a submit button", () => {
       const button = wrapper.find('button[type="submit"]');
       expect(button.exists()).toBe(true);

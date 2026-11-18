@@ -47,22 +47,21 @@ const open = useVModel(props, "open", emits, {
   passive: (props.open === undefined) as false,
 }) as Ref<boolean>;
 
-function setOpen(value: boolean) {
+function setOpen(value: boolean): void {
   open.value = value; // emits('update:open', value)
 
   // This sets the cookie to keep the sidebar state.
   document.cookie = `${SIDEBAR_COOKIE_NAME}=${open.value}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
 }
 
-function setOpenMobile(value: boolean) {
+function setOpenMobile(value: boolean): void {
   openMobile.value = value;
 }
 
 // Helper to toggle the sidebar.
-function toggleSidebar() {
-  return isMobile.value
-    ? setOpenMobile(!openMobile.value)
-    : setOpen(!open.value);
+function toggleSidebar(): void {
+  if (isMobile.value) setOpenMobile(!openMobile.value);
+  else setOpen(!open.value);
 }
 
 useEventListener("keydown", (event: KeyboardEvent) => {

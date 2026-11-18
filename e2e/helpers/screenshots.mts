@@ -1,6 +1,5 @@
-import { fileURLToPath } from "node:url";
-
 import { expect, type Page } from "@playwright/test";
+import { fileURLToPath } from "node:url";
 
 // Desktop widths from the spec: designed for 1280 to 1920.
 export const SCREENSHOT_WIDTHS = [1280, 1920];

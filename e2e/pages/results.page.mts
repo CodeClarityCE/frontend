@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /**
  * Page Object Model for Results pages
@@ -116,7 +116,7 @@ export class ResultsPage {
     await this.viewToggle.click();
   }
 
-  async openVulnerabilityDetails(index: number = 0) {
+  async openVulnerabilityDetails(index = 0) {
     await this.vulnerabilityItem.nth(index).click();
     await expect(this.vulnerabilityDetails).toBeVisible();
   }

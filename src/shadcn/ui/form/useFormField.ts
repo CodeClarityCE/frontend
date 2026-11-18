@@ -1,8 +1,21 @@
-import { FieldContextKey } from "vee-validate";
-import { computed, inject } from "vue";
+import { FieldContextKey, type PrivateFieldContext } from "vee-validate";
+import { computed, type ComputedRef, inject } from "vue";
 import { FORM_ITEM_INJECTION_KEY } from "./injectionKeys";
 
-export function useFormField() {
+/** The ids and validation state of the enclosing form field. */
+export interface FormFieldState {
+  id: string | undefined;
+  name: PrivateFieldContext["name"];
+  formItemId: string;
+  formDescriptionId: string;
+  formMessageId: string;
+  valid: ComputedRef<boolean>;
+  isDirty: ComputedRef<boolean>;
+  isTouched: ComputedRef<boolean>;
+  error: PrivateFieldContext["errorMessage"];
+}
+
+export function useFormField(): FormFieldState {
   const fieldContext = inject(FieldContextKey);
   const fieldItemContext = inject(FORM_ITEM_INJECTION_KEY);
 

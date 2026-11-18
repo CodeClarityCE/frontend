@@ -18,6 +18,12 @@ function step(name: string, status: string, result: unknown = {}) {
   };
 }
 
+/** The status of a later step: done, running, or still waiting. */
+function stepStatus(done: boolean, running: boolean): string {
+  if (done) return "success";
+  return running ? "started" : "requested";
+}
+
 /** An analysis as the API returns it, with readable defaults. */
 export function analysis(
   id: string,
@@ -35,10 +41,7 @@ export function analysis(
     steps: [
       [step("js-sbom", done || running ? "success" : "requested")],
       [
-        step(
-          "vuln-finder",
-          done ? "success" : running ? "started" : "requested",
-        ),
+        step("vuln-finder", stepStatus(done, running)),
         step("php-sbom", "skipped", { skip_reason: "No composer.lock" }),
       ],
     ],

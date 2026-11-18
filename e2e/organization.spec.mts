@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Organization E2E Tests", () => {
   test("should handle organization route", async ({ page }) => {

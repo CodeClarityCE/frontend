@@ -10,6 +10,8 @@ defineOptions({
   inheritAttrs: false,
 });
 
+// Typed lint cannot resolve props imported from a .vue file; vue-tsc can.
+/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-redundant-type-constituents */
 const props = withDefaults(
   defineProps<
     SidebarMenuButtonProps & {
@@ -22,6 +24,7 @@ const props = withDefaults(
     size: "default",
   },
 );
+/* eslint-enable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-redundant-type-constituents */
 
 const { isMobile, state } = useSidebar();
 

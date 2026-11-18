@@ -45,6 +45,8 @@
   --color-foreground-strong: var(--foreground-strong);
   --color-surface-inverse: var(--surface-inverse);
   --color-surface-inverse-raised: var(--surface-inverse-raised);
+  /* The dimmed backdrop behind dialogs and sheets */
+  --color-overlay: var(--overlay);
 
   /* Shadcn semantic colors */
   --color-primary: var(--primary);
@@ -220,6 +222,7 @@
 
     --surface-inverse: #111111;
     --surface-inverse-raised: #121315;
+    --overlay: #000000;
 
     --background: #ffffff;
     --foreground: #212529;
@@ -327,6 +330,7 @@
 
     --surface-inverse: #f8f9fa;
     --surface-inverse-raised: #ffffff;
+    --overlay: #000000;
 
     --background: #111111;
     --foreground: #f8f9fa;

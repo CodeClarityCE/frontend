@@ -9,6 +9,14 @@ export interface PackageUpdate {
   latestVersion: string;
   isDev: boolean;
   isProd: boolean;
+  // Ecosystem of the dependency, e.g. "npm" or "packagist"
+  ecosystem?: string;
+}
+
+export interface ManagerUpdates {
+  // Null when the SBOM names no package manager we have commands for
+  manager: PackageManager | null;
+  updates: PackageUpdate[];
 }
 
 export type PackageManager = "npm" | "yarn" | "pnpm" | "bun" | "composer";
@@ -88,6 +96,33 @@ const MANAGERS: Record<PackageManager, ManagerInfo> = {
 export function toPackageManager(value?: string): PackageManager | null {
   const name = value?.toLowerCase() ?? "";
   return name in MANAGERS ? (name as PackageManager) : null;
+}
+
+/**
+ * Splits updates by the package manager of their ecosystem when the workspace
+ * uses more than one, else keeps them together under the workspace's manager.
+ */
+export function groupUpdatesByManager(
+  updates: PackageUpdate[],
+  workspaceManager?: string,
+  managersByEcosystem: Record<string, string> = {},
+): ManagerUpdates[] {
+  const managers = new Set(
+    Object.values(managersByEcosystem).map((m) => m.toLowerCase()),
+  );
+  if (managers.size < 2)
+    return [{ manager: toPackageManager(workspaceManager), updates }];
+
+  const groups = new Map<string, ManagerUpdates>();
+  for (const update of updates) {
+    const manager = toPackageManager(
+      managersByEcosystem[update.ecosystem ?? ""],
+    );
+    const key = manager ?? "";
+    if (!groups.has(key)) groups.set(key, { manager, updates: [] });
+    groups.get(key)!.updates.push(update);
+  }
+  return [...groups.values()];
 }
 
 /** Get package manager logo icon */

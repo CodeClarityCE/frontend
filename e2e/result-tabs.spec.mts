@@ -133,6 +133,57 @@ test.describe("SBOM results", () => {
     });
   }
 
+  test("the update dialog gives npm and Composer commands in one workspace", async ({
+    page,
+  }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn({
+      dependencies: [
+        dependency("lodash", "4.17.20", {
+          newest_release: "4.17.21",
+          is_direct: true,
+          is_direct_count: 1,
+          outdated: true,
+          ecosystem: "npm",
+        }),
+        dependency("monolog/monolog", "2.9.1", {
+          newest_release: "3.5.0",
+          is_direct: true,
+          is_direct_count: 1,
+          outdated: true,
+          ecosystem: "packagist",
+          purl: "pkg:composer/monolog/monolog@2.9.1",
+        }),
+      ],
+      workspaces: {
+        workspaces: ["."],
+        package_manager: "multi-language",
+        package_managers: { ".": "multi-language" },
+        ecosystem_package_managers: {
+          ".": { npm: "NPM", packagist: "COMPOSER" },
+        },
+      },
+    });
+    await tabs.goto();
+
+    await page
+      .getByRole("button", { name: "Update 2 direct dependencies" })
+      .click();
+    const dialog = page.getByRole("dialog", {
+      name: "Update direct dependencies",
+    });
+    await expect(dialog.getByLabel("npm update commands")).toHaveText(
+      "npm install lodash@^4.17.21",
+    );
+    await expect(dialog.getByLabel("composer update commands")).toHaveText(
+      "composer require monolog/monolog:^3.5.0",
+    );
+    await expect(dialog).toContainText("The commands update package-lock.json");
+    await expect(dialog).toContainText("The commands update composer.lock");
+    await expect(dialog).not.toContainText("could not tell");
+    await expectNoAxeViolations(page);
+  });
+
   test("the update dialog explains an unknown package manager", async ({
     page,
   }) => {

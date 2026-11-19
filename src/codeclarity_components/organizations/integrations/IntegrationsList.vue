@@ -1,11 +1,10 @@
 <script lang="ts" setup>
 import { Icon } from "@iconify/vue";
 import { Trash2 } from "@lucide/vue";
-import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, ref } from "vue";
 import { type RouteLocationRaw, RouterLink } from "vue-router";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { StatTile, StatusBadge, type StatusTone } from "@/base_components/page";
 import {
   IntegrationProvider,
@@ -131,7 +130,7 @@ const rows = computed<Row[]>(() => {
   return [...vcsRows, clickUpRow];
 });
 
-const columns: ColumnDef<Row, unknown>[] = [
+const columns: DataTableColumn<Row>[] = [
   { id: "service", accessorKey: "name", header: "Service" },
   { id: "host", accessorKey: "host", header: "Host" },
   { id: "kind", accessorKey: "kind", header: "Type" },

@@ -296,7 +296,7 @@ function cweUrl(id: string): string {
               <dt class="font-medium text-foreground-strong">Patch status</dt>
               <dd
                 v-for="affected in finding.Affected"
-                :key="affected.AffectedDependency"
+                :key="`${affected.AffectedDependency}@${affected.AffectedVersion}`"
                 class="flex flex-wrap items-center gap-2"
               >
                 {{ affected.AffectedDependency }}

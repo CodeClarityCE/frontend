@@ -2,6 +2,7 @@ import userEvent from "@testing-library/user-event";
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
+import { createMemoryHistory, createRouter } from "vue-router";
 
 import { sbomDependency } from "./sbom.fixture";
 import SbomTable from "./SbomTable.vue";
@@ -31,7 +32,12 @@ const dependencies = [
 
 function show(): void {
   render(SbomTable, {
-    props: { dependencies, analysisID: "a-1", projectID: "p-1" },
+    props: {
+      dependencies,
+      analysisID: "a-1",
+      projectID: "p-1",
+      workspace: ".",
+    },
   });
 }
 
@@ -82,6 +88,33 @@ describe("SbomTable", () => {
   it("links each dependency to its details", () => {
     show();
     expect(screen.getByRole("link", { name: "lodash" })).toBeTruthy();
+  });
+
+  it("keeps the selected workspace in the details link", () => {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        {
+          path: "/results/:page?",
+          name: "results",
+          component: { render: () => null },
+        },
+      ],
+    });
+    render(SbomTable, {
+      props: {
+        dependencies,
+        analysisID: "a-1",
+        projectID: "p-1",
+        workspace: "packages/app",
+      },
+      global: { plugins: [router], stubs: { RouterLink: false } },
+    });
+    const href =
+      screen.getByRole("link", { name: "lodash" }).getAttribute("href") ?? "";
+    expect(
+      new URL(href, "http://localhost").searchParams.get("workspace"),
+    ).toBe("packages/app");
   });
 
   it("filters dependencies by search", async () => {

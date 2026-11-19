@@ -366,4 +366,106 @@ const cvssV3_fields_map = {
   },
 };
 
-export { cvssV2_fields_map, cvssV3_fields_map };
+// A CVSS 4.0 impact field; the first letter of the value is the lookup key.
+function cvssV4Impact(
+  name: string,
+  system: "vulnerable" | "subsequent",
+  description: string,
+): (typeof cvssV3_fields_map)["attack_complexity"] {
+  const none = system === "vulnerable" ? "NONE" : "NEGLIGIBLE";
+  const where =
+    system === "vulnerable" ? "the vulnerable system" : "systems beyond it";
+  return {
+    full_name: name,
+    values: [none, "LOW", "HIGH"],
+    text: {
+      description,
+      value_descriptions: {
+        [none[0]!]: `There is no ${system === "vulnerable" ? "" : "or negligible "}loss within ${where}.`,
+        L: `There is some loss within ${where}, but it is limited.`,
+        H: `There is a total or serious loss within ${where}.`,
+      },
+    },
+    class: {
+      [none[0]!]: CRITICALITY_CLASSES.LOW,
+      L: CRITICALITY_CLASSES.MEDIUM,
+      H: CRITICALITY_CLASSES.HIGH,
+    },
+    value_map: { [none[0]!]: none, L: "LOW", H: "HIGH" },
+  };
+}
+
+// CVSS 4.0 base metrics, keyed like the API's cvss_4 fields.
+const cvssV4_fields_map = {
+  attack_vector: cvssV3_fields_map.attack_vector,
+  attack_complexity: cvssV3_fields_map.attack_complexity,
+  attack_requirements: {
+    full_name: "Attack Requirements",
+    values: ["PRESENT", "NONE"],
+    text: {
+      description:
+        "This metric captures the conditions of the vulnerable system's deployment that must hold for an attack to work.",
+      value_descriptions: {
+        P: "The attack depends on specific deployment or execution conditions of the vulnerable system.",
+        N: "The attack does not depend on any deployment or execution conditions of the vulnerable system.",
+      },
+    },
+    class: {
+      P: CRITICALITY_CLASSES.LOW,
+      N: CRITICALITY_CLASSES.HIGH,
+    },
+    value_map: { P: "PRESENT", N: "NONE" },
+  },
+  privileges_required: cvssV3_fields_map.privileges_required,
+  user_interaction: {
+    full_name: "User Interaction",
+    values: ["ACTIVE", "PASSIVE", "NONE"],
+    text: {
+      description:
+        "This metric captures whether a person other than the attacker must take part for the attack to work.",
+      value_descriptions: {
+        A: "A user must deliberately interact with the vulnerable system, for example by importing a file.",
+        P: "A user must take a limited, involuntary action, for example by visiting a page.",
+        N: "The attack works without any user interaction.",
+      },
+    },
+    class: {
+      A: CRITICALITY_CLASSES.LOW,
+      P: CRITICALITY_CLASSES.MEDIUM,
+      N: CRITICALITY_CLASSES.HIGH,
+    },
+    value_map: { A: "ACTIVE", P: "PASSIVE", N: "NONE" },
+  },
+  confidentiality_impact_vulnerable: cvssV4Impact(
+    "Confidentiality (vulnerable system)",
+    "vulnerable",
+    "The impact on the confidentiality of the data the vulnerable system manages.",
+  ),
+  integrity_impact_vulnerable: cvssV4Impact(
+    "Integrity (vulnerable system)",
+    "vulnerable",
+    "The impact on the trustworthiness and accuracy of the vulnerable system's data.",
+  ),
+  availability_impact_vulnerable: cvssV4Impact(
+    "Availability (vulnerable system)",
+    "vulnerable",
+    "The impact on the availability of the vulnerable system.",
+  ),
+  confidentiality_impact_subsequent: cvssV4Impact(
+    "Confidentiality (subsequent systems)",
+    "subsequent",
+    "The impact on the confidentiality of data in systems beyond the vulnerable one.",
+  ),
+  integrity_impact_subsequent: cvssV4Impact(
+    "Integrity (subsequent systems)",
+    "subsequent",
+    "The impact on the integrity of systems beyond the vulnerable one.",
+  ),
+  availability_impact_subsequent: cvssV4Impact(
+    "Availability (subsequent systems)",
+    "subsequent",
+    "The impact on the availability of systems beyond the vulnerable one.",
+  ),
+};
+
+export { cvssV2_fields_map, cvssV3_fields_map, cvssV4_fields_map };

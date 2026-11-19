@@ -1,4 +1,7 @@
-import type { VulnerabilityMerged } from "@/codeclarity_components/results/vulnerabilities/VulnStats";
+import type {
+  HiddenCounts,
+  VulnerabilityMerged,
+} from "@/codeclarity_components/results/vulnerabilities/VulnStats";
 
 import { Entity } from "../../utils/api/BaseEntity";
 import {
@@ -28,6 +31,20 @@ export interface GetSbomStatsRequestOptions extends AuthRepoMethodGetRequestOpti
   runIndex?: number | null;
 }
 
+export interface GetVulnerabilityStatsRequestOptions extends GetSbomStatsRequestOptions {
+  // Count vulnerabilities a policy excludes, like the list's toggle.
+  show_blacklisted?: boolean;
+}
+
+export type SourceVerdictExportFormat = "csv" | "json";
+
+export interface DownloadSourceVerdictsRequestOptions extends AuthRepoMethodGetRequestOptions {
+  orgId: string;
+  projectId: string;
+  analysisId: string;
+  format: SourceVerdictExportFormat;
+}
+
 export interface GetPatchesRequestOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
   projectId: string;
@@ -49,6 +66,9 @@ export interface GetFindingRequestOptions extends AuthRepoMethodGetRequestOption
   vulnerability_id: string;
   workspace: string;
   runIndex?: number | null;
+  // The affected dependency and version to show; the first occurrence when left out.
+  dependency?: string | null;
+  version?: string | null;
 }
 
 export interface GetSbomRequestOptions
@@ -65,7 +85,17 @@ export interface GetSbomRequestOptions
   ecosystem_filter?: string;
   runIndex?: number | null;
   show_blacklisted?: boolean;
+  // Show instances hidden by default because another source contradicts them or all retired them.
+  show_contradicted?: boolean;
+  show_retired?: boolean;
 }
+
+/** A page of vulnerabilities, with what the default view hid. */
+export type VulnerabilitiesPage = PaginatedResponse<VulnerabilityMerged> & {
+  hidden_counts?: HiddenCounts;
+  /** False for analyses made before source verdicts; they hide nothing. */
+  source_verdicts_available?: boolean;
+};
 
 export interface GetDependencyRequestOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
@@ -298,7 +328,7 @@ export class ResultsRepository extends BaseRepository {
   }
 
   async getVulnerabilitiesStat(
-    options: GetSbomStatsRequestOptions,
+    options: GetVulnerabilityStatsRequestOptions,
   ): Promise<DataResponse<AnalysisStats>> {
     const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/stats`;
 
@@ -308,6 +338,10 @@ export class ResultsRepository extends BaseRepository {
 
     if (options.ecosystem_filter) {
       queryParams.ecosystem_filter = options.ecosystem_filter;
+    }
+
+    if (options.show_blacklisted !== undefined) {
+      queryParams.show_blacklisted = options.show_blacklisted.toString();
     }
 
     if (options.runIndex !== null && options.runIndex !== undefined) {
@@ -329,6 +363,22 @@ export class ResultsRepository extends BaseRepository {
     );
   }
 
+  /** Every source verdict of the analysis, one row per instance and source. */
+  async downloadSourceVerdicts(
+    options: DownloadSourceVerdictsRequestOptions,
+  ): Promise<Blob> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/source-verdicts`;
+
+    return await this.getBlobRequest({
+      queryParams: { format: options.format },
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+  }
+
   async getMaliciousPackageAdvisories(
     options: GetMaliciousPackageAdvisoriesRequestOptions,
   ): Promise<DataResponse<MaliciousPackageAdvisory[]>> {
@@ -346,7 +396,7 @@ export class ResultsRepository extends BaseRepository {
 
   async getVulnerabilities(
     options: GetSbomRequestOptions,
-  ): Promise<PaginatedResponse<VulnerabilityMerged>> {
+  ): Promise<VulnerabilitiesPage> {
     const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities`;
 
     const queryParams: Record<string, string | number | undefined> = {
@@ -366,6 +416,8 @@ export class ResultsRepository extends BaseRepository {
     if (options.show_blacklisted !== undefined) {
       queryParams.show_blacklisted = options.show_blacklisted.toString();
     }
+    if (options.show_contradicted) queryParams.show_contradicted = "true";
+    if (options.show_retired) queryParams.show_retired = "true";
 
     if (options.runIndex !== null && options.runIndex !== undefined) {
       queryParams.run_index = options.runIndex;
@@ -400,6 +452,8 @@ export class ResultsRepository extends BaseRepository {
     if (options.runIndex !== null && options.runIndex !== undefined) {
       queryParams.run_index = options.runIndex;
     }
+    if (options.dependency) queryParams.dependency = options.dependency;
+    if (options.version) queryParams.version = options.version;
 
     const response = await this.getRequest<DataResponse<VulnerabilityDetails>>({
       queryParams,

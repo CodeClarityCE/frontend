@@ -467,6 +467,7 @@ const LINK =
         :dependencies="dependencies"
         :analysis-i-d="analysisID"
         :project-i-d="projectID"
+        :workspace="selected_workspace"
       />
     </template>
 

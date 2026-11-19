@@ -15,7 +15,10 @@ import type { SeverityLevel } from "@/utils/severity";
 
 import ResultsNotFound from "../components/ResultsNotFound.vue";
 import { isNotFound, resultsRoute } from "../result-errors";
-import { detailsRoute } from "../vulnerabilities/vuln-format";
+import {
+  detailsRoute,
+  workspaceFromQuery,
+} from "../vulnerabilities/vuln-format";
 
 import SbomDependencyGraph from "./SbomDetails/SbomDependencyGraph.vue";
 import SbomDependencyHealth from "./SbomDetails/SbomDependencyHealth.vue";
@@ -44,6 +47,7 @@ const notFound = ref(false);
 const dependency: Ref<DependencyDetails> = ref(new DependencyDetails());
 const backTo = resultsRoute(props.analysisID, props.projectID, props.runIndex);
 const hasIds = props.analysisID !== "" && props.projectID !== "";
+const workspace = workspaceFromQuery(route.query.workspace);
 
 async function getDependency(): Promise<void> {
   const packageId = route.query.package_id ?? null;
@@ -62,7 +66,7 @@ async function getDependency(): Promise<void> {
       analysisId: props.analysisID,
       dependency: packageId,
       bearerToken: token,
-      workspace: ".",
+      workspace,
       runIndex: props.runIndex,
       handleBusinessErrors: true,
     });
@@ -220,6 +224,7 @@ const LINK =
             :dependency="dependency"
             :analysis-i-d="analysisID"
             :project-i-d="projectID"
+            :workspace="workspace"
           />
         </CardContent>
       </Card>
@@ -277,7 +282,12 @@ const LINK =
                 <li v-for="id in vulnerabilities" :key="id">
                   <RouterLink
                     :class="LINK"
-                    :to="detailsRoute(analysisID, projectID, id)"
+                    :to="
+                      detailsRoute(analysisID, projectID, id, workspace, {
+                        AffectedDependency: dependency.name,
+                        AffectedVersion: dependency.version,
+                      })
+                    "
                     >{{ id }}</RouterLink
                   >
                 </li>

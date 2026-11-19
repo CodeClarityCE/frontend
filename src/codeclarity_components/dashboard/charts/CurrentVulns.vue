@@ -94,7 +94,10 @@ const vulns = computed((): Vuln[] =>
             :key="index"
             class="flex items-center gap-3 px-3 py-2 text-sm"
           >
-            <SeverityBadge :level="vuln.level" :score="vuln.severity" />
+            <SeverityBadge
+              :level="vuln.level"
+              :score="vuln.severity || undefined"
+            />
             <span class="truncate">{{ vuln.name }}</span>
           </li>
         </ul>

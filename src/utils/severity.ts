@@ -1,3 +1,5 @@
+import { SeverityType } from "@/codeclarity_components/results/vulnerabilities/VulnStats";
+
 export function isNoneSeverity(n: number): boolean {
   return n === 0.0 || n === undefined;
 }
@@ -47,4 +49,32 @@ export function severityLevelFromLabel(
 ): SeverityLevel {
   const level = label?.toLowerCase() as SeverityLevel | undefined;
   return level && SEVERITY_LEVELS.includes(level) ? level : "none";
+}
+
+// A finding's level: its CVSS score, else its class, which a GHSA label carries without a score.
+export function findingSeverityLevel(
+  severity:
+    | { Severity?: number | null; SeverityClass?: string | null }
+    | null
+    | undefined,
+): SeverityLevel {
+  const byScore = severityLevel(severity?.Severity);
+  return byScore === "none"
+    ? severityLevelFromLabel(severity?.SeverityClass)
+    : byScore;
+}
+
+const CVSS_VERSION_LABELS: Record<SeverityType, string> = {
+  [SeverityType.CvssV40]: "CVSS 4.0",
+  [SeverityType.CvssV31]: "CVSS 3.1",
+  [SeverityType.CvssV3]: "CVSS 3.0",
+  [SeverityType.CvssV2]: "CVSS 2.0",
+  [SeverityType.Ghsa]: "GHSA",
+};
+
+// The name shown next to a score, such as "CVSS 4.0", from the API's severity type.
+export function cvssVersionLabel(
+  type: string | null | undefined,
+): string | undefined {
+  return type ? CVSS_VERSION_LABELS[type as SeverityType] : undefined;
 }

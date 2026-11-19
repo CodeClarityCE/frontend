@@ -29,6 +29,7 @@ const props = defineProps<{
   pageSize: number;
   analysisID: string;
   projectID: string;
+  workspace: string;
 }>();
 
 const pageIndex = defineModel<number>("pageIndex", { required: true });
@@ -94,7 +95,15 @@ function rowKey(finding: VulnerabilityMerged): string {
       <div class="flex flex-col items-start gap-1.5">
         <RouterLink
           class="whitespace-nowrap rounded-sm font-semibold text-brand-subtle-foreground underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          :to="detailsRoute(analysisID, projectID, row.Vulnerability)"
+          :to="
+            detailsRoute(
+              analysisID,
+              projectID,
+              row.Vulnerability,
+              workspace,
+              row.Affected[0],
+            )
+          "
         >
           {{ row.Vulnerability }}
         </RouterLink>
@@ -110,7 +119,7 @@ function rowKey(finding: VulnerabilityMerged): string {
     </template>
     <template #cell-severity="{ row }">
       <div class="flex flex-col items-start gap-1">
-        <SeverityBadge :score="row.Severity?.Severity" />
+        <SeverityBadge :severity="row.Severity" />
         <span
           v-for="vlai in aiAssessments(row.VLAI)"
           :key="vlai.Source"
@@ -125,12 +134,23 @@ function rowKey(finding: VulnerabilityMerged): string {
       <ul class="flex flex-col gap-1.5">
         <li
           v-for="affected in row.Affected"
-          :key="affected.AffectedDependency"
+          :key="`${affected.AffectedDependency}@${affected.AffectedVersion}`"
           class="flex flex-col items-start gap-1"
         >
-          <span class="font-medium text-foreground-strong">
+          <RouterLink
+            :to="
+              detailsRoute(
+                analysisID,
+                projectID,
+                row.Vulnerability,
+                workspace,
+                affected,
+              )
+            "
+            class="rounded-sm font-medium text-foreground-strong underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
             {{ affected.AffectedDependency }}@{{ affected.AffectedVersion }}
-          </span>
+          </RouterLink>
           <StatusBadge
             v-bind="patchStatus(affected.PatchType)"
             class="whitespace-nowrap"

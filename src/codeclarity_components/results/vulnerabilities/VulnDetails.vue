@@ -13,14 +13,24 @@ import { Button } from "@/shadcn/ui/button";
 import { Card, CardContent, CardHeader } from "@/shadcn/ui/card";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { cvssV2_fields_map, cvssV3_fields_map } from "@/utils/cvss";
+import {
+  cvssV2_fields_map,
+  cvssV3_fields_map,
+  cvssV4_fields_map,
+} from "@/utils/cvss";
 import { formatDate } from "@/utils/dateUtils";
-import { SEVERITY_LABELS, severityLevel } from "@/utils/severity";
+import {
+  SEVERITY_LABELS,
+  severityLevel,
+  severityLevelFromLabel,
+} from "@/utils/severity";
 
 import ResultsNotFound from "../components/ResultsNotFound.vue";
 import { isNotFound, resultsRoute } from "../result-errors";
 
 import AddToPolicyButton from "./components/AddToPolicyButton.vue";
+import { workspaceFromQuery } from "./vuln-format";
+import SourceVerdicts from "./VulnDetails/SourceVerdicts.vue";
 import VulnDetailsHeader from "./VulnDetails/VulnDetailsHeader.vue";
 import VulnDetailsLoader from "./VulnDetails/VulnDetailsLoader.vue";
 import VulnerabilitySeverities from "./VulnDetails/VulnerabilitySeverities.vue";
@@ -48,9 +58,8 @@ const backTo = resultsRoute(props.analysisID, props.projectID, props.runIndex);
 const hasIds = props.analysisID !== "" && props.projectID !== "";
 
 async function getFinding(): Promise<void> {
-  const findingID = new URLSearchParams(window.location.search).get(
-    "finding_id",
-  );
+  const query = new URLSearchParams(window.location.search);
+  const findingID = query.get("finding_id");
   const org = userStore.getDefaultOrg;
   const token = authStore.getToken;
   if (!findingID || !hasIds) {
@@ -64,10 +73,12 @@ async function getFinding(): Promise<void> {
       projectId: props.projectID,
       analysisId: props.analysisID,
       vulnerability_id: findingID,
+      dependency: query.get("dependency"),
+      version: query.get("version"),
       bearerToken: token,
       runIndex: props.runIndex,
       handleBusinessErrors: true,
-      workspace: ".",
+      workspace: workspaceFromQuery(query.get("workspace")),
     });
     finding.value = res.data;
   } catch (error) {
@@ -78,14 +89,28 @@ async function getFinding(): Promise<void> {
 }
 void getFinding();
 
-// The newest CVSS version the finding has a score for.
-const baseScore = computed(() => {
+// The newest CVSS version the finding has a score for, with its label.
+const shownCvss = computed(() => {
   const s = finding.value?.severities;
-  return (
-    s?.cvss_31?.base_score ?? s?.cvss_3?.base_score ?? s?.cvss_2?.base_score
-  );
+  const versions = [
+    ["CVSS 4.0", s?.cvss_4],
+    ["CVSS 3.1", s?.cvss_31],
+    ["CVSS 3.0", s?.cvss_3],
+    ["CVSS 2.0", s?.cvss_2],
+  ] as const;
+  for (const [label, info] of versions) {
+    const score = info?.base_score;
+    if (score !== null && score !== undefined) return { label, score };
+  }
+  return undefined;
 });
-const level = computed(() => severityLevel(baseScore.value));
+const baseScore = computed(() => shownCvss.value?.score);
+// Without a CVSS score, GHSA's severity sets the level.
+const level = computed(() =>
+  shownCvss.value
+    ? severityLevel(shownCvss.value.score)
+    : severityLevelFromLabel(finding.value?.severities?.ghsa),
+);
 
 const SECURITY_SCORE = {
   none: ["A", "No known severity"],
@@ -139,7 +164,7 @@ const linkClass =
       <PageHeading>
         {{ finding.vulnerability_info.vulnerability_id }}
         <template #badge>
-          <SeverityBadge :score="baseScore" />
+          <SeverityBadge :score="baseScore" :level="level" />
         </template>
         <template #description>
           <span v-if="finding.weaknesses.length > 0"
@@ -162,7 +187,7 @@ const linkClass =
 
       <ul aria-label="Vulnerability numbers" class="grid gap-4 sm:grid-cols-3">
         <StatTile
-          label="CVSS score"
+          :label="shownCvss ? `${shownCvss.label} score` : 'CVSS score'"
           :value="baseScore ?? 'N/A'"
           :hint="`${SEVERITY_LABELS[level]} severity`"
         />
@@ -193,6 +218,25 @@ const linkClass =
         </CardContent>
       </Card>
 
+      <section aria-labelledby="source-verdicts-heading">
+        <Card>
+          <CardHeader>
+            <h2
+              id="source-verdicts-heading"
+              class="text-lg font-semibold leading-none tracking-tight"
+            >
+              Source verdicts
+            </h2>
+          </CardHeader>
+          <CardContent>
+            <SourceVerdicts
+              :verdicts="finding.source_verdicts ?? []"
+              :available="finding.source_verdicts_available === true"
+            />
+          </CardContent>
+        </Card>
+      </section>
+
       <div class="grid gap-6 2xl:grid-cols-2">
         <Card>
           <CardHeader>
@@ -215,6 +259,7 @@ const linkClass =
               :finding="finding"
               :cvss-v3-fields-map="cvssV3_fields_map"
               :cvss-v2-fields-map="cvssV2_fields_map"
+              :cvss-v4-fields-map="cvssV4_fields_map"
             />
           </CardContent>
         </Card>

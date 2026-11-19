@@ -649,7 +649,9 @@ onMounted(() => void loadFigures());
                   ><SelectValue
                 /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem :value="NONE">No filter</SelectItem>
+                  <SelectItem :value="NONE">{{
+                    filter.none_label ?? "No filter"
+                  }}</SelectItem>
                   <SelectItem
                     v-for="option in filter.options"
                     :key="option.id"

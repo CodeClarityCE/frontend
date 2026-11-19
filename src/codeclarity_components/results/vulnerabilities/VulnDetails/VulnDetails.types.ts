@@ -64,9 +64,12 @@ export interface CVSSInfo {
 }
 
 export interface SeverityInfo {
+  cvss_4?: CVSSInfo | null;
   cvss_31?: CVSSInfo | null;
   cvss_3?: CVSSInfo | null;
   cvss_2?: CVSSInfo | null;
+  // GHSA's severity, such as "HIGH", when the record has no vector.
+  ghsa?: string;
 }
 
 export interface OwaspInfo {
@@ -95,6 +98,58 @@ export interface OtherInfo {
   package_manager: string;
 }
 
+// What one knowledge source said about a vulnerability instance.
+export enum SourceVerdictValue {
+  Matched = "matched",
+  NoRecord = "no_record",
+  StaleOrFailed = "stale_or_failed",
+  VersionExcluded = "version_excluded",
+  Retired = "retired",
+  NamesAnotherProduct = "names_another_product",
+  NoPackageData = "no_package_data",
+}
+
+export interface SourceRange {
+  introduced?: string;
+  fixed?: string;
+}
+
+export interface SourceAffected {
+  ranges: SourceRange[];
+  exact: string[];
+  universal: boolean;
+}
+
+// A product or package a record names; OSV gives ecosystem and package, GCVE and NVD vendor and product.
+export interface SourceProduct {
+  ecosystem?: string;
+  package?: string;
+  vendor?: string;
+  product?: string;
+  target_sw?: string;
+}
+
+export interface SourceVerdictEvidence {
+  record_ids?: string[];
+  /** "stale", "failed" or "unknown", for a stale or failed verdict. */
+  source_status?: string;
+  /** The affected versions checked, for version excluded. */
+  evaluated?: SourceAffected;
+  /** The GCVE entry marking the version unaffected, for version excluded. */
+  unaffected?: SourceAffected;
+  /** "rejected", "withdrawn" or "removed", for retired. */
+  retired_reason?: string;
+  retired_at?: string;
+  /** What the record names, for names another product. */
+  names?: SourceProduct[];
+}
+
+export interface SourceVerdict {
+  source: string;
+  verdict: SourceVerdictValue;
+  evidence?: SourceVerdictEvidence;
+}
+
 export class VulnerabilityDetails {
   vulnerability_info!: VulnerabilityInfo;
   dependency_info?: DependencyInfo;
@@ -106,4 +161,7 @@ export class VulnerabilityDetails {
   references!: ReferenceInfo[];
   location!: string[];
   other!: OtherInfo;
+  source_verdicts?: SourceVerdict[];
+  /** False for analyses stored before source verdicts were recorded. */
+  source_verdicts_available?: boolean;
 }

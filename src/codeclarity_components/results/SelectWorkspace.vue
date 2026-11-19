@@ -166,6 +166,12 @@ async function getSbomWorkspaces(): Promise<void> {
       handleBusinessErrors: true,
     });
     workspaces.value = res.data;
+    // Subfolder projects have no root workspace, so fall back to the first one.
+    const names = res.data.workspaces ?? [];
+    const first = names[0];
+    if (first !== undefined && !names.includes(selected_workspace.value)) {
+      selected_workspace.value = first;
+    }
     emitPackageManager();
   } catch {
     error.value = true;

@@ -877,6 +877,41 @@ describe("ExperimentDetail", () => {
     expect(getExperimentResults).toHaveBeenCalledTimes(2);
   });
 
+  describe("hidden instances at HEAD", () => {
+    async function mountHidden(overrides: object): Promise<VueWrapper> {
+      getExperiment.mockResolvedValue({
+        data: experiment("RUNNING", {
+          run_counts: { pending: 3, done: 1, failed: 0, skipped: 0 },
+        }),
+      });
+      getExperimentResults.mockResolvedValue({ data: results(overrides) });
+      const wrapper = mountDetail();
+      await flushPromises();
+      return wrapper;
+    }
+    const HIDDEN = '[data-testid="experiment-hidden-instances"]';
+
+    it("says how many instances the results left out and why", async () => {
+      const wrapper = await mountHidden({
+        hidden_instances: { contradicted: 1204, retired_all: 3 },
+      });
+
+      expect(wrapper.find(HIDDEN).text()).toBe(
+        "1,207 instances hidden: 1,204 contradicted by another source, 3 retired on every source. Figures can include them.",
+      );
+    });
+
+    it("says nothing when none were hidden or the results predate hiding", async () => {
+      for (const overrides of [
+        { hidden_instances: { contradicted: 0, retired_all: 0 } },
+        {},
+      ]) {
+        const wrapper = await mountHidden(overrides);
+        expect(wrapper.find(HIDDEN).exists()).toBe(false);
+      }
+    });
+  });
+
   it("names each run's snapshot, its grid date or HEAD", async () => {
     getExperiment.mockResolvedValue({ data: experiment("RUNNING") });
     getExperimentRuns.mockResolvedValue({
@@ -2698,6 +2733,14 @@ describe("ExperimentDetail Figures tab", () => {
               { id: "as_of", label: "As-of" },
             ],
           },
+          {
+            id: "hidden",
+            label: "Hidden instances",
+            none_label: "Left out",
+            options: [
+              { id: "include", label: "Include contradicted and retired" },
+            ],
+          },
         ],
       },
     ],
@@ -2850,6 +2893,10 @@ describe("ExperimentDetail Figures tab", () => {
       "No filter",
       "Hindsight",
       "As-of",
+    ]);
+    expect(optionsOf(wrapper, "figure-filter-hidden")).toEqual([
+      "Left out",
+      "Include contradicted and retired",
     ]);
     // The catalog offers no grouping for this metric
     expect(wrapper.find('[data-testid="figure-group-by"]').exists()).toBe(

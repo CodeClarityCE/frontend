@@ -700,6 +700,12 @@ export interface UpstreamLeverageBlock {
   overall: FixKindCounts;
 }
 
+/** Instances hidden by default (contradicted or retired on every source). */
+export interface HiddenInstanceCounts {
+  contradicted: number;
+  retired_all: number;
+}
+
 export interface ExperimentResults {
   coverage: CoverageBlock;
   /** Coverage per grid date, oldest first, HEAD last */
@@ -722,6 +728,8 @@ export interface ExperimentResults {
   residence?: ResidenceBlock;
   exposure_survival?: ExposureSurvivalBlock;
   upstream_leverage?: UpstreamLeverageBlock;
+  /** HEAD instances left out of every block, by reason; absent before metric version 2 */
+  hidden_instances?: HiddenInstanceCounts;
   /** Null while the experiment has not ended */
   bootstrap_intervals?: ResultIntervals | null;
   provenance: ProvenanceBlock;

@@ -78,6 +78,23 @@ function tally(
 }
 
 const headline = computed(() => props.results.headline);
+
+/** How many HEAD instances the results left out and why; null when none. */
+const hiddenSummary = computed<string | null>(() => {
+  const hidden = props.results.hidden_instances;
+  if (!hidden) return null;
+  const total = hidden.contradicted + hidden.retired_all;
+  if (total === 0) return null;
+  const reasons = [
+    hidden.contradicted > 0
+      ? `${count(hidden.contradicted)} contradicted by another source`
+      : null,
+    hidden.retired_all > 0
+      ? `${count(hidden.retired_all)} retired on every source`
+      : null,
+  ].filter((reason) => reason !== null);
+  return `${count(total)} ${total === 1 ? "instance" : "instances"} hidden: ${reasons.join(", ")}. Figures can include them.`;
+});
 const bootstrap = computed(() => props.results.bootstrap_intervals ?? null);
 
 /** Interval text for a stat card, empty without one. */
@@ -295,6 +312,13 @@ const analyzerSteps = computed(() =>
         </h3>
         <p class="text-sm text-muted-foreground">
           The blocks below are computed on the HEAD snapshot of every entry.
+        </p>
+        <p
+          v-if="hiddenSummary"
+          class="text-sm text-muted-foreground"
+          data-testid="experiment-hidden-instances"
+        >
+          {{ hiddenSummary }}
         </p>
       </div>
 

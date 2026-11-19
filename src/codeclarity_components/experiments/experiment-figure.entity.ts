@@ -8,6 +8,8 @@ export interface FigureChoice {
 export interface FigureFilter extends FigureChoice {
   /** A date range instead of a list of options */
   kind?: "date_range";
+  /** What the choice of no option is called; "No filter" when not given */
+  none_label?: string;
   options: FigureChoice[];
 }
 

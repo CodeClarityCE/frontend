@@ -29,7 +29,7 @@ Shared pieces for migrated pages. Build new screens from these and the shadcn co
 - **FrozenBadge**: the neutral "Frozen" pill with a lock, for published results that no longer change.
 - **OwlEmptyState**: the owl, a `title`, a `description` (prop or slot) and the next step in the default slot, usually `<Button :as="RouterLink" to="..." arrow>`.
 - **DataTable** (`@/base_components/data-table`): tanstack table on the shadcn `Table`, with sorting, an optional filter box and pagination, all on the rows it is given (load every row first). Props:
-  - `columns` (tanstack `ColumnDef[]`; the `header` string labels the sort button; `enableSorting: false` or `enableGlobalFilter: false` opt a column out), `data`, `caption` (screen reader name);
+  - `columns` (`DataTableColumn<Row>[]`, a tanstack column def for the table's features; the `header` string labels the sort button; text columns sort without regard to case; `enableSorting: false` or `enableGlobalFilter: false` opt a column out), `data`, `caption` (screen reader name);
   - `filterLabel` shows the filter box, `pageSize` (20), `initialSorting`, `emptyText`, `rowKey`;
   - `loading` shows a `Skeleton` table in a `status` named "Loading <caption>".
   - Render a cell with a `#cell-<column id>="{ row, value }"` slot, or with the column's `cell` function.

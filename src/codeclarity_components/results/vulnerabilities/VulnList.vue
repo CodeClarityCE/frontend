@@ -189,8 +189,9 @@ function cweUrl(id: string): string {
             class="flex flex-col gap-1 text-muted-foreground"
           >
             <li v-for="signal in findingSignals(finding)" :key="signal.label">
-              <span class="font-medium text-foreground">{{ signal.label }}</span
-              >: {{ signal.detail }}
+              <span class="font-medium text-foreground">{{
+                signal.label
+              }}</span>: {{ signal.detail }}
             </li>
           </ul>
 

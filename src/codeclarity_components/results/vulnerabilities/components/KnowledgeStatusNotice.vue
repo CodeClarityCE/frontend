@@ -151,8 +151,7 @@ onMounted(async () => {
         <li v-for="source in unhealthy" :key="source.source">
           <span class="font-medium">{{
             SOURCE_LABELS[source.source] ?? source.source
-          }}</span
-          >: {{ describe(source) }}
+          }}</span>: {{ describe(source) }}
         </li>
       </ul>
     </AlertDescription>

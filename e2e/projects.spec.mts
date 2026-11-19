@@ -69,10 +69,11 @@ test.describe("Projects list", () => {
       "aria-sort",
       "ascending",
     );
+    // Text columns sort without regard to case.
     await expect(names).toHaveText([
-      "Local archive",
       "example/api-server",
       "example/web-frontend",
+      "Local archive",
     ]);
 
     await projects.filter.fill("api");

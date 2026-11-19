@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import type { ColumnDef } from "@tanstack/vue-table";
 import { computed } from "vue";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 
 import type { FailedProjectImport } from "../projectImport";
 
@@ -12,7 +11,7 @@ const props = defineProps<{
 
 const failures = computed(() => Object.values(props.reposFailedToImport));
 
-const columns: ColumnDef<FailedProjectImport, unknown>[] = [
+const columns: DataTableColumn<FailedProjectImport>[] = [
   {
     id: "repository",
     accessorFn: (failure) => failure.repo.fully_qualified_name,

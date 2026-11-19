@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import { UserMinus, UserPlus } from "@lucide/vue";
-import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
 import {
   isMemberRoleGreaterOrEqualTo,
@@ -66,7 +65,7 @@ const canManageMembers = computed(
     isMemberRoleGreaterOrEqualTo(orgInfo.value.role, MemberRole.ADMIN),
 );
 
-const columns: ColumnDef<OrganizationMembership, unknown>[] = [
+const columns: DataTableColumn<OrganizationMembership>[] = [
   {
     id: "member",
     accessorFn: (m) =>
@@ -78,7 +77,7 @@ const columns: ColumnDef<OrganizationMembership, unknown>[] = [
     id: "role",
     accessorFn: (m) => roleLabel(m.role),
     // Owners first when sorted ascending
-    sortingFn: (a, b) => a.original.role - b.original.role,
+    sortFn: (a, b) => a.original.role - b.original.role,
     header: "Role",
   },
   {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { ColumnDef, SortingState } from "@tanstack/vue-table";
+import type { SortingState } from "@tanstack/vue-table";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { StatusBadge, type StatusTone } from "@/base_components/page";
 import {
   ActionSeverity,
@@ -43,7 +43,7 @@ function actionLabel(action: string): string {
 }
 
 // Column ids are the API's sort keys.
-const columns: ColumnDef<AuditLog, unknown>[] = [
+const columns: DataTableColumn<AuditLog>[] = [
   {
     id: "action_severity",
     accessorFn: (log) => severity(log).label,

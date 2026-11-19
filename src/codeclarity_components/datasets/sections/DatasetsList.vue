@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { Plus } from "@lucide/vue";
-import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import {
   BrandEmphasis,
   OwlEmptyState,
@@ -38,7 +37,7 @@ const anyBuilding = computed(() =>
   datasets.value.some((dataset) => dataset.status === DatasetStatus.BUILDING),
 );
 
-const columns: ColumnDef<Dataset, unknown>[] = [
+const columns: DataTableColumn<Dataset>[] = [
   { id: "name", accessorKey: "name", header: "Name" },
   { id: "status", accessorKey: "status", header: "Status" },
   {

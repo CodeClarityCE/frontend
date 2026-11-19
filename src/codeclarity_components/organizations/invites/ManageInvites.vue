@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import { MailX, RefreshCw, UserPlus } from "@lucide/vue";
-import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import {
   BrandEmphasis,
   OwlEmptyState,
@@ -67,12 +66,12 @@ const canInvite = computed(
     isMemberRoleGreaterThan(orgInfo.value.role, MemberRole.USER),
 );
 
-const columns: ColumnDef<Invitation, unknown>[] = [
+const columns: DataTableColumn<Invitation>[] = [
   { id: "email", accessorKey: "user_email", header: "Invitee" },
   {
     id: "role",
     accessorFn: (i) => roleLabel(i.role),
-    sortingFn: (a, b) => a.original.role - b.original.role,
+    sortFn: (a, b) => a.original.role - b.original.role,
     header: "Role",
   },
   {

@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, type Ref, ref, watch } from "vue";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { StatTile, StatusBadge } from "@/base_components/page";
 import type { License } from "@/codeclarity_components/results/licenses/License";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
@@ -101,7 +100,7 @@ const dependencyCount = computed(() =>
   ),
 );
 
-const columns: ColumnDef<License, unknown>[] = [
+const columns: DataTableColumn<License>[] = [
   { id: "name", header: "License", accessorFn: (l) => licenseName(l) },
   {
     id: "family",

@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 import { CircleCheck } from "@lucide/vue";
-import type { ColumnDef } from "@tanstack/vue-table";
 import { type Ref, ref, watch } from "vue";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { StatTile } from "@/base_components/page";
 import { type Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import { type Project } from "@/codeclarity_components/projects/project.entity";
@@ -94,7 +93,7 @@ watch(
   { immediate: true },
 );
 
-const columns: ColumnDef<Finding, unknown>[] = [
+const columns: DataTableColumn<Finding>[] = [
   { id: "rule", header: "Rule", accessorFn: (f) => f.rule },
   {
     id: "message",

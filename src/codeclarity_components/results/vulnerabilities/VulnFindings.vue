@@ -13,6 +13,7 @@ import {
 } from "@/base_components/filters/filterTypes";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
 import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
+import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import {
   Select,
@@ -29,7 +30,11 @@ import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import VulnFilters from "./components/VulnFilters.vue";
 import { patchStatus } from "./vuln-format";
 import VulnList from "./VulnList.vue";
-import type { VulnerabilityMerged } from "./VulnStats";
+import {
+  type HiddenCounts,
+  HiddenReason,
+  type VulnerabilityMerged,
+} from "./VulnStats";
 import VulnTable from "./VulnTable.vue";
 
 const props = withDefaults(
@@ -76,8 +81,30 @@ const filterState = ref<FilterState>(
         show_blacklisted: { title: "Show policy excluded", value: false },
       },
     },
+    HiddenState: {
+      name: "Hidden instances",
+      type: FilterType.CHECKBOX,
+      data: {
+        show_contradicted: { title: "Show contradicted", value: false },
+        show_retired: { title: "Show retired on all sources", value: false },
+      },
+    },
   }),
 );
+
+// The hidden reasons, their filter option and how the hidden line words them.
+const HIDDEN_REASONS = [
+  {
+    reason: HiddenReason.Contradicted,
+    option: "show_contradicted",
+    text: "contradicted by another source",
+  },
+  {
+    reason: HiddenReason.RetiredAll,
+    option: "show_retired",
+    text: "retired on all sources",
+  },
+] as const;
 
 // Offered only when the analysis has a patching result.
 const PATCH_FILTERS = {
@@ -110,6 +137,10 @@ const findings = ref<VulnerabilityMerged[]>([]);
 // How many vulnerabilities each filter would leave, from the API.
 const filterCount = ref<Record<string, number>>({});
 const total = ref(0);
+const hiddenCounts = ref<HiddenCounts>({
+  [HiddenReason.Contradicted]: 0,
+  [HiddenReason.RetiredAll]: 0,
+});
 const loading = ref(true);
 const failed = ref(false);
 
@@ -150,6 +181,35 @@ const showBlacklisted = computed(
       ?.value ?? false,
 );
 
+function hiddenShown(option: string): boolean {
+  return (
+    filterState.value.filterConfig.HiddenState?.data[option]?.value ?? false
+  );
+}
+
+function setHiddenShown(option: string, value: boolean): void {
+  const state = filterState.value;
+  const entry = state.filterConfig.HiddenState?.data[option];
+  if (!entry) return;
+  entry.value = value;
+  state.activeFilters = getActiveState(state.filterConfig);
+}
+
+// One line per hidden reason that hid something, with a toggle to show them.
+const hiddenLines = computed(() =>
+  HIDDEN_REASONS.filter(({ reason }) => hiddenCounts.value[reason] > 0).map(
+    ({ reason, option, text }) => {
+      const shown = hiddenShown(option);
+      return {
+        option,
+        shown,
+        text: `${hiddenCounts.value[reason]} ${shown ? "shown" : "hidden"}: ${text}`,
+        action: shown ? `Hide instances ${text}` : `Show instances ${text}`,
+      };
+    },
+  ),
+);
+
 // The stats above the list follow the same toggle.
 watch(showBlacklisted, (show) => emit("show-blacklisted-changed", show));
 
@@ -179,12 +239,20 @@ async function load(): Promise<void> {
       search_key: debouncedSearch.value,
       ecosystem_filter: props.ecosystemFilter ?? undefined,
       show_blacklisted: showBlacklisted.value,
+      show_contradicted: hiddenShown("show_contradicted"),
+      show_retired: hiddenShown("show_retired"),
       handleBusinessErrors: true,
     });
     if (request !== latestRequest) return;
     findings.value = res.data;
     filterCount.value = res.filter_count ?? {};
     total.value = res.matching_count ?? res.total_entries;
+    hiddenCounts.value = {
+      [HiddenReason.Contradicted]:
+        res.hidden_counts?.[HiddenReason.Contradicted] ?? 0,
+      [HiddenReason.RetiredAll]:
+        res.hidden_counts?.[HiddenReason.RetiredAll] ?? 0,
+    };
     failed.value = false;
   } catch {
     if (request !== latestRequest) return;
@@ -272,6 +340,29 @@ watch(
     >
       {{ total }} {{ total === 1 ? "vulnerability" : "vulnerabilities" }}
     </p>
+
+    <ul
+      v-if="!loading && !failed && hiddenLines.length > 0"
+      aria-label="Hidden instances"
+      class="-mt-2 flex flex-col gap-1 text-sm text-muted-foreground"
+    >
+      <li
+        v-for="line in hiddenLines"
+        :key="line.option"
+        class="flex flex-wrap items-center gap-2"
+      >
+        <span>{{ line.text }}</span>
+        <Button
+          variant="link"
+          size="sm"
+          class="h-auto p-0"
+          :aria-label="line.action"
+          @click="setHiddenShown(line.option, !line.shown)"
+        >
+          {{ line.shown ? "Hide" : "Show" }}
+        </Button>
+      </li>
+    </ul>
 
     <Alert v-if="failed" variant="destructive">
       <AlertTitle>Could not load the vulnerabilities</AlertTitle>

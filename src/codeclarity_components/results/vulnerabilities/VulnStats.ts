@@ -173,7 +173,20 @@ export interface AffectedDeps {
   Uncorroborated?: boolean;
   /** One verdict per knowledge source; absent on older analyses. */
   SourceVerdicts?: SourceVerdict[];
+  /** Why the instance is hidden by default; only sent when a filter shows it. */
+  Hidden?: HiddenReason;
+  /** Sources that withdrew or contradicted one of its source matches. */
+  ContradictedBy?: string[];
 }
+
+// Why the API hides an instance by default; copy of the API's HiddenReason.
+export enum HiddenReason {
+  Contradicted = "contradicted",
+  RetiredAll = "retired_all",
+}
+
+/** Instances of each hidden reason, whether or not a filter shows them. */
+export type HiddenCounts = Record<HiddenReason, number>;
 
 export declare interface AffectedRange {
   IntroducedString: string;

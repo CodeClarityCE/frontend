@@ -1,4 +1,7 @@
-import type { VulnerabilityMerged } from "@/codeclarity_components/results/vulnerabilities/VulnStats";
+import type {
+  HiddenCounts,
+  VulnerabilityMerged,
+} from "@/codeclarity_components/results/vulnerabilities/VulnStats";
 
 import { Entity } from "../../utils/api/BaseEntity";
 import {
@@ -82,7 +85,17 @@ export interface GetSbomRequestOptions
   ecosystem_filter?: string;
   runIndex?: number | null;
   show_blacklisted?: boolean;
+  // Show instances hidden by default because another source contradicts them or all retired them.
+  show_contradicted?: boolean;
+  show_retired?: boolean;
 }
+
+/** A page of vulnerabilities, with what the default view hid. */
+export type VulnerabilitiesPage = PaginatedResponse<VulnerabilityMerged> & {
+  hidden_counts?: HiddenCounts;
+  /** False for analyses made before source verdicts; they hide nothing. */
+  source_verdicts_available?: boolean;
+};
 
 export interface GetDependencyRequestOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
@@ -383,7 +396,7 @@ export class ResultsRepository extends BaseRepository {
 
   async getVulnerabilities(
     options: GetSbomRequestOptions,
-  ): Promise<PaginatedResponse<VulnerabilityMerged>> {
+  ): Promise<VulnerabilitiesPage> {
     const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities`;
 
     const queryParams: Record<string, string | number | undefined> = {
@@ -403,6 +416,8 @@ export class ResultsRepository extends BaseRepository {
     if (options.show_blacklisted !== undefined) {
       queryParams.show_blacklisted = options.show_blacklisted.toString();
     }
+    if (options.show_contradicted) queryParams.show_contradicted = "true";
+    if (options.show_retired) queryParams.show_retired = "true";
 
     if (options.runIndex !== null && options.runIndex !== undefined) {
       queryParams.run_index = options.runIndex;

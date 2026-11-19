@@ -2,12 +2,16 @@
 import type { StatusTone } from "@/base_components/page";
 import { findingSeverityLevel } from "@/utils/severity";
 
-import { verdictSummary } from "./VulnDetails/source-verdict-evidence";
-import type {
-  Severity,
-  VLAI,
-  VulnerabilityMerged,
-  WeaknessInfo,
+import {
+  SOURCE_LABELS,
+  verdictSummary,
+} from "./VulnDetails/source-verdict-evidence";
+import {
+  HiddenReason,
+  type Severity,
+  type VLAI,
+  type VulnerabilityMerged,
+  type WeaknessInfo,
 } from "./VulnStats";
 
 export interface OwaspCategory {
@@ -140,6 +144,47 @@ function uncorroboratedDetail(finding: VulnerabilityMerged): string {
   return ["Matched by one source origin only.", ...lines].join(" ");
 }
 
+function sourceList(sources: string[]): string {
+  return sources.map((s) => SOURCE_LABELS[s] ?? s.toUpperCase()).join(" and ");
+}
+
+// Hidden instances a filter shows, and the sources that contradicted a visible one.
+function contradictionSignals(finding: VulnerabilityMerged): Signal[] {
+  const signals: Signal[] = [];
+  const affected = finding.Affected ?? [];
+  if (affected.some((a) => a.Hidden === HiddenReason.Contradicted)) {
+    signals.push({
+      label: "Contradicted",
+      tone: "neutral",
+      detail:
+        "Every source that reports it is contradicted by a source of another origin. It is hidden by default and left out of the counts and the grade.",
+    });
+  }
+  if (affected.some((a) => a.Hidden === HiddenReason.RetiredAll)) {
+    signals.push({
+      label: "Retired everywhere",
+      tone: "neutral",
+      detail:
+        "Every source that holds a record for it has retired it. It is hidden by default and left out of the counts and the grade.",
+    });
+  }
+  const sources = [
+    ...new Set(
+      affected.filter((a) => !a.Hidden).flatMap((a) => a.ContradictedBy ?? []),
+    ),
+  ].sort();
+  if (sources.length > 0) {
+    const names = sourceList(sources);
+    const says = sources.length > 1 ? "say" : "says";
+    signals.push({
+      label: `Contradicted by ${names}`,
+      tone: "warning",
+      detail: `${names} withdrew this vulnerability or ${says} the installed version is not affected, while another source still reports it. Weigh it before acting.`,
+    });
+  }
+  return signals;
+}
+
 // The warnings a finding carries: policy exclusion, EPSS, disputes and match conflicts.
 export function findingSignals(finding: VulnerabilityMerged): Signal[] {
   const signals: Signal[] = [];
@@ -176,6 +221,7 @@ export function findingSignals(finding: VulnerabilityMerged): Signal[] {
       detail: uncorroboratedDetail(finding),
     });
   }
+  signals.push(...contradictionSignals(finding));
   const flag = finding.Conflict?.ConflictFlag;
   if (flag === "MATCH_INCORRECT") {
     signals.push({

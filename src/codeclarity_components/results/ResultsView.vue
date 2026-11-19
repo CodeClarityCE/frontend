@@ -324,8 +324,8 @@ onBeforeMount(async () => {
               v-for="folder in skippedFolders"
               :key="`${folder.path}:${folder.reason}`"
             >
-              <span class="font-mono">{{ folder.path }}</span
-              >: {{ folder.reason }}
+              <span class="font-mono">{{ folder.path }}</span>:
+              {{ folder.reason }}
             </li>
           </ul>
         </AlertDescription>

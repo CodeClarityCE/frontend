@@ -103,12 +103,15 @@ watch(
 );
 
 // 100 with no critical or high findings, lower as they make up more of the total.
+// Uses the graded counts, which leave out disputed vulnerabilities, when the API sends them.
 const securityScore = computed(() => {
-  const total = stats.value.number_of_vulnerabilities ?? 0;
+  const s = stats.value;
+  const total =
+    s.graded_number_of_vulnerabilities ?? s.number_of_vulnerabilities ?? 0;
   if (total === 0) return 100;
   const weighted =
-    (stats.value.number_of_critical ?? 0) * 10 +
-    (stats.value.number_of_high ?? 0) * 5;
+    (s.graded_number_of_critical ?? s.number_of_critical ?? 0) * 10 +
+    (s.graded_number_of_high ?? s.number_of_high ?? 0) * 5;
   return Math.max(0, Math.round(100 - (weighted / (total * 10)) * 100));
 });
 const grade = computed(() => scoreToGrade(securityScore.value));
@@ -263,7 +266,7 @@ const impactMeans = computed(() => [
         <PopoverContent align="start" class="w-80 text-sm">
           <p class="mb-2">
             The grade weighs critical and high vulnerabilities against the
-            total.
+            total. Vulnerabilities the vendor disputes are left out.
           </p>
           <dl class="grid grid-cols-2 gap-x-4 gap-y-1">
             <dt class="font-medium">A+ or A</dt>

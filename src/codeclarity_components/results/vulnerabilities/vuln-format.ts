@@ -127,7 +127,7 @@ export interface Signal {
   detail: string;
 }
 
-// The warnings a finding carries: policy exclusion, EPSS and match conflicts.
+// The warnings a finding carries: policy exclusion, EPSS, disputes and match conflicts.
 export function findingSignals(finding: VulnerabilityMerged): Signal[] {
   const signals: Signal[] = [];
   if (finding.is_blacklisted) {
@@ -146,6 +146,14 @@ export function findingSignals(finding: VulnerabilityMerged): Signal[] {
       tone: "danger",
       detail:
         "EPSS predicts a high chance of exploitation in the next 30 days. Prioritise patching.",
+    });
+  }
+  if (finding.Disputed) {
+    signals.push({
+      label: "Disputed",
+      tone: "neutral",
+      detail:
+        "The vendor disputes this CVE. It stays listed but does not count towards the grade.",
     });
   }
   const flag = finding.Conflict?.ConflictFlag;

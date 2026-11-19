@@ -125,7 +125,7 @@ function rowKey(finding: VulnerabilityMerged): string {
       <ul class="flex flex-col gap-1.5">
         <li
           v-for="affected in row.Affected"
-          :key="affected.AffectedDependency"
+          :key="`${affected.AffectedDependency}@${affected.AffectedVersion}`"
           class="flex flex-col items-start gap-1"
         >
           <span class="font-medium text-foreground-strong">

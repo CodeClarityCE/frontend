@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ArrowUpCircle, FileText, ShieldAlert } from "@lucide/vue";
-import type { ColumnDef } from "@tanstack/vue-table";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { StatusBadge } from "@/base_components/page";
 import { formatShortDate } from "@/utils/dateUtils";
 
@@ -25,7 +24,7 @@ const emit = defineEmits<{
   select: [ticketId: string];
 }>();
 
-const columns: ColumnDef<TicketSummary, unknown>[] = [
+const columns: DataTableColumn<TicketSummary>[] = [
   {
     id: "ticket",
     accessorFn: (ticket) =>

@@ -1,15 +1,10 @@
-<script setup lang="ts" generic="TData">
+<script setup lang="ts" generic="TData extends RowData">
 import { ArrowDown, ArrowUp, ArrowUpDown, Search } from "@lucide/vue";
 import {
-  type ColumnDef,
   FlexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  type Header,
+  type RowData,
   type SortingState,
-  useVueTable,
+  useTable,
 } from "@tanstack/vue-table";
 import { computed, ref, watch } from "vue";
 
@@ -28,10 +23,15 @@ import {
 } from "@/shadcn/ui/table";
 
 import DataTablePagination from "./DataTablePagination.vue";
+import {
+  type DataTableColumn,
+  dataTableFeatures,
+  type DataTableHeader,
+} from "./features";
 
 const props = withDefaults(
   defineProps<{
-    columns: ColumnDef<TData, unknown>[];
+    columns: DataTableColumn<TData>[];
     data: TData[];
     // Names the table for screen readers, and the loading state.
     caption: string;
@@ -76,7 +76,8 @@ const pagination = computed(() => ({
   pageSize: props.pageSize,
 }));
 
-const table = useVueTable({
+const table = useTable({
+  features: dataTableFeatures,
   get data() {
     return props.data;
   },
@@ -121,10 +122,6 @@ const table = useVueTable({
   },
   autoResetPageIndex: false,
   sortDescFirst: false,
-  getCoreRowModel: getCoreRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
 });
 
 // A new filter starts from the first page.
@@ -137,7 +134,7 @@ const filteredCount = computed(
 );
 
 function ariaSort(
-  header: Header<TData, unknown>,
+  header: DataTableHeader<TData>,
 ): "ascending" | "descending" | undefined {
   const sorted = header.column.getIsSorted();
   if (sorted === "asc") return "ascending";
@@ -145,7 +142,7 @@ function ariaSort(
   return undefined;
 }
 
-function headerLabel(header: Header<TData, unknown>): string {
+function headerLabel(header: DataTableHeader<TData>): string {
   const label = header.column.columnDef.header;
   return typeof label === "string" ? label : header.column.id;
 }
@@ -228,11 +225,7 @@ function headerLabel(header: Header<TData, unknown>): string {
                 />
                 <ArrowUpDown v-else aria-hidden="true" class="size-3.5" />
               </button>
-              <FlexRender
-                v-else-if="!header.isPlaceholder"
-                :render="header.column.columnDef.header"
-                :props="header.getContext()"
-              />
+              <FlexRender v-else-if="!header.isPlaceholder" :header="header" />
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -244,7 +237,7 @@ function headerLabel(header: Header<TData, unknown>): string {
               :data-testid="rowTestid"
             >
               <TableCell
-                v-for="cell in row.getVisibleCells()"
+                v-for="cell in row.getAllCells()"
                 :key="cell.id"
                 class="px-4 py-3"
               >
@@ -254,11 +247,7 @@ function headerLabel(header: Header<TData, unknown>): string {
                   :row="row.original"
                   :value="cell.getValue()"
                 />
-                <FlexRender
-                  v-else
-                  :render="cell.column.columnDef.cell"
-                  :props="cell.getContext()"
-                />
+                <FlexRender v-else :cell="cell" />
               </TableCell>
             </TableRow>
           </template>

@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import { Plus, Trash2 } from "@lucide/vue";
-import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import {
   BrandEmphasis,
   OwlEmptyState,
@@ -79,7 +78,7 @@ function latest(project: Project): Analysis | undefined {
   return byNewest(project.analyses)[0];
 }
 
-const columns: ColumnDef<Project, unknown>[] = [
+const columns: DataTableColumn<Project>[] = [
   { id: "name", accessorKey: "name", header: "Project" },
   {
     id: "source",

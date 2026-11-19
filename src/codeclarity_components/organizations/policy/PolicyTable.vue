@@ -1,9 +1,8 @@
 <script setup lang="ts" generic="TPolicy extends Policy">
 import { Pencil, Trash2 } from "@lucide/vue";
-import type { ColumnDef } from "@tanstack/vue-table";
 import { computed } from "vue";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { StatusBadge } from "@/base_components/page";
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
@@ -39,7 +38,7 @@ const showAuthor = computed(() =>
   props.policies.some((policy) => !!policy.created_by),
 );
 
-const columns = computed<ColumnDef<TPolicy, unknown>[]>(() => [
+const columns = computed<DataTableColumn<TPolicy>[]>(() => [
   { id: "name", accessorKey: "name", header: "Name" },
   ...(showType.value
     ? [

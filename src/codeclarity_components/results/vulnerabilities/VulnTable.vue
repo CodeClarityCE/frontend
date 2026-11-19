@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { ColumnDef, SortingState } from "@tanstack/vue-table";
+import type { SortingState } from "@tanstack/vue-table";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { SeverityBadge, StatusBadge } from "@/base_components/page";
 import CreateTicketButton from "@/codeclarity_components/tickets/components/CreateTicketButton.vue";
 
@@ -35,7 +35,7 @@ const pageIndex = defineModel<number>("pageIndex", { required: true });
 const emit = defineEmits<{ "update:sorting": [sorting: SortingState] }>();
 
 // Column ids are the API's sort keys.
-const columns: ColumnDef<VulnerabilityMerged, unknown>[] = [
+const columns: DataTableColumn<VulnerabilityMerged>[] = [
   { id: "cve", header: "CVE", accessorFn: (f) => f.Vulnerability },
   {
     id: "severity",

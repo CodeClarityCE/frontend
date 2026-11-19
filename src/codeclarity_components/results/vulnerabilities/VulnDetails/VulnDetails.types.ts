@@ -98,6 +98,25 @@ export interface OtherInfo {
   package_manager: string;
 }
 
+// What one knowledge source said about a vulnerability instance.
+export enum SourceVerdictValue {
+  Matched = "matched",
+  NoRecord = "no_record",
+  StaleOrFailed = "stale_or_failed",
+}
+
+export interface SourceVerdictEvidence {
+  record_ids?: string[];
+  /** "stale", "failed" or "unknown", for a stale or failed verdict. */
+  source_status?: string;
+}
+
+export interface SourceVerdict {
+  source: string;
+  verdict: SourceVerdictValue;
+  evidence?: SourceVerdictEvidence;
+}
+
 export class VulnerabilityDetails {
   vulnerability_info!: VulnerabilityInfo;
   dependency_info?: DependencyInfo;
@@ -109,4 +128,7 @@ export class VulnerabilityDetails {
   references!: ReferenceInfo[];
   location!: string[];
   other!: OtherInfo;
+  source_verdicts?: SourceVerdict[];
+  /** False for analyses stored before source verdicts were recorded. */
+  source_verdicts_available?: boolean;
 }

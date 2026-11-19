@@ -3,14 +3,12 @@
     "name": "Main Bundle",
     "path": "dist/assets/index-*.js",
     "limit": "800 KB",
-    "gzip": true,
-    "running": false
+    "gzip": true
   },
   {
     "name": "CSS Bundle",
     "path": "dist/assets/index-*.css",
     "limit": "200 KB",
-    "gzip": true,
-    "running": false
+    "gzip": true
   }
 ]

@@ -8,6 +8,8 @@ import { useAuthStore } from "@/stores/auth";
 
 import { TicketsRepository } from "../tickets.repository";
 
+import { holdClickUpOAuthToken } from "./clickup-oauth-handoff";
+
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
@@ -52,11 +54,8 @@ onMounted(async () => {
       handleOtherErrors: true,
     });
 
-    // Store the access token for the integration modal to use
-    sessionStorage.setItem(
-      "clickup_oauth_access_token",
-      response.data.access_token,
-    );
+    // Pass the access token to the setup dialog in memory only
+    holdClickUpOAuthToken(response.data.access_token);
     sessionStorage.removeItem("clickup_oauth_org_id");
 
     status.value = "success";

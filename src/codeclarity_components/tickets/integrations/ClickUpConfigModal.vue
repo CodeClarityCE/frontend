@@ -35,6 +35,7 @@ import {
 } from "../tickets.entity";
 import { TicketsRepository } from "../tickets.repository";
 
+import { takeClickUpOAuthToken } from "./clickup-oauth-handoff";
 import { connectionFailureText } from "./connection-test";
 
 const props = defineProps<{
@@ -588,15 +589,12 @@ watch(folderId, () => {
 
 // Check for OAuth token from callback or existing config on mount
 onMounted(async (): Promise<void> => {
-  const storedToken = sessionStorage.getItem("clickup_oauth_access_token");
+  const storedToken = takeClickUpOAuthToken();
   if (storedToken) {
     // Switch to OAuth tab and use the stored token
     authMethod.value = "OAUTH";
     accessToken.value = storedToken;
     oauthConnected.value = true;
-
-    // Clean up sessionStorage
-    sessionStorage.removeItem("clickup_oauth_access_token");
 
     // Fetch workspaces with the OAuth token
     await fetchWorkspacesWithOAuth();

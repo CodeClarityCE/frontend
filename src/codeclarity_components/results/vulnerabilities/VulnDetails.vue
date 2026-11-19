@@ -13,9 +13,17 @@ import { Button } from "@/shadcn/ui/button";
 import { Card, CardContent, CardHeader } from "@/shadcn/ui/card";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { cvssV2_fields_map, cvssV3_fields_map } from "@/utils/cvss";
+import {
+  cvssV2_fields_map,
+  cvssV3_fields_map,
+  cvssV4_fields_map,
+} from "@/utils/cvss";
 import { formatDate } from "@/utils/dateUtils";
-import { SEVERITY_LABELS, severityLevel } from "@/utils/severity";
+import {
+  SEVERITY_LABELS,
+  severityLevel,
+  severityLevelFromLabel,
+} from "@/utils/severity";
 
 import ResultsNotFound from "../components/ResultsNotFound.vue";
 import { isNotFound, resultsRoute } from "../result-errors";
@@ -78,14 +86,28 @@ async function getFinding(): Promise<void> {
 }
 void getFinding();
 
-// The newest CVSS version the finding has a score for.
-const baseScore = computed(() => {
+// The newest CVSS version the finding has a score for, with its label.
+const shownCvss = computed(() => {
   const s = finding.value?.severities;
-  return (
-    s?.cvss_31?.base_score ?? s?.cvss_3?.base_score ?? s?.cvss_2?.base_score
-  );
+  const versions = [
+    ["CVSS 4.0", s?.cvss_4],
+    ["CVSS 3.1", s?.cvss_31],
+    ["CVSS 3.0", s?.cvss_3],
+    ["CVSS 2.0", s?.cvss_2],
+  ] as const;
+  for (const [label, info] of versions) {
+    const score = info?.base_score;
+    if (score !== null && score !== undefined) return { label, score };
+  }
+  return undefined;
 });
-const level = computed(() => severityLevel(baseScore.value));
+const baseScore = computed(() => shownCvss.value?.score);
+// Without a CVSS score, GHSA's severity sets the level.
+const level = computed(() =>
+  shownCvss.value
+    ? severityLevel(shownCvss.value.score)
+    : severityLevelFromLabel(finding.value?.severities?.ghsa),
+);
 
 const SECURITY_SCORE = {
   none: ["A", "No known severity"],
@@ -139,7 +161,7 @@ const linkClass =
       <PageHeading>
         {{ finding.vulnerability_info.vulnerability_id }}
         <template #badge>
-          <SeverityBadge :score="baseScore" />
+          <SeverityBadge :score="baseScore" :level="level" />
         </template>
         <template #description>
           <span v-if="finding.weaknesses.length > 0"
@@ -162,7 +184,7 @@ const linkClass =
 
       <ul aria-label="Vulnerability numbers" class="grid gap-4 sm:grid-cols-3">
         <StatTile
-          label="CVSS score"
+          :label="shownCvss ? `${shownCvss.label} score` : 'CVSS score'"
           :value="baseScore ?? 'N/A'"
           :hint="`${SEVERITY_LABELS[level]} severity`"
         />
@@ -215,6 +237,7 @@ const linkClass =
               :finding="finding"
               :cvss-v3-fields-map="cvssV3_fields_map"
               :cvss-v2-fields-map="cvssV2_fields_map"
+              :cvss-v4-fields-map="cvssV4_fields_map"
             />
           </CardContent>
         </Card>

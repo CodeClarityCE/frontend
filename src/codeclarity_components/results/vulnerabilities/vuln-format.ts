@@ -1,6 +1,6 @@
 // Labels and lookups shared by the vulnerability list, table and details.
 import type { StatusTone } from "@/base_components/page";
-import { severityLevel } from "@/utils/severity";
+import { findingSeverityLevel } from "@/utils/severity";
 
 import type {
   Severity,
@@ -232,7 +232,7 @@ export function ticketVulnerability(finding: VulnerabilityMerged): {
   affected_version?: string;
   description: string;
 } {
-  const level = severityLevel(finding.Severity?.Severity);
+  const level = findingSeverityLevel(finding.Severity);
   return {
     vulnerability_id: finding.Vulnerability,
     severity_score: finding.Severity?.Severity,

@@ -64,9 +64,12 @@ export interface CVSSInfo {
 }
 
 export interface SeverityInfo {
+  cvss_4?: CVSSInfo | null;
   cvss_31?: CVSSInfo | null;
   cvss_3?: CVSSInfo | null;
   cvss_2?: CVSSInfo | null;
+  // GHSA's severity, such as "HIGH", when the record has no vector.
+  ghsa?: string;
 }
 
 export interface OwaspInfo {

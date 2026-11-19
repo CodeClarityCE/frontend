@@ -74,6 +74,7 @@ export interface WeaknessInfo {
 
 export interface Severity {
   Severity: number;
+  SeverityClass?: string;
   SeverityType: SeverityType;
   Vector: string;
   Impact: number;
@@ -81,12 +82,17 @@ export interface Severity {
   ConfidentialityImpact: string;
   IntegrityImpact: string;
   AvailabilityImpact: string;
+  // Every CVSS vector of the shown record; absent on older analyses.
+  Vectors?: { score: number; type: string; vector: string; class: string }[];
 }
 
 export enum SeverityType {
   CvssV2 = "CVSS_V2",
   CvssV3 = "CVSS_V3",
   CvssV31 = "CVSS_V31",
+  CvssV40 = "CVSS_V40",
+  // GHSA's label, used when a record has no vector; it has no score.
+  Ghsa = "GHSA",
 }
 
 export enum PatchType {

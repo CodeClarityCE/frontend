@@ -110,7 +110,7 @@ function rowKey(finding: VulnerabilityMerged): string {
     </template>
     <template #cell-severity="{ row }">
       <div class="flex flex-col items-start gap-1">
-        <SeverityBadge :score="row.Severity?.Severity" />
+        <SeverityBadge :severity="row.Severity" />
         <span
           v-for="vlai in aiAssessments(row.VLAI)"
           :key="vlai.Source"

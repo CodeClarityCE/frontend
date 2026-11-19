@@ -88,7 +88,7 @@ function cweUrl(id: string): string {
         class="flex flex-col gap-3 p-4"
       >
         <div class="flex flex-wrap items-start gap-3">
-          <SeverityBadge :score="finding.Severity?.Severity" class="mt-1" />
+          <SeverityBadge :severity="finding.Severity" class="mt-1" />
           <div class="flex min-w-0 flex-1 flex-col gap-1">
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
               <h3
@@ -189,8 +189,9 @@ function cweUrl(id: string): string {
             class="flex flex-col gap-1 text-muted-foreground"
           >
             <li v-for="signal in findingSignals(finding)" :key="signal.label">
-              <span class="font-medium text-foreground">{{ signal.label }}</span
-              >: {{ signal.detail }}
+              <span class="font-medium text-foreground">{{
+                signal.label
+              }}</span>: {{ signal.detail }}
             </li>
           </ul>
 

@@ -43,6 +43,7 @@ const hasPatching = computed(() =>
 
 const selectedWorkspace = ref(".");
 const ecosystemFilter = ref<string | null>(null);
+const showBlacklisted = ref(false);
 </script>
 
 <template>
@@ -63,6 +64,7 @@ const ecosystemFilter = ref<string | null>(null);
       :analysis-i-d="analysis.id"
       :project-i-d="project.id"
       :executed-sbom-plugins="executedSbomPlugins"
+      :show-blacklisted="showBlacklisted"
       @ecosystem-filter-changed="ecosystemFilter = $event"
     />
 
@@ -87,6 +89,7 @@ const ecosystemFilter = ref<string | null>(null);
         :workspace="selectedWorkspace"
         :ecosystem-filter="ecosystemFilter"
         :has-patching="hasPatching"
+        @show-blacklisted-changed="showBlacklisted = $event"
       />
     </section>
   </div>

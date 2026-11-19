@@ -28,6 +28,11 @@ export interface GetSbomStatsRequestOptions extends AuthRepoMethodGetRequestOpti
   runIndex?: number | null;
 }
 
+export interface GetVulnerabilityStatsRequestOptions extends GetSbomStatsRequestOptions {
+  // Count vulnerabilities a policy excludes, like the list's toggle.
+  show_blacklisted?: boolean;
+}
+
 export interface GetPatchesRequestOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
   projectId: string;
@@ -301,7 +306,7 @@ export class ResultsRepository extends BaseRepository {
   }
 
   async getVulnerabilitiesStat(
-    options: GetSbomStatsRequestOptions,
+    options: GetVulnerabilityStatsRequestOptions,
   ): Promise<DataResponse<AnalysisStats>> {
     const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/stats`;
 
@@ -311,6 +316,10 @@ export class ResultsRepository extends BaseRepository {
 
     if (options.ecosystem_filter) {
       queryParams.ecosystem_filter = options.ecosystem_filter;
+    }
+
+    if (options.show_blacklisted !== undefined) {
+      queryParams.show_blacklisted = options.show_blacklisted.toString();
     }
 
     if (options.runIndex !== null && options.runIndex !== undefined) {

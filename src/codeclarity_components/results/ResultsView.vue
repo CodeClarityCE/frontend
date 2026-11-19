@@ -15,6 +15,7 @@ import { useRoute, useRouter } from "vue-router";
 import { PageHeading } from "@/base_components/page";
 import {
   Analysis,
+  analysisSkippedFolders,
   AnalysisStatus,
 } from "@/codeclarity_components/analyses/analysis.entity";
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
@@ -96,6 +97,9 @@ const TAB_OF: Record<string, keyof typeof tab.value> = {
 };
 
 const hasTabs = computed(() => Object.values(tab.value).some(Boolean));
+
+// Project folders that were found but not analysed.
+const skippedFolders = computed(() => analysisSkippedFolders(analysis.value));
 
 // The analysis status in words, when it has not completed.
 const statusNotice = computed((): { title: string; text: string } | null => {
@@ -307,6 +311,24 @@ onBeforeMount(async () => {
       >
         <AlertTitle>{{ statusNotice.title }}</AlertTitle>
         <AlertDescription>{{ statusNotice.text }}</AlertDescription>
+      </Alert>
+      <Alert
+        v-if="!failed && skippedFolders.length > 0"
+        role="status"
+        aria-label="Skipped folders"
+      >
+        <AlertTitle>Some folders were not analysed</AlertTitle>
+        <AlertDescription>
+          <ul class="flex flex-col gap-1">
+            <li
+              v-for="folder in skippedFolders"
+              :key="`${folder.path}:${folder.reason}`"
+            >
+              <span class="font-mono">{{ folder.path }}</span
+              >: {{ folder.reason }}
+            </li>
+          </ul>
+        </AlertDescription>
       </Alert>
       <Tabs
         v-if="!failed && hasTabs"

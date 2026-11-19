@@ -164,7 +164,10 @@ describe("VulnDetails", () => {
 });
 
 // The detail of 1.1.0 with the given source verdicts, or as an older analysis without them.
-async function openWithVerdicts(verdicts?: object[]): Promise<void> {
+async function openWithVerdicts(
+  verdicts?: object[],
+  available = verdicts !== undefined,
+): Promise<void> {
   window.history.replaceState(
     {},
     "",
@@ -172,12 +175,10 @@ async function openWithVerdicts(verdicts?: object[]): Promise<void> {
   );
   repo.getFinding.mockImplementation(async (request) => {
     const detail = await answer(request);
-    Object.assign(
-      detail.data,
-      verdicts
-        ? { source_verdicts: verdicts, source_verdicts_available: true }
-        : { source_verdicts: [], source_verdicts_available: false },
-    );
+    Object.assign(detail.data, {
+      source_verdicts: verdicts ?? [],
+      source_verdicts_available: available,
+    });
     return detail;
   });
   render(VulnDetails, {
@@ -229,6 +230,108 @@ describe("VulnDetails source verdicts", () => {
         "Its last update had failed when this analysis ran.",
       ],
     ]);
+  });
+
+  it("shows the evidence behind each verdict that does not report the vulnerability", async () => {
+    await openWithVerdicts([
+      {
+        source: "osv",
+        verdict: "version_excluded",
+        evidence: {
+          record_ids: ["GHSA-test-0002"],
+          evaluated: {
+            ranges: [
+              { fixed: "1.0.4" },
+              { introduced: "2.0.0", fixed: "2.1.0" },
+            ],
+            exact: [],
+            universal: false,
+          },
+        },
+      },
+      {
+        source: "nvd",
+        verdict: "names_another_product",
+        evidence: {
+          record_ids: ["CVE-2099-0001"],
+          names: [
+            { vendor: "acme", product: "lodash", target_sw: "wordpress" },
+          ],
+        },
+      },
+      {
+        source: "gcve",
+        verdict: "retired",
+        evidence: {
+          record_ids: ["GCVE-0-2099-0001"],
+          retired_reason: "withdrawn",
+          retired_at: "2099-03-01T10:00:00Z",
+        },
+      },
+    ]);
+
+    const panel = screen.getByRole("region", { name: "Source verdicts" });
+    const parts = within(panel)
+      .getAllByRole("listitem")
+      .map((row) => [...row.children].map((part) => part.textContent?.trim()));
+    expect(parts).toEqual([
+      [
+        "OSV",
+        "Version excluded",
+        "GHSA-test-0002",
+        "Affects <1.0.4, >=2.0.0 <2.1.0.",
+      ],
+      [
+        "NVD",
+        "Names another product",
+        "CVE-2099-0001",
+        "Names acme lodash (wordpress).",
+      ],
+      ["GCVE", "Retired", "GCVE-0-2099-0001", "Withdrawn on 2099-03-01."],
+    ]);
+  });
+
+  it("shows a GCVE unaffected entry and an advisory without package data", async () => {
+    await openWithVerdicts([
+      {
+        source: "osv",
+        verdict: "no_package_data",
+        evidence: { record_ids: ["GHSA-test-0003"] },
+      },
+      {
+        source: "gcve",
+        verdict: "version_excluded",
+        evidence: {
+          record_ids: ["CVE-2099-0001"],
+          evaluated: {
+            ranges: [{ introduced: "1.0.0", fixed: "2.0.0" }],
+            exact: [],
+            universal: false,
+          },
+          unaffected: { ranges: [], exact: ["1.1.0"], universal: false },
+        },
+      },
+    ]);
+
+    const panel = screen.getByRole("region", { name: "Source verdicts" });
+    expect(
+      within(panel).getByText("The record names no package."),
+    ).toBeTruthy();
+    expect(
+      within(panel).getByText(
+        "Affects >=1.0.0 <2.0.0. Marks 1.1.0 unaffected.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("does not ask to re-run for a finding without verdicts in an analysis that has them", async () => {
+    await openWithVerdicts([], true);
+
+    const panel = screen.getByRole("region", { name: "Source verdicts" });
+    expect(within(panel).queryByText(/Re-run/)).toBeNull();
+    expect(
+      within(panel).getByText(/comes from an analyzer that does not match/),
+    ).toBeTruthy();
   });
 
   it("asks to re-run an analysis stored without source verdicts", async () => {

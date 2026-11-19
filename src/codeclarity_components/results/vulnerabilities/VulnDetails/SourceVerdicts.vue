@@ -5,6 +5,8 @@ import {
 } from "@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails.types";
 import { Badge } from "@/shadcn/ui/badge";
 
+import { verdictEvidence } from "./source-verdict-evidence";
+
 defineProps<{
   verdicts: SourceVerdict[];
   available: boolean;
@@ -20,12 +22,10 @@ const VERDICT_LABELS: Record<string, string> = {
   [SourceVerdictValue.Matched]: "Matched",
   [SourceVerdictValue.NoRecord]: "No record",
   [SourceVerdictValue.StaleOrFailed]: "Stale or failed",
-};
-
-const STATUS_NOTES: Record<string, string> = {
-  stale: "Its data was out of date when this analysis ran.",
-  failed: "Its last update had failed when this analysis ran.",
-  unknown: "Its state could not be read when this analysis ran.",
+  [SourceVerdictValue.VersionExcluded]: "Version excluded",
+  [SourceVerdictValue.Retired]: "Retired",
+  [SourceVerdictValue.NamesAnotherProduct]: "Names another product",
+  [SourceVerdictValue.NoPackageData]: "No package data",
 };
 
 // Matched is the only verdict that reports the vulnerability.
@@ -42,6 +42,11 @@ function badgeVariant(
   <p v-if="!available" class="text-muted-foreground">
     Source verdicts are not available for this analysis. Re-run it to see what
     each knowledge source said.
+  </p>
+  <p v-else-if="verdicts.length === 0" class="text-muted-foreground">
+    This finding has no source verdicts: it comes from an analyzer that does not
+    match the knowledge sources, such as the PHP extension or private package
+    analyzer.
   </p>
   <ul v-else class="flex flex-col divide-y">
     <li
@@ -61,12 +66,9 @@ function badgeVariant(
         >{{ verdict.evidence.record_ids.join(", ") }}</span
       >
       <span
-        v-if="verdict.evidence?.source_status"
+        v-if="verdictEvidence(verdict)"
         class="text-sm text-muted-foreground"
-        >{{
-          STATUS_NOTES[verdict.evidence.source_status] ??
-          STATUS_NOTES["unknown"]
-        }}</span
+        >{{ verdictEvidence(verdict) }}</span
       >
     </li>
   </ul>

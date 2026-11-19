@@ -56,9 +56,8 @@ const backTo = resultsRoute(props.analysisID, props.projectID, props.runIndex);
 const hasIds = props.analysisID !== "" && props.projectID !== "";
 
 async function getFinding(): Promise<void> {
-  const findingID = new URLSearchParams(window.location.search).get(
-    "finding_id",
-  );
+  const query = new URLSearchParams(window.location.search);
+  const findingID = query.get("finding_id");
   const org = userStore.getDefaultOrg;
   const token = authStore.getToken;
   if (!findingID || !hasIds) {
@@ -72,6 +71,8 @@ async function getFinding(): Promise<void> {
       projectId: props.projectID,
       analysisId: props.analysisID,
       vulnerability_id: findingID,
+      dependency: query.get("dependency"),
+      version: query.get("version"),
       bearerToken: token,
       runIndex: props.runIndex,
       handleBusinessErrors: true,

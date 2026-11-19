@@ -28,6 +28,11 @@ export interface GetSbomStatsRequestOptions extends AuthRepoMethodGetRequestOpti
   runIndex?: number | null;
 }
 
+export interface GetVulnerabilityStatsRequestOptions extends GetSbomStatsRequestOptions {
+  // Count vulnerabilities a policy excludes, like the list's toggle.
+  show_blacklisted?: boolean;
+}
+
 export interface GetPatchesRequestOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
   projectId: string;
@@ -49,6 +54,9 @@ export interface GetFindingRequestOptions extends AuthRepoMethodGetRequestOption
   vulnerability_id: string;
   workspace: string;
   runIndex?: number | null;
+  // The affected dependency and version to show; the first occurrence when left out.
+  dependency?: string | null;
+  version?: string | null;
 }
 
 export interface GetSbomRequestOptions
@@ -298,7 +306,7 @@ export class ResultsRepository extends BaseRepository {
   }
 
   async getVulnerabilitiesStat(
-    options: GetSbomStatsRequestOptions,
+    options: GetVulnerabilityStatsRequestOptions,
   ): Promise<DataResponse<AnalysisStats>> {
     const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/stats`;
 
@@ -308,6 +316,10 @@ export class ResultsRepository extends BaseRepository {
 
     if (options.ecosystem_filter) {
       queryParams.ecosystem_filter = options.ecosystem_filter;
+    }
+
+    if (options.show_blacklisted !== undefined) {
+      queryParams.show_blacklisted = options.show_blacklisted.toString();
     }
 
     if (options.runIndex !== null && options.runIndex !== undefined) {
@@ -400,6 +412,8 @@ export class ResultsRepository extends BaseRepository {
     if (options.runIndex !== null && options.runIndex !== undefined) {
       queryParams.run_index = options.runIndex;
     }
+    if (options.dependency) queryParams.dependency = options.dependency;
+    if (options.version) queryParams.version = options.version;
 
     const response = await this.getRequest<DataResponse<VulnerabilityDetails>>({
       queryParams,

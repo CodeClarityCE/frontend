@@ -142,6 +142,7 @@ export interface VulnerabilityMerged {
   EPSS: EPSS;
   is_blacklisted?: boolean;
   blacklisted_by_policies?: string[];
+  Disputed?: boolean;
 }
 
 export interface VLAI {
@@ -164,6 +165,7 @@ export interface AffectedDeps {
   AffectedDependencyImportPaths: string[];
   AffectedDependencyObject?: DependencyObject;
   PatchType?: PatchType;
+  Disputed?: boolean;
 }
 
 export declare interface AffectedRange {

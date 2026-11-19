@@ -127,7 +127,7 @@ export interface Signal {
   detail: string;
 }
 
-// The warnings a finding carries: policy exclusion, EPSS and match conflicts.
+// The warnings a finding carries: policy exclusion, EPSS, disputes and match conflicts.
 export function findingSignals(finding: VulnerabilityMerged): Signal[] {
   const signals: Signal[] = [];
   if (finding.is_blacklisted) {
@@ -146,6 +146,14 @@ export function findingSignals(finding: VulnerabilityMerged): Signal[] {
       tone: "danger",
       detail:
         "EPSS predicts a high chance of exploitation in the next 30 days. Prioritise patching.",
+    });
+  }
+  if (finding.Disputed) {
+    signals.push({
+      label: "Disputed",
+      tone: "neutral",
+      detail:
+        "The vendor disputes this CVE. It stays listed but does not count towards the grade.",
     });
   }
   const flag = finding.Conflict?.ConflictFlag;
@@ -243,11 +251,12 @@ export function ticketVulnerability(finding: VulnerabilityMerged): {
   };
 }
 
-// The route of a finding's details page.
+// The route of a finding's details page, for one affected dependency and version when given.
 export function detailsRoute(
   analysisID: string,
   projectID: string,
   findingID: string,
+  affected?: { AffectedDependency: string; AffectedVersion: string },
 ): {
   name: string;
   params: { page: string };
@@ -260,6 +269,10 @@ export function detailsRoute(
       analysis_id: analysisID,
       project_id: projectID,
       finding_id: findingID,
+      ...(affected && {
+        dependency: affected.AffectedDependency,
+        version: affected.AffectedVersion,
+      }),
     },
   };
 }

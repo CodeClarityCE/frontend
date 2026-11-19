@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import { LogOut, Plus, Trash2 } from "@lucide/vue";
-import type { ColumnDef } from "@tanstack/vue-table";
 import { onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import {
   BrandEmphasis,
   OwlEmptyState,
@@ -43,7 +42,7 @@ const pending = ref<{
   name: string;
 } | null>(null);
 
-const columns: ColumnDef<OrganizationMembership, unknown>[] = [
+const columns: DataTableColumn<OrganizationMembership>[] = [
   { id: "name", accessorFn: (m) => m.organization.name, header: "Name" },
   {
     id: "role",

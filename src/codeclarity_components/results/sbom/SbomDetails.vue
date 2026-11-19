@@ -277,7 +277,12 @@ const LINK =
                 <li v-for="id in vulnerabilities" :key="id">
                   <RouterLink
                     :class="LINK"
-                    :to="detailsRoute(analysisID, projectID, id)"
+                    :to="
+                      detailsRoute(analysisID, projectID, id, {
+                        AffectedDependency: dependency.name,
+                        AffectedVersion: dependency.version,
+                      })
+                    "
                     >{{ id }}</RouterLink
                   >
                 </li>

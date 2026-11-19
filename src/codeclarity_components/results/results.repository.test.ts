@@ -79,3 +79,34 @@ describe("ResultsRepository.getFinding", () => {
     );
   });
 });
+
+describe("ResultsRepository.getVulnerabilitiesStat", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("sends the policy toggle", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ data: {} }), { status: 200 }),
+    );
+
+    await new ResultsRepository().getVulnerabilitiesStat({
+      orgId: "org-1",
+      projectId: "project-1",
+      analysisId: "analysis-1",
+      workspace: ".",
+      show_blacklisted: true,
+      bearerToken: "token",
+      handleBusinessErrors: true,
+    });
+
+    const url = vi.mocked(fetch).mock.calls[0]?.[0] as string;
+    expect(
+      new URL(url, "http://localhost").searchParams.get("show_blacklisted"),
+    ).toBe("true");
+  });
+});

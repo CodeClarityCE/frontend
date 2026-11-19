@@ -13,6 +13,7 @@ const props = defineProps<{
   dependencies: Dependency[];
   analysisID: string;
   projectID: string;
+  workspace: string;
 }>();
 
 interface UpdateStatus {
@@ -99,6 +100,7 @@ function detailsRoute(dep: Dependency): Record<string, unknown> {
       analysis_id: props.analysisID,
       project_id: props.projectID,
       package_id: `${dep.name}@${dep.version}`,
+      workspace: props.workspace,
     },
   };
 }

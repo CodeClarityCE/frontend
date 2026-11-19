@@ -243,11 +243,17 @@ export function ticketVulnerability(finding: VulnerabilityMerged): {
   };
 }
 
-// The route of a finding's details page.
+// The workspace a details page names in its address, else the root.
+export function workspaceFromQuery(value: unknown): string {
+  return typeof value === "string" && value !== "" ? value : ".";
+}
+
+// The route of a finding's details page in a workspace.
 export function detailsRoute(
   analysisID: string,
   projectID: string,
   findingID: string,
+  workspace: string,
 ): {
   name: string;
   params: { page: string };
@@ -260,6 +266,7 @@ export function detailsRoute(
       analysis_id: analysisID,
       project_id: projectID,
       finding_id: findingID,
+      workspace,
     },
   };
 }

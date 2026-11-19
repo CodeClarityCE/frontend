@@ -31,6 +31,7 @@ defineProps<{
   emptyText: string;
   analysisID: string;
   projectID: string;
+  workspace: string;
 }>();
 
 const expanded = ref(new Set<string>());
@@ -97,7 +98,12 @@ function cweUrl(id: string): string {
               >
                 <RouterLink
                   :to="
-                    detailsRoute(analysisID, projectID, finding.Vulnerability)
+                    detailsRoute(
+                      analysisID,
+                      projectID,
+                      finding.Vulnerability,
+                      workspace,
+                    )
                   "
                   class="rounded-sm text-brand-subtle-foreground underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
@@ -189,8 +195,9 @@ function cweUrl(id: string): string {
             class="flex flex-col gap-1 text-muted-foreground"
           >
             <li v-for="signal in findingSignals(finding)" :key="signal.label">
-              <span class="font-medium text-foreground">{{ signal.label }}</span
-              >: {{ signal.detail }}
+              <span class="font-medium text-foreground">{{
+                signal.label
+              }}</span>: {{ signal.detail }}
             </li>
           </ul>
 

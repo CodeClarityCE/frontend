@@ -29,6 +29,7 @@ const props = defineProps<{
   pageSize: number;
   analysisID: string;
   projectID: string;
+  workspace: string;
 }>();
 
 const pageIndex = defineModel<number>("pageIndex", { required: true });
@@ -94,7 +95,9 @@ function rowKey(finding: VulnerabilityMerged): string {
       <div class="flex flex-col items-start gap-1.5">
         <RouterLink
           class="whitespace-nowrap rounded-sm font-semibold text-brand-subtle-foreground underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          :to="detailsRoute(analysisID, projectID, row.Vulnerability)"
+          :to="
+            detailsRoute(analysisID, projectID, row.Vulnerability, workspace)
+          "
         >
           {{ row.Vulnerability }}
         </RouterLink>

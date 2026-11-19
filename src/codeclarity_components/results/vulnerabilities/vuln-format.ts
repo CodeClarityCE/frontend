@@ -243,11 +243,12 @@ export function ticketVulnerability(finding: VulnerabilityMerged): {
   };
 }
 
-// The route of a finding's details page.
+// The route of a finding's details page, for one affected dependency and version when given.
 export function detailsRoute(
   analysisID: string,
   projectID: string,
   findingID: string,
+  affected?: { AffectedDependency: string; AffectedVersion: string },
 ): {
   name: string;
   params: { page: string };
@@ -260,6 +261,10 @@ export function detailsRoute(
       analysis_id: analysisID,
       project_id: projectID,
       finding_id: findingID,
+      ...(affected && {
+        dependency: affected.AffectedDependency,
+        version: affected.AffectedVersion,
+      }),
     },
   };
 }

@@ -49,6 +49,9 @@ export interface GetFindingRequestOptions extends AuthRepoMethodGetRequestOption
   vulnerability_id: string;
   workspace: string;
   runIndex?: number | null;
+  // The affected dependency and version to show; the first occurrence when left out.
+  dependency?: string | null;
+  version?: string | null;
 }
 
 export interface GetSbomRequestOptions
@@ -400,6 +403,8 @@ export class ResultsRepository extends BaseRepository {
     if (options.runIndex !== null && options.runIndex !== undefined) {
       queryParams.run_index = options.runIndex;
     }
+    if (options.dependency) queryParams.dependency = options.dependency;
+    if (options.version) queryParams.version = options.version;
 
     const response = await this.getRequest<DataResponse<VulnerabilityDetails>>({
       queryParams,

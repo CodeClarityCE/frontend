@@ -137,6 +137,8 @@ const findings = ref<VulnerabilityMerged[]>([]);
 // How many vulnerabilities each filter would leave, from the API.
 const filterCount = ref<Record<string, number>>({});
 const total = ref(0);
+// False for analyses made before source verdicts, which hide nothing.
+const verdictsAvailable = ref(true);
 const hiddenCounts = ref<HiddenCounts>({
   [HiddenReason.Contradicted]: 0,
   [HiddenReason.RetiredAll]: 0,
@@ -247,6 +249,7 @@ async function load(): Promise<void> {
     findings.value = res.data;
     filterCount.value = res.filter_count ?? {};
     total.value = res.matching_count ?? res.total_entries;
+    verdictsAvailable.value = res.source_verdicts_available !== false;
     hiddenCounts.value = {
       [HiddenReason.Contradicted]:
         res.hidden_counts?.[HiddenReason.Contradicted] ?? 0,
@@ -363,6 +366,14 @@ watch(
         </Button>
       </li>
     </ul>
+
+    <p
+      v-if="!loading && !failed && !verdictsAvailable && total > 0"
+      class="-mt-2 text-sm text-muted-foreground"
+    >
+      This analysis predates source verdicts, so nothing is hidden. Re-run it to
+      explain each vulnerability.
+    </p>
 
     <Alert v-if="failed" variant="destructive">
       <AlertTitle>Could not load the vulnerabilities</AlertTitle>

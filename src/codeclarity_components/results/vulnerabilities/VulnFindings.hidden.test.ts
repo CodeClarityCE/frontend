@@ -155,4 +155,28 @@ describe("VulnFindings hidden instances", () => {
 
     expect(screen.queryByText(/hidden:/)).toBeNull();
   });
+
+  it("says an analysis without source verdicts hides nothing until it is re-run", async () => {
+    repo.getVulnerabilities.mockResolvedValue({
+      data: [finding("CVE-2024-0005")],
+      total_entries: 1,
+      matching_count: 1,
+      filter_count: {},
+      hidden_counts: { contradicted: 0, retired_all: 0 },
+      source_verdicts_available: false,
+    });
+    await renderFindings();
+
+    expect(
+      screen.getByText(
+        "This analysis predates source verdicts, so nothing is hidden. Re-run it to explain each vulnerability.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("says nothing about re-running when the analysis has source verdicts", async () => {
+    await renderFindings();
+
+    expect(screen.queryByText(/predates source verdicts/)).toBeNull();
+  });
 });

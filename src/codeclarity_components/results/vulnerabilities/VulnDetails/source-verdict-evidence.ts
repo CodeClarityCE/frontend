@@ -8,6 +8,32 @@ import {
   SourceVerdictValue,
 } from "./VulnDetails.types";
 
+export const SOURCE_LABELS: Record<string, string> = {
+  gcve: "GCVE",
+  nvd: "NVD",
+  osv: "OSV",
+};
+
+export const VERDICT_LABELS: Record<string, string> = {
+  [SourceVerdictValue.Matched]: "Matched",
+  [SourceVerdictValue.NoRecord]: "No record",
+  [SourceVerdictValue.StaleOrFailed]: "Stale or failed",
+  [SourceVerdictValue.VersionExcluded]: "Version excluded",
+  [SourceVerdictValue.Retired]: "Retired",
+  [SourceVerdictValue.NamesAnotherProduct]: "Names another product",
+  [SourceVerdictValue.NoPackageData]: "No package data",
+};
+
+// "OSV: No record. NVD: Matched."
+export function verdictSummary(verdicts: SourceVerdict[]): string {
+  return verdicts
+    .map(
+      (v) =>
+        `${SOURCE_LABELS[v.source] ?? v.source}: ${VERDICT_LABELS[v.verdict] ?? v.verdict}.`,
+    )
+    .join(" ");
+}
+
 const STATUS_NOTES: Record<string, string> = {
   stale: "Its data was out of date when this analysis ran.",
   failed: "Its last update had failed when this analysis ran.",

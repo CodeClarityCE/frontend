@@ -5,28 +5,16 @@ import {
 } from "@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails.types";
 import { Badge } from "@/shadcn/ui/badge";
 
-import { verdictEvidence } from "./source-verdict-evidence";
+import {
+  SOURCE_LABELS,
+  VERDICT_LABELS,
+  verdictEvidence,
+} from "./source-verdict-evidence";
 
 defineProps<{
   verdicts: SourceVerdict[];
   available: boolean;
 }>();
-
-const SOURCE_LABELS: Record<string, string> = {
-  gcve: "GCVE",
-  nvd: "NVD",
-  osv: "OSV",
-};
-
-const VERDICT_LABELS: Record<string, string> = {
-  [SourceVerdictValue.Matched]: "Matched",
-  [SourceVerdictValue.NoRecord]: "No record",
-  [SourceVerdictValue.StaleOrFailed]: "Stale or failed",
-  [SourceVerdictValue.VersionExcluded]: "Version excluded",
-  [SourceVerdictValue.Retired]: "Retired",
-  [SourceVerdictValue.NamesAnotherProduct]: "Names another product",
-  [SourceVerdictValue.NoPackageData]: "No package data",
-};
 
 // Matched is the only verdict that reports the vulnerability.
 function badgeVariant(

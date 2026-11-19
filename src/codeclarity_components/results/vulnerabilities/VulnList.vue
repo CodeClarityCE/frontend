@@ -179,7 +179,11 @@ function cweUrl(id: string): string {
             class="flex flex-wrap gap-2"
           >
             <li v-for="signal in findingSignals(finding)" :key="signal.label">
-              <StatusBadge :tone="signal.tone" :label="signal.label" />
+              <StatusBadge
+                :tone="signal.tone"
+                :label="signal.label"
+                :title="signal.detail"
+              />
             </li>
           </ul>
           <Button

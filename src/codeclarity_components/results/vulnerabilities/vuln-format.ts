@@ -2,6 +2,7 @@
 import type { StatusTone } from "@/base_components/page";
 import { findingSeverityLevel } from "@/utils/severity";
 
+import { verdictSummary } from "./VulnDetails/source-verdict-evidence";
 import type {
   Severity,
   VLAI,
@@ -127,6 +128,18 @@ export interface Signal {
   detail: string;
 }
 
+// Each uncorroborated version's source verdicts, named by version when there are several.
+function uncorroboratedDetail(finding: VulnerabilityMerged): string {
+  const affected = (finding.Affected ?? []).filter((a) => a.Uncorroborated);
+  const lines = affected.map((a) => {
+    const summary = verdictSummary(a.SourceVerdicts ?? []);
+    return affected.length > 1
+      ? `${a.AffectedDependency}@${a.AffectedVersion}: ${summary}`
+      : summary;
+  });
+  return ["Matched by one source origin only.", ...lines].join(" ");
+}
+
 // The warnings a finding carries: policy exclusion, EPSS, disputes and match conflicts.
 export function findingSignals(finding: VulnerabilityMerged): Signal[] {
   const signals: Signal[] = [];
@@ -156,15 +169,15 @@ export function findingSignals(finding: VulnerabilityMerged): Signal[] {
         "The vendor disputes this CVE. It stays listed but does not count towards the grade.",
     });
   }
-  const flag = finding.Conflict?.ConflictFlag;
-  if (flag === "MATCH_POSSIBLE_INCORRECT") {
+  if (finding.Uncorroborated) {
     signals.push({
-      label: "Match uncertain",
+      label: "Uncorroborated",
       tone: "warning",
-      detail:
-        "Vulnerability sources disagree on the affected versions. Verify before acting.",
+      detail: uncorroboratedDetail(finding),
     });
-  } else if (flag === "MATCH_INCORRECT") {
+  }
+  const flag = finding.Conflict?.ConflictFlag;
+  if (flag === "MATCH_INCORRECT") {
     signals.push({
       label: "Match conflict",
       tone: "warning",

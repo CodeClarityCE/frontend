@@ -1,3 +1,5 @@
+import type { SourceVerdict } from "./VulnDetails/VulnDetails.types";
+
 export interface ErrorInfo {
   message?: string;
   code?: string;
@@ -143,6 +145,8 @@ export interface VulnerabilityMerged {
   is_blacklisted?: boolean;
   blacklisted_by_policies?: string[];
   Disputed?: boolean;
+  /** True when any affected entry is matched by one source origin only. */
+  Uncorroborated?: boolean;
 }
 
 export interface VLAI {
@@ -166,6 +170,9 @@ export interface AffectedDeps {
   AffectedDependencyObject?: DependencyObject;
   PatchType?: PatchType;
   Disputed?: boolean;
+  Uncorroborated?: boolean;
+  /** One verdict per knowledge source; absent on older analyses. */
+  SourceVerdicts?: SourceVerdict[];
 }
 
 export declare interface AffectedRange {

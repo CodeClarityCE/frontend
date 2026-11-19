@@ -65,10 +65,7 @@ const filterState = ref<FilterState>(
       type: FilterType.CHECKBOX,
       data: {
         hide_correct_matching: { title: "Hide correct", value: false },
-        hide_possibly_incorrect_matching: {
-          title: "Hide possibly incorrect",
-          value: false,
-        },
+        hide_uncorroborated: { title: "Hide uncorroborated", value: false },
         hide_incorrect_matching: { title: "Hide incorrect", value: false },
       },
     },

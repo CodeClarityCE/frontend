@@ -76,3 +76,63 @@ describe("a CVE found in two versions of a dependency", () => {
     expect(screen.getByText("qs@6.5.0")).toBeTruthy();
   });
 });
+
+// Renders a route's query as the link's href, so tests can read where it goes.
+const LinkWithQuery = {
+  props: ["to"],
+  computed: {
+    href(this: { to: { query: Record<string, string> } }): string {
+      return `?${new URLSearchParams(this.to.query).toString()}`;
+    },
+  },
+  template: '<a :href="href"><slot /></a>',
+};
+
+const lodashAt = (version: string) => ({
+  AffectedDependency: "lodash",
+  AffectedVersion: version,
+  VulnerabilityId: "CVE-2099-0001",
+  Severity: { Severity: 7.5 },
+});
+
+const threeVersions = {
+  ...twoVersions,
+  Id: "CVE-2099-0001",
+  Vulnerability: "CVE-2099-0001",
+  Affected: [lodashAt("0.5.0"), lodashAt("1.1.0"), lodashAt("1.5.0")],
+} as unknown as VulnerabilityMerged;
+
+function linkQuery(link: HTMLElement): Record<string, string> {
+  const href = link.closest("a")!.getAttribute("href")!;
+  return Object.fromEntries(new URLSearchParams(href));
+}
+
+describe("detail links of a CVE found in three versions", () => {
+  it("links each affected version to its own detail", () => {
+    render(VulnList, {
+      props: { ...props, findings: [threeVersions] },
+      global: { stubs: { RouterLink: LinkWithQuery } },
+    });
+
+    const badges = within(
+      screen.getByRole("list", { name: "Affected dependencies" }),
+    );
+    expect(
+      ["0.5.0", "1.1.0", "1.5.0"].map((v) =>
+        linkQuery(badges.getByText(`lodash@${v}`)),
+      ),
+    ).toEqual(
+      ["0.5.0", "1.1.0", "1.5.0"].map((version) => ({
+        analysis_id: "a-1",
+        project_id: "p-1",
+        finding_id: "CVE-2099-0001",
+        dependency: "lodash",
+        version,
+      })),
+    );
+    expect(linkQuery(screen.getByText("CVE-2099-0001"))).toMatchObject({
+      dependency: "lodash",
+      version: "0.5.0",
+    });
+  });
+});

@@ -97,7 +97,12 @@ function cweUrl(id: string): string {
               >
                 <RouterLink
                   :to="
-                    detailsRoute(analysisID, projectID, finding.Vulnerability)
+                    detailsRoute(
+                      analysisID,
+                      projectID,
+                      finding.Vulnerability,
+                      finding.Affected[0],
+                    )
                   "
                   class="rounded-sm text-brand-subtle-foreground underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
@@ -119,11 +124,23 @@ function cweUrl(id: string): string {
                 v-for="affected in finding.Affected.slice(0, 3)"
                 :key="`${affected.AffectedDependency}@${affected.AffectedVersion}`"
               >
-                <Badge variant="outline">
-                  {{ affected.AffectedDependency }}@{{
-                    affected.AffectedVersion
-                  }}
-                </Badge>
+                <RouterLink
+                  :to="
+                    detailsRoute(
+                      analysisID,
+                      projectID,
+                      finding.Vulnerability,
+                      affected,
+                    )
+                  "
+                  class="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <Badge variant="outline" class="hover:bg-muted">
+                    {{ affected.AffectedDependency }}@{{
+                      affected.AffectedVersion
+                    }}
+                  </Badge>
+                </RouterLink>
               </li>
               <li v-if="finding.Affected.length > 3">
                 <Badge variant="outline">

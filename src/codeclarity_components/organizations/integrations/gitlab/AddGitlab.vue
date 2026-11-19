@@ -29,6 +29,10 @@ const GITLAB_COM = "https://gitlab.com";
 const MAX_URL_LENGTH = 255;
 const gitlabPersonalAccessTokenRegex = /glpat-[0-9a-zA-Z\-_]{20}/;
 const SCOPES = ["read_api", "read_user", "read_repository", "self_rotate"];
+// Comma between scopes, full stop after the last one.
+function scopeSeparator(index: number): string {
+  return index < SCOPES.length - 1 ? ", " : ".";
+}
 
 const authStore = useAuthStore();
 const integrationRepo = new IntegrationsRepository();
@@ -267,7 +271,7 @@ onMounted(() => void loadStoredUrl());
             <template v-for="(scope, index) in SCOPES" :key="scope">
               <code class="font-mono text-foreground-strong">{{
                 scope
-              }}</code>{{ index < SCOPES.length - 1 ? ", " : "." }}
+              }}</code>{{ scopeSeparator(index) }}
             </template>
           </p>
         </CardContent>

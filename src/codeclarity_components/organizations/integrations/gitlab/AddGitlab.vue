@@ -265,8 +265,9 @@ onMounted(() => void loadStoredUrl());
           <p class="text-sm text-muted-foreground">
             Creating the token by hand? Select
             <template v-for="(scope, index) in SCOPES" :key="scope">
-              <code class="font-mono text-foreground-strong">{{ scope }}</code
-              >{{ index < SCOPES.length - 1 ? ", " : "." }}
+              <code class="font-mono text-foreground-strong">{{
+                scope
+              }}</code>{{ index < SCOPES.length - 1 ? ", " : "." }}
             </template>
           </p>
         </CardContent>

@@ -243,8 +243,7 @@ async function joinOrg(): Promise<void> {
       <PageHeading
         description="Accept the invitation to work with this organisation's members."
       >
-        Join <BrandEmphasis>{{ orgInfo.name }}</BrandEmphasis
-        >?
+        Join <BrandEmphasis>{{ orgInfo.name }}</BrandEmphasis>?
       </PageHeading>
 
       <Card class="rounded-card shadow-card">

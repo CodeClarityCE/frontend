@@ -14,7 +14,7 @@ export const SOURCE_LABELS: Record<string, string> = {
   osv: "OSV",
 };
 
-export const VERDICT_LABELS: Record<string, string> = {
+export const VERDICT_LABELS: Record<SourceVerdictValue, string> = {
   [SourceVerdictValue.Matched]: "Matched",
   [SourceVerdictValue.NoRecord]: "No record",
   [SourceVerdictValue.StaleOrFailed]: "Stale or failed",

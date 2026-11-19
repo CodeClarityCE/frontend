@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/vue";
+import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -160,5 +160,86 @@ describe("VulnDetails", () => {
         workspace: "packages/app",
       }),
     );
+  });
+});
+
+// The detail of 1.1.0 with the given source verdicts, or as an older analysis without them.
+async function openWithVerdicts(verdicts?: object[]): Promise<void> {
+  window.history.replaceState(
+    {},
+    "",
+    "/results?finding_id=CVE-2099-0001&dependency=lodash&version=1.1.0",
+  );
+  repo.getFinding.mockImplementation(async (request) => {
+    const detail = await answer(request);
+    Object.assign(
+      detail.data,
+      verdicts
+        ? { source_verdicts: verdicts, source_verdicts_available: true }
+        : { source_verdicts: [], source_verdicts_available: false },
+    );
+    return detail;
+  });
+  render(VulnDetails, {
+    props: { analysisID: "a-1", projectID: "p-1" },
+    global: {
+      stubs: {
+        RouterLink: { template: "<a><slot /></a>" },
+        AddToPolicyButton: true,
+        VulnSummaryContent: true,
+        VulnerabilitySeverities: true,
+        VulnReferences: true,
+      },
+    },
+  });
+  await flushPromises();
+}
+
+describe("VulnDetails source verdicts", () => {
+  afterEach(() => {
+    repo.getFinding.mockReset();
+  });
+
+  it("shows each source's verdict for the chosen version", async () => {
+    await openWithVerdicts([
+      {
+        source: "osv",
+        verdict: "matched",
+        evidence: { record_ids: ["GHSA-test-0001"] },
+      },
+      { source: "nvd", verdict: "no_record" },
+      {
+        source: "gcve",
+        verdict: "stale_or_failed",
+        evidence: { source_status: "failed" },
+      },
+    ]);
+
+    const panel = screen.getByRole("region", { name: "Source verdicts" });
+    const rows = within(panel).getAllByRole("listitem");
+    const parts = rows.map((row) =>
+      [...row.children].map((part) => part.textContent?.trim()),
+    );
+    expect(parts).toEqual([
+      ["OSV", "Matched", "GHSA-test-0001"],
+      ["NVD", "No record"],
+      [
+        "GCVE",
+        "Stale or failed",
+        "Its last update had failed when this analysis ran.",
+      ],
+    ]);
+  });
+
+  it("asks to re-run an analysis stored without source verdicts", async () => {
+    await openWithVerdicts();
+
+    const panel = screen.getByRole("region", { name: "Source verdicts" });
+    expect(
+      within(panel).getByText(
+        "Source verdicts are not available for this analysis. Re-run it to see what each knowledge source said.",
+      ),
+    ).toBeTruthy();
+    expect(within(panel).queryAllByRole("listitem")).toEqual([]);
   });
 });

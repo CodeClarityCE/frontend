@@ -30,6 +30,7 @@ import { isNotFound, resultsRoute } from "../result-errors";
 
 import AddToPolicyButton from "./components/AddToPolicyButton.vue";
 import { workspaceFromQuery } from "./vuln-format";
+import SourceVerdicts from "./VulnDetails/SourceVerdicts.vue";
 import VulnDetailsHeader from "./VulnDetails/VulnDetailsHeader.vue";
 import VulnDetailsLoader from "./VulnDetails/VulnDetailsLoader.vue";
 import VulnerabilitySeverities from "./VulnDetails/VulnerabilitySeverities.vue";
@@ -216,6 +217,25 @@ const linkClass =
           <VulnDetailsHeader :finding="finding" />
         </CardContent>
       </Card>
+
+      <section aria-labelledby="source-verdicts-heading">
+        <Card>
+          <CardHeader>
+            <h2
+              id="source-verdicts-heading"
+              class="text-lg font-semibold leading-none tracking-tight"
+            >
+              Source verdicts
+            </h2>
+          </CardHeader>
+          <CardContent>
+            <SourceVerdicts
+              :verdicts="finding.source_verdicts ?? []"
+              :available="finding.source_verdicts_available === true"
+            />
+          </CardContent>
+        </Card>
+      </section>
 
       <div class="grid gap-6 2xl:grid-cols-2">
         <Card>

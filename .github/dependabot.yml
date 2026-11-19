@@ -17,6 +17,13 @@ updates:
     target-branch: develop
     cooldown:
       default-days: 3
+    ignore:
+      # TypeScript 7.0 breaks the build; see CodeClarityCE/codeclarity-dev#209.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      # zod 4 needs a form migration; see CodeClarityCE/frontend#206.
+      - dependency-name: zod
+        update-types: ["version-update:semver-major"]
     groups:
       npm:
         patterns: ["*"]

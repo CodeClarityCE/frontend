@@ -39,6 +39,7 @@ const props = {
   emptyText: "None",
   analysisID: "a-1",
   projectID: "p-1",
+  workspace: ".",
 };
 const global = { stubs: { RouterLink: { template: "<a><slot /></a>" } } };
 
@@ -126,6 +127,7 @@ describe("detail links of a CVE found in three versions", () => {
         analysis_id: "a-1",
         project_id: "p-1",
         finding_id: "CVE-2099-0001",
+        workspace: ".",
         dependency: "lodash",
         version,
       })),

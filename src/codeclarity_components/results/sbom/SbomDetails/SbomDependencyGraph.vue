@@ -34,6 +34,7 @@ const props = defineProps<{
   dependency: DependencyDetails;
   analysisID: string;
   projectID: string;
+  workspace: string;
 }>();
 
 const nodeTypes = {
@@ -79,7 +80,7 @@ async function loadGraph(): Promise<void> {
       orgId: userStore.getDefaultOrg.id,
       projectId: props.projectID,
       analysisId: props.analysisID,
-      workspace: ".",
+      workspace: props.workspace,
       dependency: target,
       bearerToken: authStore.getToken,
       handleBusinessErrors: true,

@@ -288,6 +288,7 @@ watch(
         :empty-text="emptyText"
         :analysis-i-d="analysisID"
         :project-i-d="projectID"
+        :workspace="workspace"
       />
       <DataTablePagination
         v-if="!loading && total > PAGE_SIZE"
@@ -308,6 +309,7 @@ watch(
         :page-size="PAGE_SIZE"
         :analysis-i-d="analysisID"
         :project-i-d="projectID"
+        :workspace="workspace"
         @update:sorting="sorting = $event"
       />
     </TabsContent>

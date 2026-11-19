@@ -251,11 +251,17 @@ export function ticketVulnerability(finding: VulnerabilityMerged): {
   };
 }
 
-// The route of a finding's details page, for one affected dependency and version when given.
+// The workspace a details page names in its address, else the root.
+export function workspaceFromQuery(value: unknown): string {
+  return typeof value === "string" && value !== "" ? value : ".";
+}
+
+// The route of a finding's details page in a workspace, for one affected dependency and version when given.
 export function detailsRoute(
   analysisID: string,
   projectID: string,
   findingID: string,
+  workspace: string,
   affected?: { AffectedDependency: string; AffectedVersion: string },
 ): {
   name: string;
@@ -269,6 +275,7 @@ export function detailsRoute(
       analysis_id: analysisID,
       project_id: projectID,
       finding_id: findingID,
+      workspace,
       ...(affected && {
         dependency: affected.AffectedDependency,
         version: affected.AffectedVersion,

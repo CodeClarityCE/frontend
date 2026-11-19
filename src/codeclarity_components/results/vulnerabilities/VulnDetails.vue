@@ -21,6 +21,7 @@ import ResultsNotFound from "../components/ResultsNotFound.vue";
 import { isNotFound, resultsRoute } from "../result-errors";
 
 import AddToPolicyButton from "./components/AddToPolicyButton.vue";
+import { workspaceFromQuery } from "./vuln-format";
 import VulnDetailsHeader from "./VulnDetails/VulnDetailsHeader.vue";
 import VulnDetailsLoader from "./VulnDetails/VulnDetailsLoader.vue";
 import VulnerabilitySeverities from "./VulnDetails/VulnerabilitySeverities.vue";
@@ -68,7 +69,7 @@ async function getFinding(): Promise<void> {
       bearerToken: token,
       runIndex: props.runIndex,
       handleBusinessErrors: true,
-      workspace: ".",
+      workspace: workspaceFromQuery(query.get("workspace")),
     });
     finding.value = res.data;
   } catch (error) {

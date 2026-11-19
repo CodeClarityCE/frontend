@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createMemoryHistory, createRouter } from "vue-router";
 
 import SbomDetails from "./SbomDetails.vue";
@@ -18,9 +18,10 @@ vi.mock("@/stores/auth", () => ({
 vi.mock("@/stores/user", () => ({
   useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
 }));
-const route = vi.hoisted(() => ({
-  query: { package_id: "lodash@4.17.20" },
-}));
+const route = vi.hoisted(() => {
+  const query: Record<string, string> = { package_id: "lodash@4.17.20" };
+  return { query };
+});
 vi.mock("vue-router", async (importOriginal) => ({
   ...(await importOriginal<object>()),
   useRoute: () => ({ query: route.query, params: {} }),
@@ -76,7 +77,39 @@ function tile(label: string): string[] {
   return texts(within(list).getByText(label).closest("li") as HTMLElement);
 }
 
+// The workspace named in a link's address.
+function linkWorkspace(name: RegExp): string | null {
+  const href = screen.getByRole("link", { name }).getAttribute("href") ?? "";
+  return new URL(href, "http://localhost").searchParams.get("workspace");
+}
+
 describe("SbomDetails", () => {
+  beforeEach(() => {
+    route.query = { package_id: "lodash@4.17.20" };
+  });
+
+  it("loads the dependency from the root workspace by default", async () => {
+    await show();
+    expect(repo.getDependency).toHaveBeenLastCalledWith(
+      expect.objectContaining({ workspace: "." }),
+    );
+  });
+
+  it("loads the dependency and its findings from the workspace in the address", async () => {
+    route.query = {
+      package_id: "lodash@4.17.20",
+      workspace: "packages/app",
+    };
+    await show({
+      vulnerabilities: ["CVE-2021-23337"],
+      severity_dist: { critical: 1, high: 0, medium: 0, low: 0, none: 0 },
+    });
+    expect(repo.getDependency).toHaveBeenLastCalledWith(
+      expect.objectContaining({ workspace: "packages/app" }),
+    );
+    expect(linkWorkspace(/CVE-2021-23337/)).toBe("packages/app");
+  });
+
   it("loads the dependency named in the address", async () => {
     await show();
     expect(

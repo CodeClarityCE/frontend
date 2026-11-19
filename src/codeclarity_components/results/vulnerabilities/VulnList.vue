@@ -31,6 +31,7 @@ defineProps<{
   emptyText: string;
   analysisID: string;
   projectID: string;
+  workspace: string;
 }>();
 
 const expanded = ref(new Set<string>());
@@ -101,6 +102,7 @@ function cweUrl(id: string): string {
                       analysisID,
                       projectID,
                       finding.Vulnerability,
+                      workspace,
                       finding.Affected[0],
                     )
                   "
@@ -130,6 +132,7 @@ function cweUrl(id: string): string {
                       analysisID,
                       projectID,
                       finding.Vulnerability,
+                      workspace,
                       affected,
                     )
                   "

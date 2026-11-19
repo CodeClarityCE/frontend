@@ -43,6 +43,10 @@ const props = withDefaults(
   { workspace: ".", ecosystemFilter: null, hasPatching: false },
 );
 
+const emit = defineEmits<{
+  "show-blacklisted-changed": [show: boolean];
+}>();
+
 const PAGE_SIZE = 20;
 
 const userStore = useUserStore();
@@ -148,6 +152,9 @@ const showBlacklisted = computed(
     filterState.value.filterConfig.BlacklistState?.data.show_blacklisted
       ?.value ?? false,
 );
+
+// The stats above the list follow the same toggle.
+watch(showBlacklisted, (show) => emit("show-blacklisted-changed", show));
 
 // Counts requests so an answer for an earlier query is dropped.
 let latestRequest = 0;

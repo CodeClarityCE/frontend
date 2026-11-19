@@ -28,8 +28,14 @@ const props = withDefaults(
     analysisID?: string;
     projectID?: string;
     executedSbomPlugins?: string[];
+    showBlacklisted?: boolean;
   }>(),
-  { projectID: "", analysisID: "", executedSbomPlugins: () => [] },
+  {
+    projectID: "",
+    analysisID: "",
+    executedSbomPlugins: () => [],
+    showBlacklisted: false,
+  },
 );
 
 const emit = defineEmits<{
@@ -66,6 +72,7 @@ async function loadStats(): Promise<void> {
       workspace: selected_workspace.value,
       bearerToken: token,
       ecosystem_filter: ecosystemFilter.value ?? undefined,
+      show_blacklisted: props.showBlacklisted,
       handleBusinessErrors: true,
     });
     if (request !== latestRequest) return;
@@ -89,6 +96,7 @@ watch(
     () => props.analysisID,
     selected_workspace,
     ecosystemFilter,
+    () => props.showBlacklisted,
   ],
   () => void loadStats(),
   { immediate: true },

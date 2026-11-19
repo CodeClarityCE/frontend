@@ -33,6 +33,15 @@ export interface GetVulnerabilityStatsRequestOptions extends GetSbomStatsRequest
   show_blacklisted?: boolean;
 }
 
+export type SourceVerdictExportFormat = "csv" | "json";
+
+export interface DownloadSourceVerdictsRequestOptions extends AuthRepoMethodGetRequestOptions {
+  orgId: string;
+  projectId: string;
+  analysisId: string;
+  format: SourceVerdictExportFormat;
+}
+
 export interface GetPatchesRequestOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
   projectId: string;
@@ -339,6 +348,22 @@ export class ResultsRepository extends BaseRepository {
       response,
       DataResponse<AnalysisStats>,
     );
+  }
+
+  /** Every source verdict of the analysis, one row per instance and source. */
+  async downloadSourceVerdicts(
+    options: DownloadSourceVerdictsRequestOptions,
+  ): Promise<Blob> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/source-verdicts`;
+
+    return await this.getBlobRequest({
+      queryParams: { format: options.format },
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
   }
 
   async getMaliciousPackageAdvisories(

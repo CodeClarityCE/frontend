@@ -110,3 +110,66 @@ describe("ResultsRepository.getVulnerabilitiesStat", () => {
     ).toBe("true");
   });
 });
+
+describe("ResultsRepository.downloadSourceVerdicts", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it.each(["csv", "json"] as const)(
+    "downloads the %s export of every workspace as a blob",
+    async (format) => {
+      vi.mocked(fetch).mockResolvedValue(
+        new Response("workspace,source\r\n", { status: 200 }),
+      );
+
+      const blob = await new ResultsRepository().downloadSourceVerdicts({
+        orgId: "org-1",
+        projectId: "project-1",
+        analysisId: "analysis-1",
+        format,
+        bearerToken: "token",
+        handleBusinessErrors: true,
+      });
+
+      const url = new URL(
+        vi.mocked(fetch).mock.calls[0]?.[0] as string,
+        "http://localhost",
+      );
+      expect(url.pathname).toMatch(
+        /\/org\/org-1\/projects\/project-1\/analysis\/analysis-1\/vulnerabilities\/source-verdicts$/,
+      );
+      expect(url.searchParams.get("format")).toBe(format);
+      expect(url.searchParams.has("workspace")).toBe(false);
+      expect(await blob.text()).toBe("workspace,source\r\n");
+    },
+  );
+
+  it("rejects with the API's error code when the analysis has no verdicts", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          error_code: "SourceVerdictsNotAvailable",
+          error_message: "This analysis predates source verdicts.",
+          status_code: 409,
+        }),
+        { status: 409 },
+      ),
+    );
+
+    await expect(
+      new ResultsRepository().downloadSourceVerdicts({
+        orgId: "org-1",
+        projectId: "project-1",
+        analysisId: "analysis-1",
+        format: "csv",
+        bearerToken: "token",
+        handleBusinessErrors: true,
+      }),
+    ).rejects.toMatchObject({ error_code: "SourceVerdictsNotAvailable" });
+  });
+});

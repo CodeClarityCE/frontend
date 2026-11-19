@@ -9,6 +9,7 @@ import { type Project } from "@/codeclarity_components/projects/project.entity";
 
 import KnowledgeStatusNotice from "./components/KnowledgeStatusNotice.vue";
 import MaliciousPackageAdvisories from "./components/MaliciousPackageAdvisories.vue";
+import SourceVerdictExportMenu from "./components/SourceVerdictExportMenu.vue";
 import VulnContent from "./VulnContent.vue";
 import VulnFindings from "./VulnFindings.vue";
 
@@ -72,16 +73,22 @@ const showBlacklisted = ref(false);
       aria-labelledby="vuln-findings-heading"
       class="flex flex-col gap-4"
     >
-      <div>
-        <h2
-          id="vuln-findings-heading"
-          class="text-xl font-semibold tracking-tight text-foreground-strong"
-        >
-          Vulnerabilities
-        </h2>
-        <p class="text-sm text-muted-foreground">
-          Security vulnerabilities found in your project dependencies
-        </p>
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h2
+            id="vuln-findings-heading"
+            class="text-xl font-semibold tracking-tight text-foreground-strong"
+          >
+            Vulnerabilities
+          </h2>
+          <p class="text-sm text-muted-foreground">
+            Security vulnerabilities found in your project dependencies
+          </p>
+        </div>
+        <SourceVerdictExportMenu
+          :analysis-i-d="analysis.id"
+          :project-i-d="project.id"
+        />
       </div>
       <VulnFindings
         :analysis-i-d="analysis.id"

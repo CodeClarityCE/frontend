@@ -131,9 +131,9 @@ const affected = computed(() =>
         <Info aria-hidden="true" class="mt-0.5 size-4 shrink-0" />
         <span>
           Since sources disagree on your version
-          <strong>{{ finding.dependency_info?.version }}</strong
-          >, review the explanations above and check the official advisory links
-          to determine your actual risk.
+          <strong>{{ finding.dependency_info?.version }}</strong>, review the
+          explanations above and check the official advisory links to determine
+          your actual risk.
         </span>
       </p>
     </div>

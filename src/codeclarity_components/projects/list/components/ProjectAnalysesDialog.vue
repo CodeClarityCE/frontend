@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ChevronDown, History, Trash2 } from "@lucide/vue";
-import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, ref } from "vue";
 import { RouterLink } from "vue-router";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { StatusBadge } from "@/base_components/page";
 import {
   type Analysis,
@@ -57,7 +56,7 @@ const toDelete = ref<Analysis | null>(null);
 const deleting = ref(false);
 const runsOf = ref<Analysis | null>(null);
 
-const columns: ColumnDef<Analysis, unknown>[] = [
+const columns: DataTableColumn<Analysis>[] = [
   {
     id: "started",
     accessorFn: (analysis) => new Date(analysis.created_on).getTime(),

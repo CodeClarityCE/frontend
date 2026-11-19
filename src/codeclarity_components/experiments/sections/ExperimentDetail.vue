@@ -498,8 +498,8 @@ onUnmounted(() => clearTimeout(pollTimer));
               query: { id: experiment.dataset_id },
             }"
             class="rounded-sm font-semibold text-foreground underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >{{ experiment.dataset_name }}</RouterLink
-          >, {{ experiment.retries }} retries per failed run. Created
+            >{{ experiment.dataset_name }}</RouterLink>,
+          {{ experiment.retries }} retries per failed run. Created
           {{ formatExperimentDate(experiment.created_on)
           }}<template v-if="experiment.created_by_name">
             by {{ experiment.created_by_name }}</template

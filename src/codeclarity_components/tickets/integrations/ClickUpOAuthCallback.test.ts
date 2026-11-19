@@ -3,19 +3,26 @@ import { flushPromises } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { takeClickUpOAuthToken } from "./clickup-oauth-handoff";
+import ClickUpConfigModal from "./ClickUpConfigModal.vue";
 import ClickUpOAuthCallback from "./ClickUpOAuthCallback.vue";
 
 const ACCESS_TOKEN = "clickup-access-token-123";
 
-const { exchangeClickUpOAuthCode, push } = vi.hoisted(() => ({
+const { exchangeClickUpOAuthCode, getWorkspaces, push } = vi.hoisted(() => ({
   exchangeClickUpOAuthCode: vi.fn(),
+  getWorkspaces: vi.fn(),
   push: vi.fn(),
 }));
 
 vi.mock("../tickets.repository", () => ({
   TicketsRepository: class {
     exchangeClickUpOAuthCode = exchangeClickUpOAuthCode;
+    getWorkspaces = getWorkspaces;
   },
+}));
+
+vi.mock("@/stores/user", () => ({
+  useUserStore: () => ({ defaultOrg: { id: "org-1" } }),
 }));
 
 vi.mock("@/stores/auth", () => ({
@@ -59,6 +66,8 @@ describe("ClickUpOAuthCallback", () => {
     vi.stubGlobal("localStorage", memoryStorage());
     vi.stubGlobal("sessionStorage", memoryStorage());
     exchangeClickUpOAuthCode.mockReset();
+    getWorkspaces.mockReset();
+    getWorkspaces.mockResolvedValue({ data: [] });
     push.mockReset();
     takeClickUpOAuthToken();
     sessionStorage.setItem("clickup_oauth_org_id", "org-1");
@@ -67,8 +76,10 @@ describe("ClickUpOAuthCallback", () => {
     });
   });
 
-  it("sends the code to the API and keeps the token out of browser storage", async () => {
+  it("keeps the token out of browser storage and still sends it to the API", async () => {
     render(ClickUpOAuthCallback);
+    await flushPromises();
+    render(ClickUpConfigModal);
     await flushPromises();
 
     expect(exchangeClickUpOAuthCode).toHaveBeenCalledWith(
@@ -76,6 +87,12 @@ describe("ClickUpOAuthCallback", () => {
         orgId: "org-1",
         data: expect.objectContaining({ code: "auth-code" }),
         bearerToken: "test-token",
+      }),
+    );
+    expect(getWorkspaces).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orgId: "org-1",
+        credentials: { access_token: ACCESS_TOKEN },
       }),
     );
     expect(storedValues().join(" ")).not.toContain(ACCESS_TOKEN);

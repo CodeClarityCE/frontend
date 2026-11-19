@@ -589,11 +589,11 @@ watch(folderId, () => {
 
 // Check for OAuth token from callback or existing config on mount
 onMounted(async (): Promise<void> => {
-  const storedToken = takeClickUpOAuthToken();
-  if (storedToken) {
-    // Switch to OAuth tab and use the stored token
+  const oauthToken = takeClickUpOAuthToken();
+  if (oauthToken) {
+    // Switch to the OAuth tab and use the in-memory OAuth token
     authMethod.value = "OAUTH";
-    accessToken.value = storedToken;
+    accessToken.value = oauthToken;
     oauthConnected.value = true;
 
     // Fetch workspaces with the OAuth token

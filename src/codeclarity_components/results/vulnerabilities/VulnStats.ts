@@ -1,3 +1,5 @@
+import type { SourceVerdict } from "./VulnDetails/VulnDetails.types";
+
 export interface ErrorInfo {
   message?: string;
   code?: string;
@@ -74,6 +76,7 @@ export interface WeaknessInfo {
 
 export interface Severity {
   Severity: number;
+  SeverityClass?: string;
   SeverityType: SeverityType;
   Vector: string;
   Impact: number;
@@ -81,12 +84,17 @@ export interface Severity {
   ConfidentialityImpact: string;
   IntegrityImpact: string;
   AvailabilityImpact: string;
+  // Every CVSS vector of the shown record; absent on older analyses.
+  Vectors?: { score: number; type: string; vector: string; class: string }[];
 }
 
 export enum SeverityType {
   CvssV2 = "CVSS_V2",
   CvssV3 = "CVSS_V3",
   CvssV31 = "CVSS_V31",
+  CvssV40 = "CVSS_V40",
+  // GHSA's label, used when a record has no vector; it has no score.
+  Ghsa = "GHSA",
 }
 
 export enum PatchType {
@@ -136,6 +144,9 @@ export interface VulnerabilityMerged {
   EPSS: EPSS;
   is_blacklisted?: boolean;
   blacklisted_by_policies?: string[];
+  Disputed?: boolean;
+  /** True when any affected entry is matched by one source origin only. */
+  Uncorroborated?: boolean;
 }
 
 export interface VLAI {
@@ -158,7 +169,24 @@ export interface AffectedDeps {
   AffectedDependencyImportPaths: string[];
   AffectedDependencyObject?: DependencyObject;
   PatchType?: PatchType;
+  Disputed?: boolean;
+  Uncorroborated?: boolean;
+  /** One verdict per knowledge source; absent on older analyses. */
+  SourceVerdicts?: SourceVerdict[];
+  /** Why the instance is hidden by default; only sent when a filter shows it. */
+  Hidden?: HiddenReason;
+  /** Sources that withdrew or contradicted one of its source matches. */
+  ContradictedBy?: string[];
 }
+
+// Why the API hides an instance by default; copy of the API's HiddenReason.
+export enum HiddenReason {
+  Contradicted = "contradicted",
+  RetiredAll = "retired_all",
+}
+
+/** Instances of each hidden reason, whether or not a filter shows them. */
+export type HiddenCounts = Record<HiddenReason, number>;
 
 export declare interface AffectedRange {
   IntroducedString: string;

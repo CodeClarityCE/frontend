@@ -31,6 +31,7 @@ defineProps<{
   emptyText: string;
   analysisID: string;
   projectID: string;
+  workspace: string;
 }>();
 
 const expanded = ref(new Set<string>());
@@ -88,7 +89,7 @@ function cweUrl(id: string): string {
         class="flex flex-col gap-3 p-4"
       >
         <div class="flex flex-wrap items-start gap-3">
-          <SeverityBadge :score="finding.Severity?.Severity" class="mt-1" />
+          <SeverityBadge :severity="finding.Severity" class="mt-1" />
           <div class="flex min-w-0 flex-1 flex-col gap-1">
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
               <h3
@@ -97,7 +98,13 @@ function cweUrl(id: string): string {
               >
                 <RouterLink
                   :to="
-                    detailsRoute(analysisID, projectID, finding.Vulnerability)
+                    detailsRoute(
+                      analysisID,
+                      projectID,
+                      finding.Vulnerability,
+                      workspace,
+                      finding.Affected[0],
+                    )
                   "
                   class="rounded-sm text-brand-subtle-foreground underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
@@ -117,13 +124,26 @@ function cweUrl(id: string): string {
             >
               <li
                 v-for="affected in finding.Affected.slice(0, 3)"
-                :key="affected.AffectedDependency"
+                :key="`${affected.AffectedDependency}@${affected.AffectedVersion}`"
               >
-                <Badge variant="outline">
-                  {{ affected.AffectedDependency }}@{{
-                    affected.AffectedVersion
-                  }}
-                </Badge>
+                <RouterLink
+                  :to="
+                    detailsRoute(
+                      analysisID,
+                      projectID,
+                      finding.Vulnerability,
+                      workspace,
+                      affected,
+                    )
+                  "
+                  class="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <Badge variant="outline" class="hover:bg-muted">
+                    {{ affected.AffectedDependency }}@{{
+                      affected.AffectedVersion
+                    }}
+                  </Badge>
+                </RouterLink>
               </li>
               <li v-if="finding.Affected.length > 3">
                 <Badge variant="outline">
@@ -159,7 +179,11 @@ function cweUrl(id: string): string {
             class="flex flex-wrap gap-2"
           >
             <li v-for="signal in findingSignals(finding)" :key="signal.label">
-              <StatusBadge :tone="signal.tone" :label="signal.label" />
+              <StatusBadge
+                :tone="signal.tone"
+                :label="signal.label"
+                :title="signal.detail"
+              />
             </li>
           </ul>
           <Button
@@ -189,8 +213,9 @@ function cweUrl(id: string): string {
             class="flex flex-col gap-1 text-muted-foreground"
           >
             <li v-for="signal in findingSignals(finding)" :key="signal.label">
-              <span class="font-medium text-foreground">{{ signal.label }}</span
-              >: {{ signal.detail }}
+              <span class="font-medium text-foreground">{{
+                signal.label
+              }}</span>: {{ signal.detail }}
             </li>
           </ul>
 
@@ -278,7 +303,7 @@ function cweUrl(id: string): string {
               <dt class="font-medium text-foreground-strong">Patch status</dt>
               <dd
                 v-for="affected in finding.Affected"
-                :key="affected.AffectedDependency"
+                :key="`${affected.AffectedDependency}@${affected.AffectedVersion}`"
                 class="flex flex-wrap items-center gap-2"
               >
                 {{ affected.AffectedDependency }}

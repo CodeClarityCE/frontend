@@ -2,6 +2,7 @@ import userEvent from "@testing-library/user-event";
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createMemoryHistory, createRouter } from "vue-router";
 
 import { patchStatus } from "./vuln-format";
 import VulnFindings from "./VulnFindings.vue";
@@ -157,5 +158,45 @@ describe("VulnFindings patch status filters", () => {
     const menu = await screen.findByRole("menu");
     expect(within(menu).queryByText("Patch status")).toBeNull();
     expect(within(menu).getByText("Matching")).toBeTruthy();
+  });
+});
+
+describe("VulnFindings links", () => {
+  beforeEach(() => {
+    all = [finding("CVE-2024-0001", "FULL")];
+    repo.getVulnerabilities.mockReset();
+    repo.getVulnerabilities.mockImplementation(answer);
+  });
+
+  it("keeps the selected workspace in each details link", async () => {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        {
+          path: "/results/:page?",
+          name: "results",
+          component: { render: () => null },
+        },
+      ],
+    });
+    render(VulnFindings, {
+      props: { analysisID: "a-1", projectID: "p-1", workspace: "packages/app" },
+      global: { plugins: [router], stubs: { RouterLink: false } },
+    });
+    await flushPromises();
+
+    expect(repo.getVulnerabilities).toHaveBeenLastCalledWith(
+      expect.objectContaining({ workspace: "packages/app" }),
+    );
+    const links = screen
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href") ?? "")
+      .filter((href) => href.includes("finding_id="));
+    expect(links.length).toBeGreaterThan(0);
+    for (const href of links) {
+      expect(
+        new URL(href, "http://localhost").searchParams.get("workspace"),
+      ).toBe("packages/app");
+    }
   });
 });

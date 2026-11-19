@@ -374,4 +374,30 @@ describe("SelectWorkspace", () => {
     expect(wrapper.vm.error).toBe(false);
     expect(wrapper.vm.selected_workspace).toBe(".");
   });
+
+  it("selects the first workspace when the analysis has no root workspace", async () => {
+    mockGetSbomWorkspaces.mockResolvedValue({
+      data: { workspaces: ["api", "frontend"], package_manager: "pnpm" },
+    });
+    wrapper = mount(SelectWorkspace, {
+      props: { projectID: "project-123", analysisID: "analysis-456" },
+    });
+
+    await flushPromises();
+
+    expect(wrapper.emitted("update:selected_workspace")).toEqual([["api"]]);
+  });
+
+  it("keeps the root workspace when the analysis has one", async () => {
+    mockGetSbomWorkspaces.mockResolvedValue({
+      data: { workspaces: [".", "packages/a"], package_manager: "npm" },
+    });
+    wrapper = mount(SelectWorkspace, {
+      props: { projectID: "project-123", analysisID: "analysis-456" },
+    });
+
+    await flushPromises();
+
+    expect(wrapper.emitted("update:selected_workspace")).toBeUndefined();
+  });
 });

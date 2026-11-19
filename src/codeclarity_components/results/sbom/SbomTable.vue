@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import type { ColumnDef } from "@tanstack/vue-table";
 import { computed } from "vue";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { StatusBadge, type StatusTone } from "@/base_components/page";
 import EcosystemBadge from "@/base_components/ui/EcosystemBadge.vue";
 import type { Dependency } from "@/codeclarity_components/results/graph.entity";
@@ -13,6 +12,7 @@ const props = defineProps<{
   dependencies: Dependency[];
   analysisID: string;
   projectID: string;
+  workspace: string;
 }>();
 
 interface UpdateStatus {
@@ -47,7 +47,7 @@ function isDirect(dep: Dependency): boolean {
   return dep.is_direct_count > 0 || dep.is_direct;
 }
 
-const columns: ColumnDef<Dependency, unknown>[] = [
+const columns: DataTableColumn<Dependency>[] = [
   { id: "name", header: "Package", accessorFn: (d) => d.name },
   {
     id: "ecosystem",
@@ -99,6 +99,7 @@ function detailsRoute(dep: Dependency): Record<string, unknown> {
       analysis_id: props.analysisID,
       project_id: props.projectID,
       package_id: `${dep.name}@${dep.version}`,
+      workspace: props.workspace,
     },
   };
 }

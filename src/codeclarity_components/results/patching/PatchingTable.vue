@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import type { ColumnDef } from "@tanstack/vue-table";
 import { computed, type Ref, ref, watch } from "vue";
 
-import { DataTable } from "@/base_components/data-table";
+import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { StatusBadge } from "@/base_components/page";
 import type {
   PatchInfo,
@@ -84,7 +83,7 @@ function vulnerabilityCount(row: PatchRow): number {
   );
 }
 
-const columns: ColumnDef<PatchRow, unknown>[] = [
+const columns: DataTableColumn<PatchRow>[] = [
   { id: "name", header: "Direct dependency", accessorFn: (r) => r.name },
   {
     id: "scope",

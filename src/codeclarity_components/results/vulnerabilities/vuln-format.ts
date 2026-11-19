@@ -1,12 +1,17 @@
 // Labels and lookups shared by the vulnerability list, table and details.
 import type { StatusTone } from "@/base_components/page";
-import { severityLevel } from "@/utils/severity";
+import { findingSeverityLevel } from "@/utils/severity";
 
-import type {
-  Severity,
-  VLAI,
-  VulnerabilityMerged,
-  WeaknessInfo,
+import {
+  SOURCE_LABELS,
+  verdictSummary,
+} from "./VulnDetails/source-verdict-evidence";
+import {
+  HiddenReason,
+  type Severity,
+  type VLAI,
+  type VulnerabilityMerged,
+  type WeaknessInfo,
 } from "./VulnStats";
 
 export interface OwaspCategory {
@@ -127,7 +132,60 @@ export interface Signal {
   detail: string;
 }
 
-// The warnings a finding carries: policy exclusion, EPSS and match conflicts.
+// Each uncorroborated version's source verdicts, named by version when there are several.
+function uncorroboratedDetail(finding: VulnerabilityMerged): string {
+  const affected = (finding.Affected ?? []).filter((a) => a.Uncorroborated);
+  const lines = affected.map((a) => {
+    const summary = verdictSummary(a.SourceVerdicts ?? []);
+    return affected.length > 1
+      ? `${a.AffectedDependency}@${a.AffectedVersion}: ${summary}`
+      : summary;
+  });
+  return ["Matched by one source origin only.", ...lines].join(" ");
+}
+
+function sourceList(sources: string[]): string {
+  return sources.map((s) => SOURCE_LABELS[s] ?? s.toUpperCase()).join(" and ");
+}
+
+// Hidden instances a filter shows, and the sources that contradicted a visible one.
+function contradictionSignals(finding: VulnerabilityMerged): Signal[] {
+  const signals: Signal[] = [];
+  const affected = finding.Affected ?? [];
+  if (affected.some((a) => a.Hidden === HiddenReason.Contradicted)) {
+    signals.push({
+      label: "Contradicted",
+      tone: "neutral",
+      detail:
+        "Every source that reports it is contradicted by a source of another origin. It is hidden by default and left out of the counts and the grade.",
+    });
+  }
+  if (affected.some((a) => a.Hidden === HiddenReason.RetiredAll)) {
+    signals.push({
+      label: "Retired everywhere",
+      tone: "neutral",
+      detail:
+        "Every source that holds a record for it has retired it. It is hidden by default and left out of the counts and the grade.",
+    });
+  }
+  const sources = [
+    ...new Set(
+      affected.filter((a) => !a.Hidden).flatMap((a) => a.ContradictedBy ?? []),
+    ),
+  ].sort();
+  if (sources.length > 0) {
+    const names = sourceList(sources);
+    const says = sources.length > 1 ? "say" : "says";
+    signals.push({
+      label: `Contradicted by ${names}`,
+      tone: "warning",
+      detail: `${names} withdrew this vulnerability or ${says} the installed version is not affected, while another source still reports it. Weigh it before acting.`,
+    });
+  }
+  return signals;
+}
+
+// The warnings a finding carries: policy exclusion, EPSS, disputes and match conflicts.
 export function findingSignals(finding: VulnerabilityMerged): Signal[] {
   const signals: Signal[] = [];
   if (finding.is_blacklisted) {
@@ -148,15 +206,24 @@ export function findingSignals(finding: VulnerabilityMerged): Signal[] {
         "EPSS predicts a high chance of exploitation in the next 30 days. Prioritise patching.",
     });
   }
-  const flag = finding.Conflict?.ConflictFlag;
-  if (flag === "MATCH_POSSIBLE_INCORRECT") {
+  if (finding.Disputed) {
     signals.push({
-      label: "Match uncertain",
-      tone: "warning",
+      label: "Disputed",
+      tone: "neutral",
       detail:
-        "Vulnerability sources disagree on the affected versions. Verify before acting.",
+        "The vendor disputes this CVE. It stays listed but does not count towards the grade.",
     });
-  } else if (flag === "MATCH_INCORRECT") {
+  }
+  if (finding.Uncorroborated) {
+    signals.push({
+      label: "Uncorroborated",
+      tone: "warning",
+      detail: uncorroboratedDetail(finding),
+    });
+  }
+  signals.push(...contradictionSignals(finding));
+  const flag = finding.Conflict?.ConflictFlag;
+  if (flag === "MATCH_INCORRECT") {
     signals.push({
       label: "Match conflict",
       tone: "warning",
@@ -232,7 +299,7 @@ export function ticketVulnerability(finding: VulnerabilityMerged): {
   affected_version?: string;
   description: string;
 } {
-  const level = severityLevel(finding.Severity?.Severity);
+  const level = findingSeverityLevel(finding.Severity);
   return {
     vulnerability_id: finding.Vulnerability,
     severity_score: finding.Severity?.Severity,
@@ -243,11 +310,18 @@ export function ticketVulnerability(finding: VulnerabilityMerged): {
   };
 }
 
-// The route of a finding's details page.
+// The workspace a details page names in its address, else the root.
+export function workspaceFromQuery(value: unknown): string {
+  return typeof value === "string" && value !== "" ? value : ".";
+}
+
+// The route of a finding's details page in a workspace, for one affected dependency and version when given.
 export function detailsRoute(
   analysisID: string,
   projectID: string,
   findingID: string,
+  workspace: string,
+  affected?: { AffectedDependency: string; AffectedVersion: string },
 ): {
   name: string;
   params: { page: string };
@@ -260,6 +334,11 @@ export function detailsRoute(
       analysis_id: analysisID,
       project_id: projectID,
       finding_id: findingID,
+      workspace,
+      ...(affected && {
+        dependency: affected.AffectedDependency,
+        version: affected.AffectedVersion,
+      }),
     },
   };
 }

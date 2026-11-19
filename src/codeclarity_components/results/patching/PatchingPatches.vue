@@ -144,8 +144,8 @@ function copyManifest(): void {
     <CardHeader>
       <CardTitle class="text-base">Patched manifest</CardTitle>
       <CardDescription>
-        The upgrades applied to <code class="font-mono">{{ packageFile }}</code
-        >.
+        The upgrades applied to
+        <code class="font-mono">{{ packageFile }}</code>.
       </CardDescription>
     </CardHeader>
     <CardContent class="flex flex-col gap-6">
@@ -179,8 +179,7 @@ function copyManifest(): void {
         <li class="flex flex-col items-start gap-2">
           <span>
             Update these dependency entries in
-            <code class="font-mono">{{ packageFile }}</code
-            >.
+            <code class="font-mono">{{ packageFile }}</code>.
           </span>
           <Button variant="outline" size="sm" @click="copyManifest">
             <Copy aria-hidden="true" class="size-4" />

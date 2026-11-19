@@ -6,6 +6,7 @@ export const APIErrors = {
   UnknownWorkspace: "UnknownWorkspace",
   PluginFailed: "PluginFailed",
   PluginResultNotAvailable: "PluginResultNotAvailable",
+  SourceVerdictsNotAvailable: "SourceVerdictsNotAvailable",
   CannotRemoveDefaultPolicy: "CannotRemoveDefaultPolicy",
   CannotUnDefaultDefaultPolicy: "CannotUnDefaultDefaultPolicy",
   RepositoryCannotBeFound: "RepositoryCannotBeFound",

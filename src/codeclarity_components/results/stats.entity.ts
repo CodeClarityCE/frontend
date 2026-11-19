@@ -258,6 +258,12 @@ export class AnalysisStats {
   number_of_low!: number;
   number_of_none!: number;
 
+  // Vendor-disputed vulnerabilities, and the grade inputs without them.
+  number_of_disputed?: number;
+  graded_number_of_vulnerabilities?: number;
+  graded_number_of_critical?: number;
+  graded_number_of_high?: number;
+
   mean_confidentiality_impact!: number;
   mean_integrity_impact!: number;
   mean_availability_impact!: number;

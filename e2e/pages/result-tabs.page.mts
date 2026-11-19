@@ -319,6 +319,7 @@ export const sampleDetails = {
   latest_version: "4.17.21",
   dependencies: {},
   dev_dependencies: {},
+  direct: true,
   transitive: false,
   source: { Type: "git", Url: "git+https://github.com/lodash/lodash.git" },
   package_manager: "NPM",
@@ -367,6 +368,7 @@ export interface ResultTabsOptions {
     workspaces: string[];
     package_manager: string;
     package_managers?: Record<string, string>;
+    ecosystem_package_managers?: Record<string, Record<string, string>>;
   };
   /** The dependency details answer, merged over the lodash sample. */
   details?: Record<string, unknown>;

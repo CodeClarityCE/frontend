@@ -54,10 +54,10 @@ async function signInWithFailingDataset(page: Page): Promise<void> {
         },
       });
     }
-    if (/\/org\/org-123$/.test(url)) {
+    if (url.endsWith("/org/org-123")) {
       return route.fulfill({ json: { data: org } });
     }
-    if (/\/org\/org-123\/datasets\/ds-1$/.test(url)) {
+    if (url.endsWith("/org/org-123/datasets/ds-1")) {
       return route.fulfill({
         status: 500,
         json: {

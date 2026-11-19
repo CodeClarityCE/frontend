@@ -88,21 +88,16 @@ pnpm build
 pnpm test:unit
 ```
 
-### Run End-to-End Tests with [Cypress](https://www.cypress.io/)
+### Run End-to-End Tests with [Playwright](https://playwright.dev/)
 
 ```sh
-pnpm test:e2e:dev
+node_modules/.bin/playwright test --project=chromium
 ```
 
-This runs the end-to-end tests against the Vite development server.
-It is much faster than the production build.
-
-But it's still recommended to test the production build with `test:e2e` before deploying (e.g. in CI environments):
-
-```sh
-pnpm build
-pnpm test:e2e
-```
+Playwright builds the app, serves it with `vite preview` on `127.0.0.1:4173` and stops
+the server when the run ends. Set `E2E_PORT` to use another port, for example to run
+two worktrees at once. A server already listening on that port fails the run instead of
+being tested. `E2E_BASE_URL` targets a running stack instead and skips the build.
 
 ### Fixture contracts
 

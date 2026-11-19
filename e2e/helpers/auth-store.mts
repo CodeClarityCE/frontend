@@ -3,7 +3,7 @@ import type { Page } from "@playwright/test";
 // Seeds the persisted auth store before the app boots, as a returning visitor would have it.
 export async function seedAuthStore(
   page: Page,
-  state: { authenticated?: boolean; socialAuthState?: string } = {},
+  state: { authenticated?: boolean } = {},
 ): Promise<void> {
   const expiry = new Date(Date.now() + 86_400_000).toISOString();
   await page.addInitScript(
@@ -17,7 +17,6 @@ export async function seedAuthStore(
           tokenExpiry: e,
           refreshToken: "t",
           refreshTokenExpiry: e,
-          socialAuthState: s.socialAuthState,
         }),
       );
     },

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+
 import user from "./fixtures/user.json" with { type: "json" };
 
 // Hosts the Iconify runtime falls back to when an icon is not bundled.
@@ -61,7 +62,7 @@ test.describe("Brand and language logos", () => {
           },
         });
       }
-      if (/\/org\/org-123$/.test(url)) {
+      if (url.endsWith("/org/org-123")) {
         return route.fulfill({ json: { data: org } });
       }
       return route.fulfill({ json: emptyPage });

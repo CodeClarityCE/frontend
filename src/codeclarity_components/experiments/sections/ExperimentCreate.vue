@@ -195,6 +195,7 @@ async function loadDatasets(orgId: string, token: string): Promise<void> {
         pagination: { page, entries_per_page: DATASETS_PAGE_SIZE },
         bearerToken: token,
         handleBusinessErrors: true,
+        handleHTTPErrors: true,
       });
       ready.push(
         ...response.data.filter(
@@ -218,6 +219,7 @@ async function loadAnalyzers(orgId: string, token: string): Promise<void> {
       search_key: "",
       bearerToken: token,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     analyzers.value = response.data.filter(runsRequiredPlugins);
     const [first] = analyzers.value;
@@ -234,6 +236,7 @@ async function loadEstimateBasis(orgId: string, token: string): Promise<void> {
       orgId,
       bearerToken: token,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     probesPerEntryInterval.value = response.data.probes_per_entry_interval;
   } catch {
@@ -295,6 +298,7 @@ async function submit(): Promise<void> {
       },
       bearerToken: auth.getToken,
       handleBusinessErrors: true,
+      handleHTTPErrors: true,
     });
     successToast("Experiment created");
     void router.push({

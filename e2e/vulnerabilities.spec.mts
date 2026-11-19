@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
 const many = Array.from({ length: 45 }, (_, i) =>
   finding(
     `CVE-2025-${String(i + 1).padStart(4, "0")}`,
-    (["critical", "high", "medium", "low"] as const)[i % 4],
+    (["critical", "high", "medium", "low"] as const)[i % 4]!,
     `package-${i + 1}`,
   ),
 );

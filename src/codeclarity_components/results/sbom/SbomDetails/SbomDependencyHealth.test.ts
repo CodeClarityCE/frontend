@@ -47,6 +47,11 @@ describe("SbomDependencyHealth", () => {
     expect(screen.getByText("366 days behind")).toBeTruthy();
   });
 
+  it("does not call a dependency with unknown release dates outdated", () => {
+    show({ release_date: null, lastest_release_date: null });
+    expect(screen.getByText("Healthy")).toBeTruthy();
+  });
+
   it("counts one issue in the singular", () => {
     show({ vulnerabilities: ["CVE-1"] });
     expect(screen.getByText("1 issue")).toBeTruthy();

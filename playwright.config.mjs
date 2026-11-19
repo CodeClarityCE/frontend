@@ -1,6 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /*
+ * By default Playwright builds the app and serves it with `vite preview` on
+ * 127.0.0.1, then stops the server when the run ends:
+ * - E2E_PORT (default 4173): the preview port. Give each worktree its own to
+ *   run suites side by side. A server already on the port fails the run
+ *   (--strictPort), so a stale build is never tested.
+ *
  * Running against the live dev stack instead of a local preview server:
  * - E2E_BASE_URL (e.g. https://localhost): target that URL and skip webServer.
  *   The dev stack uses a self-signed cert, so HTTPS errors are ignored then.
@@ -13,6 +19,8 @@ import { defineConfig, devices } from "@playwright/test";
 const liveBaseURL = process.env.E2E_BASE_URL;
 const hostResolverRules = process.env.E2E_HOST_RESOLVER_RULES;
 const chromiumPath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+const port = Number(process.env.E2E_PORT ?? 4173);
+const localURL = `http://127.0.0.1:${port}`;
 
 /**
  * Playwright configuration for CodeClarity E2E tests
@@ -40,7 +48,7 @@ export default defineConfig({
   /* Shared settings for all the projects below */
   use: {
     /* Base URL to use in actions like `await page.goto('/')` */
-    baseURL: liveBaseURL ?? "http://localhost:4173",
+    baseURL: liveBaseURL ?? localURL,
     ignoreHTTPSErrors: !!liveBaseURL,
 
     /* Collect trace when retrying the failed test */
@@ -93,10 +101,11 @@ export default defineConfig({
   webServer: liveBaseURL
     ? undefined
     : {
-        command: "pnpm preview",
-        url: "http://localhost:4173",
-        reuseExistingServer: !process.env.CI,
-        timeout: 120 * 1000,
+        // Local binaries, not pnpm scripts, so a run never triggers an install.
+        command: `node_modules/.bin/vite build && node_modules/.bin/vite preview --host 127.0.0.1 --port ${port} --strictPort`,
+        url: localURL,
+        reuseExistingServer: false,
+        timeout: 180 * 1000,
       },
 
   /* Global timeout for each test */

@@ -73,6 +73,7 @@ const vulnerabilityStats: Ref<AnalysisStats | null> = ref(null);
 const dependencies: Ref<SbomDependency[]> = ref([]);
 const selected_workspace = ref(".");
 const packageManager = ref("");
+const ecosystemPackageManagers: Ref<Record<string, string>> = ref({});
 const ecosystemFilter: Ref<string | null> = ref(null);
 const showUpdatesModal = ref(false);
 const exporting = ref(false);
@@ -237,8 +238,12 @@ const packageUpdates = computed(() =>
   ),
 );
 
-function onPackageManagerLoaded(manager: string): void {
+function onPackageManagerLoaded(
+  manager: string,
+  byEcosystem: Record<string, string> = {},
+): void {
   packageManager.value = manager.toLowerCase();
+  ecosystemPackageManagers.value = byEcosystem;
 }
 
 function onEcosystemFilterChanged(ecosystem: string | null): void {
@@ -470,6 +475,7 @@ const LINK =
       :updates="packageUpdates"
       :project-name="projectName"
       :package-manager="packageManager"
+      :package-managers="ecosystemPackageManagers"
     />
   </section>
 </template>

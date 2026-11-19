@@ -2,6 +2,7 @@ import { type Locator, type Page, type Route } from "@playwright/test";
 
 import { apiUser } from "../fixtures/memberships.mjs";
 import user from "../fixtures/user.json" with { type: "json" };
+
 import { ShellPage } from "./shell.page.mjs";
 
 const ORG = "org-123";
@@ -12,12 +13,12 @@ export const NOW = new Date("2026-11-13T12:00:00Z");
 
 type Role = 0 | 1 | 2 | 3;
 
-type Membership = {
+interface Membership {
   role: Role;
   joined_on: string;
   user: Record<string, unknown>;
   organization: Record<string, unknown>;
-};
+}
 
 /** A user as the members endpoint nests it in a membership. */
 function memberUser(
@@ -65,7 +66,7 @@ export function member(
   };
 }
 
-export const sampleMembers = [
+export const sampleMembers: [Membership, Membership, Membership] = [
   member(user.id, "John", "Doe", 0, {
     handle: "JohnDoe",
     email: user.email,
@@ -118,11 +119,9 @@ export function auditLog(
   return {
     id,
     action_severity: severity,
-    action_class: action.startsWith("Project")
-      ? "Project"
-      : action.startsWith("Analyzer")
-        ? "Analyzer"
-        : "Organization",
+    action_class:
+      ["Project", "Analyzer"].find((kind) => action.startsWith(kind)) ??
+      "Organization",
     action,
     description,
     blame_on: person(sampleMembers[0]),

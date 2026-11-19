@@ -192,9 +192,11 @@ void init();
         <Card class="rounded-card shadow-card">
           <CardHeader>
             <h2 class="text-lg font-semibold text-foreground-strong">
-              Workflow
+              Plugins
             </h2>
-            <CardDescription>The plugins this analyzer runs.</CardDescription>
+            <CardDescription>
+              The plugins this analyzer runs, in stages.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <WorkflowDesigner

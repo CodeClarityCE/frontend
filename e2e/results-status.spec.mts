@@ -3,8 +3,8 @@ import { expect, type Page, test } from "@playwright/test";
 import { expectNoAxeViolations } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
-  analysis,
   ANALYSIS,
+  analysis,
   NOT_FOUND,
   PROJECT,
   ResultsStatusPage,
@@ -88,7 +88,7 @@ test.describe("Results page for an unfinished analysis", () => {
   for (const [state, text] of [
     ["requested", "Analysis queued"],
     ["started", "Analysis running"],
-  ]) {
+  ] as const) {
     test(`a ${state} analysis says it is not finished`, async ({ page }) => {
       const results = new ResultsStatusPage(page);
       await results.signIn({
@@ -103,6 +103,21 @@ test.describe("Results page for an unfinished analysis", () => {
       expect(results.requested("/sbom/stats")).toBe(false);
     });
   }
+
+  test("a cancelled analysis says so and does not ask for a reload", async ({
+    page,
+  }) => {
+    const results = new ResultsStatusPage(page);
+    await results.signIn({
+      analysis: analysis("cancelled", [[step("js-sbom", "cancelled")]]),
+    });
+    await results.goto();
+
+    const status = page.getByRole("status", { name: "Analysis status" });
+    await expect(status).toContainText("Analysis cancelled");
+    await expect(status).not.toContainText("Reload the page");
+    await expect(results.tabs).toHaveCount(0);
+  });
 
   test("a failed analysis still shows the tabs of plugins that succeeded", async ({
     page,

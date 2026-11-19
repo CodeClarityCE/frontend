@@ -3,6 +3,8 @@ import { IsDate, IsEnum, IsNotEmpty, IsOptional } from "class-validator";
 
 import { TeamMember } from "../organization.entity";
 
+// Copy of the API's ActionSeverity in api/src/base_modules/organizations/log/orgAuditLog.types.ts.
+// The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
 export enum ActionSeverity {
   Critical = 3,
   High = 2,
@@ -10,6 +12,8 @@ export enum ActionSeverity {
   Low = 0,
 }
 
+// Copy of the API's ActionClassType in api/src/base_modules/organizations/log/orgAuditLog.types.ts.
+// The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
 export enum ActionClassType {
   Project = "Project",
   Analyzer = "Analyzer",
@@ -19,6 +23,8 @@ export enum ActionClassType {
   Unkown = "Unkown",
 }
 
+// Copy of the API's ActionType in api/src/base_modules/organizations/log/orgAuditLog.types.ts.
+// The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
 export enum ActionType {
   ProjectCreate = "ProjectCreate",
   ProjectUpdate = "ProjectUpdate",

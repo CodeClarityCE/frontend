@@ -3,6 +3,8 @@ import { IsDate, IsDefined, IsEnum, IsNotEmpty } from "class-validator";
 
 import { Analyzer } from "../organizations/analyzers/Analyzer";
 
+// Copy of the API's AnalysisStatus in api/src/base_modules/analyses/analysis.entity.ts.
+// The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
 export enum AnalysisStatus {
   REQUESTED = "requested",
   TRIGGERED = "triggered",
@@ -12,6 +14,7 @@ export enum AnalysisStatus {
   FAILED = "failed",
   FAILURE = "failure",
   SUCCESS = "success",
+  CANCELLED = "cancelled",
   UPDATING_DB = "updating_db",
   ONGOING = "ongoing",
   SKIPPED = "skipped",

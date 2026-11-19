@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /**
  * Page Object Model for Authentication pages

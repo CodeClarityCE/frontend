@@ -1,6 +1,7 @@
 import { type Locator, type Page, type Request } from "@playwright/test";
 
 import user from "../fixtures/user.json" with { type: "json" };
+
 import { ShellPage } from "./shell.page.mjs";
 
 export const USER_ID = user.id;

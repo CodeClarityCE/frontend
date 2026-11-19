@@ -7,6 +7,14 @@ const ORG = "org-123";
 type Status = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED" | "WONT_FIX";
 type Priority = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 
+/** A list row: the fields tests read are typed, the rest stay open. */
+type Ticket = Record<string, unknown> & {
+  id: string;
+  title: string;
+  status: Status;
+  priority: Priority;
+};
+
 /** A ticket as the list endpoint returns it, with readable defaults. */
 export function ticket(
   id: string,
@@ -14,7 +22,7 @@ export function ticket(
   status: Status = "OPEN",
   priority: Priority = "MEDIUM",
   overrides: Record<string, unknown> = {},
-): Record<string, unknown> {
+): Ticket {
   return {
     id,
     title,
@@ -35,7 +43,7 @@ export function ticket(
   };
 }
 
-export const sampleTickets = [
+export const sampleTickets: [Ticket, ...Ticket[]] = [
   ticket("t-1", "CVE-2026-0001: lodash prototype pollution", "OPEN", "HIGH"),
   ticket("t-2", "CVE-2026-0002: axios SSRF", "IN_PROGRESS", "CRITICAL", {
     affected_package: "axios",

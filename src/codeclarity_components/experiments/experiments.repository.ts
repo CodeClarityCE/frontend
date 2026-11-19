@@ -509,6 +509,8 @@ export class ExperimentsRepository extends BaseRepository {
         this.experimentUrl(options, `figures/${options.figureId}/data`),
       ),
       handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
     });
     return Entity.unMarshal<DataResponse<FigureData>>(
       response,
@@ -528,6 +530,8 @@ export class ExperimentsRepository extends BaseRepository {
       ),
       data: options.data,
       handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
     });
   }
 

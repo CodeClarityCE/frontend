@@ -44,7 +44,8 @@ onMounted(() => {
   // textValue to perform filter
   allItems.value.set(
     id,
-    currentElement.value.textContent ?? props.value?.toString() ?? "",
+    currentElement.value.textContent ??
+      (typeof props.value === "object" ? "" : String(props.value ?? "")),
   );
 
   const groupId = groupContext?.id;

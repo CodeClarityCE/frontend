@@ -5,6 +5,8 @@
 
 import type { AnalysisStats, SbomStats } from "../../stats.entity";
 
+import type { PackageUpdate } from "./packageManagerUtils";
+
 export interface Dependency {
   name: string;
   version: string;
@@ -15,15 +17,10 @@ export interface Dependency {
   dev?: boolean;
   outdated?: boolean;
   deprecated?: boolean;
+  ecosystem?: string;
 }
 
-export interface PackageUpdate {
-  name: string;
-  currentVersion: string;
-  latestVersion: string;
-  isDev: boolean;
-  isProd: boolean;
-}
+export type { PackageUpdate } from "./packageManagerUtils";
 
 /**
  * Check if a dependency is direct
@@ -96,5 +93,6 @@ export function convertToPackageUpdates(
     latestVersion: dep.newest_release ?? dep.version,
     isDev: dep.dev ?? false,
     isProd: dep.prod ?? false,
+    ...(dep.ecosystem ? { ecosystem: dep.ecosystem } : {}),
   }));
 }

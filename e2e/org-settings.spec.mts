@@ -237,6 +237,19 @@ test.describe("Create an organisation", () => {
 });
 
 test.describe("Organisation overview", () => {
+  test("the policies answer does not say license policies allow or block", async ({
+    page,
+  }) => {
+    const orgs = new OrgSettingsPage(page);
+    await orgs.signIn();
+    await orgs.gotoOverview();
+
+    await page.getByRole("button", { name: "What are policies?" }).click();
+    const main = page.locator("#main-content");
+    await expect(main).toContainText("licenses projects should not use");
+    await expect(main).not.toContainText(/\ballow\b|\bblock\b/i);
+  });
+
   test("shows the organisation, its settings pages and one page title", async ({
     page,
   }) => {

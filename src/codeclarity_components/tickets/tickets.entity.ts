@@ -14,6 +14,8 @@ import type { StatusTone } from "@/base_components/page";
 // Enums
 // ============================================
 
+// Copy of the API's TicketStatus in api/src/codeclarity_modules/tickets/ticket.entity.ts.
+// The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
 export enum TicketStatus {
   OPEN = "OPEN",
   IN_PROGRESS = "IN_PROGRESS",
@@ -22,6 +24,8 @@ export enum TicketStatus {
   WONT_FIX = "WONT_FIX",
 }
 
+// Copy of the API's TicketPriority in api/src/codeclarity_modules/tickets/ticket.entity.ts.
+// The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
 export enum TicketPriority {
   CRITICAL = "CRITICAL",
   HIGH = "HIGH",
@@ -29,6 +33,8 @@ export enum TicketPriority {
   LOW = "LOW",
 }
 
+// Copy of the API's TicketType in api/src/codeclarity_modules/tickets/ticket.entity.ts.
+// The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
 export enum TicketType {
   VULNERABILITY = "VULNERABILITY",
   LICENSE = "LICENSE",
@@ -41,7 +47,8 @@ export enum ExternalTicketProvider {
   LINEAR = "LINEAR",
 }
 
-// Matches the API's TicketEventType; an event of any other type is dropped.
+// Copy of the API's TicketEventType in api/src/codeclarity_modules/tickets/ticket-event.entity.ts.
+// The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
 export enum TicketEventType {
   CREATED = "CREATED",
   STATUS_CHANGED = "STATUS_CHANGED",

@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from "@playwright/test";
+import { type Locator, type Page } from "@playwright/test";
 
 /**
  * Page Object Model for Organization pages
@@ -131,7 +131,7 @@ export class OrganizationPage {
     await this.sendInvitationButton.click();
   }
 
-  async removeMember(index: number = 0) {
+  async removeMember(index = 0) {
     await this.memberItem.nth(index).hover();
     await this.removeMemberButton.nth(index).click();
   }

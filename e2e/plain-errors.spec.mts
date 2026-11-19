@@ -1,8 +1,10 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { AnalysesPage } from "./pages/analyses.page.mjs";
+import { DashboardPage } from "./pages/dashboard.page.mjs";
 import { DatasetsPage } from "./pages/datasets.page.mjs";
-import { ExperimentsPage } from "./pages/experiments.page.mjs";
+import { ExperimentDetailPage } from "./pages/experiment-detail.page.mjs";
+import { experiment, ExperimentsPage } from "./pages/experiments.page.mjs";
 import { OrgMembersPage } from "./pages/org-members.page.mjs";
 import { OrgPoliciesPage } from "./pages/org-policies.page.mjs";
 import { OrgSettingsPage } from "./pages/org-settings.page.mjs";
@@ -12,6 +14,7 @@ import { ProjectsPage } from "./pages/projects.page.mjs";
 // raw server reasons, and no toast repeating an inline error.
 
 const ORG = "org-123";
+const EXPERIMENT = `**/api/org/${ORG}/experiments/exp-1`;
 
 // Records the text of every toast shown, so short-lived ones are not missed.
 async function recordToasts(page: Page): Promise<() => Promise<string[]>> {
@@ -312,6 +315,121 @@ test.describe("One plain error per failure", () => {
       expect(await shown()).toEqual([]);
     });
   }
+
+  for (const [kind, body] of [
+    ["a server error", { status: 500, json: { message: "Internal error" } }],
+    ["a gateway error", { status: 502, json: { message: "Bad gateway" } }],
+  ] as const) {
+    test(`an Experiment that fails to load with ${kind} shows one toast`, async ({
+      page,
+    }) => {
+      const shown = await recordToasts(page);
+      const detail = new ExperimentDetailPage(page);
+      await detail.signIn();
+      await page.route(EXPERIMENT, (route) => route.fulfill(body));
+      await detail.goto();
+
+      await expect.poll(shown).not.toEqual([]);
+      await page.waitForTimeout(500);
+      expect(await shown()).toEqual(["Failed to load the experiment"]);
+    });
+
+    test(`a Figure preview that fails with ${kind} shows one toast`, async ({
+      page,
+    }) => {
+      const shown = await recordToasts(page);
+      const detail = new ExperimentDetailPage(page);
+      await detail.signIn();
+      await page.route(`${EXPERIMENT}/figure-data`, (route) =>
+        route.fulfill(body),
+      );
+      await detail.goto();
+      await detail.tab("Figures").click();
+
+      await expect.poll(shown).not.toEqual([]);
+      await page.waitForTimeout(500);
+      expect(await shown()).toEqual(["Failed to compute the Figure"]);
+    });
+
+    test(`a Figure save that fails with ${kind} shows one toast`, async ({
+      page,
+    }) => {
+      const shown = await recordToasts(page);
+      const detail = new ExperimentDetailPage(page);
+      await detail.signIn();
+      await page.route(`${EXPERIMENT}/figures`, (route) =>
+        route.request().method() === "POST"
+          ? route.fulfill(body)
+          : route.fallback(),
+      );
+      await detail.goto();
+      await detail.tab("Figures").click();
+      await expect(
+        page.getByRole("region", { name: "Preview" }).getByRole("figure"),
+      ).toBeVisible();
+
+      await page.getByLabel("Name").fill("Load trend");
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+
+      await expect.poll(shown).not.toEqual([]);
+      await page.waitForTimeout(500);
+      expect(await shown()).toEqual(["Failed to save the Figure"]);
+    });
+
+    test(`an Experiment create that fails with ${kind} shows one toast`, async ({
+      page,
+    }) => {
+      const shown = await recordToasts(page);
+      const experiments = new ExperimentsPage(page);
+      await experiments.signIn();
+      await page.route(`**/api/org/${ORG}/experiments`, (route) =>
+        route.request().method() === "POST"
+          ? route.fulfill(body)
+          : route.fallback(),
+      );
+      await experiments.gotoCreate();
+
+      await page.getByLabel("Name").fill("top100-2026-11");
+      await experiments.choose("Dataset", /Top npm packages/);
+      await page.getByRole("button", { name: "Start Experiment" }).click();
+
+      await expect.poll(shown).not.toEqual([]);
+      await page.waitForTimeout(500);
+      expect(await shown()).toEqual(["Failed to create the experiment"]);
+    });
+  }
+
+  test("a failing results progress poll shows no toast", async ({ page }) => {
+    const shown = await recordToasts(page);
+    const detail = new ExperimentDetailPage(page);
+    await detail.signIn({
+      experiment: experiment("exp-1", "Residence time 2026", "RUNNING"),
+      holdResults: true,
+    });
+    let polls = 0;
+    await page.route(`${EXPERIMENT}/results/progress`, (route) => {
+      polls++;
+      return route.fulfill({ status: 502, json: { message: "Bad gateway" } });
+    });
+    await detail.goto();
+
+    await expect(page.getByText("Preparing the results")).toBeVisible();
+    await expect.poll(() => polls).toBeGreaterThan(1);
+    expect(await shown()).toEqual([]);
+  });
+
+  test("a research overview that fails to load says so inline, with no toast", async ({
+    page,
+  }) => {
+    const shown = await recordToasts(page);
+    const dashboard = new DashboardPage(page);
+    await dashboard.signIn({ failExperiments: true });
+    await dashboard.goto();
+
+    await expect(dashboard.research.getByRole("alert")).toBeVisible();
+    await page.waitForTimeout(500);
+    expect(await shown()).toEqual([]);
+  });
 
   test("an analysis the server fails to start says so in plain words", async ({
     page,

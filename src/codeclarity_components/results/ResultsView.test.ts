@@ -174,6 +174,16 @@ vi.mock("@/shadcn/ui/tabs", () => ({
   },
 }));
 
+const allResultStubs = {
+  ResultsSBOM: true,
+  ResultsSBOMDetails: true,
+  ResultsVulnerabilities: true,
+  ResultsVulnerabilitiesDetails: true,
+  ResultsPatching: true,
+  ResultsLicenses: true,
+  ResultsCodeQL: true,
+};
+
 describe("ResultsView", () => {
   let wrapper: any;
   let windowLocation: Location;
@@ -451,5 +461,52 @@ describe("ResultsView", () => {
     expect(tabsTriggers[2].text()).toContain("Patches");
     expect(tabsTriggers[3].text()).toContain("Licenses");
     expect(tabsTriggers[4].text()).toContain("CodeQL");
+  });
+
+  it("lists the folders an SBOM step skipped, with the reason", async () => {
+    mockAnalysisGetProjectById.mockResolvedValue({
+      data: {
+        ...mockAnalysisResponse.data,
+        steps: [
+          [
+            {
+              Name: "js-sbom",
+              Status: "success",
+              Result: {
+                workspaces: ["api", "frontend"],
+                skipped_folders: [
+                  {
+                    path: "docs",
+                    reason: "package.json has no lockfile",
+                  },
+                ],
+              },
+            },
+            { Name: "vuln-finder", Status: "success", Result: "result-2" },
+          ],
+        ],
+      },
+    });
+
+    wrapper = mount(ResultsView, {
+      global: { stubs: allResultStubs },
+    });
+    await flushPromises();
+
+    const notice = wrapper.find('[aria-label="Skipped folders"]');
+    expect(notice.exists()).toBe(true);
+    expect(notice.text()).toContain("docs");
+    expect(notice.text()).toContain("package.json has no lockfile");
+  });
+
+  it("shows no skipped folders notice when every folder was analysed", async () => {
+    mockAnalysisGetProjectById.mockResolvedValue(mockAnalysisResponse);
+
+    wrapper = mount(ResultsView, {
+      global: { stubs: allResultStubs },
+    });
+    await flushPromises();
+
+    expect(wrapper.find('[aria-label="Skipped folders"]').exists()).toBe(false);
   });
 });

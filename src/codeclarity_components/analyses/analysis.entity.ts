@@ -109,3 +109,30 @@ export function stageSkipReason(stage: AnalysisStage): string {
   if (typeof result !== "object" || result === null) return "";
   return typeof result.skip_reason === "string" ? result.skip_reason : "";
 }
+
+// A project folder an SBOM step found but did not analyse, and why
+export interface SkippedFolder {
+  path: string;
+  reason: string;
+}
+
+// The folders every step of the analysis skipped, in step order
+export function analysisSkippedFolders(analysis: Analysis): SkippedFolder[] {
+  const folders: SkippedFolder[] = [];
+  for (const stage of analysis.steps ?? []) {
+    for (const step of stage) {
+      const result = step.Result;
+      if (typeof result !== "object" || result === null) continue;
+      const skipped = result.skipped_folders;
+      if (!Array.isArray(skipped)) continue;
+      for (const folder of skipped as unknown[]) {
+        if (typeof folder !== "object" || folder === null) continue;
+        const { path, reason } = folder as Record<string, unknown>;
+        if (typeof path === "string" && typeof reason === "string") {
+          folders.push({ path, reason });
+        }
+      }
+    }
+  }
+  return folders;
+}

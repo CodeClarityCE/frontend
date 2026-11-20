@@ -12,6 +12,10 @@ import type {
   OrganizationFreshness,
   VulnerabilityNotYetChecked,
 } from "./project_freshness.entity";
+import type {
+  VulnerabilityTrend,
+  VulnerabilityTrendFilters,
+} from "./vulnerability_trend.entity";
 
 export interface GetOrganizationVulnerabilitiesOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
@@ -27,6 +31,13 @@ export interface GetOrganizationVulnerabilityOptions extends AuthRepoMethodGetRe
 
 export interface GetFreshnessOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
+}
+
+export interface GetTrendOptions extends AuthRepoMethodGetRequestOptions {
+  orgId: string;
+  filters: VulnerabilityTrendFilters;
+  /** How many periods; the API defaults to 12 */
+  periods?: number;
 }
 
 export interface GetNotYetCheckedOptions extends AuthRepoMethodGetRequestOptions {
@@ -98,6 +109,22 @@ export class OrganizationVulnerabilitiesRepository extends BaseRepository {
       url: this.buildUrl(
         `/org/${options.orgId}/vulnerabilities/${encodeURIComponent(options.vulnerabilityId)}/freshness`,
       ),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+    return response.data;
+  }
+
+  /** Open vulnerability instances over time, with introduced and fixed counts. */
+  async getTrend(options: GetTrendOptions): Promise<VulnerabilityTrend> {
+    const response = await this.getRequest<{ data: VulnerabilityTrend }>({
+      bearerToken: options.bearerToken,
+      queryParams: {
+        ...options.filters,
+        ...(options.periods ? { periods: options.periods } : {}),
+      },
+      url: this.buildUrl(`/org/${options.orgId}/vulnerabilities/trend`),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
       handleOtherErrors: options.handleOtherErrors,

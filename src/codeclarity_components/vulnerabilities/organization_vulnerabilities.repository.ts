@@ -50,12 +50,15 @@ export class OrganizationVulnerabilitiesRepository extends BaseRepository {
   async getVulnerabilities(
     options: GetOrganizationVulnerabilitiesOptions,
   ): Promise<OrganizationVulnerabilityList> {
+    const { known_exploited, ...filters } = options.filters ?? {};
     return await this.getRequest<OrganizationVulnerabilityList>({
       bearerToken: options.bearerToken,
       queryParams: {
         page: options.page ?? 0,
         entries_per_page: options.entriesPerPage ?? 50,
-        ...options.filters,
+        ...filters,
+        known_exploited:
+          known_exploited === undefined ? undefined : String(known_exploited),
       },
       url: this.buildUrl(`/org/${options.orgId}/vulnerabilities`),
       handleBusinessErrors: options.handleBusinessErrors,

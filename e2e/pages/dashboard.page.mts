@@ -68,6 +68,7 @@ const vulnerabilities = {
       project_count: 2,
       instance_count: 2,
       uncorroborated_count: 0,
+      known_exploited: false,
     },
     {
       vulnerability_id: "CVE-2026-0002",
@@ -76,6 +77,7 @@ const vulnerabilities = {
       project_count: 3,
       instance_count: 5,
       uncorroborated_count: 0,
+      known_exploited: false,
     },
     {
       vulnerability_id: "CVE-2026-0003",
@@ -84,6 +86,7 @@ const vulnerabilities = {
       project_count: 1,
       instance_count: 9,
       uncorroborated_count: 0,
+      known_exploited: false,
     },
     {
       vulnerability_id: "CVE-2026-0004",
@@ -92,6 +95,7 @@ const vulnerabilities = {
       project_count: 1,
       instance_count: 4,
       uncorroborated_count: 0,
+      known_exploited: false,
     },
   ],
   page: 0,

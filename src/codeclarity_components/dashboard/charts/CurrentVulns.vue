@@ -36,6 +36,7 @@ interface Vuln {
   projects: number;
   instances: number;
   uncorroborated: boolean;
+  knownExploited: boolean;
 }
 
 /** The levels counted at the top of the card */
@@ -71,6 +72,7 @@ const vulns = computed((): Vuln[] =>
     projects: vuln.project_count,
     instances: vuln.instance_count,
     uncorroborated: vuln.uncorroborated_count > 0,
+    knownExploited: vuln.known_exploited,
   })),
 );
 
@@ -136,6 +138,13 @@ const plural = (count: number, noun: string): string =>
               <span class="min-w-0 flex-1 truncate font-medium">{{
                 vuln.id
               }}</span>
+              <Badge
+                v-if="vuln.knownExploited"
+                variant="destructive"
+                title="Listed in the CISA KEV catalog"
+                class="shrink-0"
+                >Known exploited</Badge
+              >
               <Badge
                 v-if="vuln.uncorroborated"
                 variant="outline"

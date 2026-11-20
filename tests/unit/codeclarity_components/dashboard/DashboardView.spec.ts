@@ -36,6 +36,7 @@ function mountView() {
     global: {
       stubs: {
         DashboardResearch: { template: "<section>Research stub</section>" },
+        DashboardOverviewFilters: { template: "<div>Filters stub</div>" },
         DashboardQuickStats: { template: "<div>Quick stats stub</div>" },
         DashboardCharts: { template: "<div>Charts stub</div>" },
         DashboardEmptyState: { template: "<div>Empty state stub</div>" },
@@ -55,6 +56,7 @@ describe("DashboardView", () => {
     expect(text.indexOf("Research stub")).toBeLessThan(
       text.indexOf("Projects"),
     );
+    expect(text).toContain("Filters stub");
     expect(text).toContain("Quick stats stub");
     expect(text).toContain("Charts stub");
   });

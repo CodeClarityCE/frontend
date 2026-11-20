@@ -21,24 +21,13 @@
         class="grid grid-cols-2 gap-4 lg:grid-cols-4"
       >
         <StatTile
-          label="Critical issues"
-          :value="stats.critical"
-          :hint="criticalSubtitle"
-        />
-        <StatTile
-          label="High severity"
-          :value="stats.high"
-          :hint="highSubtitle"
-        />
-        <StatTile
-          label="Projects scanned"
-          :value="stats.projects"
-          hint="Projects with an analysis"
-        />
-        <StatTile
-          label="Security score"
-          :value="stats.gradeClass"
-          :hint="scoreSubtitle"
+          v-for="tile in tiles"
+          :key="tile.label"
+          :label="tile.label"
+          :value="tile.value"
+          :hint="tile.change?.text"
+          :trend="tile.change?.direction"
+          :trend-tone="tile.change?.tone"
         />
       </ul>
       <Popover>
@@ -77,78 +66,119 @@ import { computed } from "vue";
 
 import { StatTile } from "@/base_components/page";
 import {
-  ProjectGradeClass,
-  type QuickStats,
-} from "@/codeclarity_components/dashboard/dashboard.entity";
-import type {
-  OrganizationVulnerabilityList,
-  SeverityClass,
-} from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+  TrendPeriod,
+  type VulnerabilityTrend,
+  type VulnerabilityTrendFilters,
+  type VulnerabilityTrendPoint,
+} from "@/codeclarity_components/vulnerabilities/vulnerability_trend.entity";
 import { Button } from "@/shadcn/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import { Skeleton } from "@/shadcn/ui/skeleton";
-import {
-  getGradeSubtitle,
-  type Grade,
-  GRADE_DISPLAY_RANGES,
-} from "@/utils/gradeUtils";
+import { GRADE_DISPLAY_RANGES, scoreToGrade } from "@/utils/gradeUtils";
 
-import type { DashboardRequest } from "../composables/useDashboardRequest";
+import type { FilteredDashboardRequest } from "../composables/useDashboardRequest";
 import CardState from "../layout/CardState.vue";
 
-// The four headline numbers of the project overview.
+// The four headline numbers of the project overview, each against the previous period.
 const props = defineProps<{
-  quickStats: DashboardRequest<QuickStats>;
-  vulnerabilityList: DashboardRequest<OrganizationVulnerabilityList>;
+  trend: FilteredDashboardRequest<
+    VulnerabilityTrend,
+    VulnerabilityTrendFilters
+  >;
 }>();
 
-const requests = computed(() => [props.quickStats, props.vulnerabilityList]);
-const loading = computed(() =>
-  requests.value.some((r) => r.loading || (!r.data && !r.error)),
+const loading = computed(
+  () => props.trend.loading || (!props.trend.data && !props.trend.error),
 );
 // Numbers from a failed request would read as a clean result.
-const failed = computed(() => requests.value.some((r) => r.error));
+const failed = computed(() => props.trend.error);
 
 function retry(): void {
-  for (const request of requests.value) {
-    if (request.error) void request.run();
+  void props.trend.run();
+}
+
+interface Change {
+  text: string;
+  direction: "up" | "down" | "equal";
+  tone: "good" | "bad" | "neutral";
+}
+
+const since = computed(() =>
+  props.trend.data?.period === TrendPeriod.Month ? "last month" : "last week",
+);
+
+// How a count moved; `fewerIsBetter` colours the arrow.
+function countChange(
+  now: number,
+  before: number | undefined,
+  fewerIsBetter: boolean,
+): Change | undefined {
+  if (before === undefined) return undefined;
+  const diff = now - before;
+  if (diff === 0) {
+    return {
+      text: `Same as ${since.value}`,
+      direction: "equal",
+      tone: "neutral",
+    };
   }
-}
-
-function countOf(severityClass: SeverityClass): number {
-  return props.vulnerabilityList.data?.severity_counts[severityClass] ?? 0;
-}
-
-const stats = computed(() => ({
-  critical: countOf("CRITICAL"),
-  high: countOf("HIGH"),
-  projects: props.quickStats.data?.nmb_projects ?? 0,
-  gradeClass:
-    props.quickStats.data?.max_grade?.class ?? ProjectGradeClass.A_PLUS,
-}));
-
-const criticalSubtitle = computed(() => {
-  if (stats.value.critical === 0) return "No critical issues";
-  return `${stats.value.critical} issue${stats.value.critical > 1 ? "s" : ""} found`;
-});
-
-const highSubtitle = computed(() => {
-  if (stats.value.high === 0) return "No high severity";
-  return `${stats.value.high} issue${stats.value.high > 1 ? "s" : ""} found`;
-});
-
-const scoreSubtitle = computed(() => {
-  const gradeClass = stats.value.gradeClass;
-  const gradeMap: Record<ProjectGradeClass, Grade> = {
-    [ProjectGradeClass.A_PLUS]: "A+",
-    [ProjectGradeClass.A]: "A",
-    [ProjectGradeClass.B_PLUS]: "B+",
-    [ProjectGradeClass.B]: "B",
-    [ProjectGradeClass.C_PLUS]: "C+",
-    [ProjectGradeClass.C]: "C",
-    [ProjectGradeClass.D_PLUS]: "D+",
-    [ProjectGradeClass.D]: "D",
+  const better = diff < 0 === fewerIsBetter;
+  return {
+    text: `${Math.abs(diff)} ${diff > 0 ? "more" : "fewer"} than ${since.value}`,
+    direction: diff > 0 ? "up" : "down",
+    tone: better ? "good" : "bad",
   };
-  return getGradeSubtitle(gradeMap[gradeClass] ?? "A+", "security");
+}
+
+function scoreChange(
+  now: number,
+  before: number | undefined,
+): Change | undefined {
+  if (before === undefined) return undefined;
+  const diff = Math.round(now - before);
+  if (diff === 0) {
+    return {
+      text: `Same as ${since.value}`,
+      direction: "equal",
+      tone: "neutral",
+    };
+  }
+  return {
+    text: `${diff > 0 ? "Up" : "Down"} ${Math.abs(diff)} points since ${since.value}`,
+    direction: diff > 0 ? "up" : "down",
+    tone: diff > 0 ? "good" : "bad",
+  };
+}
+
+const tiles = computed(() => {
+  const points = props.trend.data?.points ?? [];
+  const now: VulnerabilityTrendPoint | undefined = points[points.length - 1];
+  const before: VulnerabilityTrendPoint | undefined = points[points.length - 2];
+  const critical = now?.open.CRITICAL ?? 0;
+  const high = now?.open.HIGH ?? 0;
+  const projects = now?.project_count ?? 0;
+  const score = now?.security_score ?? 100;
+  return [
+    {
+      label: "Critical vulnerabilities",
+      value: critical,
+      change: countChange(critical, before?.open.CRITICAL, true),
+    },
+    {
+      label: "High vulnerabilities",
+      value: high,
+      change: countChange(high, before?.open.HIGH, true),
+    },
+    {
+      label: "Projects scanned",
+      value: projects,
+      change: countChange(projects, before?.project_count, false),
+    },
+    {
+      label: "Security score",
+      value: scoreToGrade(score),
+      change: scoreChange(score, before?.security_score),
+    },
+  ];
 });
 </script>

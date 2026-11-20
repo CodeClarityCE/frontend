@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { OrganizationVulnerabilityList } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+import type {
+  OrganizationVulnerabilityFilters,
+  OrganizationVulnerabilityList,
+} from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
 import {
   Card,
   CardContent,
@@ -13,13 +16,18 @@ import ExposureOverview from "../charts/ExposureOverview.vue";
 import LicenseDist from "../charts/LicenseDist.vue";
 import TicketsDashboardCard from "../charts/TicketsDashboardCard.vue";
 import VulnerabilityImpact from "../charts/VulnerabilityImpact.vue";
-import type { DashboardRequest } from "../composables/useDashboardRequest";
+import type { FilteredDashboardRequest } from "../composables/useDashboardRequest";
 
 // The project overview's charts and summaries, one card each.
 defineProps<{
   integrationIds: string[];
   /** Shared with the project numbers, so it is requested once */
-  vulnerabilityList: DashboardRequest<OrganizationVulnerabilityList>;
+  vulnerabilityList: FilteredDashboardRequest<
+    OrganizationVulnerabilityList,
+    OrganizationVulnerabilityFilters
+  >;
+  /** The projects the vulnerability list can be narrowed to */
+  projects: { id: string; name: string }[];
 }>();
 </script>
 
@@ -44,7 +52,7 @@ defineProps<{
         >
       </CardHeader>
       <CardContent>
-        <CurrentVulns :request="vulnerabilityList" />
+        <CurrentVulns :request="vulnerabilityList" :projects="projects" />
       </CardContent>
     </Card>
     <Card class="rounded-card shadow-card">

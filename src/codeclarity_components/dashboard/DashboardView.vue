@@ -23,6 +23,7 @@ const {
   refreshData,
   quickStats,
   vulnerabilityList,
+  orgData,
 } = useDashboardData();
 </script>
 
@@ -84,6 +85,7 @@ const {
         <DashboardCharts
           :integration-ids="activeIntegrationIds"
           :vulnerability-list="vulnerabilityList"
+          :projects="orgData?.projects ?? []"
         />
       </template>
     </section>

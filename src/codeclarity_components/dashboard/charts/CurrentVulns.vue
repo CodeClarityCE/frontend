@@ -2,7 +2,12 @@
 import { computed } from "vue";
 
 import { SeverityBadge } from "@/base_components/page";
-import type { OrganizationVulnerabilityList } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+import type {
+  OrganizationVulnerabilityFilters,
+  OrganizationVulnerabilityList,
+} from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+import VulnerabilityListFilters from "@/codeclarity_components/vulnerabilities/VulnerabilityListFilters.vue";
+import { Badge } from "@/shadcn/ui/badge";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
 import {
   SEVERITY_LABELS,
@@ -10,12 +15,19 @@ import {
   type SeverityLevel,
 } from "@/utils/severity";
 
-import type { DashboardRequest } from "../composables/useDashboardRequest";
+import type { FilteredDashboardRequest } from "../composables/useDashboardRequest";
 import CardState from "../layout/CardState.vue";
 
 const props = defineProps<{
-  request: DashboardRequest<OrganizationVulnerabilityList>;
+  /** Shared with the KPI tiles, so they follow the same filters */
+  request: FilteredDashboardRequest<
+    OrganizationVulnerabilityList,
+    OrganizationVulnerabilityFilters
+  >;
+  projects: { id: string; name: string }[];
 }>();
+
+const filtered = computed(() => Object.keys(props.request.filters).length > 0);
 
 interface Vuln {
   id: string;
@@ -23,6 +35,7 @@ interface Vuln {
   level: SeverityLevel;
   projects: number;
   instances: number;
+  uncorroborated: boolean;
 }
 
 /** The levels counted at the top of the card */
@@ -57,6 +70,7 @@ const vulns = computed((): Vuln[] =>
     level: levelOf(vuln.severity_class),
     projects: vuln.project_count,
     instances: vuln.instance_count,
+    uncorroborated: vuln.uncorroborated_count > 0,
   })),
 );
 
@@ -65,15 +79,25 @@ const plural = (count: number, noun: string): string =>
 </script>
 
 <template>
-  <CardState
-    label="vulnerabilities summary"
-    :loading="request.loading || (!request.data && !request.error)"
-    :error="request.error"
-    :empty="vulns.length === 0"
-    empty-text="No vulnerabilities found."
-    @retry="() => void request.run()"
-  >
-    <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4">
+    <VulnerabilityListFilters
+      :filters="request.filters"
+      :projects="projects"
+      :hidden-counts="request.data?.hidden_counts"
+      @update:filters="(filters) => void request.filter(filters)"
+    />
+    <CardState
+      label="vulnerabilities summary"
+      :loading="request.loading || (!request.data && !request.error)"
+      :error="request.error"
+      :empty="vulns.length === 0"
+      :empty-text="
+        filtered
+          ? 'No vulnerabilities match these filters.'
+          : 'No vulnerabilities found.'
+      "
+      @retry="() => void request.run()"
+    >
       <ul
         aria-label="Vulnerabilities by severity"
         class="grid grid-cols-3 gap-3"
@@ -112,6 +136,13 @@ const plural = (count: number, noun: string): string =>
               <span class="min-w-0 flex-1 truncate font-medium">{{
                 vuln.id
               }}</span>
+              <Badge
+                v-if="vuln.uncorroborated"
+                variant="outline"
+                title="Matched by one source origin only"
+                class="shrink-0"
+                >Uncorroborated</Badge
+              >
               <span class="shrink-0 text-muted-foreground">{{
                 plural(vuln.projects, "project")
               }}</span>
@@ -122,6 +153,6 @@ const plural = (count: number, noun: string): string =>
           </li>
         </ul>
       </ScrollArea>
-    </div>
-  </CardState>
+    </CardState>
+  </div>
 </template>

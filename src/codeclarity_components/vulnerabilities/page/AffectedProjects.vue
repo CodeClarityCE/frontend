@@ -23,6 +23,8 @@ import type {
 import { levelOfClass } from "../severity-class";
 import InstanceDiffLinks from "../shared/InstanceDiffLinks.vue";
 
+import ProjectRemediations from "./ProjectRemediations.vue";
+
 // The projects whose current analysis has the vulnerability; each expands to its instances.
 defineProps<{ projects: AffectedProject[] }>();
 
@@ -205,6 +207,7 @@ const instanceKey = (instance: AffectedInstance): string =>
                 </TableRow>
               </TableBody>
             </Table>
+            <ProjectRemediations :project="project" />
             <ul
               v-if="changesOf(project).length > 0"
               aria-label="Changes to the fixed versions"

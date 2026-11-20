@@ -12,7 +12,7 @@ base_components/
 ├── data-table/  # The shared DataTable
 ├── charts/      # The shared chart layer (the only chart system)
 ├── filters/     # filterTypes.ts: filter state for the vulnerability filters
-└── ui/          # EcosystemBadge, InfoMarkdown, flow/ (vue-flow nodes)
+└── ui/          # EcosystemBadge, InfoMarkdown, CopyCommand, ExternalLink, flow/ (vue-flow nodes)
 ```
 
 ## Component Categories
@@ -60,6 +60,8 @@ In UI copy only a saved definition is a "Figure"; everything else is a "chart".
 
 - **EcosystemBadge**: an ecosystem's logo and name, from `@/utils/packageEcosystem`
 - **InfoMarkdown**: renders a markdown string, such as a vulnerability description
+- **CopyCommand**: a shell command in monospace with a copy button. Props `command` and `label` (the button is named "Copy <label> command"); a `status` says "Copied" or "Could not copy"
+- **ExternalLink**: a link to another site, opened in a new tab with `rel="noopener noreferrer"` and an external link icon; the slot is its text
 - **flow/**: the analyzer and dependency graph nodes for vue-flow
 
 ## Icons

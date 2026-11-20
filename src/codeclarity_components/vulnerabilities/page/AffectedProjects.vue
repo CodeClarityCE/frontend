@@ -21,6 +21,7 @@ import type {
   TopLevelDependency,
 } from "../organization_vulnerability.entity";
 import { levelOfClass } from "../severity-class";
+import InstanceDiffLinks from "../shared/InstanceDiffLinks.vue";
 
 // The projects whose current analysis has the vulnerability; each expands to its instances.
 defineProps<{ projects: AffectedProject[] }>();
@@ -54,6 +55,29 @@ const instanceRoute = (
 
 const pathText = (top: TopLevelDependency): string =>
   top.path.map((pkg) => `${pkg.name}@${pkg.version}`).join(" > ");
+
+// One entry per installed and fixed version pair that has a link or command.
+function changesOf(project: AffectedProject): AffectedInstance[] {
+  const changes = new Map<string, AffectedInstance>();
+  for (const instance of project.instances) {
+    const links = instance.diff_links;
+    if (
+      links.fix_commits.length === 0 &&
+      !links.compare &&
+      !links.registry_diff
+    ) {
+      continue;
+    }
+    const key = [
+      instance.ecosystem,
+      instance.package,
+      instance.installed_version,
+      instance.fixed_version,
+    ].join("\u0000");
+    if (!changes.has(key)) changes.set(key, instance);
+  }
+  return [...changes.values()];
+}
 
 const instanceKey = (instance: AffectedInstance): string =>
   [
@@ -181,6 +205,30 @@ const instanceKey = (instance: AffectedInstance): string =>
                 </TableRow>
               </TableBody>
             </Table>
+            <ul
+              v-if="changesOf(project).length > 0"
+              aria-label="Changes to the fixed versions"
+              class="mt-3 space-y-3"
+            >
+              <li
+                v-for="change in changesOf(project)"
+                :key="instanceKey(change)"
+                class="space-y-1"
+              >
+                <p class="text-sm">
+                  <span class="font-medium">{{ change.package }}</span>
+                  {{ " " }}
+                  <span class="tabular-nums">{{
+                    change.installed_version
+                  }}</span>
+                  <template v-if="change.fixed_version">
+                    to
+                    <span class="tabular-nums">{{ change.fixed_version }}</span>
+                  </template>
+                </p>
+                <InstanceDiffLinks :links="change.diff_links" />
+              </li>
+            </ul>
           </div>
         </li>
       </ul>

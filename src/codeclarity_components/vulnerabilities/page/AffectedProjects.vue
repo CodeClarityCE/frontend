@@ -108,6 +108,7 @@ const instanceKey = (instance: AffectedInstance): string =>
                 <TableRow>
                   <TableHead>Package</TableHead>
                   <TableHead>Installed version</TableHead>
+                  <TableHead>Fixed in</TableHead>
                   <TableHead>Workspace</TableHead>
                   <TableHead>Scope</TableHead>
                   <TableHead>Installed by</TableHead>
@@ -125,6 +126,14 @@ const instanceKey = (instance: AffectedInstance): string =>
                   <TableCell class="tabular-nums">{{
                     instance.installed_version
                   }}</TableCell>
+                  <TableCell
+                    v-if="instance.fixed_version"
+                    class="tabular-nums"
+                    >{{ instance.fixed_version }}</TableCell
+                  >
+                  <TableCell v-else class="text-muted-foreground"
+                    >No fix</TableCell
+                  >
                   <TableCell>{{ instance.workspace }}</TableCell>
                   <TableCell>{{ instance.prod ? "Prod" : "Dev" }}</TableCell>
                   <TableCell>

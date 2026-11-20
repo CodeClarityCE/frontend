@@ -229,6 +229,24 @@ describe("CurrentVulns", () => {
     });
   });
 
+  it("narrows the list to instances with a fix, or without one", async () => {
+    getVulnerabilities.mockResolvedValue(two);
+    const { wrapper } = await mountCard();
+    const fix = wrapper.find('select[aria-label="Fix"]');
+
+    await fix.setValue("available");
+    await flushPromises();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({ fix: "available" });
+
+    await fix.setValue("none");
+    await flushPromises();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({ fix: "none" });
+
+    await fix.setValue("");
+    await flushPromises();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({});
+  });
+
   it("says how many instances it hid and why, and shows them on request", async () => {
     const hiding = {
       ...two,

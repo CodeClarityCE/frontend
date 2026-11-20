@@ -30,6 +30,7 @@ import TicketsView from "@/codeclarity_components/tickets/TicketsView.vue";
 import HelpView from "@/codeclarity_components/views/HelpView.vue";
 import NotFoundView from "@/codeclarity_components/views/NotFoundView.vue";
 import TermsView from "@/codeclarity_components/views/TermsView.vue";
+import OrganizationVulnerabilityView from "@/codeclarity_components/vulnerabilities/OrganizationVulnerabilityView.vue";
 import { loadAuthStoreFromLocalStorage, useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
@@ -175,6 +176,12 @@ const router = createRouter({
       path: "/",
       name: "home",
       component: DashboardView as Component,
+      props: true,
+    },
+    {
+      path: "/vulnerabilities/:vulnerabilityId",
+      name: "orgVulnerability",
+      component: OrganizationVulnerabilityView as Component,
       props: true,
     },
     {

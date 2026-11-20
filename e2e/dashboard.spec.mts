@@ -219,7 +219,7 @@ test.describe("Project overview", () => {
     );
   });
 
-  test("lists the most severe vulnerabilities with their severity in words", async ({
+  test("lists the vulnerabilities with their severity in words and their reach", async ({
     page,
   }) => {
     const dashboard = new DashboardPage(page);
@@ -233,13 +233,13 @@ test.describe("Project overview", () => {
     ).toHaveText([/Critical\s*2/, /High\s*5/, /Medium\s*9/]);
     await expect(
       dashboard.projects
-        .getByRole("list", { name: "Most severe vulnerabilities" })
+        .getByRole("list", { name: "Vulnerabilities in your projects" })
         .getByRole("listitem"),
     ).toHaveText([
-      /Critical\s*9.8\s*Code Injection/,
-      /High\s*7.5\s*Prototype Pollution/,
-      /Medium\s*5.3\s*Uncontrolled Resource Consumption/,
-      /Low\s*2.1\s*Information Exposure/,
+      /Critical\s*9.8\s*CVE-2026-0001\s*2 projects\s*2 instances/,
+      /High\s*7.5\s*CVE-2026-0002\s*3 projects\s*5 instances/,
+      /Medium\s*5.3\s*CVE-2026-0003\s*1 project\s*9 instances/,
+      /Low\s*2.1\s*CVE-2026-0004\s*1 project\s*4 instances/,
     ]);
   });
 
@@ -332,7 +332,7 @@ test.describe("Project overview", () => {
     page,
   }) => {
     const dashboard = new DashboardPage(page);
-    await dashboard.signIn({ fail: ["/dashboard/recent_vulns"] });
+    await dashboard.signIn({ fail: ["/vulnerabilities"] });
     await dashboard.goto();
 
     await expect(

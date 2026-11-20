@@ -77,10 +77,13 @@ import { computed } from "vue";
 
 import { StatTile } from "@/base_components/page";
 import {
-  type LatestVulns,
   ProjectGradeClass,
   type QuickStats,
 } from "@/codeclarity_components/dashboard/dashboard.entity";
+import type {
+  OrganizationVulnerabilityList,
+  SeverityClass,
+} from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
 import { Button } from "@/shadcn/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import { Skeleton } from "@/shadcn/ui/skeleton";
@@ -96,10 +99,10 @@ import CardState from "../layout/CardState.vue";
 // The four headline numbers of the project overview.
 const props = defineProps<{
   quickStats: DashboardRequest<QuickStats>;
-  recentVulns: DashboardRequest<LatestVulns>;
+  vulnerabilityList: DashboardRequest<OrganizationVulnerabilityList>;
 }>();
 
-const requests = computed(() => [props.quickStats, props.recentVulns]);
+const requests = computed(() => [props.quickStats, props.vulnerabilityList]);
 const loading = computed(() =>
   requests.value.some((r) => r.loading || (!r.data && !r.error)),
 );
@@ -112,12 +115,8 @@ function retry(): void {
   }
 }
 
-function countOf(severityClass: string): number {
-  return (
-    props.recentVulns.data?.severity_count.find(
-      (item) => item.severity_class === severityClass,
-    )?.count ?? 0
-  );
+function countOf(severityClass: SeverityClass): number {
+  return props.vulnerabilityList.data?.severity_counts[severityClass] ?? 0;
 }
 
 const stats = computed(() => ({

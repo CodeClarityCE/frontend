@@ -4,6 +4,7 @@ import { ref } from "vue";
 
 import { SeverityBadge } from "@/base_components/page";
 import { detailsRoute } from "@/codeclarity_components/results/vulnerabilities/vuln-format";
+import { Badge } from "@/shadcn/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
 import {
   Table,
@@ -17,6 +18,7 @@ import {
 import type {
   AffectedInstance,
   AffectedProject,
+  TopLevelDependency,
 } from "../organization_vulnerability.entity";
 import { levelOfClass } from "../severity-class";
 
@@ -49,6 +51,9 @@ const instanceRoute = (
       AffectedVersion: instance.installed_version,
     },
   );
+
+const pathText = (top: TopLevelDependency): string =>
+  top.path.map((pkg) => `${pkg.name}@${pkg.version}`).join(" > ");
 
 const instanceKey = (instance: AffectedInstance): string =>
   [
@@ -103,8 +108,10 @@ const instanceKey = (instance: AffectedInstance): string =>
                 <TableRow>
                   <TableHead>Package</TableHead>
                   <TableHead>Installed version</TableHead>
+                  <TableHead>Fixed in</TableHead>
                   <TableHead>Workspace</TableHead>
                   <TableHead>Scope</TableHead>
+                  <TableHead>Installed by</TableHead>
                   <TableHead><span class="sr-only">Details</span></TableHead>
                 </TableRow>
               </TableHeader>
@@ -119,8 +126,51 @@ const instanceKey = (instance: AffectedInstance): string =>
                   <TableCell class="tabular-nums">{{
                     instance.installed_version
                   }}</TableCell>
+                  <TableCell
+                    v-if="instance.fixed_version"
+                    class="tabular-nums"
+                    >{{ instance.fixed_version }}</TableCell
+                  >
+                  <TableCell v-else class="text-muted-foreground"
+                    >No fix</TableCell
+                  >
                   <TableCell>{{ instance.workspace }}</TableCell>
                   <TableCell>{{ instance.prod ? "Prod" : "Dev" }}</TableCell>
+                  <TableCell>
+                    <span
+                      v-if="instance.top_level_dependencies.length === 0"
+                      class="text-muted-foreground"
+                      >Not found</span
+                    >
+                    <ul v-else aria-label="Installed by" class="space-y-1">
+                      <li
+                        v-for="top in instance.top_level_dependencies"
+                        :key="`${top.dev}\u0000${top.name}@${top.version}`"
+                      >
+                        <span class="font-medium">{{ top.name }}</span>
+                        {{ " " }}
+                        <span class="tabular-nums">{{ top.version }}</span>
+                        {{ " " }}
+                        <Badge
+                          v-if="top.path.length === 1"
+                          variant="secondary"
+                          class="ml-2"
+                          >Direct</Badge
+                        >
+                        {{ " " }}
+                        <Badge v-if="top.dev" variant="outline" class="ml-2"
+                          >Dev</Badge
+                        >
+                        {{ " " }}
+                        <div
+                          v-if="top.path.length > 1"
+                          class="text-xs break-all text-muted-foreground"
+                        >
+                          {{ pathText(top) }}
+                        </div>
+                      </li>
+                    </ul>
+                  </TableCell>
                   <TableCell class="text-right">
                     <RouterLink
                       :to="instanceRoute(project, instance)"

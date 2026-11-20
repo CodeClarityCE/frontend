@@ -274,6 +274,9 @@ export class DashboardPage {
       };
       if (path in dashboard) return fulfil(route, { data: dashboard[path] });
       if (path === "/vulnerabilities") return fulfil(route, vulnerabilities);
+      if (path === "/freshness") {
+        return fulfil(route, { data: { threshold_days: 14, projects: [] } });
+      }
       return route.fallback();
     });
     return release;

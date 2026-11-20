@@ -3,12 +3,16 @@ import {
   BaseRepository,
 } from "@/utils/api/BaseRepository";
 
-import type { OrganizationVulnerabilityList } from "./organization_vulnerability.entity";
+import type {
+  OrganizationVulnerabilityFilters,
+  OrganizationVulnerabilityList,
+} from "./organization_vulnerability.entity";
 
 export interface GetOrganizationVulnerabilitiesOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
   page?: number;
   entriesPerPage?: number;
+  filters?: OrganizationVulnerabilityFilters;
 }
 
 /** Organization-wide vulnerability views, read from the vulnerability instances. */
@@ -21,6 +25,7 @@ export class OrganizationVulnerabilitiesRepository extends BaseRepository {
       queryParams: {
         page: options.page ?? 0,
         entries_per_page: options.entriesPerPage ?? 50,
+        ...options.filters,
       },
       url: this.buildUrl(`/org/${options.orgId}/vulnerabilities`),
       handleBusinessErrors: options.handleBusinessErrors,

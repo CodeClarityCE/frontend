@@ -11,14 +11,19 @@ import type {
 } from "@/codeclarity_components/organizations/organization.entity";
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
 import { OrganizationVulnerabilitiesRepository } from "@/codeclarity_components/vulnerabilities/organization_vulnerabilities.repository";
-import type { OrganizationVulnerabilityList } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+import type {
+  OrganizationVulnerabilityFilters,
+  OrganizationVulnerabilityList,
+} from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
 import { useAuthStore } from "@/stores/auth";
 import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
 
 import {
   type DashboardRequest,
+  type FilteredDashboardRequest,
   useDashboardRequest,
+  useFilteredDashboardRequest,
 } from "./useDashboardRequest";
 
 /**
@@ -40,7 +45,10 @@ export function useDashboardData(): {
   refreshData: () => Promise<void>;
   defaultOrg: Ref<Organization | undefined>;
   quickStats: DashboardRequest<QuickStats>;
-  vulnerabilityList: DashboardRequest<OrganizationVulnerabilityList>;
+  vulnerabilityList: FilteredDashboardRequest<
+    OrganizationVulnerabilityList,
+    OrganizationVulnerabilityFilters
+  >;
 } {
   const state = useStateStore();
   const { defaultOrg } = storeToRefs(useUserStore());
@@ -81,9 +89,14 @@ export function useDashboardData(): {
       (await dashboardRepository.getQuickStats(requestOptions())).data,
   );
   const vulnerabilitiesRepository = new OrganizationVulnerabilitiesRepository();
-  const vulnerabilityList = useDashboardRequest(
-    async () =>
-      await vulnerabilitiesRepository.getVulnerabilities(requestOptions()),
+  // The list and the KPI tiles share it, so both follow its filters.
+  const vulnerabilityList = useFilteredDashboardRequest(
+    async (filters: OrganizationVulnerabilityFilters) =>
+      await vulnerabilitiesRepository.getVulnerabilities({
+        ...requestOptions(),
+        filters,
+      }),
+    {},
   );
 
   const hasIntegrations = computed(() => integrations.value.length > 0);

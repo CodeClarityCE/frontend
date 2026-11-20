@@ -3,11 +3,23 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 import CurrentVulns from "@/codeclarity_components/dashboard/charts/CurrentVulns.vue";
-import { useDashboardRequest } from "@/codeclarity_components/dashboard/composables/useDashboardRequest";
-import type { OrganizationVulnerabilityList } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+import { useFilteredDashboardRequest } from "@/codeclarity_components/dashboard/composables/useDashboardRequest";
+import type {
+  OrganizationVulnerabilityFilters,
+  OrganizationVulnerabilityList,
+} from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
 
 const getVulnerabilities =
-  vi.fn<() => Promise<OrganizationVulnerabilityList>>();
+  vi.fn<
+    (
+      filters: OrganizationVulnerabilityFilters,
+    ) => Promise<OrganizationVulnerabilityList>
+  >();
+
+const PROJECTS = [
+  { id: "p-api", name: "api" },
+  { id: "p-web", name: "web" },
+];
 
 function testRouter(): Router {
   return createRouter({
@@ -30,10 +42,14 @@ async function mountCard(): Promise<{
 }> {
   const router = testRouter();
   await router.push("/");
-  const request = useDashboardRequest(async () => await getVulnerabilities());
+  const request = useFilteredDashboardRequest(
+    async (filters: OrganizationVulnerabilityFilters) =>
+      await getVulnerabilities(filters),
+    {},
+  );
   void request.run();
   const wrapper = mount(CurrentVulns, {
-    props: { request },
+    props: { request, projects: PROJECTS },
     // The real link, which the shared test setup stubs.
     global: { plugins: [router], stubs: { RouterLink: false } },
   });
@@ -55,6 +71,7 @@ const list = (
   total_pages: 1,
   matching_count: data.length,
   filter_count: {},
+  hidden_counts: { contradicted: 0, retired_all: 0, excluded_by_policy: 0 },
   severity_counts: {
     CRITICAL: 0,
     HIGH: 0,
@@ -73,6 +90,7 @@ const two = list(
       severity_score: 9.8,
       project_count: 2,
       instance_count: 3,
+      uncorroborated_count: 0,
     },
     {
       vulnerability_id: "CVE-2024-0002",
@@ -80,6 +98,7 @@ const two = list(
       severity_score: 5.3,
       project_count: 1,
       instance_count: 1,
+      uncorroborated_count: 0,
     },
   ],
   { CRITICAL: 3, MEDIUM: 1 },
@@ -126,6 +145,108 @@ describe("CurrentVulns", () => {
     expect(router.currentRoute.value.params["vulnerabilityId"]).toBe(
       "CVE-2024-0001",
     );
+  });
+
+  it("labels a vulnerability with uncorroborated instances", async () => {
+    getVulnerabilities.mockResolvedValue(
+      list([
+        { ...two.data[0]!, uncorroborated_count: 1 },
+        { ...two.data[1]!, uncorroborated_count: 0 },
+      ]),
+    );
+    const { wrapper } = await mountCard();
+
+    const rows = wrapper
+      .find('[aria-label="Vulnerabilities in your projects"]')
+      .findAll("li");
+    expect(rows[0]!.text()).toContain("Uncorroborated");
+    expect(rows[1]!.text()).not.toContain("Uncorroborated");
+  });
+
+  it("requests the list again narrowed by each filter control", async () => {
+    getVulnerabilities.mockResolvedValue(two);
+    const { wrapper } = await mountCard();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({});
+
+    await wrapper.find('select[aria-label="Project"]').setValue("p-web");
+    await flushPromises();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({ project: ["p-web"] });
+
+    await wrapper.find('select[aria-label="Severity"]').setValue("HIGH");
+    await wrapper.find('select[aria-label="Ecosystem"]').setValue("Packagist");
+    await wrapper.find('select[aria-label="Dependency type"]').setValue("dev");
+    await flushPromises();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({
+      project: ["p-web"],
+      severity: ["HIGH"],
+      ecosystem: ["Packagist"],
+      scope: "dev",
+    });
+
+    await wrapper.find('select[aria-label="Project"]').setValue("");
+    await flushPromises();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({
+      severity: ["HIGH"],
+      ecosystem: ["Packagist"],
+      scope: "dev",
+    });
+  });
+
+  it("says how many instances it hid and why, and shows them on request", async () => {
+    const hiding = {
+      ...two,
+      hidden_counts: { contradicted: 2, retired_all: 0, excluded_by_policy: 1 },
+    };
+    getVulnerabilities.mockResolvedValue(hiding);
+    const { wrapper } = await mountCard();
+
+    const hidden = () =>
+      wrapper
+        .find('[aria-label="Hidden instances"]')
+        .findAll("li")
+        .map((li) => li.text());
+    expect(hidden()).toEqual([
+      expect.stringMatching(
+        /^2 hidden: contradicted by another source\s*Show$/,
+      ),
+      expect.stringMatching(
+        /^1 hidden: excluded by a vulnerability policy\s*Show$/,
+      ),
+    ]);
+
+    await wrapper
+      .find(
+        'button[aria-label="Show instances excluded by a vulnerability policy"]',
+      )
+      .trigger("click");
+    await flushPromises();
+
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({
+      show: ["excluded_by_policy"],
+    });
+    expect(hidden()[1]).toMatch(
+      /^1 shown: excluded by a vulnerability policy\s*Hide$/,
+    );
+
+    await wrapper
+      .find(
+        'button[aria-label="Hide instances excluded by a vulnerability policy"]',
+      )
+      .trigger("click");
+    await flushPromises();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({});
+  });
+
+  it("keeps the filters when a filter leaves nothing to list", async () => {
+    getVulnerabilities.mockResolvedValueOnce(two);
+    getVulnerabilities.mockResolvedValue(list([]));
+    const { wrapper } = await mountCard();
+
+    await wrapper.find('select[aria-label="Severity"]').setValue("LOW");
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("No vulnerabilities match these filters.");
+    expect(wrapper.find('select[aria-label="Severity"]').exists()).toBe(true);
   });
 
   it("says when there are no vulnerabilities", async () => {

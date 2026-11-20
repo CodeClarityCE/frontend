@@ -75,6 +75,7 @@ const vulnerabilities = {
       severity_score: 9.8,
       project_count: 2,
       instance_count: 2,
+      uncorroborated_count: 0,
     },
     {
       vulnerability_id: "CVE-2026-0002",
@@ -82,6 +83,7 @@ const vulnerabilities = {
       severity_score: 7.5,
       project_count: 3,
       instance_count: 5,
+      uncorroborated_count: 0,
     },
     {
       vulnerability_id: "CVE-2026-0003",
@@ -89,6 +91,7 @@ const vulnerabilities = {
       severity_score: 5.3,
       project_count: 1,
       instance_count: 9,
+      uncorroborated_count: 0,
     },
     {
       vulnerability_id: "CVE-2026-0004",
@@ -96,6 +99,7 @@ const vulnerabilities = {
       severity_score: 2.1,
       project_count: 1,
       instance_count: 4,
+      uncorroborated_count: 0,
     },
   ],
   page: 0,
@@ -106,6 +110,7 @@ const vulnerabilities = {
   matching_count: 4,
   filter_count: {},
   severity_counts: { CRITICAL: 2, HIGH: 5, MEDIUM: 9, LOW: 4, NONE: 0 },
+  hidden_counts: { contradicted: 0, retired_all: 0, excluded_by_policy: 0 },
 };
 
 /** One week of exposure as the API sends it: an ISO week number and year. */

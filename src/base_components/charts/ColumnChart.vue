@@ -31,6 +31,8 @@ const props = defineProps<{
   xTitle: string;
   /** Counts: y labels only at whole numbers */
   integer?: boolean;
+  /** One column per group with the series on top of each other, the first at the bottom */
+  stacked?: boolean;
 }>();
 
 const chartWidth = useChartWidth();
@@ -52,7 +54,7 @@ const step = computed(
 );
 
 const barWidth = computed(() => {
-  const count = Math.max(props.series.length, 1);
+  const count = props.stacked ? 1 : Math.max(props.series.length, 1);
   const room = (step.value * 0.8 - BAR_GAP * (count - 1)) / count;
   return Math.max(1, Math.min(MAX_BAR_WIDTH, room));
 });
@@ -86,7 +88,7 @@ const xTicks = computed(() => {
 });
 
 function groupStart(index: number): number {
-  const count = props.series.length;
+  const count = props.stacked ? 1 : props.series.length;
   const width = count * barWidth.value + (count - 1) * BAR_GAP;
   return LEFT + step.value * (index + 0.5) - width / 2;
 }
@@ -95,43 +97,82 @@ function xOf(index: number): number {
   return LEFT + step.value * (index + 0.5);
 }
 
-/** A column rounded at its tip and square at the baseline. */
+/** A column from `from` up to `to`, rounded at its tip unless `square`. */
 function barPath(
   groupIndex: number,
   seriesIndex: number,
-  value: number,
+  to: number,
+  from = 0,
+  square = false,
 ): string {
   const left =
     groupStart(groupIndex) + seriesIndex * (barWidth.value + BAR_GAP);
   const right = left + barWidth.value;
-  const top = y.value(value);
-  const radius = Math.min(TIP_RADIUS, barWidth.value / 2, baseline - top);
+  const bottom = y.value(from);
+  // Stacked segments keep a 1px surface gap to the one above.
+  const top = square ? Math.min(bottom, y.value(to) + 1) : y.value(to);
+  const radius = square
+    ? 0
+    : Math.min(TIP_RADIUS, barWidth.value / 2, bottom - top);
   return [
-    `M${left},${baseline}`,
+    `M${left},${bottom}`,
     `V${top + radius}`,
     `Q${left},${top} ${left + radius},${top}`,
     `H${right - radius}`,
     `Q${right},${top} ${right},${top + radius}`,
-    `V${baseline}`,
+    `V${bottom}`,
     "Z",
   ].join("");
 }
 
+// Stacked: each segment starts where the series below it ends.
+function stackedBars(): {
+  key: string;
+  color: string;
+  stroke: string | undefined;
+  d: string;
+}[] {
+  return props.labels.flatMap((_, groupIndex) => {
+    const values = props.series.map((s) => s.values[groupIndex] ?? 0);
+    const topmost = values.reduce(
+      (last, value, index) => (value > 0 ? index : last),
+      -1,
+    );
+    let below = 0;
+    return props.series.flatMap((series, seriesIndex) => {
+      const value = values[seriesIndex]!;
+      if (value <= 0) return [];
+      const from = below;
+      below += value;
+      return [
+        {
+          key: `${series.key}-${groupIndex}`,
+          color: series.colors?.[groupIndex] ?? series.color,
+          stroke: series.strokes?.[groupIndex],
+          d: barPath(groupIndex, 0, below, from, seriesIndex !== topmost),
+        },
+      ];
+    });
+  });
+}
+
 const bars = computed(() =>
-  props.series.flatMap((series, seriesIndex) =>
-    series.values.flatMap((value, groupIndex) =>
-      value === null
-        ? []
-        : [
-            {
-              key: `${series.key}-${groupIndex}`,
-              color: series.colors?.[groupIndex] ?? series.color,
-              stroke: series.strokes?.[groupIndex],
-              d: barPath(groupIndex, seriesIndex, value),
-            },
-          ],
-    ),
-  ),
+  props.stacked
+    ? stackedBars()
+    : props.series.flatMap((series, seriesIndex) =>
+        series.values.flatMap((value, groupIndex) =>
+          value === null
+            ? []
+            : [
+                {
+                  key: `${series.key}-${groupIndex}`,
+                  color: series.colors?.[groupIndex] ?? series.color,
+                  stroke: series.strokes?.[groupIndex],
+                  d: barPath(groupIndex, seriesIndex, value),
+                },
+              ],
+        ),
+      ),
 );
 
 /** 95% interval of each bar, drawn over its centre. */

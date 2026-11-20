@@ -1,8 +1,6 @@
 import { storeToRefs } from "pinia";
 import { computed, type ComputedRef, onMounted, type Ref, ref } from "vue";
 
-import type { QuickStats } from "@/codeclarity_components/dashboard/dashboard.entity";
-import { DashboardRepository } from "@/codeclarity_components/dashboard/dashboard.repository";
 import { IntegrationsRepository } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 import type {
   Integration,
@@ -15,14 +13,17 @@ import type {
   OrganizationVulnerabilityFilters,
   OrganizationVulnerabilityList,
 } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+import {
+  TrendPeriod,
+  type VulnerabilityTrend,
+  type VulnerabilityTrendFilters,
+} from "@/codeclarity_components/vulnerabilities/vulnerability_trend.entity";
 import { useAuthStore } from "@/stores/auth";
 import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
 
 import {
-  type DashboardRequest,
   type FilteredDashboardRequest,
-  useDashboardRequest,
   useFilteredDashboardRequest,
 } from "./useDashboardRequest";
 
@@ -44,7 +45,10 @@ export function useDashboardData(): {
   hasAnalyses: ComputedRef<boolean>;
   refreshData: () => Promise<void>;
   defaultOrg: Ref<Organization | undefined>;
-  quickStats: DashboardRequest<QuickStats>;
+  trend: FilteredDashboardRequest<
+    VulnerabilityTrend,
+    VulnerabilityTrendFilters
+  >;
   vulnerabilityList: FilteredDashboardRequest<
     OrganizationVulnerabilityList,
     OrganizationVulnerabilityFilters
@@ -72,7 +76,6 @@ export function useDashboardData(): {
     ),
   );
 
-  const dashboardRepository = new DashboardRepository();
   const requestOptions = (): {
     orgId: string;
     bearerToken: string;
@@ -84,12 +87,19 @@ export function useDashboardData(): {
     handleBusinessErrors: true,
     integrationIds: activeIntegrationIds.value,
   });
-  const quickStats = useDashboardRequest(
-    async () =>
-      (await dashboardRepository.getQuickStats(requestOptions())).data,
-  );
   const vulnerabilitiesRepository = new OrganizationVulnerabilitiesRepository();
-  // The list and the KPI tiles share it, so both follow its filters.
+  // The project numbers and the trend card share it, so both follow its filters.
+  const trend = useFilteredDashboardRequest<
+    VulnerabilityTrend,
+    VulnerabilityTrendFilters
+  >(
+    async (filters) =>
+      await vulnerabilitiesRepository.getTrend({
+        ...requestOptions(),
+        filters,
+      }),
+    { period: TrendPeriod.Week },
+  );
   const vulnerabilityList = useFilteredDashboardRequest(
     async (filters: OrganizationVulnerabilityFilters) =>
       await vulnerabilitiesRepository.getVulnerabilities({
@@ -104,8 +114,13 @@ export function useDashboardData(): {
     () => (orgData.value?.projects?.length ?? 0) > 0,
   );
   // Unknown counts as analysed: a failed request must not show onboarding.
+  // Narrowed to one project, the organization is known to have data.
   const hasAnalyses = computed(
-    () => quickStats.error || (quickStats.data?.nmb_projects ?? 0) > 0,
+    () =>
+      trend.error ||
+      trend.filters.project !== undefined ||
+      (trend.data?.points[trend.data.points.length - 1]?.project_count ?? 0) >
+        0,
   );
   const hasData = computed(() => hasProjects.value && hasAnalyses.value);
 
@@ -144,7 +159,7 @@ export function useDashboardData(): {
 
     if (hasProjects.value) {
       void vulnerabilityList.run();
-      await quickStats.run();
+      await trend.run();
     }
     isLoading.value = false;
   }
@@ -167,7 +182,7 @@ export function useDashboardData(): {
     loadDashboardData,
     refreshData: loadDashboardData,
     defaultOrg: defaultOrg!,
-    quickStats,
+    trend,
     vulnerabilityList,
   };
 }

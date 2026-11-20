@@ -21,6 +21,8 @@ import {
   type CheckDuplicateRequest,
   type ConfigureClickUpRequest,
   type ConnectionTestResult,
+  type CreateRemediationTicketRequest,
+  type CreateRemediationTicketResult,
   type CreateTicketRequest,
   type DuplicateCheckResult,
   type ExternalLink,
@@ -83,6 +85,11 @@ export interface GetDashboardStatsRequestOptions extends AuthRepoMethodGetReques
 
 export interface CreateTicketRequestOptions extends AuthRepoMethodPostRequestOptions<CreateTicketRequest> {
   orgId: string;
+}
+
+export interface CreateRemediationTicketRequestOptions extends AuthRepoMethodPostRequestOptions<CreateRemediationTicketRequest> {
+  orgId: string;
+  projectId: string;
 }
 
 export interface UpdateTicketRequestOptions extends AuthRepoMethodPatchRequestOptions<UpdateTicketRequest> {
@@ -457,6 +464,30 @@ export class TicketsRepository extends BaseRepository {
     });
 
     return Entity.unMarshal<CreatedResponse>(response, CreatedResponse);
+  }
+
+  /** Creates a ticket from a remediation, or names the open one that already tracks it. */
+  async createRemediationTicket(
+    options: CreateRemediationTicketRequestOptions,
+  ): Promise<DataResponse<CreateRemediationTicketResult>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/tickets/from-remediation`;
+
+    const response = await this.postRequest<
+      DataResponse<CreateRemediationTicketResult>,
+      CreateRemediationTicketRequest
+    >({
+      bearerToken: options.bearerToken,
+      data: options.data,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<DataResponse<CreateRemediationTicketResult>>(
+      response,
+      DataResponse<CreateRemediationTicketResult>,
+    );
   }
 
   /**

@@ -2,6 +2,7 @@
 import { computed } from "vue";
 
 import CopyCommand from "@/base_components/ui/CopyCommand.vue";
+import CreateRemediationTicket from "@/codeclarity_components/tickets/components/CreateRemediationTicket.vue";
 import { Badge } from "@/shadcn/ui/badge";
 
 import {
@@ -110,6 +111,10 @@ const remediationKey = (r: Remediation): string =>
         <p v-else class="text-xs text-muted-foreground">
           No command: the analysis names no supported package manager.
         </p>
+        <CreateRemediationTicket
+          :project-id="project.project_id"
+          :remediation="remediation"
+        />
       </li>
     </ul>
     <ul v-if="unresolved.length > 0" class="space-y-1 text-sm">

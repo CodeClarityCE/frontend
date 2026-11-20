@@ -50,6 +50,7 @@ import RiskScoreGauge from "../components/RiskScoreGauge.vue";
 import ScoreProgressBar from "../components/ScoreProgressBar.vue";
 import TicketHistory from "../components/TicketHistory.vue";
 import TicketPriorityBadge from "../components/TicketPriorityBadge.vue";
+import TicketRemediation from "../components/TicketRemediation.vue";
 import {
   ExternalProviderIcons,
   ExternalProviderLabels,
@@ -449,8 +450,13 @@ onMounted(() => {
           </section>
         </template>
 
+        <TicketRemediation
+          v-if="ticket.remediation"
+          :remediation="ticket.remediation"
+          :instances="ticket.instances ?? []"
+        />
         <section
-          v-if="ticket.affected_package"
+          v-else-if="ticket.affected_package"
           aria-labelledby="ticket-component"
           class="flex flex-col gap-3 rounded-card bg-muted p-4"
         >
@@ -702,7 +708,7 @@ onMounted(() => {
         </dl>
 
         <p
-          v-if="ticket.occurrence_count > 0"
+          v-if="ticket.occurrence_count > 0 && !ticket.remediation"
           class="border-t pt-4 text-sm text-foreground"
         >
           <strong>{{ ticket.occurrence_count }}</strong> total occurrences,

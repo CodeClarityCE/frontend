@@ -1,6 +1,7 @@
 import { Entity } from "../../utils/api/BaseEntity";
 import {
   type AuthRepoMethodEmptyDeleteRequestOptions,
+  type AuthRepoMethodEmptyPostRequestOptions,
   type AuthRepoMethodGetRequestOptions,
   type AuthRepoMethodPostRequestOptions,
   type AuthRepoMethodPutRequestOptions,
@@ -40,6 +41,11 @@ export interface CreateAnalysisOptions extends AuthRepoMethodPostRequestOptions<
   projectId: string;
 }
 
+export interface ReanalyseOptions extends AuthRepoMethodEmptyPostRequestOptions {
+  orgId: string;
+  projectId: string;
+}
+
 export interface GetScheduledAnalysesOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
   projectId: string;
@@ -66,6 +72,22 @@ export class AnalysisRepository extends BaseRepository {
     const response = await this.postRequest<CreatedResponse, CreateAnalysis>({
       bearerToken: options.bearerToken,
       data: options.data,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<CreatedResponse>(response, CreatedResponse);
+  }
+
+  /** Starts a new analysis with the configuration of the project's last one. */
+  async reanalyse(options: ReanalyseOptions): Promise<CreatedResponse> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analyses/reanalyse`;
+
+    const response = await this.postRequest<CreatedResponse, EmptyPostData>({
+      bearerToken: options.bearerToken,
+      data: {},
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,

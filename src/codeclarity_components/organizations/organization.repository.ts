@@ -82,6 +82,7 @@ export interface GetOrgMetaDataRequestOptions
 
 export interface OrganizationSettingsUpdate {
   auto_resolve_tickets?: boolean;
+  freshness_threshold_days?: number;
 }
 
 export interface UpdateOrgSettingsRequestOptions

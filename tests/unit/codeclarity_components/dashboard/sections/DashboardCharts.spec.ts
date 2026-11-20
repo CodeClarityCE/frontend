@@ -24,6 +24,7 @@ describe("DashboardCharts", () => {
           CurrentVulns: true,
           ExposureOverview: true,
           LicenseDist: true,
+          StaleProjects: true,
           TicketsDashboardCard: true,
           VulnerabilityImpact: true,
         },
@@ -34,6 +35,7 @@ describe("DashboardCharts", () => {
       "Vulnerability exposure",
       "Vulnerabilities summary",
       "Tickets",
+      "Stale projects",
       "Open source licenses",
       "Impact analysis",
     ]);

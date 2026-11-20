@@ -47,6 +47,10 @@ export class Organization {
   @IsBoolean()
   auto_resolve_tickets?: boolean;
 
+  @IsOptional()
+  @IsNumber()
+  freshness_threshold_days?: number;
+
   @IsNotEmpty()
   role!: MemberRole;
 

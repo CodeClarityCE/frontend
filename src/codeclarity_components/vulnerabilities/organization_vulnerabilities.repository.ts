@@ -8,6 +8,10 @@ import type {
   OrganizationVulnerabilityList,
   OrganizationVulnerabilityPage,
 } from "./organization_vulnerability.entity";
+import type {
+  OrganizationFreshness,
+  VulnerabilityNotYetChecked,
+} from "./project_freshness.entity";
 
 export interface GetOrganizationVulnerabilitiesOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
@@ -17,6 +21,15 @@ export interface GetOrganizationVulnerabilitiesOptions extends AuthRepoMethodGet
 }
 
 export interface GetOrganizationVulnerabilityOptions extends AuthRepoMethodGetRequestOptions {
+  orgId: string;
+  vulnerabilityId: string;
+}
+
+export interface GetFreshnessOptions extends AuthRepoMethodGetRequestOptions {
+  orgId: string;
+}
+
+export interface GetNotYetCheckedOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
   vulnerabilityId: string;
 }
@@ -49,6 +62,38 @@ export class OrganizationVulnerabilitiesRepository extends BaseRepository {
       bearerToken: options.bearerToken,
       url: this.buildUrl(
         `/org/${options.orgId}/vulnerabilities/${encodeURIComponent(options.vulnerabilityId)}`,
+      ),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+    return response.data;
+  }
+
+  /** Each project's current analysis and whether it is stale. */
+  async getFreshness(
+    options: GetFreshnessOptions,
+  ): Promise<OrganizationFreshness> {
+    const response = await this.getRequest<{ data: OrganizationFreshness }>({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(`/org/${options.orgId}/freshness`),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+    return response.data;
+  }
+
+  /** The projects not yet checked for one vulnerability. */
+  async getNotYetChecked(
+    options: GetNotYetCheckedOptions,
+  ): Promise<VulnerabilityNotYetChecked> {
+    const response = await this.getRequest<{
+      data: VulnerabilityNotYetChecked;
+    }>({
+      bearerToken: options.bearerToken,
+      url: this.buildUrl(
+        `/org/${options.orgId}/vulnerabilities/${encodeURIComponent(options.vulnerabilityId)}/freshness`,
       ),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,

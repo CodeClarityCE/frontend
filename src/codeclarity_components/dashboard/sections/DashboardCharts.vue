@@ -14,6 +14,7 @@ import {
 import CurrentVulns from "../charts/CurrentVulns.vue";
 import ExposureOverview from "../charts/ExposureOverview.vue";
 import LicenseDist from "../charts/LicenseDist.vue";
+import StaleProjects from "../charts/StaleProjects.vue";
 import TicketsDashboardCard from "../charts/TicketsDashboardCard.vue";
 import VulnerabilityImpact from "../charts/VulnerabilityImpact.vue";
 import type { FilteredDashboardRequest } from "../composables/useDashboardRequest";
@@ -64,6 +65,15 @@ defineProps<{
       </CardHeader>
       <CardContent>
         <TicketsDashboardCard :integration-ids="integrationIds" />
+      </CardContent>
+    </Card>
+    <Card class="rounded-card shadow-card">
+      <CardHeader>
+        <CardTitle class="text-base">Stale projects</CardTitle>
+        <CardDescription>Projects not analysed lately</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <StaleProjects />
       </CardContent>
     </Card>
     <Card class="rounded-card shadow-card">

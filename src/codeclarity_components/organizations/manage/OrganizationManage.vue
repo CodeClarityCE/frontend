@@ -15,6 +15,7 @@ import { computed, type Ref, ref } from "vue";
 import { RouterLink } from "vue-router";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
+import FreshnessThresholdSetting from "@/codeclarity_components/organizations/manage/FreshnessThresholdSetting.vue";
 import {
   MemberRole,
   type Organization,
@@ -244,6 +245,22 @@ function afterAction(): void {
             :disabled="savingSettings"
             aria-describedby="org-auto-resolve-hint"
             @update:model-value="setAutoResolve($event)"
+          />
+        </CardContent>
+      </Card>
+
+      <Card v-if="isAdmin" class="rounded-card shadow-card">
+        <CardHeader>
+          <h2
+            class="text-lg font-semibold leading-none tracking-tight text-foreground-strong"
+          >
+            Freshness
+          </h2>
+        </CardHeader>
+        <CardContent>
+          <FreshnessThresholdSetting
+            :org-id="orgInfo.id"
+            :days="orgInfo.freshness_threshold_days ?? 14"
           />
         </CardContent>
       </Card>

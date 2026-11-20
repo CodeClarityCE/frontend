@@ -30,12 +30,13 @@ const SOURCES = [
   "epss",
   "friends_of_php",
   "gcve",
+  "kev",
   "licenses",
   "nvd",
   "osv",
 ];
 
-// Builds all seven sources, healthy unless overridden.
+// Builds every source, healthy unless overridden.
 function statusBody(overrides: Record<string, object> = {}): object {
   return {
     data: {
@@ -129,6 +130,12 @@ describe("KnowledgeStatusNotice", () => {
     expect(text).toContain("FriendsOfPHP");
     expect(text).not.toContain("OSV");
     expect(text).not.toContain("EPSS");
+  });
+
+  it("names the KEV catalog by its publisher", async () => {
+    respondWith(statusBody({ kev: { status: "stale" } }));
+
+    expect((await mountNotice()).text()).toContain("CISA KEV");
   });
 
   it("shows nothing when every source is healthy", async () => {

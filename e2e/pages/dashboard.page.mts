@@ -66,39 +66,46 @@ const quickStats = {
   nmb_projects: 3,
 };
 
-const recentVulns = {
-  vulns: {
-    "CVE-2026-0001": {
-      severity: 9.8,
+// The organization vulnerability list, worst first, as the API pages it.
+const vulnerabilities = {
+  data: [
+    {
+      vulnerability_id: "CVE-2026-0001",
       severity_class: "CRITICAL",
-      cwe: "CWE-94",
-      cwe_name: "Code Injection",
+      severity_score: 9.8,
+      project_count: 2,
+      instance_count: 2,
     },
-    "CVE-2026-0002": {
-      severity: 7.5,
+    {
+      vulnerability_id: "CVE-2026-0002",
       severity_class: "HIGH",
-      cwe: "CWE-1321",
-      cwe_name: "Prototype Pollution",
+      severity_score: 7.5,
+      project_count: 3,
+      instance_count: 5,
     },
-    "CVE-2026-0003": {
-      severity: 5.3,
+    {
+      vulnerability_id: "CVE-2026-0003",
       severity_class: "MEDIUM",
-      cwe: "CWE-400",
-      cwe_name: "Uncontrolled Resource Consumption",
+      severity_score: 5.3,
+      project_count: 1,
+      instance_count: 9,
     },
-    "CVE-2026-0004": {
-      severity: 2.1,
+    {
+      vulnerability_id: "CVE-2026-0004",
       severity_class: "LOW",
-      cwe: "CWE-200",
-      cwe_name: "Information Exposure",
+      severity_score: 2.1,
+      project_count: 1,
+      instance_count: 4,
     },
-  },
-  severity_count: [
-    { severity_class: "CRITICAL", count: 2 },
-    { severity_class: "HIGH", count: 5 },
-    { severity_class: "MEDIUM", count: 9 },
-    { severity_class: "LOW", count: 4 },
   ],
+  page: 0,
+  entry_count: 4,
+  entries_per_page: 50,
+  total_entries: 4,
+  total_pages: 1,
+  matching_count: 4,
+  filter_count: {},
+  severity_counts: { CRITICAL: 2, HIGH: 5, MEDIUM: 9, LOW: 4, NONE: 0 },
 };
 
 /** One week of exposure as the API sends it: an ISO week number and year. */
@@ -260,13 +267,13 @@ export class DashboardPage {
           withProjects && (options.analyses ?? true)
             ? quickStats
             : { ...quickStats, nmb_projects: 0 },
-        "/dashboard/recent_vulns": recentVulns,
         "/dashboard/weekly_severity_info":
           options.weeklySeverity ?? weeklySeverity,
         "/dashboard/overall_license_dist": options.licenseDist ?? licenseDist,
         "/dashboard/overall_cia_impact": ciaImpact,
       };
       if (path in dashboard) return fulfil(route, { data: dashboard[path] });
+      if (path === "/vulnerabilities") return fulfil(route, vulnerabilities);
       return route.fallback();
     });
     return release;

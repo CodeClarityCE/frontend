@@ -22,7 +22,7 @@ const {
   defaultOrg,
   refreshData,
   quickStats,
-  recentVulns,
+  vulnerabilityList,
 } = useDashboardData();
 </script>
 
@@ -79,11 +79,11 @@ const {
       <template v-else>
         <DashboardQuickStats
           :quick-stats="quickStats"
-          :recent-vulns="recentVulns"
+          :vulnerability-list="vulnerabilityList"
         />
         <DashboardCharts
           :integration-ids="activeIntegrationIds"
-          :recent-vulns="recentVulns"
+          :vulnerability-list="vulnerabilityList"
         />
       </template>
     </section>

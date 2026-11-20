@@ -99,34 +99,6 @@ export class QuickStats {
   most_affected_cia?: string;
 }
 
-export class LatestVulns {
-  @IsDefined()
-  // @Type(() => LatestVuln)
-  vulns!: Record<string, LatestVulnInfo>;
-  @IsDefined()
-  @Type(() => SeverityClassCount)
-  severity_count!: SeverityClassCount[];
-}
-
-export class LatestVulnInfo {
-  @IsOptional()
-  @IsNumber()
-  severity?: number;
-  @IsOptional()
-  @IsString()
-  severity_class?: string;
-  @IsOptional()
-  @IsString()
-  cwe?: string;
-  @IsString()
-  cwe_name!: string;
-}
-
-export class SeverityClassCount {
-  severity_class!: string | null;
-  @IsNumber()
-  count!: number;
-}
 export class CIAImpact {
   @IsString()
   cia!: string;

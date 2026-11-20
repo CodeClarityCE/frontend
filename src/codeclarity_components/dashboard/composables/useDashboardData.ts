@@ -1,10 +1,7 @@
 import { storeToRefs } from "pinia";
 import { computed, type ComputedRef, onMounted, type Ref, ref } from "vue";
 
-import type {
-  LatestVulns,
-  QuickStats,
-} from "@/codeclarity_components/dashboard/dashboard.entity";
+import type { QuickStats } from "@/codeclarity_components/dashboard/dashboard.entity";
 import { DashboardRepository } from "@/codeclarity_components/dashboard/dashboard.repository";
 import { IntegrationsRepository } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 import type {
@@ -13,6 +10,8 @@ import type {
   OrganizationMetaData,
 } from "@/codeclarity_components/organizations/organization.entity";
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
+import { OrganizationVulnerabilitiesRepository } from "@/codeclarity_components/vulnerabilities/organization_vulnerabilities.repository";
+import type { OrganizationVulnerabilityList } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
 import { useAuthStore } from "@/stores/auth";
 import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
@@ -41,7 +40,7 @@ export function useDashboardData(): {
   refreshData: () => Promise<void>;
   defaultOrg: Ref<Organization | undefined>;
   quickStats: DashboardRequest<QuickStats>;
-  recentVulns: DashboardRequest<LatestVulns>;
+  vulnerabilityList: DashboardRequest<OrganizationVulnerabilityList>;
 } {
   const state = useStateStore();
   const { defaultOrg } = storeToRefs(useUserStore());
@@ -81,9 +80,10 @@ export function useDashboardData(): {
     async () =>
       (await dashboardRepository.getQuickStats(requestOptions())).data,
   );
-  const recentVulns = useDashboardRequest(
+  const vulnerabilitiesRepository = new OrganizationVulnerabilitiesRepository();
+  const vulnerabilityList = useDashboardRequest(
     async () =>
-      (await dashboardRepository.getRecentVulns(requestOptions())).data,
+      await vulnerabilitiesRepository.getVulnerabilities(requestOptions()),
   );
 
   const hasIntegrations = computed(() => integrations.value.length > 0);
@@ -130,7 +130,7 @@ export function useDashboardData(): {
     }
 
     if (hasProjects.value) {
-      void recentVulns.run();
+      void vulnerabilityList.run();
       await quickStats.run();
     }
     isLoading.value = false;
@@ -155,6 +155,6 @@ export function useDashboardData(): {
     refreshData: loadDashboardData,
     defaultOrg: defaultOrg!,
     quickStats,
-    recentVulns,
+    vulnerabilityList,
   };
 }

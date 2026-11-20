@@ -91,6 +91,7 @@ const two = list(
       project_count: 2,
       instance_count: 3,
       uncorroborated_count: 0,
+      known_exploited: false,
     },
     {
       vulnerability_id: "CVE-2024-0002",
@@ -99,6 +100,7 @@ const two = list(
       project_count: 1,
       instance_count: 1,
       uncorroborated_count: 0,
+      known_exploited: false,
     },
   ],
   { CRITICAL: 3, MEDIUM: 1 },
@@ -161,6 +163,41 @@ describe("CurrentVulns", () => {
       .findAll("li");
     expect(rows[0]!.text()).toContain("Uncorroborated");
     expect(rows[1]!.text()).not.toContain("Uncorroborated");
+  });
+
+  it("flags a known exploited vulnerability", async () => {
+    getVulnerabilities.mockResolvedValue(
+      list([{ ...two.data[0]!, known_exploited: true }, two.data[1]!]),
+    );
+    const { wrapper } = await mountCard();
+
+    const rows = wrapper
+      .find('[aria-label="Vulnerabilities in your projects"]')
+      .findAll("li");
+    expect(rows[0]!.text()).toContain("Known exploited");
+    expect(rows[1]!.text()).not.toContain("Known exploited");
+  });
+
+  it("narrows the list to known exploited vulnerabilities or the others", async () => {
+    getVulnerabilities.mockResolvedValue(two);
+    const { wrapper } = await mountCard();
+    const select = wrapper.find('select[aria-label="Known exploited"]');
+
+    await select.setValue("true");
+    await flushPromises();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({
+      known_exploited: true,
+    });
+
+    await select.setValue("false");
+    await flushPromises();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({
+      known_exploited: false,
+    });
+
+    await select.setValue("");
+    await flushPromises();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({});
   });
 
   it("requests the list again narrowed by each filter control", async () => {

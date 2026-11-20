@@ -8,6 +8,7 @@ import { Skeleton } from "@/shadcn/ui/skeleton";
 import { useDashboardData } from "./composables/useDashboardData";
 import DashboardEmptyState from "./layout/DashboardEmptyState.vue";
 import DashboardCharts from "./sections/DashboardCharts.vue";
+import DashboardOverviewFilters from "./sections/DashboardOverviewFilters.vue";
 import DashboardQuickStats from "./sections/DashboardQuickStats.vue";
 import DashboardResearch from "./sections/DashboardResearch.vue";
 
@@ -21,7 +22,7 @@ const {
   isLoading,
   defaultOrg,
   refreshData,
-  quickStats,
+  trend,
   vulnerabilityList,
   orgData,
 } = useDashboardData();
@@ -78,13 +79,15 @@ const {
         @retry="refreshData"
       />
       <template v-else>
-        <DashboardQuickStats
-          :quick-stats="quickStats"
-          :vulnerability-list="vulnerabilityList"
+        <DashboardOverviewFilters
+          :trend="trend"
+          :projects="orgData?.projects ?? []"
         />
+        <DashboardQuickStats :trend="trend" />
         <DashboardCharts
           :integration-ids="activeIntegrationIds"
           :vulnerability-list="vulnerabilityList"
+          :trend="trend"
           :projects="orgData?.projects ?? []"
         />
       </template>

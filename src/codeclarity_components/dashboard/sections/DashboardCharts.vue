@@ -3,6 +3,10 @@ import type {
   OrganizationVulnerabilityFilters,
   OrganizationVulnerabilityList,
 } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+import type {
+  VulnerabilityTrend,
+  VulnerabilityTrendFilters,
+} from "@/codeclarity_components/vulnerabilities/vulnerability_trend.entity";
 import {
   Card,
   CardContent,
@@ -12,8 +16,8 @@ import {
 } from "@/shadcn/ui/card";
 
 import CurrentVulns from "../charts/CurrentVulns.vue";
-import ExposureOverview from "../charts/ExposureOverview.vue";
 import LicenseDist from "../charts/LicenseDist.vue";
+import OpenVulnerabilitiesTrend from "../charts/OpenVulnerabilitiesTrend.vue";
 import StaleProjects from "../charts/StaleProjects.vue";
 import TicketsDashboardCard from "../charts/TicketsDashboardCard.vue";
 import VulnerabilityImpact from "../charts/VulnerabilityImpact.vue";
@@ -27,6 +31,11 @@ defineProps<{
     OrganizationVulnerabilityList,
     OrganizationVulnerabilityFilters
   >;
+  /** Shared with the project numbers, which follow its filters */
+  trend: FilteredDashboardRequest<
+    VulnerabilityTrend,
+    VulnerabilityTrendFilters
+  >;
   /** The projects the vulnerability list can be narrowed to */
   projects: { id: string; name: string }[];
 }>();
@@ -36,13 +45,14 @@ defineProps<{
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
     <Card class="rounded-card shadow-card lg:col-span-2">
       <CardHeader>
-        <CardTitle class="text-base">Vulnerability exposure</CardTitle>
+        <CardTitle class="text-base">Open vulnerabilities over time</CardTitle>
         <CardDescription>
-          Total severity of vulnerabilities across all your projects
+          Vulnerability instances in each project's current analysis at the end
+          of each period, and how many were introduced and fixed
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ExposureOverview :integration-ids="integrationIds" />
+        <OpenVulnerabilitiesTrend :request="trend" />
       </CardContent>
     </Card>
     <Card class="rounded-card shadow-card">

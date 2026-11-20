@@ -51,6 +51,8 @@ const remediation: Remediation = {
       prod: true,
       severity_class: "CRITICAL",
       severity_score: 9.8,
+      known_exploited: false,
+      aliases: [],
     },
   ],
 };

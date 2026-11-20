@@ -3,6 +3,7 @@ import {
   BaseRepository,
 } from "@/utils/api/BaseRepository";
 
+import type { FixNextEntry } from "./fix_next.entity";
 import type {
   OrganizationVulnerabilityFilters,
   OrganizationVulnerabilityList,
@@ -38,6 +39,12 @@ export interface GetTrendOptions extends AuthRepoMethodGetRequestOptions {
   filters: VulnerabilityTrendFilters;
   /** How many periods; the API defaults to 12 */
   periods?: number;
+}
+
+export interface GetFixNextOptions extends AuthRepoMethodGetRequestOptions {
+  orgId: string;
+  /** How many entries; the API defaults to 10 */
+  limit?: number;
 }
 
 export interface GetNotYetCheckedOptions extends AuthRepoMethodGetRequestOptions {
@@ -125,6 +132,19 @@ export class OrganizationVulnerabilitiesRepository extends BaseRepository {
         ...(options.periods ? { periods: options.periods } : {}),
       },
       url: this.buildUrl(`/org/${options.orgId}/vulnerabilities/trend`),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+    return response.data;
+  }
+
+  /** The organization's remediations, most urgent first. */
+  async getFixNext(options: GetFixNextOptions): Promise<FixNextEntry[]> {
+    const response = await this.getRequest<{ data: FixNextEntry[] }>({
+      bearerToken: options.bearerToken,
+      queryParams: options.limit ? { limit: options.limit } : {},
+      url: this.buildUrl(`/org/${options.orgId}/remediations/fix-next`),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
       handleOtherErrors: options.handleOtherErrors,

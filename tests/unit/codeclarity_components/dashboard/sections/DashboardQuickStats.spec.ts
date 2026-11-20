@@ -4,20 +4,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useDashboardRequest } from "@/codeclarity_components/dashboard/composables/useDashboardRequest";
 import DashboardQuickStats from "@/codeclarity_components/dashboard/sections/DashboardQuickStats.vue";
 
-const getRecentVulns = vi.fn();
+const getVulnerabilities = vi.fn();
 const getQuickStats = vi.fn();
 
 async function mountTiles(): Promise<ReturnType<typeof mount>> {
   const quickStats = useDashboardRequest(
     async () => (await getQuickStats()).data,
   );
-  const recentVulns = useDashboardRequest(
-    async () => (await getRecentVulns()).data,
+  const vulnerabilityList = useDashboardRequest(
+    async () => await getVulnerabilities(),
   );
   void quickStats.run();
-  void recentVulns.run();
+  void vulnerabilityList.run();
   const wrapper = mount(DashboardQuickStats, {
-    props: { quickStats, recentVulns },
+    props: { quickStats, vulnerabilityList },
   });
   await flushPromises();
   return wrapper;
@@ -25,19 +25,14 @@ async function mountTiles(): Promise<ReturnType<typeof mount>> {
 
 describe("DashboardQuickStats", () => {
   beforeEach(() => {
-    getRecentVulns.mockReset();
+    getVulnerabilities.mockReset();
     getQuickStats.mockReset();
   });
 
   it("shows critical and high counts, projects scanned and the security grade", async () => {
-    getRecentVulns.mockResolvedValue({
-      data: {
-        vulns: {},
-        severity_count: [
-          { severity_class: "CRITICAL", count: 1 },
-          { severity_class: "HIGH", count: 0 },
-        ],
-      },
+    getVulnerabilities.mockResolvedValue({
+      data: [],
+      severity_counts: { CRITICAL: 1, HIGH: 0, MEDIUM: 0, LOW: 0, NONE: 0 },
     });
     getQuickStats.mockResolvedValue({
       data: { nmb_projects: 3, max_grade: { score: 4.2, class: "B" } },
@@ -58,8 +53,9 @@ describe("DashboardQuickStats", () => {
   });
 
   it("shows an error instead of numbers when a request fails", async () => {
-    getRecentVulns.mockResolvedValue({
-      data: { vulns: {}, severity_count: [] },
+    getVulnerabilities.mockResolvedValue({
+      data: [],
+      severity_counts: { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0, NONE: 0 },
     });
     getQuickStats.mockRejectedValueOnce(new Error("down"));
     getQuickStats.mockResolvedValueOnce({
@@ -75,7 +71,7 @@ describe("DashboardQuickStats", () => {
 
     await wrapper.find('[role="alert"] button').trigger("click");
     await flushPromises();
-    expect(getRecentVulns).toHaveBeenCalledTimes(1);
+    expect(getVulnerabilities).toHaveBeenCalledTimes(1);
     expect(wrapper.find('[aria-label="Project numbers"]').text()).toContain(
       "B",
     );

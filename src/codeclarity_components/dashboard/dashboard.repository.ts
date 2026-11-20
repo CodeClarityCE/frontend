@@ -11,7 +11,6 @@ import { PaginatedResponse } from "../../utils/api/responses/PaginatedResponse";
 import {
   AttackVectorDist,
   CIAImpact,
-  type LatestVulns,
   type LicenseDist,
   ProjectQuickStats,
   type QuickStats,
@@ -134,29 +133,6 @@ export class DashboardRepository extends BaseRepository {
     const data = Entity.unMarshal<DataResponse<QuickStats>>(
       response,
       DataResponse<QuickStats>,
-    );
-    return data;
-  }
-
-  async getRecentVulns(
-    options: GetDashboardComponentRequestOptions,
-  ): Promise<DataResponse<LatestVulns>> {
-    const RELATIVE_URL = `/org/${options.orgId}/dashboard/recent_vulns`;
-
-    const response = await this.getRequest<DataResponse<LatestVulns>>({
-      bearerToken: options.bearerToken,
-      queryParams: {
-        integrationIds: options.integrationIds,
-      },
-      url: this.buildUrl(RELATIVE_URL),
-      handleBusinessErrors: options.handleBusinessErrors,
-      handleHTTPErrors: options.handleHTTPErrors,
-      handleOtherErrors: options.handleOtherErrors,
-    });
-
-    const data = Entity.unMarshal<DataResponse<LatestVulns>>(
-      response,
-      DataResponse<LatestVulns>,
     );
     return data;
   }

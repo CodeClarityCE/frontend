@@ -2,7 +2,7 @@
 import { computed } from "vue";
 
 import { SeverityBadge } from "@/base_components/page";
-import type { LatestVulns } from "@/codeclarity_components/dashboard/dashboard.entity";
+import type { OrganizationVulnerabilityList } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
 import {
   SEVERITY_LABELS,
@@ -14,13 +14,15 @@ import type { DashboardRequest } from "../composables/useDashboardRequest";
 import CardState from "../layout/CardState.vue";
 
 const props = defineProps<{
-  request: DashboardRequest<LatestVulns>;
+  request: DashboardRequest<OrganizationVulnerabilityList>;
 }>();
 
 interface Vuln {
+  id: string;
   severity: number;
   level: SeverityLevel;
-  name: string;
+  projects: number;
+  instances: number;
 }
 
 /** The levels counted at the top of the card */
@@ -39,21 +41,27 @@ const counts = computed(() => {
     low: 0,
     none: 0,
   };
-  for (const item of props.request.data?.severity_count ?? []) {
-    next[levelOf(item.severity_class)] = item.count;
+  for (const [severityClass, count] of Object.entries(
+    props.request.data?.severity_counts ?? {},
+  )) {
+    next[levelOf(severityClass)] = count;
   }
   return next;
 });
 
+// The API lists the worst vulnerabilities first.
 const vulns = computed((): Vuln[] =>
-  Object.values(props.request.data?.vulns ?? {})
-    .map((vuln) => ({
-      severity: vuln.severity ?? 0,
-      level: levelOf(vuln.severity_class),
-      name: vuln.cwe_name,
-    }))
-    .sort((a, b) => b.severity - a.severity),
+  (props.request.data?.data ?? []).map((vuln) => ({
+    id: vuln.vulnerability_id,
+    severity: vuln.severity_score ?? 0,
+    level: levelOf(vuln.severity_class),
+    projects: vuln.project_count,
+    instances: vuln.instance_count,
+  })),
 );
+
+const plural = (count: number, noun: string): string =>
+  `${count} ${noun}${count === 1 ? "" : "s"}`;
 </script>
 
 <template>
@@ -88,17 +96,29 @@ const vulns = computed((): Vuln[] =>
         class="rounded-control border"
         :class="{ 'h-64': vulns.length > 6 }"
       >
-        <ul aria-label="Most severe vulnerabilities" class="divide-y">
-          <li
-            v-for="(vuln, index) in vulns"
-            :key="index"
-            class="flex items-center gap-3 px-3 py-2 text-sm"
-          >
-            <SeverityBadge
-              :level="vuln.level"
-              :score="vuln.severity || undefined"
-            />
-            <span class="truncate">{{ vuln.name }}</span>
+        <ul aria-label="Vulnerabilities in your projects" class="divide-y">
+          <li v-for="vuln in vulns" :key="vuln.id">
+            <RouterLink
+              :to="{
+                name: 'orgVulnerability',
+                params: { vulnerabilityId: vuln.id },
+              }"
+              class="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+            >
+              <SeverityBadge
+                :level="vuln.level"
+                :score="vuln.severity || undefined"
+              />
+              <span class="min-w-0 flex-1 truncate font-medium">{{
+                vuln.id
+              }}</span>
+              <span class="shrink-0 text-muted-foreground">{{
+                plural(vuln.projects, "project")
+              }}</span>
+              <span class="shrink-0 text-muted-foreground tabular-nums">{{
+                plural(vuln.instances, "instance")
+              }}</span>
+            </RouterLink>
           </li>
         </ul>
       </ScrollArea>

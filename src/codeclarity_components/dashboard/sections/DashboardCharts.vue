@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LatestVulns } from "@/codeclarity_components/dashboard/dashboard.entity";
+import type { OrganizationVulnerabilityList } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
 import {
   Card,
   CardContent,
@@ -19,7 +19,7 @@ import type { DashboardRequest } from "../composables/useDashboardRequest";
 defineProps<{
   integrationIds: string[];
   /** Shared with the project numbers, so it is requested once */
-  recentVulns: DashboardRequest<LatestVulns>;
+  vulnerabilityList: DashboardRequest<OrganizationVulnerabilityList>;
 }>();
 </script>
 
@@ -44,7 +44,7 @@ defineProps<{
         >
       </CardHeader>
       <CardContent>
-        <CurrentVulns :request="recentVulns" />
+        <CurrentVulns :request="vulnerabilityList" />
       </CardContent>
     </Card>
     <Card class="rounded-card shadow-card">

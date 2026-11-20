@@ -287,6 +287,7 @@ export class DashboardPage {
       };
       if (path in dashboard) return fulfil(route, { data: dashboard[path] });
       if (path === "/vulnerabilities") return fulfil(route, vulnerabilities);
+      if (path === "/remediations/fix-next") return fulfil(route, { data: [] });
       if (path === "/freshness") {
         return fulfil(route, { data: { threshold_days: 14, projects: [] } });
       }

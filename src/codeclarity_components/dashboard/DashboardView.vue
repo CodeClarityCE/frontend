@@ -3,8 +3,16 @@ import { RefreshCw } from "@lucide/vue";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
 import { Button } from "@/shadcn/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shadcn/ui/card";
 import { Skeleton } from "@/shadcn/ui/skeleton";
 
+import FixNext from "./charts/FixNext.vue";
 import { useDashboardData } from "./composables/useDashboardData";
 import DashboardEmptyState from "./layout/DashboardEmptyState.vue";
 import DashboardCharts from "./sections/DashboardCharts.vue";
@@ -79,6 +87,19 @@ const {
         @retry="refreshData"
       />
       <template v-else>
+        <Card class="rounded-card shadow-card">
+          <CardHeader>
+            <CardTitle class="text-base">Fix next</CardTitle>
+            <CardDescription>
+              Remediations ranked by the worst severity they resolve, then known
+              exploited or high EPSS, then prod over dev only, then how many
+              instances they resolve
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FixNext />
+          </CardContent>
+        </Card>
         <DashboardOverviewFilters
           :trend="trend"
           :projects="orgData?.projects ?? []"

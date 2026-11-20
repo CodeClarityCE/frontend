@@ -9,6 +9,10 @@ import {
 } from "class-validator";
 
 import type { StatusTone } from "@/base_components/page";
+import type {
+  RemediationKind,
+  TopLevelDependency,
+} from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
 
 // ============================================
 // Enums
@@ -186,6 +190,46 @@ export class TicketDetails extends TicketSummary {
 
   @IsNumber()
   active_occurrence_count!: number;
+
+  // Null for tickets that track one vulnerability.
+  @IsOptional()
+  remediation?: TicketRemediation | null;
+
+  @IsOptional()
+  instances?: TicketInstance[];
+}
+
+/** The remediation a ticket tracks (ADR 0016). */
+export interface TicketRemediation {
+  kind: RemediationKind;
+  workspace: string;
+  package: string;
+  installed_versions: string[];
+  target_version: string;
+  potentially_breaking: boolean;
+  package_manager: string | null;
+  command: string | null;
+  manifest_edit: { file: string; text: string } | null;
+}
+
+/** One vulnerability instance a ticket's remediation resolves. */
+export interface TicketInstance {
+  id: string;
+  analysis_id: string;
+  vulnerability_id: string;
+  analysis_vulnerability_id: string;
+  package: string;
+  ecosystem: string | null;
+  installed_version: string;
+  workspace: string;
+  prod: boolean;
+  severity_class: string;
+  severity_score: number | null;
+  fixed_version: string | null;
+  top_level_dependencies: TopLevelDependency[];
+  is_active: boolean;
+  detected_on: string;
+  resolved_on: string | null;
 }
 
 // ============================================
@@ -293,6 +337,21 @@ export interface BulkUpdateTicketsRequest {
   status?: TicketStatus;
   priority?: TicketPriority;
   assigned_to_id?: string;
+}
+
+/** Names one remediation of the project's current analysis. */
+export interface CreateRemediationTicketRequest {
+  kind: RemediationKind;
+  workspace: string;
+  package: string;
+  allow_duplicate?: boolean;
+}
+
+/** The created ticket, or the open one that already tracks the remediation. */
+export interface CreateRemediationTicketResult {
+  created: boolean;
+  ticket_id: string | null;
+  duplicate: { ticket_id: string; title: string; status: TicketStatus } | null;
 }
 
 export interface CheckDuplicateRequest {

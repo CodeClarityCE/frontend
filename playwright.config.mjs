@@ -15,12 +15,38 @@ import { defineConfig, devices } from "@playwright/test";
  *   but Caddy only answers for the "localhost" server name.
  * - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: use a system Chromium instead of a
  *   Playwright-downloaded one.
+ *
+ * Browsers: chromium desktop and Pixel 5 run by default. E2E_ALL_BROWSERS=1
+ * adds desktop firefox and webkit, for nightly or manual runs.
  */
 const liveBaseURL = process.env.E2E_BASE_URL;
 const hostResolverRules = process.env.E2E_HOST_RESOLVER_RULES;
 const chromiumPath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
 const port = Number(process.env.E2E_PORT ?? 4173);
 const localURL = `http://127.0.0.1:${port}`;
+const allBrowsers = !!process.env.E2E_ALL_BROWSERS;
+
+// Chromium options shared by the desktop and Pixel 5 projects.
+const chromiumLaunch = {
+  ...(chromiumPath ? { executablePath: chromiumPath } : {}),
+  args: hostResolverRules ? [`--host-resolver-rules=${hostResolverRules}`] : [],
+};
+
+const defaultProjects = [
+  {
+    name: "chromium",
+    use: { ...devices["Desktop Chrome"], launchOptions: chromiumLaunch },
+  },
+  {
+    name: "pixel-5",
+    use: { ...devices["Pixel 5"], launchOptions: chromiumLaunch },
+  },
+];
+
+const extraBrowsers = [
+  { name: "firefox", use: { ...devices["Desktop Firefox"] } },
+  { name: "webkit", use: { ...devices["Desktop Safari"] } },
+];
 
 /**
  * Playwright configuration for CodeClarity E2E tests
@@ -61,41 +87,7 @@ export default defineConfig({
     video: "retain-on-failure",
   },
 
-  /* Configure projects for major browsers */
-  projects: [
-    {
-      name: "chromium",
-      use: {
-        ...devices["Desktop Chrome"],
-        launchOptions: {
-          ...(chromiumPath ? { executablePath: chromiumPath } : {}),
-          args: hostResolverRules
-            ? [`--host-resolver-rules=${hostResolverRules}`]
-            : [],
-        },
-      },
-    },
-
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
-
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    },
-
-    /* Test against mobile viewports */
-    {
-      name: "Mobile Chrome",
-      use: { ...devices["Pixel 5"] },
-    },
-    {
-      name: "Mobile Safari",
-      use: { ...devices["iPhone 12"] },
-    },
-  ],
+  projects: [...defaultProjects, ...(allBrowsers ? extraBrowsers : [])],
 
   /* Run your local dev server before starting the tests */
   webServer: liveBaseURL

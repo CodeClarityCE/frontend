@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
+import fs from "node:fs";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { BACKGROUND, expectTheme, storeTheme } from "./helpers/theme.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 
@@ -151,6 +153,23 @@ test.describe("E2E harness", () => {
         timeout: 500,
       }),
     ).rejects.toThrow();
+  });
+
+  test("screenshots are compared on chromium desktop only", async ({
+    page,
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name === "chromium",
+      "Chromium desktop compares screenshots, so this name would need a baseline",
+    );
+    await page.setContent(
+      `<html lang="en"><head><title>t</title></head><body><main><h1>Hello</h1></main></body></html>`,
+    );
+    // No baseline exists under this name, so a comparison would fail.
+    await expectScreenshots(page, "harness-never-compared");
+    expect(
+      fs.existsSync(testInfo.snapshotPath("harness-never-compared-1280.png")),
+    ).toBe(false);
   });
 });
 

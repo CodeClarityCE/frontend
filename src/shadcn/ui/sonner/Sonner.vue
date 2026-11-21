@@ -16,13 +16,9 @@ const delegatedProps = reactiveOmit(props, "toastOptions");
 </script>
 
 <template>
+  <!-- Toast colours from the theme tokens; important, to beat vue-sonner's own per-theme ones. -->
   <Sonner
-    class="toaster group"
-    :style="{
-      '--normal-bg': 'var(--popover)',
-      '--normal-text': 'var(--popover-foreground)',
-      '--normal-border': 'var(--border)',
-    }"
+    class="toaster group [--normal-bg:var(--popover)]! [--normal-border:var(--border)]! [--normal-text:var(--popover-foreground)]!"
     :toast-options="{
       classes: {
         toast:

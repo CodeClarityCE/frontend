@@ -92,6 +92,8 @@ const two = list(
       instance_count: 3,
       uncorroborated_count: 0,
       known_exploited: false,
+      ticketed_instance_count: 0,
+      overdue_instance_count: 0,
     },
     {
       vulnerability_id: "CVE-2024-0002",
@@ -101,6 +103,8 @@ const two = list(
       instance_count: 1,
       uncorroborated_count: 0,
       known_exploited: false,
+      ticketed_instance_count: 0,
+      overdue_instance_count: 0,
     },
   ],
   { CRITICAL: 3, MEDIUM: 1 },
@@ -176,6 +180,79 @@ describe("CurrentVulns", () => {
       .findAll("li");
     expect(rows[0]!.text()).toContain("Known exploited");
     expect(rows[1]!.text()).not.toContain("Known exploited");
+  });
+
+  it("greys out vulnerabilities whose every instance has an open ticket", async () => {
+    getVulnerabilities.mockResolvedValue(
+      list([
+        { ...two.data[0]!, ticketed_instance_count: 3 },
+        { ...two.data[1]!, ticketed_instance_count: 0 },
+      ]),
+    );
+    const { wrapper } = await mountCard();
+
+    const links = wrapper
+      .find('[aria-label="Vulnerabilities in your projects"]')
+      .findAll("li a");
+    expect(links[0]!.text()).toContain("Ticketed");
+    expect(links[0]!.classes()).toContain("opacity-60");
+    expect(links[1]!.text()).not.toContain("Ticketed");
+    expect(links[1]!.classes()).not.toContain("opacity-60");
+  });
+
+  it("flags a vulnerability with an overdue ticket", async () => {
+    getVulnerabilities.mockResolvedValue(
+      list([
+        {
+          ...two.data[0]!,
+          ticketed_instance_count: 3,
+          overdue_instance_count: 1,
+        },
+        two.data[1]!,
+      ]),
+    );
+    const { wrapper } = await mountCard();
+
+    const links = wrapper
+      .find('[aria-label="Vulnerabilities in your projects"]')
+      .findAll("li a");
+    expect(links[0]!.text()).toContain("Overdue");
+    expect(links[1]!.text()).not.toContain("Overdue");
+  });
+
+  it("does not grey out a vulnerability with some instances left untracked", async () => {
+    getVulnerabilities.mockResolvedValue(
+      list([{ ...two.data[0]!, ticketed_instance_count: 2 }]),
+    );
+    const { wrapper } = await mountCard();
+
+    const link = wrapper.find(
+      '[aria-label="Vulnerabilities in your projects"] li a',
+    );
+    expect(link.classes()).not.toContain("opacity-60");
+    expect(link.text()).toContain("2 of 3 ticketed");
+  });
+
+  it("narrows the list by ticket state", async () => {
+    getVulnerabilities.mockResolvedValue(two);
+    const { wrapper } = await mountCard();
+    const select = wrapper.find('select[aria-label="Ticket"]');
+
+    await select.setValue("none");
+    await flushPromises();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({ ticket: "none" });
+
+    await select.setValue("open");
+    await flushPromises();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({ ticket: "open" });
+
+    await select.setValue("overdue");
+    await flushPromises();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({ ticket: "overdue" });
+
+    await select.setValue("");
+    await flushPromises();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({});
   });
 
   it("narrows the list to known exploited vulnerabilities or the others", async () => {

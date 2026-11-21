@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   analysis,
@@ -308,6 +309,7 @@ test.describe("Projects list", () => {
     ).toBeVisible();
     await expect(projects.table).toHaveCount(0);
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "projects-empty");
 
     await page.getByRole("link", { name: "Add a Project" }).click();
@@ -375,6 +377,7 @@ test.describe("Projects list", () => {
     await expect(projects.row("web-frontend")).toContainText("JavaScript");
 
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "projects-list");
 
     await page.setViewportSize({ width: 1280, height: 1024 });
@@ -385,6 +388,7 @@ test.describe("Projects list", () => {
     await dialog.getByRole("button", { name: "3 steps" }).first().click();
     await expect(dialog).toContainText("No composer.lock");
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "projects-analyses-dialog");
   });
 
@@ -543,6 +547,7 @@ test.describe("Add a Project", () => {
       page.getByRole("link", { name: "Manage integrations" }),
     ).toBeVisible();
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "projects-add-no-integration");
 
     await page.getByRole("button", { name: "Upload an archive" }).click();
@@ -731,6 +736,7 @@ test.describe("Add a Project", () => {
       "A name of at least 2 characters is required",
     );
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "projects-add-upload-errors");
   });
 
@@ -826,6 +832,7 @@ test.describe("Add a Project", () => {
     ).toHaveCount(4);
 
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "projects-add");
 
     await page.setViewportSize({ width: 1280, height: 1024 });
@@ -835,6 +842,7 @@ test.describe("Add a Project", () => {
       .getByRole("checkbox", { name: "Select example/billing" })
       .click();
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "projects-add-github");
   });
 

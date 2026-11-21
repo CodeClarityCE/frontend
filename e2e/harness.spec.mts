@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import fs from "node:fs";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep, PHONE_WIDTH } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { BACKGROUND, expectTheme, storeTheme } from "./helpers/theme.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
@@ -170,6 +171,58 @@ test.describe("E2E harness", () => {
     expect(
       fs.existsSync(testInfo.snapshotPath("harness-never-compared-1280.png")),
     ).toBe(false);
+  });
+});
+
+test.describe("Page sweep harness", () => {
+  const tabs = (style: string): string =>
+    `<style>${style}</style><div role="tablist"><button role="tab" style="cursor:pointer">One</button><div role="tab" tabindex="0">Two</div></div>`;
+
+  test("fails on a tab without a pointer cursor", async ({ page }) => {
+    await page.setContent(tabs(""));
+    await expect(expectPageSweep(page)).rejects.toThrow(/tab "Two"/);
+  });
+
+  test("passes when every control has a pointer cursor", async ({ page }) => {
+    await page.setContent(tabs("[role=tab]{cursor:pointer}"));
+    await expectPageSweep(page);
+  });
+
+  test("fails on a disabled control with a pointer cursor", async ({
+    page,
+  }) => {
+    await page.setContent(
+      `<button disabled style="cursor:pointer">Off</button>`,
+    );
+    await expect(expectPageSweep(page)).rejects.toThrow(/button "Off"/);
+  });
+
+  test("passes a disabled control that ignores the pointer", async ({
+    page,
+  }) => {
+    await page.setContent(
+      `<style>button{cursor:pointer}</style><button disabled style="pointer-events:none">Off</button><span role="switch" aria-disabled="true">Mute</span>`,
+    );
+    await expectPageSweep(page);
+  });
+
+  test("ignores hidden controls", async ({ page }) => {
+    await page.setContent(
+      `<div hidden><div role="tab">Hidden</div></div><div role="option" style="display:none">Gone</div>`,
+    );
+    await expectPageSweep(page);
+  });
+
+  test("fails when the page scrolls sideways on a phone", async ({ page }) => {
+    await page.setViewportSize({ width: PHONE_WIDTH, height: 800 });
+    await page.setContent(`<div style="width:600px">Wide</div>`);
+    await expect(expectPageSweep(page)).rejects.toThrow(/scrolls sideways/);
+  });
+
+  test("passes a page that fits a phone", async ({ page }) => {
+    await page.setViewportSize({ width: PHONE_WIDTH, height: 800 });
+    await page.setContent(`<div style="max-width:600px">Narrow</div>`);
+    await expectPageSweep(page);
   });
 });
 

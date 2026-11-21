@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
 import {
@@ -234,6 +235,7 @@ test.describe("Keyboard and accessibility", () => {
     await expect(detail.runRows()).toHaveCount(4);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "experiment-detail-results");
   });
 
@@ -245,6 +247,7 @@ test.describe("Keyboard and accessibility", () => {
     await expect(detail.runRows()).toHaveCount(4);
 
     await expectTheme(page, "dark");
+    await expectPageSweep(page);
     await expectScreenshots(page, "experiment-detail-results-dark");
   });
 
@@ -258,6 +261,7 @@ test.describe("Keyboard and accessibility", () => {
     await expect(detail.runRows()).toHaveCount(4);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "experiment-detail-published");
   });
 
@@ -273,6 +277,7 @@ test.describe("Keyboard and accessibility", () => {
     ).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "experiment-detail-figures");
   });
 
@@ -291,6 +296,7 @@ test.describe("Keyboard and accessibility", () => {
     ).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "experiment-detail-running");
   });
 
@@ -308,6 +314,7 @@ test.describe("Keyboard and accessibility", () => {
     );
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "experiment-detail-failed");
   });
 });

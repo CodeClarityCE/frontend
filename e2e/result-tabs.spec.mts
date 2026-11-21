@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   ANALYSIS,
@@ -244,6 +245,7 @@ test.describe("SBOM results", () => {
     await expect(tabs.rows("Dependencies")).toHaveCount(5);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "sbom");
   });
 
@@ -259,6 +261,7 @@ test.describe("SBOM results", () => {
     release();
     await expect(page.getByText("No dependencies found")).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "sbom-empty");
   });
 
@@ -360,6 +363,7 @@ test.describe("SBOM dependency details", () => {
     ).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "sbom-details");
   });
 });
@@ -470,6 +474,7 @@ test.describe("License results", () => {
     release();
     await expect(tabs.rows("Licenses")).toHaveCount(3);
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "licenses");
   });
 });
@@ -554,6 +559,7 @@ test.describe("Patch results", () => {
     release();
     await expect(tabs.rows("Patches")).toHaveCount(3);
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "patches");
   });
 });
@@ -592,6 +598,7 @@ test.describe("CodeQL results", () => {
     await expect(tabs.rows("CodeQL findings")).toHaveCount(2);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "codeql");
   });
 
@@ -604,6 +611,7 @@ test.describe("CodeQL results", () => {
 
     await expect(page.getByText("No findings")).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "codeql-empty");
   });
 });

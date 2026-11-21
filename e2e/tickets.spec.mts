@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   remediationDetail,
@@ -168,6 +169,7 @@ test.describe("Tickets list", () => {
     await expect(tickets.rows()).toHaveCount(3);
 
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "tickets-list");
   });
 
@@ -180,6 +182,7 @@ test.describe("Tickets list", () => {
     await expect(page.getByText("No tickets yet")).toBeVisible();
 
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "tickets-empty");
   });
 
@@ -229,6 +232,7 @@ test.describe("Kanban board", () => {
     ).toBeVisible();
 
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "tickets-kanban");
   });
 });
@@ -361,6 +365,7 @@ test.describe("Ticket page", () => {
     await expect(tickets.detail()).toContainText("CVSS v3.1");
 
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "ticket-page");
   });
 
@@ -373,6 +378,7 @@ test.describe("Ticket page", () => {
     await expect(tickets.detail()).toContainText("Resolves");
 
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "ticket-page-remediation");
   });
 });
@@ -430,6 +436,7 @@ test.describe("Ticket integrations", () => {
     await expect(dialog).not.toContainText("Workspace");
 
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "tickets-integrations");
   });
 });
@@ -449,6 +456,7 @@ test.describe("ClickUp authorisation callback", () => {
       "No authorization code received from ClickUp",
     );
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "tickets-clickup-callback-error");
 
     await page.getByRole("link", { name: "Go to Tickets" }).click();

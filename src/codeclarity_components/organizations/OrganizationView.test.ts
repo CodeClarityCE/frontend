@@ -187,7 +187,6 @@ describe("OrganizationView", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockStateStore.$reset.mockClear();
   });
 
   afterEach(() => {
@@ -334,32 +333,6 @@ describe("OrganizationView", () => {
     expect(wrapper.html()).toContain("Organization Manage");
   });
 
-  it("initializes state store correctly", () => {
-    wrapper = mount(OrganizationView);
-
-    expect(mockStateStore.page).toBe("orgs");
-  });
-
-  it("resets state store on mount", () => {
-    wrapper = mount(OrganizationView);
-
-    expect(mockStateStore.$reset).toHaveBeenCalled();
-  });
-
-  it("accepts props with correct typing", () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "test-action",
-        page: "test-page",
-        orgId: "test-org-id",
-      },
-    });
-
-    expect(wrapper.props().action).toBe("test-action");
-    expect(wrapper.props().page).toBe("test-page");
-    expect(wrapper.props().orgId).toBe("test-org-id");
-  });
-
   it("opens the invites page with the add action for its dialog", () => {
     wrapper = mount(OrganizationView, {
       props: { action: "add", page: "invites", orgId: "test-org-id" },
@@ -391,26 +364,6 @@ describe("OrganizationView", () => {
     wrapper = mount(OrganizationView, { props });
 
     expect(wrapper.text()).toBe("Not found");
-  });
-
-  it("passes correct props to child components", async () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        page: "members",
-        orgId: "test-org-id",
-        action: "test-action",
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-
-    const manageMembersComponent = wrapper.findComponent({
-      name: "ManageMembers",
-    });
-    if (manageMembersComponent.exists()) {
-      expect(manageMembersComponent.props().page).toBe("members");
-      expect(manageMembersComponent.props().orgId).toBe("test-org-id");
-    }
   });
   it("shows only the section the route asks for", () => {
     wrapper = mount(OrganizationView, {

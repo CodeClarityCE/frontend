@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 
@@ -301,9 +302,11 @@ test.describe("App shell accessibility and look", () => {
   test("screenshots", async ({ page }) => {
     // The page body belongs to each page's own spec; only the shell is compared here.
     await shell.hidePageContent();
+    await expectPageSweep(page);
     await expectScreenshots(page, "shell");
 
     await page.getByRole("button", { name: "Collapse sidebar" }).click();
+    await expectPageSweep(page);
     await expectScreenshots(page, "shell-collapsed");
     await page.getByRole("button", { name: "Expand sidebar" }).click();
 
@@ -311,6 +314,7 @@ test.describe("App shell accessibility and look", () => {
     await expect(
       shell.palette.getByRole("option", { name: "Fix lag study" }),
     ).toBeVisible();
+    await expectPageSweep(page);
     await expectScreenshots(page, "palette");
   });
 });

@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
 import { DashboardPage, week } from "./pages/dashboard.page.mjs";
@@ -580,6 +581,7 @@ test.describe("Whole page", () => {
     ).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "dashboard");
   });
 
@@ -598,6 +600,7 @@ test.describe("Whole page", () => {
     ).toBeVisible();
 
     await expectTheme(page, "dark");
+    await expectPageSweep(page);
     await expectScreenshots(page, "dashboard-dark");
   });
 
@@ -615,6 +618,7 @@ test.describe("Whole page", () => {
     ).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "dashboard-empty");
   });
 });

@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { OrgIntegrationsPage } from "./pages/org-integrations.page.mjs";
 
@@ -316,14 +317,17 @@ test.describe("Integrations accessibility and looks", () => {
     await integrations.signIn();
     await integrations.gotoList();
     await expect(integrations.rows()).toHaveCount(4);
+    await expectPageSweep(page);
     await expectScreenshots(page, "org-integrations");
 
     await integrations.gotoAdd("GITHUB");
     await page.getByRole("button", { name: "Connect GitHub" }).click();
+    await expectPageSweep(page);
     await expectScreenshots(page, "org-integrations-add-github");
 
     await integrations.gotoManage("GITLAB", "gl-1");
     await expect(page.getByText("The token expires soon")).toBeVisible();
+    await expectPageSweep(page);
     await expectScreenshots(page, "org-integrations-manage");
   });
 });

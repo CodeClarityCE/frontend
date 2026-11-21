@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import user from "./fixtures/user.json" with { type: "json" };
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 
 const org = {
   id: "org-123",
@@ -82,5 +83,6 @@ test.describe("Toasts", () => {
     await expect(
       notifications.getByText("Failed to load the dataset"),
     ).toBeVisible();
+    await expectPageSweep(page);
   });
 });

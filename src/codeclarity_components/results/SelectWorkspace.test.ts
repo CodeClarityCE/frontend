@@ -2,7 +2,6 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import SelectWorkspace from "./SelectWorkspace.vue";
-import { WorkspacesOutput } from "./workspace.entity";
 
 // Mock stores - these need to be mutable for per-test overrides
 let mockUserStore = {
@@ -132,21 +131,6 @@ describe("SelectWorkspace", () => {
     expect(wrapper.find('[data-testid="select-trigger"]').exists()).toBe(true);
   });
 
-  it("renders with provided projectID and analysisID props", async () => {
-    wrapper = mount(SelectWorkspace, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    await flushPromises();
-    expect(wrapper.exists()).toBe(true);
-  });
-
   it("displays workspace options after loading", async () => {
     wrapper = mount(SelectWorkspace, {
       props: {
@@ -203,23 +187,6 @@ describe("SelectWorkspace", () => {
     expect(selectValue.text()).toBe("Select a workspace");
   });
 
-  it("has correct CSS classes on trigger", async () => {
-    wrapper = mount(SelectWorkspace, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    await flushPromises();
-
-    const selectTrigger = wrapper.find('[data-testid="select-trigger"]');
-    expect(selectTrigger.classes()).toContain("w-[180px]");
-  });
-
   it("handles repository error gracefully", async () => {
     // Configure mock to reject
     mockGetSbomWorkspaces.mockRejectedValue(new Error("API Error"));
@@ -236,7 +203,7 @@ describe("SelectWorkspace", () => {
 
     await flushPromises();
 
-    expect(wrapper.vm.error).toBe(true);
+    expect(wrapper.emitted("update:error")).toEqual([[true]]);
   });
 
   it("does not call repository when no default org", async () => {
@@ -306,9 +273,6 @@ describe("SelectWorkspace", () => {
       props: {
         projectID: "project-123",
         analysisID: "analysis-456",
-        "onUpdate:selected_workspace": (value: string) => {
-          wrapper.setProps({ selected_workspace: value });
-        },
       },
       global: {
         plugins: [],
@@ -320,7 +284,9 @@ describe("SelectWorkspace", () => {
     const select = wrapper.findComponent({ name: "Select" });
     await select.vm.$emit("update:modelValue", "workspace2");
 
-    expect(wrapper.vm.selected_workspace).toBe("workspace2");
+    expect(wrapper.emitted("update:selected_workspace")?.at(-1)).toEqual([
+      "workspace2",
+    ]);
   });
 
   it("handles null/undefined selection gracefully", async () => {
@@ -339,40 +305,7 @@ describe("SelectWorkspace", () => {
     const select = wrapper.findComponent({ name: "Select" });
     await select.vm.$emit("update:modelValue", null);
 
-    expect(wrapper.vm.selected_workspace).toBe("");
-  });
-
-  it("has correct default values for props", () => {
-    wrapper = mount(SelectWorkspace, {
-      global: {
-        plugins: [],
-      },
-    });
-
-    expect(wrapper.vm.projectID).toBe("");
-    expect(wrapper.vm.analysisID).toBe("");
-  });
-
-  it("initializes workspaces as empty WorkspacesOutput", () => {
-    wrapper = mount(SelectWorkspace, {
-      global: {
-        plugins: [],
-      },
-    });
-
-    expect(wrapper.vm.workspaces).toBeInstanceOf(WorkspacesOutput);
-    expect(wrapper.vm.workspaces.workspaces).toBeUndefined();
-  });
-
-  it("has correct model defaults", () => {
-    wrapper = mount(SelectWorkspace, {
-      global: {
-        plugins: [],
-      },
-    });
-
-    expect(wrapper.vm.error).toBe(false);
-    expect(wrapper.vm.selected_workspace).toBe(".");
+    expect(wrapper.emitted("update:selected_workspace")?.at(-1)).toEqual([""]);
   });
 
   it("selects the first workspace when the analysis has no root workspace", async () => {

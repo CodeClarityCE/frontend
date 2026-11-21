@@ -215,13 +215,18 @@ test.describe("Page sweep harness", () => {
 
   test("fails when the page scrolls sideways on a phone", async ({ page }) => {
     await page.setViewportSize({ width: PHONE_WIDTH, height: 800 });
-    await page.setContent(`<div style="width:600px">Wide</div>`);
+    // Like the app, so a phone lays it out at device width, not 980px.
+    await page.setContent(
+      `<meta name="viewport" content="width=device-width, initial-scale=1"><div style="width:600px">Wide</div>`,
+    );
     await expect(expectPageSweep(page)).rejects.toThrow(/scrolls sideways/);
   });
 
   test("passes a page that fits a phone", async ({ page }) => {
     await page.setViewportSize({ width: PHONE_WIDTH, height: 800 });
-    await page.setContent(`<div style="max-width:600px">Narrow</div>`);
+    await page.setContent(
+      `<meta name="viewport" content="width=device-width, initial-scale=1"><div style="max-width:600px">Narrow</div>`,
+    );
     await expectPageSweep(page);
   });
 });

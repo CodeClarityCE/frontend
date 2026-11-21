@@ -276,6 +276,14 @@ export class TicketDashboardStats {
   @IsNumber()
   total_closed!: number;
 
+  /** Open or in-progress tickets whose due date has passed */
+  @IsNumber()
+  total_overdue!: number;
+
+  /** Open or in-progress tickets due within the next seven days */
+  @IsNumber()
+  total_due_this_week!: number;
+
   @IsDefined()
   by_priority!: {
     critical: number;
@@ -329,7 +337,8 @@ export interface UpdateTicketRequest {
   priority?: TicketPriority;
   assigned_to_id?: string;
   remediation_notes?: string;
-  due_date?: string;
+  /** Null clears the due date */
+  due_date?: string | null;
 }
 
 export interface BulkUpdateTicketsRequest {

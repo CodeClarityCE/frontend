@@ -16,6 +16,7 @@ import { RouterLink } from "vue-router";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
 import FreshnessThresholdSetting from "@/codeclarity_components/organizations/manage/FreshnessThresholdSetting.vue";
+import ServiceLevelTargetsSetting from "@/codeclarity_components/organizations/manage/ServiceLevelTargetsSetting.vue";
 import {
   MemberRole,
   type Organization,
@@ -128,6 +129,9 @@ const faqs = [
       "Three days. You can resend or revoke it from Invites while it is pending.",
   },
 ];
+
+// Shown until the organization has loaded its own targets.
+const SUGGESTED_TARGETS = { critical: 7, high: 30, medium: 90, low: null };
 
 function setOrgInfo(org: Organization): void {
   orgInfo.value = org;
@@ -245,6 +249,23 @@ function afterAction(): void {
             :disabled="savingSettings"
             aria-describedby="org-auto-resolve-hint"
             @update:model-value="setAutoResolve($event)"
+          />
+        </CardContent>
+      </Card>
+
+      <Card v-if="isAdmin" class="rounded-card shadow-card">
+        <CardHeader>
+          <h2
+            class="text-lg font-semibold leading-none tracking-tight text-foreground-strong"
+          >
+            Service level targets
+          </h2>
+        </CardHeader>
+        <CardContent>
+          <ServiceLevelTargetsSetting
+            :org-id="orgInfo.id"
+            :enabled="orgInfo.service_level_targets_enabled ?? false"
+            :days="orgInfo.service_level_targets ?? SUGGESTED_TARGETS"
           />
         </CardContent>
       </Card>

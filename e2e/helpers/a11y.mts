@@ -142,9 +142,9 @@ const storeChoice = (
   page.evaluate(
     ([key, v]) => {
       try {
-        const old = localStorage.getItem(key!);
-        if (v === null) localStorage.removeItem(key!);
-        else localStorage.setItem(key!, v!);
+        const old = localStorage.getItem(key);
+        if (v === null) localStorage.removeItem(key);
+        else localStorage.setItem(key, v);
         window.dispatchEvent(
           new StorageEvent("storage", { key, oldValue: old, newValue: v }),
         );

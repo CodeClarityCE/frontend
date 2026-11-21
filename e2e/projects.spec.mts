@@ -512,6 +512,53 @@ test.describe("Projects list", () => {
   });
 });
 
+// The analyses route without a page opens the same project list.
+test.describe("Analyses without a page", () => {
+  test("lists the projects, passes axe and starts a new analysis", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.shell.goto("/analyses");
+
+    await expect(projects.heading).toHaveText("Projects");
+    await expect(projects.rows()).toHaveCount(3);
+    await expect(projects.row("web-frontend")).toContainText("JavaScript");
+    await axe(page);
+    await expectPageSweep(page);
+    // The same tree as /projects, so it shares that snapshot.
+    await expectMainSnapshot(page, "projects-list");
+
+    await page
+      .getByRole("link", { name: "New analysis of example/web-frontend" })
+      .click();
+    await expect(page).toHaveURL(/\/analyses\/add\?id=p-1$/);
+  });
+
+  test("with no projects offers Add a Project", async ({ page }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn({ projects: [] });
+    await projects.shell.goto("/analyses");
+
+    await expect(
+      page.getByRole("heading", { name: "No Projects yet" }),
+    ).toBeVisible();
+    await axe(page);
+    await expectPageSweep(page);
+  });
+
+  test("a failed load says so", async ({ page }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn({ failList: true });
+    await projects.shell.goto("/analyses");
+
+    await expect(page.getByRole("alert")).toContainText(
+      "The projects could not be loaded.",
+    );
+    await expectPageSweep(page);
+  });
+});
+
 function projects_one(): Record<string, unknown> {
   return project("p-1", "example/web-frontend", {
     analyses: [

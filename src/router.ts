@@ -1,5 +1,6 @@
 import type { Component } from "vue";
 import {
+  createMemoryHistory,
   createRouter,
   createWebHistory,
   type RouteLocationNormalized,
@@ -171,7 +172,11 @@ async function fetchFallbackOrg(
 }
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  // Unit tests run without a browser address bar.
+  history:
+    import.meta.env.MODE === "test"
+      ? createMemoryHistory()
+      : createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: "/",

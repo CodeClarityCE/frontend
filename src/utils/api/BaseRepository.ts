@@ -1,7 +1,5 @@
 import { toast } from "vue-sonner";
 
-import router from "@/router";
-
 import { APIErrors } from "./ApiErrors";
 
 // Parses a JSON body; a 204 or an empty body gives undefined.
@@ -463,7 +461,10 @@ export class BaseRepository {
 
     if (isApiErrorResponse(responseBody)) {
       if (responseBody.error_code === (APIErrors.NotAuthenticated as string)) {
-        void router.push("/login");
+        // Loaded here because the router imports every repository through its views.
+        void import("@/router").then(({ default: router }) =>
+          router.push("/login"),
+        );
       }
 
       let business_logic_error = new BusinessLogicError(

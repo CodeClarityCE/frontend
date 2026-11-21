@@ -1,11 +1,16 @@
 import { RuleTester } from "eslint";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import vueParser from "vue-eslint-parser";
 
 import rule from "../../../eslint-rules/design-system.js";
 import allowlist from "../../../eslint-rules/design-system-allowlist.json";
+
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 const repoRoot = resolve(__dirname, "../../..");
 

@@ -93,7 +93,14 @@ expect(app.http.requests.at(-1)?.body).toEqual({ name: "x" });
 - `signedIn: true` signs in as `e2e/fixtures/user.json` through the auth store
   and answers `GET /auth/user` and `GET /org/org-123`; leave it out to start
   signed out.
-- A request with no answer gets a 404, and is still recorded in `app.http.requests`.
+- A request with no answer gets a 404, and is still recorded in `app.http.requests`
+  (each with `method`, `path`, `query`, `headers` and the parsed `body`). Answers
+  match on method and path only, and a logged warning sends its own `POST /logs`,
+  so find the request you want rather than taking the last one.
+- `render(withToaster(Component, props), { global: app.global })` renders the
+  app's toaster next to the component, so a toast is asserted as text.
+- Answer a request with the shape the API sends: responses are validated, so an
+  empty `{}` for a `NoDataResponse` fails just as it would in the app.
 - The router is the app's own (memory history in tests), so navigation goes
   through `app.router` or `app.visit`.
 - To simulate a reload, unmount the page and call `createTestApp()` again: it

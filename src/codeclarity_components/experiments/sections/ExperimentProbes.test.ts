@@ -1,9 +1,14 @@
 import { mount } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { ExposuresBlock, ProbesBlock } from "../experiment.entity";
 
 import ExperimentProbes from "./ExperimentProbes.vue";
+
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 const probes: ProbesBlock = {
   fixes: { found: 6, ambiguous: 1, not_found: 2, not_probed: 1 },

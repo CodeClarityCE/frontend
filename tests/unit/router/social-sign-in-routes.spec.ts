@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
-// The shared test setup mocks the router; this spec needs the real routes.
-vi.unmock("@/router");
+import router from "@/router";
 
-const { default: router } = await import("@/router");
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 describe("router", () => {
   it.each(["/auth/github/callback", "/auth/gitlab/callback"])(

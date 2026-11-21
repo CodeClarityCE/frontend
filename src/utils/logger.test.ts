@@ -1,19 +1,18 @@
-import { createPinia, setActivePinia } from "pinia";
+import { render, screen } from "@testing-library/vue";
+import { setActivePinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h } from "vue";
-import { toast } from "vue-sonner";
 
-import router from "@/router";
 import { useAuthStore } from "@/stores/auth";
+
+import { createTestApp, type TestApp, withToaster } from "../../tests/real-app";
 
 import { installLogger, logger } from "./logger";
 
-// Runs the real API client and auth store so only the network is faked.
-vi.unmock("@/utils/api/BaseRepository");
-vi.unmock("pinia");
-vi.unmock("@/stores/auth");
-vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
-vi.mock("vue-sonner", () => ({ toast: { error: vi.fn() } }));
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 interface SentReport {
   url: string;
@@ -35,11 +34,22 @@ function signIn(): void {
   auth.setRefreshToken("session-token");
 }
 
+// Renders the app's toaster, so a toast would show up as a list item.
+// Without the router plugin, so no page load runs the sign-in guard.
+function showToaster(app: TestApp): void {
+  render(withToaster(defineComponent(() => () => null)), {
+    global: { plugins: [app.pinia] },
+  });
+}
+
 // Each test starts a minute later, past the duplicate window of the last one.
 let clock = Date.UTC(2026, 0, 1);
 
 describe("logger", () => {
+  let app: TestApp;
+
   beforeEach(() => {
+    app = createTestApp();
     vi.useFakeTimers();
     clock += 60_000;
     vi.setSystemTime(clock);
@@ -47,8 +57,6 @@ describe("logger", () => {
       "fetch",
       vi.fn().mockResolvedValue(new Response(null, { status: 204 })),
     );
-    vi.mocked(toast.error).mockClear();
-    setActivePinia(createPinia());
     signIn();
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -174,6 +182,7 @@ describe("logger", () => {
     ],
   ])("drops the report quietly when %s", async (_case, respond) => {
     vi.mocked(fetch).mockImplementation(respond);
+    showToaster(app);
     const rejections: unknown[] = [];
     const onRejection = (event: PromiseRejectionEvent): void => {
       rejections.push(event.reason);
@@ -185,12 +194,13 @@ describe("logger", () => {
     window.removeEventListener("unhandledrejection", onRejection);
 
     expect(fetch).toHaveBeenCalledTimes(1);
-    expect(toast.error).not.toHaveBeenCalled();
+    expect(screen.queryByRole("listitem")).toBeNull();
     expect(rejections).toEqual([]);
   });
 
   it("stays on the page when the server says the session is gone", async () => {
-    vi.mocked(router.push).mockClear();
+    showToaster(app);
+    const page = app.router.currentRoute.value.fullPath;
     vi.mocked(fetch).mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -207,8 +217,8 @@ describe("logger", () => {
     await vi.runAllTimersAsync();
 
     expect(fetch).toHaveBeenCalledTimes(1);
-    expect(router.push).not.toHaveBeenCalled();
-    expect(toast.error).not.toHaveBeenCalled();
+    expect(app.router.currentRoute.value.fullPath).toBe(page);
+    expect(screen.queryByRole("listitem")).toBeNull();
   });
 
   it("drops reports made before the app has a store", () => {
@@ -286,11 +296,11 @@ describe("installLogger", () => {
     vi.useFakeTimers();
     clock += 60_000;
     vi.setSystemTime(clock);
+    createTestApp();
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(new Response(null, { status: 204 })),
     );
-    setActivePinia(createPinia());
     signIn();
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.spyOn(console, "warn").mockImplementation(() => {});

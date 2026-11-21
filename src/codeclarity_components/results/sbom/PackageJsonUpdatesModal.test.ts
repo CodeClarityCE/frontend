@@ -1,11 +1,15 @@
 import { render, screen, within } from "@testing-library/vue";
 import { describe, expect, it, vi } from "vitest";
 
+import { createTestApp } from "../../../../tests/real-app";
+
 import PackageJsonUpdatesModal from "./PackageJsonUpdatesModal.vue";
 import type { PackageUpdate } from "./utils/packageManagerUtils";
 
-// The real helpers, so dialogs behave as in the browser.
-vi.mock("@vueuse/core", async () => await vi.importActual("@vueuse/core"));
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 const lodash: PackageUpdate = {
   name: "lodash",
@@ -29,7 +33,10 @@ function show(props: {
   packageManager?: string;
   packageManagers?: Record<string, string>;
 }): Promise<HTMLElement> {
-  render(PackageJsonUpdatesModal, { props: { open: true, ...props } });
+  render(PackageJsonUpdatesModal, {
+    props: { open: true, ...props },
+    global: createTestApp().global,
+  });
   return screen.findByRole("dialog", { name: "Update direct dependencies" });
 }
 

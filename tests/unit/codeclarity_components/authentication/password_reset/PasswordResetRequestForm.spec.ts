@@ -1,92 +1,95 @@
-import { flushPromises, mount } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/vue";
+import { describe, expect, it, vi } from "vitest";
 
 import PasswordResetRequestForm from "@/codeclarity_components/authentication/password_reset/PasswordResetRequestForm.vue";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
 
-const { requestPasswordReset } = vi.hoisted(() => ({
-  requestPasswordReset: vi.fn(),
-}));
+import { createTestApp, type TestApp } from "../../../../real-app";
 
-vi.mock("@/codeclarity_components/authentication/auth.repository", () => ({
-  AuthRepository: class {
-    requestPasswordReset = requestPasswordReset;
-  },
-}));
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BusinessLogicError: class extends Error {
-    constructor(public error_code: string) {
-      super();
-    }
-  },
-  ValidationError: class extends Error {},
-}));
-
-const RouterLink = {
-  props: ["to"],
-  template: '<a :href="to.name"><slot /></a>',
-};
-
-async function submitEmail(email: string) {
-  const wrapper = mount(PasswordResetRequestForm, {
-    global: { stubs: { RouterLink } },
+async function openRequestPage(): Promise<TestApp> {
+  const app = createTestApp();
+  app.http.on("POST", "/auth/request_password_reset", {
+    status_code: 200,
+    status: "success",
   });
-  await wrapper.find('input[placeholder="Enter your email"]').setValue(email);
-  await wrapper.find("form").trigger("submit");
-  await flushPromises();
-  return wrapper;
+  await app.visit("/password_reset_request");
+  render(PasswordResetRequestForm, { global: app.global });
+  return app;
 }
 
-describe("PasswordResetRequestForm", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    requestPasswordReset.mockResolvedValue({});
-  });
+async function submitEmail(email: string): Promise<void> {
+  const typist = userEvent.setup();
+  await typist.type(screen.getByLabelText("Email"), email);
+  await typist.click(screen.getByRole("button", { name: "Send reset link" }));
+}
 
-  it("asks for the account email", () => {
-    const wrapper = mount(PasswordResetRequestForm, {
-      global: { stubs: { RouterLink } },
-    });
-    expect(wrapper.find("h1").text()).toBe("Reset your password");
-    expect(wrapper.find("button[type=submit]").text()).toBe("Send reset link");
-    // The logo links to login too, so look among every login link.
-    expect(wrapper.findAll('a[href="login"]').map((a) => a.text())).toContain(
-      "Back to sign in",
-    );
+const resetRequests = (app: TestApp) =>
+  app.http.requests.filter((r) => r.path === "/auth/request_password_reset");
+
+describe("PasswordResetRequestForm", () => {
+  it("asks for the account email", async () => {
+    await openRequestPage();
+
+    expect(
+      screen.getByRole("heading", { name: "Reset your password" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Back to sign in" }),
+    ).toHaveAttribute("href", "/login");
   });
 
   it("sends the reset request and confirms it", async () => {
-    const wrapper = await submitEmail("john.doe@codeclarity.io");
-    await vi.waitFor(() =>
-      expect(wrapper.find("h1").text()).toBe("Check your email"),
-    );
-    expect(requestPasswordReset).toHaveBeenCalledWith({
-      data: { email: "john.doe@codeclarity.io" },
-      handleBusinessErrors: true,
-    });
-    expect(wrapper.text()).toContain("30 minutes");
-    expect(wrapper.find("form").exists()).toBe(false);
+    const app = await openRequestPage();
+
+    await submitEmail("john.doe@codeclarity.io");
+
+    expect(
+      await screen.findByRole("heading", { name: "Check your email" }),
+    ).toBeInTheDocument();
+    expect(resetRequests(app).map((r) => r.body)).toEqual([
+      { email: "john.doe@codeclarity.io" },
+    ]);
+    expect(
+      screen.getByText("30 minutes", { exact: false }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText("Email")).toBeNull();
   });
 
   it("does not send an invalid email", async () => {
-    const wrapper = await submitEmail("not-an-email");
-    await vi.waitFor(() =>
-      expect(wrapper.text()).toContain("Please enter a valid email"),
-    );
-    expect(requestPasswordReset).not.toHaveBeenCalled();
+    const app = await openRequestPage();
+
+    await submitEmail("not-an-email");
+
+    expect(
+      await screen.findByText("Please enter a valid email", { exact: false }),
+    ).toBeInTheDocument();
+    expect(resetRequests(app)).toEqual([]);
   });
 
   it("shows an error when the request fails", async () => {
-    requestPasswordReset.mockRejectedValue(
-      new BusinessLogicError("InternalError", ""),
+    const app = await openRequestPage();
+    app.http.on(
+      "POST",
+      "/auth/request_password_reset",
+      {
+        status_code: 500,
+        status: "failure",
+        error_code: "InternalError",
+        error_message: "",
+      },
+      500,
     );
-    const wrapper = await submitEmail("john.doe@codeclarity.io");
-    await vi.waitFor(() =>
-      expect(wrapper.find('[role="alert"]').text()).toContain(
-        "An error occurred during the processing of the request.",
-      ),
+
+    await submitEmail("john.doe@codeclarity.io");
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "An error occurred during the processing of the request.",
     );
-    expect(wrapper.find("form").exists()).toBe(true);
+    expect(screen.getByLabelText("Email")).toBeInTheDocument();
   });
 });

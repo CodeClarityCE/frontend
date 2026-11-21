@@ -3,27 +3,16 @@ import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 
+import { analysisPath, paginated } from "../../../../tests/fixtures/results";
+import { createTestApp, type TestApp } from "../../../../tests/real-app";
+
 import { sbomDependency } from "./sbom.fixture";
 import SbomContent from "./SbomContent.vue";
 
-const repo = vi.hoisted(() => ({
-  getSbomStat: vi.fn(),
-  getSbom: vi.fn(),
-  getVulnerabilitiesStat: vi.fn(),
-}));
-vi.mock("@/codeclarity_components/results/results.repository", () => ({
-  ResultsRepository: class {
-    getSbomStat = repo.getSbomStat;
-    getSbom = repo.getSbom;
-    getVulnerabilitiesStat = repo.getVulnerabilitiesStat;
-  },
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token", getAuthenticated: true }),
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 const stats = {
   number_of_dependencies: 3,
@@ -46,15 +35,28 @@ const dependencies = [
   sbomDependency("ms", "2.1.3"),
 ];
 
+// Signs in and answers the SBOM requests of analysis a-1 of project p-1.
+async function signedIn(): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  await app.visit("/projects");
+  app.http.on("GET", `${analysisPath}/sbom/workspaces`, {
+    data: { workspaces: ["."], package_manager: "NPM" },
+  });
+  app.http.on("GET", `${analysisPath}/sbom`, paginated(dependencies));
+  return app;
+}
+
 async function show(
   options: { stats?: object; issues?: number | null } = {},
 ): Promise<void> {
-  repo.getSbomStat.mockResolvedValue({ data: options.stats ?? stats });
-  repo.getSbom.mockResolvedValue({ data: dependencies, total_pages: 1 });
+  const app = await signedIn();
+  app.http.on("GET", `${analysisPath}/sbom/stats`, {
+    data: options.stats ?? stats,
+  });
   if (options.issues === null)
-    repo.getVulnerabilitiesStat.mockRejectedValue(new Error("none"));
+    app.http.on("GET", `${analysisPath}/vulnerabilities/stats`, {}, 500);
   else
-    repo.getVulnerabilitiesStat.mockResolvedValue({
+    app.http.on("GET", `${analysisPath}/vulnerabilities/stats`, {
       data: {
         number_of_issues: 5,
         number_of_vulnerabilities: options.issues ?? 4,
@@ -62,7 +64,7 @@ async function show(
     });
   render(SbomContent, {
     props: { analysisID: "a-1", projectID: "p-1", projectName: "web" },
-    global: { stubs: { SelectWorkspace: true } },
+    global: app.global,
   });
   await flushPromises();
 }
@@ -134,12 +136,11 @@ describe("SbomContent", () => {
   });
 
   it("says so when the SBOM cannot be loaded", async () => {
-    repo.getSbomStat.mockRejectedValue(new Error("down"));
-    repo.getSbom.mockResolvedValue({ data: [], total_pages: 1 });
-    repo.getVulnerabilitiesStat.mockResolvedValue({ data: null });
+    const app = await signedIn();
+    app.http.on("GET", `${analysisPath}/sbom/stats`, {}, 500);
     render(SbomContent, {
       props: { analysisID: "a-1", projectID: "p-1" },
-      global: { stubs: { SelectWorkspace: true } },
+      global: app.global,
     });
     await flushPromises();
     expect(screen.getByText("Could not load the SBOM")).toBeTruthy();

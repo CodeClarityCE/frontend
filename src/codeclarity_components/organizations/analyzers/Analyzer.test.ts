@@ -1,6 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { isUnavailable, unavailableLabel } from "./Analyzer";
+
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 describe("isUnavailable", () => {
   it("is false when the API says nothing or says available", () => {

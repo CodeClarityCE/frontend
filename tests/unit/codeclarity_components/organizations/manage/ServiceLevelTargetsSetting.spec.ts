@@ -1,86 +1,113 @@
-import { flushPromises, mount } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/vue";
+import { describe, expect, it, vi } from "vitest";
 
 import ServiceLevelTargetsSetting from "@/codeclarity_components/organizations/manage/ServiceLevelTargetsSetting.vue";
 
-// The real v-model helper, so the shadcn input binds its value.
-vi.unmock("@vueuse/core");
+import { createTestApp, type TestApp, withToaster } from "../../../../real-app";
 
-const { updateSettings } = vi.hoisted(() => ({ updateSettings: vi.fn() }));
-
-vi.mock(
-  "@/codeclarity_components/organizations/organization.repository",
-  () => ({
-    OrgRepository: class {
-      updateSettings = updateSettings;
-    },
-  }),
-);
-vi.mock("@/utils/toasts", () => ({
-  successToast: vi.fn(),
-  errorToast: vi.fn(),
-}));
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 const SUGGESTED = { critical: 7, high: 30, medium: 90, low: null };
+const settingsPath = "/org/org-1/settings";
 
-const mountSetting = (enabled = false) =>
-  mount(ServiceLevelTargetsSetting, {
-    props: { orgId: "org-1", enabled, days: SUGGESTED },
-  });
+function openSetting(enabled = false): TestApp {
+  const app = createTestApp({ signedIn: true });
+  app.http.on("PATCH", settingsPath, { status_code: 200, status: "success" });
+  render(
+    withToaster(ServiceLevelTargetsSetting, {
+      orgId: "org-1",
+      enabled,
+      days: SUGGESTED,
+    }),
+    { global: app.global },
+  );
+  return app;
+}
+
+const field = (label: string): HTMLInputElement =>
+  screen.getByLabelText<HTMLInputElement>(label);
+
+const sent = (app: TestApp): unknown[] =>
+  app.http.requests
+    .filter((r) => r.method === "PATCH" && r.path === settingsPath)
+    .map((r) => r.body);
 
 describe("ServiceLevelTargetsSetting", () => {
-  beforeEach(() => updateSettings.mockReset());
-
   it("shows the suggested days, with no target for Low", () => {
-    const wrapper = mountSetting();
-    const value = (id: string) =>
-      wrapper.get<HTMLInputElement>(`input#slt-${id}`).element.value;
+    openSetting();
 
-    expect(value("critical")).toBe("7");
-    expect(value("high")).toBe("30");
-    expect(value("medium")).toBe("90");
-    expect(value("low")).toBe("");
-    expect(wrapper.get("[role=switch]").attributes("aria-checked")).toBe(
-      "false",
-    );
+    expect(field("Critical").value).toBe("7");
+    expect(field("High").value).toBe("30");
+    expect(field("Medium").value).toBe("90");
+    expect(field("Low").value).toBe("");
+    expect(
+      screen.getByRole("switch", { name: "Use service level targets" }),
+    ).toHaveAttribute("aria-checked", "false");
   });
 
   it("turns targets on and saves the days, a blank field meaning no target", async () => {
-    updateSettings.mockResolvedValue({});
-    const wrapper = mountSetting();
+    const app = openSetting();
+    const typist = userEvent.setup();
 
-    await wrapper.get("[role=switch]").trigger("click");
-    await wrapper.get("input#slt-critical").setValue("3");
-    await wrapper.get("input#slt-medium").setValue("");
-    await wrapper.get("form").trigger("submit");
-    await flushPromises();
-
-    expect(updateSettings).toHaveBeenCalledWith(
-      expect.objectContaining({
-        orgId: "org-1",
-        data: {
-          service_level_targets_enabled: true,
-          service_level_targets: {
-            critical: 3,
-            high: 30,
-            medium: null,
-            low: null,
-          },
-        },
-      }),
+    await typist.click(
+      screen.getByRole("switch", { name: "Use service level targets" }),
     );
+    await typist.clear(field("Critical"));
+    await typist.type(field("Critical"), "3");
+    await typist.clear(field("Medium"));
+    await typist.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(
+      await screen.findByText("New tickets now get due dates from the targets"),
+    ).toBeInTheDocument();
+    expect(sent(app)).toEqual([
+      {
+        service_level_targets_enabled: true,
+        service_level_targets: {
+          critical: 3,
+          high: 30,
+          medium: null,
+          low: null,
+        },
+      },
+    ]);
   });
 
   it("does not send days that are not whole and positive", async () => {
-    const wrapper = mountSetting(true);
+    const app = openSetting(true);
 
-    await wrapper.get("input#slt-high").setValue("2.5");
-    await wrapper.get("form").trigger("submit");
-    await flushPromises();
+    await userEvent.clear(field("High"));
+    await userEvent.type(field("High"), "2.5");
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(updateSettings).not.toHaveBeenCalled();
-    expect(wrapper.get("[role=alert]").text()).toContain(
-      "Enter whole days from 1 to 3650, or leave a field blank for no target.",
+    expect(field("High").validity.stepMismatch).toBe(true);
+    expect(sent(app)).toEqual([]);
+  });
+
+  it("says when the member may not change the setting", async () => {
+    const app = openSetting(true);
+    app.http.on(
+      "PATCH",
+      settingsPath,
+      {
+        status_code: 403,
+        status: "failure",
+        error_code: "NotAuthorized",
+        error_message: "Not authorized",
+      },
+      403,
     );
+
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(
+      await screen.findByText(
+        "You do not have permission to change this setting",
+      ),
+    ).toBeInTheDocument();
   });
 });

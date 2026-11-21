@@ -10,6 +10,11 @@ import {
   type VulnerabilityTrendPoint,
 } from "@/codeclarity_components/vulnerabilities/vulnerability_trend.entity";
 
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
+
 const getTrend = vi.fn();
 
 function point(

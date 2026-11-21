@@ -2,26 +2,17 @@ import userEvent from "@testing-library/user-event";
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { Toaster } from "vue-sonner";
+
+import { analysisPath } from "../../../../tests/fixtures/results";
+import { createTestApp, type TestApp } from "../../../../tests/real-app";
 
 import PatchingPatches from "./PatchingPatches.vue";
 
-const repo = vi.hoisted(() => ({ getPatchesManifest: vi.fn() }));
-vi.mock("@/codeclarity_components/results/results.repository", () => ({
-  ResultsRepository: class {
-    getPatchesManifest = repo.getPatchesManifest;
-  },
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token" }),
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
-const toasts = vi.hoisted(() => ({
-  successToast: vi.fn(),
-  errorToast: vi.fn(),
-}));
-vi.mock("@/utils/toasts", () => toasts);
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 const upgrade = (
   patch_type: string | null,
@@ -51,10 +42,18 @@ function manifest(package_manager = "NPM") {
   };
 }
 
-async function show(data = manifest()): Promise<void> {
-  repo.getPatchesManifest.mockResolvedValue({ data });
-  render(PatchingPatches, { props: { analysisID: "a-1", projectID: "p-1" } });
+// Opens the patched manifest of analysis a-1 next to the app's toaster.
+async function show(data: unknown = manifest()): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  await app.visit("/projects");
+  if (data) app.http.on("GET", `${analysisPath}/patching/manifest`, { data });
+  render(Toaster, { global: app.global });
+  render(PatchingPatches, {
+    props: { analysisID: "a-1", projectID: "p-1" },
+    global: app.global,
+  });
   await flushPromises();
+  return app;
 }
 
 function changes(heading: string): string[] {
@@ -98,7 +97,7 @@ describe("PatchingPatches", () => {
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
       '{\n  "dependencies": {\n    "express": "^4.21.2"\n  }\n}',
     );
-    expect(toasts.successToast).toHaveBeenCalledWith("Copied to the clipboard");
+    expect(await screen.findByText("Copied to the clipboard")).toBeTruthy();
   });
 
   it("copies the reinstall command for the package manager", async () => {
@@ -115,9 +114,7 @@ describe("PatchingPatches", () => {
   });
 
   it("shows nothing when there is no patched manifest", async () => {
-    repo.getPatchesManifest.mockRejectedValue(new Error("none"));
-    render(PatchingPatches, { props: { analysisID: "a-1", projectID: "p-1" } });
-    await flushPromises();
+    await show(null);
     expect(screen.queryByText("Patched manifest")).toBeNull();
   });
 });

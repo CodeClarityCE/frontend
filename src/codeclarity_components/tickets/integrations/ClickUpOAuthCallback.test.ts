@@ -2,40 +2,22 @@ import { render } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createTestApp, org, type TestApp } from "../../../../tests/real-app";
+
 import { takeClickUpOAuthToken } from "./clickup-oauth-handoff";
 import ClickUpConfigModal from "./ClickUpConfigModal.vue";
 import ClickUpOAuthCallback from "./ClickUpOAuthCallback.vue";
 
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
+
 const ACCESS_TOKEN = "clickup-access-token-123";
+const callbackPath = `/org/${org.id}/tickets/integrations/clickup/oauth/callback`;
+const workspacesPath = `/org/${org.id}/tickets/integrations/CLICKUP/workspaces`;
 
-const { exchangeClickUpOAuthCode, getWorkspaces, push } = vi.hoisted(() => ({
-  exchangeClickUpOAuthCode: vi.fn(),
-  getWorkspaces: vi.fn(),
-  push: vi.fn(),
-}));
-
-vi.mock("../tickets.repository", () => ({
-  TicketsRepository: class {
-    exchangeClickUpOAuthCode = exchangeClickUpOAuthCode;
-    getWorkspaces = getWorkspaces;
-  },
-}));
-
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ defaultOrg: { id: "org-1" } }),
-}));
-
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "test-token" }),
-}));
-
-vi.mock("vue-router", () => ({
-  useRoute: () => ({ query: { code: "auth-code" } }),
-  useRouter: () => ({ push }),
-  RouterLink: { template: "<a><slot /></a>" },
-}));
-
-// The shared setup stubs storage as a no-op, so use real in-memory ones here.
+// The shared setup stubs sessionStorage as a no-op, so use a real in-memory one.
 function memoryStorage(): Storage {
   const items = new Map<string, string>();
   return {
@@ -61,48 +43,69 @@ function storedValues(): string[] {
   return values;
 }
 
+// ClickUp sends the browser back to the callback page with a code.
+async function openCallback(): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  app.http.on("POST", callbackPath, { data: { access_token: ACCESS_TOKEN } });
+  app.http.on("GET", workspacesPath, { data: [] });
+  await app.visit("/tickets/integrations/clickup/callback?code=auth-code");
+  render(ClickUpOAuthCallback, { global: app.global });
+  await flushPromises();
+  return app;
+}
+
 describe("ClickUpOAuthCallback", () => {
   beforeEach(() => {
-    vi.stubGlobal("localStorage", memoryStorage());
     vi.stubGlobal("sessionStorage", memoryStorage());
-    exchangeClickUpOAuthCode.mockReset();
-    getWorkspaces.mockReset();
-    getWorkspaces.mockResolvedValue({ data: [] });
-    push.mockReset();
     takeClickUpOAuthToken();
-    sessionStorage.setItem("clickup_oauth_org_id", "org-1");
-    exchangeClickUpOAuthCode.mockResolvedValue({
-      data: { access_token: ACCESS_TOKEN },
-    });
+    sessionStorage.setItem("clickup_oauth_org_id", org.id);
   });
 
   it("keeps the token out of browser storage and still sends it to the API", async () => {
-    render(ClickUpOAuthCallback);
-    await flushPromises();
-    render(ClickUpConfigModal);
+    const app = await openCallback();
+    render(ClickUpConfigModal, { global: app.global });
     await flushPromises();
 
-    expect(exchangeClickUpOAuthCode).toHaveBeenCalledWith(
-      expect.objectContaining({
-        orgId: "org-1",
-        data: expect.objectContaining({ code: "auth-code" }),
-        bearerToken: "test-token",
-      }),
-    );
-    expect(getWorkspaces).toHaveBeenCalledWith(
-      expect.objectContaining({
-        orgId: "org-1",
-        credentials: { access_token: ACCESS_TOKEN },
-      }),
+    const exchange = app.http.requests.find((r) => r.path === callbackPath);
+    expect(exchange?.body).toMatchObject({ code: "auth-code" });
+    const workspaces = app.http.requests.find((r) => r.path === workspacesPath);
+    expect(workspaces?.headers.get("x-integration-access-token")).toBe(
+      ACCESS_TOKEN,
     );
     expect(storedValues().join(" ")).not.toContain(ACCESS_TOKEN);
   });
 
   it("hands the token to the setup dialog in memory, once", async () => {
-    render(ClickUpOAuthCallback);
-    await flushPromises();
+    await openCallback();
 
     expect(takeClickUpOAuthToken()).toBe(ACCESS_TOKEN);
     expect(takeClickUpOAuthToken()).toBeNull();
+  });
+
+  it("goes back to the tickets page to finish the setup", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout"] });
+    try {
+      const app = await openCallback();
+
+      await vi.advanceTimersByTimeAsync(1500);
+
+      expect(app.router.currentRoute.value.path).toBe("/tickets");
+      expect(app.router.currentRoute.value.query.clickup_oauth).toBe("success");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("says so when ClickUp's code can't be exchanged", async () => {
+    const app = createTestApp({ signedIn: true });
+    app.http.on("POST", callbackPath, {}, 500);
+    await app.visit("/tickets/integrations/clickup/callback?code=auth-code");
+    const { findByText } = render(ClickUpOAuthCallback, {
+      global: app.global,
+    });
+
+    expect(
+      await findByText("Failed to connect to ClickUp. Please try again."),
+    ).toBeInTheDocument();
   });
 });

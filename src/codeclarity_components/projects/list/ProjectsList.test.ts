@@ -1,37 +1,16 @@
 import { fireEvent, render, screen, within } from "@testing-library/vue";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createMemoryHistory, createRouter } from "vue-router";
+import { describe, expect, it, vi } from "vitest";
+
+import { createTestApp, org, type TestApp } from "../../../../tests/real-app";
 
 import ProjectsList from "./ProjectsList.vue";
 
-const { getProjects, deleteProject } = vi.hoisted(() => ({
-  getProjects: vi.fn(),
-  deleteProject: vi.fn(),
-}));
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
-vi.mock("@/codeclarity_components/projects/project.repository", () => ({
-  ProjectRepository: class {
-    getProjects = getProjects;
-    deleteProject = deleteProject;
-  },
-  ProjectsSortInterface: { NAME: "name" },
-}));
-
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class {},
-  BusinessLogicError: class extends Error {},
-}));
-
-// The languages column asks the results API; not under test here.
-vi.mock(
-  "@/codeclarity_components/projects/components/ProjectLanguageDetection.vue",
-  () => ({
-    default: { name: "ProjectLanguageDetection", template: "<span />" },
-  }),
-);
-
-// The real helpers, so dialogs and inputs behave as in the browser.
-vi.mock("@vueuse/core", async () => await vi.importActual("@vueuse/core"));
+const projectsPath = `/org/${org.id}/projects`;
 
 function analysis(id: string, status: string, created_on: string) {
   return { id, status, created_on, steps: [], schedule_type: "once" };
@@ -61,45 +40,49 @@ const projects = [
   },
 ];
 
-function page(data: unknown[], totalPages = 1) {
-  return { data, total_pages: totalPages };
+// One page of projects as the API lists them.
+function page(data: unknown[], totalPages = 1, pageNumber = 0) {
+  return {
+    data,
+    entry_count: data.length,
+    page: pageNumber,
+    entries_per_page: 100,
+    total_entries: data.length,
+    total_pages: totalPages,
+    status: "success",
+    matching_count: data.length,
+    filter_count: {},
+  };
 }
 
-function renderList(): void {
-  const router = createRouter({
-    history: createMemoryHistory(),
-    routes: [
-      { path: "/", component: { template: "<div />" } },
-      {
-        path: "/projects/:page?",
-        name: "projects",
-        component: { template: "<div />" },
-      },
-      {
-        path: "/analyses/:page?",
-        name: "analyses",
-        component: { template: "<div />" },
-      },
-      { path: "/results", name: "results", component: { template: "<div />" } },
-      {
-        path: "/orgs/:action?/:page?/:orgId?",
-        name: "orgs",
-        component: { template: "<div />" },
-      },
-    ],
+// Answers each request for the project list with the page it asks for.
+function answerByPage(app: TestApp, pages: unknown[]): void {
+  const fake = globalThis.fetch;
+  vi.stubGlobal("fetch", (input: string, init?: RequestInit) => {
+    const url = new URL(String(input));
+    if (url.pathname.endsWith(projectsPath)) {
+      app.http.on(
+        "GET",
+        projectsPath,
+        pages[Number(url.searchParams.get("page"))],
+      );
+    }
+    return fake(input, init);
   });
-  render(ProjectsList, { global: { plugins: [router] } });
+}
+
+// The projects page, with the project list answered.
+async function renderList(answer: unknown = page(projects)): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  app.http.on("GET", projectsPath, answer);
+  await app.visit("/projects");
+  render(ProjectsList, { global: app.global });
+  return app;
 }
 
 describe("ProjectsList", () => {
-  beforeEach(() => {
-    getProjects.mockReset();
-    deleteProject.mockReset();
-    getProjects.mockResolvedValue(page(projects));
-  });
-
   it("lists each project with its source and latest analysis in words", async () => {
-    renderList();
+    await renderList();
 
     const row = (name: string) =>
       screen.getByText(name).closest("tr") as HTMLElement;
@@ -111,11 +94,14 @@ describe("ProjectsList", () => {
       within(row("example/web-frontend")).getByText("GitHub"),
     ).toBeTruthy();
     expect(within(row("example/api-server")).getByText("Failed")).toBeTruthy();
-    expect(within(row("Local archive")).getByText("Not analysed")).toBeTruthy();
+    // Neither the latest analysis nor the languages exist yet.
+    expect(
+      within(row("Local archive")).getAllByText("Not analysed"),
+    ).toHaveLength(2);
   });
 
   it("counts projects and analyses in the overview", async () => {
-    renderList();
+    await renderList();
 
     const overview = await screen.findByRole("list", {
       name: "Project overview",
@@ -130,33 +116,37 @@ describe("ProjectsList", () => {
   });
 
   it("loads every page of projects", async () => {
-    getProjects
-      .mockResolvedValueOnce(page([projects[0]], 2))
-      .mockResolvedValueOnce(page([projects[1]], 2));
-    renderList();
+    const app = createTestApp({ signedIn: true });
+    answerByPage(app, [page([projects[0]], 2, 0), page([projects[1]], 2, 1)]);
+    await app.visit("/projects");
+    render(ProjectsList, { global: app.global });
 
     await screen.findByText("example/api-server");
     expect(screen.getByText("example/web-frontend")).toBeTruthy();
     expect(
-      getProjects.mock.calls.map(([options]) => options.pagination.page),
-    ).toEqual([0, 1]);
+      app.http.requests
+        .filter((r) => r.path === projectsPath)
+        .map((r) => r.query.get("page")),
+    ).toEqual(["0", "1"]);
   });
 
   it("shows the owl and Add a Project when there are no projects", async () => {
-    getProjects.mockResolvedValue(page([]));
-    renderList();
+    await renderList(page([]));
 
     expect(await screen.findByText("No Projects yet")).toBeTruthy();
     expect(screen.getByRole("link", { name: /Add a Project/ })).toBeTruthy();
   });
 
   it("says when the projects cannot be loaded and retries", async () => {
-    getProjects.mockRejectedValueOnce(new Error("down"));
-    renderList();
+    const app = await renderList({
+      error_code: "InternalError",
+      error_message: "down",
+    });
 
     expect(
       await screen.findByText("The projects could not be loaded."),
     ).toBeTruthy();
+    app.http.on("GET", projectsPath, page(projects));
     await fireEvent.click(screen.getByRole("button", { name: "Try again" }));
 
     expect(await screen.findByText("example/web-frontend")).toBeTruthy();
@@ -168,7 +158,7 @@ describe("ProjectsList", () => {
   ])(
     "warns that deleting %s deletes its tickets but not ClickUp tasks",
     async (name, wording) => {
-      renderList();
+      await renderList();
       await screen.findByText(name);
 
       await fireEvent.click(
@@ -184,20 +174,23 @@ describe("ProjectsList", () => {
   );
 
   it("deletes a project only after the confirmation", async () => {
-    deleteProject.mockResolvedValue({});
-    renderList();
+    const app = await renderList();
+    app.http.on("DELETE", `${projectsPath}/p-2`, {
+      status_code: 200,
+      status: "success",
+    });
     await screen.findByText("example/api-server");
+    const deletes = () =>
+      app.http.requests.filter((r) => r.method === "DELETE").map((r) => r.path);
 
     await fireEvent.click(
       screen.getByRole("button", { name: "Delete example/api-server" }),
     );
-    expect(deleteProject).not.toHaveBeenCalled();
+    expect(deletes()).toEqual([]);
     await fireEvent.click(
       await screen.findByRole("button", { name: "Delete project" }),
     );
 
-    expect(deleteProject).toHaveBeenCalledWith(
-      expect.objectContaining({ projectId: "p-2" }),
-    );
+    await vi.waitFor(() => expect(deletes()).toEqual([`${projectsPath}/p-2`]));
   });
 });

@@ -328,13 +328,13 @@ test.describe("The Theme commands in the palette", () => {
     await runCommand(page, "Theme: Dark");
     await expectTheme(page, "dark");
     await expect(page).toHaveURL(/\/datasets$/);
-    await page.reload();
+    await shell.reload();
     await expectTheme(page, "dark");
 
     await page.emulateMedia({ colorScheme: "dark" });
     await runCommand(page, "Theme: Light");
     await expectTheme(page, "light");
-    await page.reload();
+    await shell.reload();
     await expectTheme(page, "light");
 
     await runCommand(page, "Theme: System");

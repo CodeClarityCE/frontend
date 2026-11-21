@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
-import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { expectPageSweep, PHONE_WIDTH } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   analysis,
@@ -932,3 +932,20 @@ test.describe("Add a Project", () => {
 function repoWithStars(name: string, stars: number): Record<string, unknown> {
   return repo(name, { stargazers_count: stars, language: "JavaScript" });
 }
+
+test.describe("On a phone", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: PHONE_WIDTH, height: 844 });
+  });
+
+  test("the GitHub import fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.gotoCreate();
+    await page.getByTestId("github-card").click();
+    await expect(projects.rows()).toHaveCount(3);
+    await expectPageSweep(page);
+  });
+});

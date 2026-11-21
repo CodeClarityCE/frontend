@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
-import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { expectPageSweep, PHONE_WIDTH } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
 import {
@@ -483,5 +483,19 @@ test.describe("Dataset detail", () => {
     expect(datasets.writes).toEqual(
       Array.from({ length: 5 }, () => "POST /org/org-123/projects"),
     );
+  });
+});
+
+test.describe("On a phone", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: PHONE_WIDTH, height: 844 });
+  });
+
+  test("a failed Dataset fits without scrolling sideways", async ({ page }) => {
+    const datasets = new DatasetsPage(page);
+    await datasets.signIn({ detail: sampleDatasets[2] });
+    await datasets.gotoDetail("ds-3");
+    await expect(page.getByRole("alert")).toContainText("Bad credentials");
+    await expectPageSweep(page);
   });
 });

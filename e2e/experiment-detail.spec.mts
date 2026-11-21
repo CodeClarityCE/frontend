@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
-import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { expectPageSweep, PHONE_WIDTH } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
 import {
@@ -316,5 +316,19 @@ test.describe("Keyboard and accessibility", () => {
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
     await expectScreenshots(page, "experiment-detail-failed");
+  });
+});
+
+test.describe("On a phone", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: PHONE_WIDTH, height: 844 });
+  });
+
+  test("the results fit without scrolling sideways", async ({ page }) => {
+    const detail = new ExperimentDetailPage(page);
+    await detail.signIn();
+    await detail.goto();
+    await expect(detail.runRows()).toHaveCount(4);
+    await expectPageSweep(page);
   });
 });

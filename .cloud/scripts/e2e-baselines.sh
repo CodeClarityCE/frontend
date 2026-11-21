@@ -31,7 +31,7 @@ fi
 # amd64 always, so a run on an arm64 machine renders the same pixels as CI.
 docker run --rm --platform linux/amd64 --ipc=host \
   -v "$ROOT:/src" \
-  -e CI=1 -e MODE="$MODE" -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
+  -e CI=1 -e MODE="$MODE" -e E2E_WORKERS="${E2E_WORKERS:-4}" -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
   -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
   -w /work "$IMAGE" sh -euc '
     tar -C /src --exclude=./node_modules --exclude=./dist --exclude=./.git \
@@ -41,7 +41,8 @@ docker run --rm --platform linux/amd64 --ipc=host \
     corepack enable
     pnpm install --frozen-lockfile
     status=0
-    node_modules/.bin/playwright test "$@" || status=$?
+    # CI=1 means one worker in the config; a runner has room for more.
+    node_modules/.bin/playwright test --workers="${E2E_WORKERS:-4}" "$@" || status=$?
     if [ "$MODE" = update ]; then
       # Copy the snapshot folders back, owned by the calling user.
       tar -cf - e2e/*-snapshots | tar -C /src -xf -

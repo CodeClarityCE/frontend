@@ -314,7 +314,7 @@ watch(
         />
       </div>
       <VulnFilters v-model:filter-state="filterState" :counts="filterCount" />
-      <div class="ml-auto flex items-center gap-3">
+      <div class="ml-auto flex flex-wrap items-center gap-3">
         <Select v-if="view === 'list'" v-model="sortValue">
           <SelectTrigger aria-label="Sort by" class="w-60">
             <SelectValue placeholder="Sort by" />

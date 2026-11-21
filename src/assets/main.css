@@ -6,6 +6,9 @@
    enter or exit transition. */
 @import "tw-animate-css";
 
+/* dark: utilities follow the root dark class the theme module sets, not the OS. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Static theme values: fonts and motion. */
 @theme {
   --font-sans: "Lato", ui-sans-serif, system-ui, sans-serif;
@@ -102,6 +105,7 @@
   --color-severity-medium-foreground: var(--severity-medium-foreground);
   --color-severity-low-foreground: var(--severity-low-foreground);
   --color-severity-none-foreground: var(--severity-none-foreground);
+  --color-severity-high-stroke: var(--severity-high-stroke);
   --color-severity-medium-stroke: var(--severity-medium-stroke);
   --color-severity-low-stroke: var(--severity-low-stroke);
   --color-severity-critical-light: color-mix(
@@ -287,6 +291,7 @@
     --severity-none: #6c757d;
     --severity-none-foreground: #ffffff;
     /* Outlines and text for the light fills, at least 3:1 on white */
+    --severity-high-stroke: #dc3545;
     --severity-medium-stroke: #a8500a;
     --severity-low-stroke: #997404;
 
@@ -319,12 +324,12 @@
     --shadow-primary-value: 0 4px 14px rgba(29, 206, 121, 0.35);
   }
 
-  /* Dark values, used by the phase 2 dark theme. */
+  /* Dark values, applied while the root element has the dark class. */
   .dark {
     --brand: #1dce79;
     --brand-hover: #3fd58d;
     --brand-link-hover: #3fd58d;
-    --brand-subtle: #0c5230;
+    --brand-subtle: #0a4a2b;
     --brand-subtle-border: #17a561;
     --brand-subtle-foreground: #d2f5e4;
 
@@ -358,8 +363,8 @@
     --accent: #1dce79;
     --accent-foreground: #111111;
 
-    --destructive: #dc3545;
-    --destructive-foreground: #ffffff;
+    --destructive: #ef6b77;
+    --destructive-foreground: #111111;
 
     --ring: #1dce79;
 
@@ -374,9 +379,9 @@
     --sidebar-ring: #1dce79;
 
     --success: #a5ebc9;
-    --success-subtle: #0c5230;
+    --success-subtle: #0a4a2b;
     --warning: #fef3c7;
-    --warning-subtle: #854d0e;
+    --warning-subtle: #633a0a;
     --danger: #f1aeb5;
     --danger-foreground: #111111;
     --neutral: #e5e7eb;
@@ -393,9 +398,10 @@
     --severity-low-foreground: #111111;
     --severity-none: #6c757d;
     --severity-none-foreground: #ffffff;
-    /* Outlines and text for the light fills, at least 3:1 on white */
-    --severity-medium-stroke: #a8500a;
-    --severity-low-stroke: #997404;
+    /* Severity as text or outlines, at least 4.5:1 on the dark surfaces */
+    --severity-high-stroke: #ef6b77;
+    --severity-medium-stroke: #fd7e14;
+    --severity-low-stroke: #ffc107;
 
     --chart-1: #3987e5;
     --chart-1-soft: #184f95;

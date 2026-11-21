@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
+import { expectTheme } from "./helpers/theme.mjs";
 import {
   affected,
   ANALYSIS,
@@ -282,6 +283,17 @@ test.describe("Vulnerability results", () => {
 
     await expectNoAxeViolations(page);
     await expectScreenshots(page, "vulnerabilities-list");
+  });
+
+  test("the list matches the dark screenshots", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn();
+    await vulns.gotoResults();
+    await expect(vulns.cards).toHaveCount(4);
+
+    await expectTheme(page, "dark");
+    await expectScreenshots(page, "vulnerabilities-list-dark");
   });
 
   test("the table passes axe and matches the screenshots", async ({ page }) => {

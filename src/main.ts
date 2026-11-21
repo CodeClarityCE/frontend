@@ -9,6 +9,7 @@ import VueCookies from "vue-cookies";
 import App from "./App.vue";
 import router from "./router.ts";
 import { installLogger } from "./utils/logger.ts";
+import { installTheme } from "./utils/theme.ts";
 
 import "./assets/main.css";
 
@@ -30,6 +31,9 @@ window.addEventListener("vite:preloadError", (event) => {
   event.preventDefault();
   window.location.reload();
 });
+
+// Takes over the theme the inline script in index.html applied.
+installTheme();
 
 const app = createApp(App as Component);
 const pinia = createPinia();

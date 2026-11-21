@@ -30,9 +30,11 @@ import {
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
+import { type ThemeChoice, useTheme } from "@/utils/theme";
 
 import { navGroups, orgSettingsItem } from "./nav-items";
 import { isPaletteShortcut } from "./shortcut";
+import { themeOptions } from "./theme-options";
 
 interface Entry {
   id: string;
@@ -49,6 +51,8 @@ const open = defineModel<boolean>("open", { default: false });
 const router = useRouter();
 const userStore = useUserStore();
 const authStore = useAuthStore();
+
+const theme = useTheme();
 
 const datasets = ref<Entry[]>([]);
 const experiments = ref<Entry[]>([]);
@@ -178,6 +182,11 @@ watch([open, () => userStore.getDefaultOrg?.id], ([isOpen]) => {
   if (isOpen) void loadRecords();
 });
 
+function setTheme(value: ThemeChoice): void {
+  open.value = false;
+  theme.setChoice(value);
+}
+
 function go(to: RouteLocationRaw): void {
   open.value = false;
   void router.push(to);
@@ -249,6 +258,17 @@ function go(to: RouteLocationRaw): void {
         >
           <component :is="item.icon" aria-hidden="true" />
           {{ item.label }}
+        </CommandItem>
+      </CommandGroup>
+      <CommandGroup heading="Theme">
+        <CommandItem
+          v-for="item in themeOptions"
+          :key="item.value"
+          :value="`theme-${item.value}`"
+          @select="setTheme(item.value)"
+        >
+          <component :is="item.icon" aria-hidden="true" />
+          Theme: {{ item.label }}
         </CommandItem>
       </CommandGroup>
     </CommandList>

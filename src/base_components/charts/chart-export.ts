@@ -1,4 +1,4 @@
-import tokenCss from "@/assets/main.css?raw";
+import { lightTokens, tokensOf } from "@/utils/css-tokens";
 
 import chartCss from "./chart.css?raw";
 import { type ChartMarks, chartMarkText } from "./chart-caption";
@@ -25,18 +25,10 @@ const SERIES_DASH: Record<string, string> = {
   "6": "1 3 5 3",
 };
 
-function tokensOf(css: string, block: RegExp): [string, string][] {
-  const body = block.exec(css)?.[1] ?? "";
-  return [...body.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map((m) => [
-    m[1]!,
-    m[2]!.trim(),
-  ]);
-}
-
 /** The light tokens and chart roles with the print overrides, in any theme. */
 function printTokens(): Map<string, string> {
   return new Map([
-    ...tokensOf(tokenCss, /:root\s*\{([^}]*)\}/),
+    ...lightTokens(),
     ...tokensOf(chartCss, /^\.chart-viz\s*\{([^}]*)\}/m),
     ...tokensOf(chartCss, /^\.chart-viz-print\s*\{([^}]*)\}/m),
   ]);

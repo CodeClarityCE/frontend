@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
+import { expectTheme } from "./helpers/theme.mjs";
 import {
   dataset,
   DatasetsPage,
@@ -175,6 +176,17 @@ test.describe("Datasets list", () => {
 
     await expectNoAxeViolations(page);
     await expectScreenshots(page, "datasets-list");
+  });
+
+  test("matches the dark screenshots", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    const datasets = new DatasetsPage(page);
+    await datasets.signIn();
+    await datasets.gotoList();
+    await expect(datasets.rows()).toHaveCount(3);
+
+    await expectTheme(page, "dark");
+    await expectScreenshots(page, "datasets-list-dark");
   });
 
   test("the empty state passes axe and matches the screenshots", async ({

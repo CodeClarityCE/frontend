@@ -2,6 +2,7 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
+import { expectTheme } from "./helpers/theme.mjs";
 import { AuthPage } from "./pages/auth.page.mjs";
 
 test.describe("Authentication E2E Tests", () => {
@@ -228,6 +229,14 @@ test.describe("Authentication E2E Tests", () => {
       await authPage.goto();
       await authPage.expectFormVisible();
       await expectScreenshots(page, "login");
+    });
+
+    test("matches the dark screenshots", async ({ page }) => {
+      await page.emulateMedia({ colorScheme: "dark" });
+      await authPage.goto();
+      await authPage.expectFormVisible();
+      await expectTheme(page, "dark");
+      await expectScreenshots(page, "login-dark");
     });
   });
 

@@ -16,6 +16,8 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
@@ -26,8 +28,10 @@ import {
 } from "@/shadcn/ui/sidebar";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
+import { isThemeChoice, useTheme } from "@/utils/theme";
 
 import { initials } from "./initials";
+import { themeOptions } from "./theme-options";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -37,6 +41,12 @@ const fullName = computed(() => {
   const user = userStore.getUser;
   return user ? `${user.first_name} ${user.last_name}` : "";
 });
+
+const theme = useTheme();
+
+function pickTheme(value: unknown): void {
+  if (isThemeChoice(value)) theme.setChoice(value);
+}
 
 const reportUrl =
   "https://github.com/CodeClarityCE/codeclarity-dev/issues/new?template=BLANK_ISSUE";
@@ -119,6 +129,29 @@ function openReport(): void {
               Report a problem
             </DropdownMenuItem>
           </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel
+            id="user-menu-theme"
+            class="text-xs font-medium text-muted-foreground"
+            >Theme</DropdownMenuLabel
+          >
+          <DropdownMenuRadioGroup
+            aria-labelledby="user-menu-theme"
+            :model-value="theme.choice.value"
+            @update:model-value="pickTheme"
+          >
+            <!-- Keeps the menu open so the new theme is visible at once. -->
+            <DropdownMenuRadioItem
+              v-for="option in themeOptions"
+              :key="option.value"
+              :value="option.value"
+              class="cursor-pointer gap-2"
+              @select="(event: Event) => event.preventDefault()"
+            >
+              <component :is="option.icon" class="size-4" aria-hidden="true" />
+              {{ option.label }}
+            </DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem class="cursor-pointer gap-2" @select="logout">
             <LogOut class="size-4" aria-hidden="true" />

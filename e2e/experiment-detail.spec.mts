@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
+import { expectTheme } from "./helpers/theme.mjs";
 import {
   ExperimentDetailPage,
   samplePublishedVersion,
@@ -234,6 +235,17 @@ test.describe("Keyboard and accessibility", () => {
 
     await expectNoAxeViolations(page);
     await expectScreenshots(page, "experiment-detail-results");
+  });
+
+  test("the results match the dark screenshots", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    const detail = new ExperimentDetailPage(page);
+    await detail.signIn();
+    await detail.goto();
+    await expect(detail.runRows()).toHaveCount(4);
+
+    await expectTheme(page, "dark");
+    await expectScreenshots(page, "experiment-detail-results-dark");
   });
 
   test("Published results pass axe and match the screenshots", async ({

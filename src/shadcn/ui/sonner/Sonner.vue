@@ -18,6 +18,11 @@ const delegatedProps = reactiveOmit(props, "toastOptions");
 <template>
   <Sonner
     class="toaster group"
+    :style="{
+      '--normal-bg': 'var(--popover)',
+      '--normal-text': 'var(--popover-foreground)',
+      '--normal-border': 'var(--border)',
+    }"
     :toast-options="{
       classes: {
         toast:

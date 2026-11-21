@@ -9,6 +9,12 @@ export const BACKGROUND = {
   dark: "rgb(17, 17, 17)",
 } as const;
 
+// Popover backgrounds (menus, toasts and the command palette) of the applied themes.
+export const POPOVER = {
+  light: "rgb(255, 255, 255)",
+  dark: "rgb(18, 19, 21)",
+} as const;
+
 /** Stores a Theme choice before any page script runs. */
 export async function storeTheme(page: Page, value: string): Promise<void> {
   await page.addInitScript(

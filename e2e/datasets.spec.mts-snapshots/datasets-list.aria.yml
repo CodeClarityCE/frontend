@@ -1,0 +1,47 @@
+- main:
+  - heading "Datasets" [level=1]
+  - paragraph: Reproducible cohorts of the most-starred GitHub projects.
+  - link "New Dataset":
+    - /url: /datasets/add
+  - searchbox "Filter Datasets"
+  - table "Datasets":
+    - caption: Datasets
+    - rowgroup:
+      - row "Name Status Repositories Languages Built":
+        - columnheader "Name":
+          - button "Name"
+        - columnheader "Status":
+          - button "Status"
+        - columnheader "Repositories":
+          - button "Repositories"
+        - columnheader "Languages"
+        - columnheader "Built":
+          - button "Built"
+    - rowgroup:
+      - row /Top npm packages by John Doe Ready \d+ \/ \d+ JavaScript, TypeScript Oct 1, \d+/:
+        - cell "Top npm packages by John Doe":
+          - link "Top npm packages":
+            - /url: /datasets/detail?id=ds-1
+          - text: ""
+        - cell "Ready"
+        - cell /\d+ \/ \d+/
+        - cell "JavaScript, TypeScript"
+        - cell /Oct 1, \d+/
+      - row /Frameworks \d+ by John Doe Building Up to \d+ JavaScript, TypeScript Not yet/:
+        - cell /Frameworks \d+ by John Doe/:
+          - link /Frameworks \d+/:
+            - /url: /datasets/detail?id=ds-2
+          - text: ""
+        - cell "Building"
+        - cell /Up to \d+/
+        - cell "JavaScript, TypeScript"
+        - cell "Not yet"
+      - row /Archived cohort by John Doe Failed Up to \d+ JavaScript, TypeScript Not yet/:
+        - cell "Archived cohort by John Doe":
+          - link "Archived cohort":
+            - /url: /datasets/detail?id=ds-3
+          - text: ""
+        - cell "Failed"
+        - cell /Up to \d+/
+        - cell "JavaScript, TypeScript"
+        - cell "Not yet"

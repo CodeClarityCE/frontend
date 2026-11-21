@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
@@ -202,6 +203,7 @@ test.describe("Experiments list", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "experiments-list");
     await expectScreenshots(page, "experiments-list");
   });
 
@@ -215,6 +217,7 @@ test.describe("Experiments list", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "experiments-empty");
     await expectScreenshots(page, "experiments-empty");
   });
 
@@ -230,6 +233,7 @@ test.describe("Experiments list", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "experiments-loading");
     await expectScreenshots(page, "experiments-loading");
   });
 });
@@ -377,6 +381,7 @@ test.describe("New Experiment", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "experiments-create");
     await expectScreenshots(page, "experiments-create");
 
     await page.getByRole("button", { name: "Start Experiment" }).click();
@@ -384,6 +389,7 @@ test.describe("New Experiment", () => {
     await expect(page.getByText("A name is required")).toBeVisible();
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "experiments-create-errors");
     await expectScreenshots(page, "experiments-create-errors");
   });
 });

@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
@@ -163,6 +164,7 @@ test.describe("Organisation audit logs", () => {
     await members.gotoLogs();
 
     await expect(page.getByText("No audit log entries yet.")).toBeVisible();
+    await expectMainSnapshot(page, "org-logs-empty");
   });
 
   test("a moderator is sent back to the overview", async ({ page }) => {
@@ -296,6 +298,7 @@ test.describe("Organisation invitations", () => {
       page.getByRole("heading", { name: "No open invitations" }),
     ).toBeVisible();
     await expect(members.table).toHaveCount(0);
+    await expectMainSnapshot(page, "org-invites-empty");
   });
 });
 
@@ -327,6 +330,7 @@ test.describe("Organisation members, invitations and logs: keyboard, axe and scr
 
       await expectNoAxeViolations(page);
       await expectPageSweep(page);
+      await expectMainSnapshot(page, `org-${view}`);
       await expectScreenshots(page, `org-${view}`);
     });
   }

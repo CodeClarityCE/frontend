@@ -1,7 +1,7 @@
 - dialog "Sidebar":
   - heading "Sidebar" [level=2]
   - paragraph: Displays the mobile sidebar.
-  - link "CodeClarity , go to the Dashboard":
+  - link "CodeClarity, go to the Dashboard":
     - /url: /
   - button "Close navigation"
   - list:

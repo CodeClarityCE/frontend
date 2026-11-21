@@ -1,0 +1,46 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - heading "Analyzers" [level=1]
+  - paragraph: An analyzer is a named set of plugins that an analysis runs in stages.
+  - link "New analyzer":
+    - /url: /orgs/add/analyzers/org-123/
+  - searchbox "Filter analyzers"
+  - table "Analyzers":
+    - caption: Analyzers
+    - rowgroup:
+      - row "Name Stages Created Actions":
+        - columnheader "Name":
+          - button "Name"
+        - columnheader "Stages":
+          - button "Stages"
+        - columnheader "Created":
+          - button "Created"
+        - columnheader "Actions"
+    - rowgroup:
+      - row /Default analyzer Default analyzer for JavaScript projects 2 stages Oct 1, \d+ Edit Default analyzer Delete Default analyzer/:
+        - cell "Default analyzer Default analyzer for JavaScript projects"
+        - cell "2 stages"
+        - cell /Oct 1, \d+/
+        - cell "Edit Default analyzer Delete Default analyzer":
+          - link "Edit Default analyzer":
+            - /url: /orgs/edit/analyzers/org-123/?analyzerId=an-1
+            - text: ""
+          - button "Delete Default analyzer"
+      - row /License audit License audit for JavaScript projects 1 stage Nov 2, \d+ Edit License audit Delete License audit/:
+        - cell "License audit License audit for JavaScript projects"
+        - cell "1 stage"
+        - cell /Nov 2, \d+/
+        - cell "Edit License audit Delete License audit":
+          - link "Edit License audit":
+            - /url: /orgs/edit/analyzers/org-123/?analyzerId=an-2
+            - text: ""
+          - button "Delete License audit"

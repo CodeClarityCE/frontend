@@ -1,0 +1,49 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - link "Analyzers":
+    - /url: /orgs/manage/analyzers/org-123/
+  - heading "New analyzer" [level=1]
+  - paragraph: Pick a template or start from scratch, then choose the plugins it runs in stages.
+  - heading "Details" [level=2]
+  - group "Template":
+    - text: ""
+    - radiogroup:
+      - radio "Custom Start from the SBOM and vulnerability plugins and pick your own stages." [checked]
+      - text: Custom Start from the SBOM and vulnerability plugins and pick your own stages.
+      - radio "JavaScript security SBOM and vulnerability scan for JavaScript projects JavaScript"
+      - text: JavaScript security SBOM and vulnerability scan for JavaScript projects JavaScript
+  - text: Name
+  - textbox "Name":
+    - /placeholder: JavaScript security scan
+  - text: Description
+  - textbox "Description":
+    - /placeholder: What this analyzer checks
+  - heading "Plugins" [level=2]
+  - paragraph: Right-click the canvas to add a plugin. Select a plugin and press Delete to remove it.
+  - img:
+    - group "Edge from analyzer-js-sbom to analyzer-vuln-finder"
+  - group:
+    - heading "js-sbom" [level=3]
+    - paragraph: Builds the SBOM of a JavaScript project
+    - text: 1.0.0
+  - group:
+    - heading "vuln-finder" [level=3]
+    - paragraph: Finds known vulnerabilities in the SBOM
+    - text: 1.0.0
+  - img
+  - button "Zoom in"
+  - button "Zoom out"
+  - button "Fit view"
+  - text: 2 plugins 1 connections
+  - link "Cancel":
+    - /url: /orgs/manage/analyzers/org-123/
+  - button "Create analyzer"

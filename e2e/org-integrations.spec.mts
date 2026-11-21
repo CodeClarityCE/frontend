@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { onAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
@@ -118,6 +119,7 @@ test.describe("Integration logos", () => {
       await expect(card.locator("svg path").first()).toBeVisible();
     }
     expect(iconRequests).toEqual([]);
+    await expectMainSnapshot(page, "org-integrations-empty");
     await expectPageSweep(page);
   });
 });
@@ -348,16 +350,19 @@ test.describe("Integrations accessibility and looks", () => {
     await integrations.gotoList();
     await expect(integrations.rows()).toHaveCount(4);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-integrations");
     await expectScreenshots(page, "org-integrations");
 
     await integrations.gotoAdd("GITHUB");
     await page.getByRole("button", { name: "Connect GitHub" }).click();
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-integrations-add-github");
     await expectScreenshots(page, "org-integrations-add-github");
 
     await integrations.gotoManage("GITLAB", "gl-1");
     await expect(page.getByText("The token expires soon")).toBeVisible();
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-integrations-manage");
     await expectScreenshots(page, "org-integrations-manage");
   });
 });

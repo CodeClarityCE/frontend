@@ -1,0 +1,8 @@
+- main:
+  - paragraph: /\d+/
+  - heading "Page not found" [level=1]
+  - paragraph: Our owl searched every branch, but the page you are looking for does not exist or has been moved.
+  - button "Go back"
+  - link "Go to the dashboard":
+    - /url: /
+  - img "The CodeClarity owl"

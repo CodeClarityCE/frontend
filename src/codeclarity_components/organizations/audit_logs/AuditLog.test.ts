@@ -1,10 +1,15 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Entity } from "@/utils/api/BaseEntity";
 
+import { createTestApp } from "../../../../tests/real-app";
+
 import { AuditLog } from "./AuditLog";
 
-vi.mock("@/utils/logger");
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 function auditLogEntry(action: string, actionClass = "Organization"): object {
   return {
@@ -19,6 +24,11 @@ function auditLogEntry(action: string, actionClass = "Organization"): object {
 }
 
 describe("AuditLog", () => {
+  // A dropped entry logs a warning, which would otherwise reach the network.
+  beforeEach(() => {
+    createTestApp();
+  });
+
   it.each([
     "AnalysisStarted",
     "AnalysisDeleted",

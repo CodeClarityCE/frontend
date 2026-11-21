@@ -48,6 +48,7 @@ import { errorToast } from "@/utils/toasts";
 
 import RiskScoreGauge from "../components/RiskScoreGauge.vue";
 import ScoreProgressBar from "../components/ScoreProgressBar.vue";
+import TicketDueDate from "../components/TicketDueDate.vue";
 import TicketHistory from "../components/TicketHistory.vue";
 import TicketPriorityBadge from "../components/TicketPriorityBadge.vue";
 import TicketRemediation from "../components/TicketRemediation.vue";
@@ -675,12 +676,11 @@ onMounted(() => {
           <div>
             <dt class="text-xs text-muted-foreground">Due date</dt>
             <dd class="text-foreground-strong">
-              {{
-                formatShortDate(ticket.due_date, {
-                  time: true,
-                  fallback: "Not set",
-                })
-              }}
+              <TicketDueDate
+                :ticket-id="ticket.id"
+                :due-date="ticket.due_date"
+                @updated="emit('updated')"
+              />
             </dd>
           </div>
           <div>

@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep, PHONE_WIDTH } from "./helpers/page-sweep.mjs";
 import { BACKGROUND, expectTheme, storeTheme } from "./helpers/theme.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
@@ -204,6 +205,51 @@ test.describe("Page sweep harness", () => {
     await page.setViewportSize({ width: PHONE_WIDTH, height: 800 });
     await page.setContent(`<div style="max-width:600px">Narrow</div>`);
     await expectPageSweep(page);
+  });
+});
+
+test.describe("Aria snapshot harness", () => {
+  // Matches the committed harness-main.aria.yml; the nav sits outside main.
+  const withMain = (main: string): string =>
+    `<nav><a href="#">Elsewhere</a></nav><main><h1>Projects</h1>${main}</main>`;
+  const matching =
+    "<button>Add a Project</button><ul><li>web-frontend</li></ul>";
+
+  // A failing case would rewrite the committed snapshot in update mode.
+  test.beforeEach(() => {
+    const mode = test.info().config.updateSnapshots;
+    test.skip(
+      mode === "all" || mode === "changed",
+      "the harness snapshot is written by hand",
+    );
+  });
+
+  test("passes when main matches, whatever is outside it", async ({ page }) => {
+    await page.setContent(withMain(matching));
+    await expectMainSnapshot(page, "harness-main");
+  });
+
+  test("fails when a name changes", async ({ page }) => {
+    await page.setContent(
+      withMain(matching.replace("Add a Project", "Add a project")),
+    );
+    await expect(expectMainSnapshot(page, "harness-main")).rejects.toThrow(
+      /Add a project/,
+    );
+  });
+
+  test("fails when a role is missing", async ({ page }) => {
+    await page.setContent(withMain(matching.replace(/<\/?button>/g, "")));
+    await expect(expectMainSnapshot(page, "harness-main")).rejects.toThrow(
+      /button/,
+    );
+  });
+
+  test("fails when the page has no main", async ({ page }) => {
+    await page.setContent(`<div><h1>Projects</h1>${matching}</div>`);
+    await expect(
+      expectMainSnapshot(page, "harness-main", { timeout: 500 }),
+    ).rejects.toThrow();
   });
 });
 

@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
@@ -451,6 +452,7 @@ test.describe("New Analysis", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "analysis-create");
     await expectScreenshots(page, "analysis-create");
 
     await page.setViewportSize({ width: 1280, height: 1024 });
@@ -465,6 +467,7 @@ test.describe("New Analysis", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "analysis-create-configured");
     await expectScreenshots(page, "analysis-create-configured");
   });
 
@@ -478,6 +481,7 @@ test.describe("New Analysis", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "analysis-create-empty");
     await expectScreenshots(page, "analysis-create-empty");
   });
 });

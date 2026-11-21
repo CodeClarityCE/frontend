@@ -1,0 +1,56 @@
+- main:
+  - heading "Tickets" [level=1]
+  - paragraph: Track and manage security remediation tickets.
+  - group "View":
+    - button "List" [pressed]
+    - button "Kanban"
+  - button "Integrations"
+  - button "Refresh"
+  - list "Ticket numbers":
+    - listitem: Total 3
+    - listitem: Open 1
+    - listitem: Critical 1
+    - listitem: High priority 1
+  - searchbox "Filter tickets"
+  - table "Tickets":
+    - caption: Tickets
+    - rowgroup:
+      - row "Ticket Status Priority Project Created":
+        - columnheader "Ticket":
+          - button "Ticket"
+        - columnheader "Status":
+          - button "Status"
+        - columnheader "Priority":
+          - button "Priority"
+        - columnheader "Project":
+          - button "Project"
+        - columnheader "Created":
+          - button "Created"
+    - rowgroup:
+      - 'row /CVE-\d+-\d+: axios SSRF Vulnerability CVE-\d+-\d+ · axios In Progress Critical api-gateway Oct 5, \d+/':
+        - 'cell /CVE-\d+-\d+: axios SSRF Vulnerability CVE-\d+-\d+ · axios/':
+          - 'link /CVE-\d+-\d+: axios SSRF/':
+            - /url: /tickets/t-2
+          - text: ""
+        - cell "In Progress"
+        - cell "Critical"
+        - cell "api-gateway"
+        - cell /Oct 5, \d+/
+      - 'row /CVE-\d+-\d+: lodash prototype pollution Vulnerability CVE-\d+-\d+ · lodash Open High web-frontend Oct 1, \d+/':
+        - 'cell /CVE-\d+-\d+: lodash prototype pollution Vulnerability CVE-\d+-\d+ · lodash/':
+          - 'link /CVE-\d+-\d+: lodash prototype pollution/':
+            - /url: /tickets/t-1
+          - text: ""
+        - cell "Open"
+        - cell "High"
+        - cell "web-frontend"
+        - cell /Oct 1, \d+/
+      - row /Upgrade express to 5 Upgrade express Resolved Low web-frontend Sep \d+, \d+/:
+        - cell "Upgrade express to 5 Upgrade express":
+          - link "Upgrade express to 5":
+            - /url: /tickets/t-3
+          - text: ""
+        - cell "Resolved"
+        - cell "Low"
+        - cell "web-frontend"
+        - cell /Sep \d+, \d+/

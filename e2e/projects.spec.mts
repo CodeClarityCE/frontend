@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
@@ -310,6 +311,7 @@ test.describe("Projects list", () => {
     await expect(projects.table).toHaveCount(0);
     await axe(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "projects-empty");
     await expectScreenshots(page, "projects-empty");
 
     await page.getByRole("link", { name: "Add a Project" }).click();
@@ -378,6 +380,7 @@ test.describe("Projects list", () => {
 
     await axe(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "projects-list");
     await expectScreenshots(page, "projects-list");
 
     await page.setViewportSize({ width: 1280, height: 1024 });
@@ -548,6 +551,7 @@ test.describe("Add a Project", () => {
     ).toBeVisible();
     await axe(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "projects-add-no-integration");
     await expectScreenshots(page, "projects-add-no-integration");
 
     await page.getByRole("button", { name: "Upload an archive" }).click();
@@ -737,6 +741,7 @@ test.describe("Add a Project", () => {
     );
     await axe(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "projects-add-upload-errors");
     await expectScreenshots(page, "projects-add-upload-errors");
   });
 
@@ -833,6 +838,7 @@ test.describe("Add a Project", () => {
 
     await axe(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "projects-add");
     await expectScreenshots(page, "projects-add");
 
     await page.setViewportSize({ width: 1280, height: 1024 });
@@ -843,6 +849,7 @@ test.describe("Add a Project", () => {
       .click();
     await axe(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "projects-add-github");
     await expectScreenshots(page, "projects-add-github");
   });
 

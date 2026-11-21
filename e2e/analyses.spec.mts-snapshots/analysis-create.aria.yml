@@ -1,0 +1,24 @@
+- main:
+  - link "Projects":
+    - /url: /projects
+  - heading "New Analysis" [level=1]
+  - paragraph: Choose an analyzer, set its options and how often it runs.
+  - text: example/web-frontend GitHub repository
+  - link "View repository":
+    - /url: https://github.com/example/web-frontend
+  - group:
+    - heading "Analyzer" [level=2]
+    - paragraph: The plugins that run on the project, in order.
+    - radiogroup "Analyzer":
+      - radio "JavaScript Analyzer SBOM, vulnerabilities and licenses for npm"
+      - text: JavaScript Analyzer SBOM, vulnerabilities and licenses for npm
+      - radio "PHP SBOM, vulnerabilities and licenses for Composer"
+      - text: PHP SBOM, vulnerabilities and licenses for Composer
+    - link "Create an analyzer":
+      - /url: /orgs/add/analyzers/org-123/
+    - heading "Schedule" [level=2]
+    - paragraph: A scheduled analysis runs again on the latest commit.
+    - text: Runs
+    - combobox "Runs": Once, right away
+    - paragraph: Runs once, as soon as you start it.
+    - button "Start Analysis"

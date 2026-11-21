@@ -1,0 +1,12 @@
+- main:
+  - heading "Projects" [level=1]
+  - paragraph: Repositories and uploads you analyse for vulnerabilities, licenses and outdated dependencies.
+  - link "Add Project":
+    - /url: /projects/add
+  - img "The CodeClarity owl"
+  - heading "No Projects yet" [level=2]
+  - paragraph: Import a repository through a GitHub or GitLab integration, or upload an archive, then run an analysis on it.
+  - link "Add a Project":
+    - /url: /projects/add
+  - link "Connect an integration":
+    - /url: /orgs/manage/integrations/org-123/

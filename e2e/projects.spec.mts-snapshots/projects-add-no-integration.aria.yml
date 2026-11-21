@@ -1,0 +1,10 @@
+- main:
+  - heading "Add a Project" [level=1]
+  - paragraph: Import a repository through an integration, or upload an archive.
+  - heading "No GitHub or GitLab integration yet" [level=3]
+  - paragraph: Upload an archive of the project now, or connect GitHub or GitLab to import repositories directly.
+  - paragraph: Add an integration in the organisation settings, then refresh this page.
+  - button "Upload an archive"
+  - link "Manage integrations":
+    - /url: /orgs/manage/integrations/org-123/
+  - button "Refresh"

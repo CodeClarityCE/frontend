@@ -52,7 +52,9 @@ const instance = (extra: Partial<TicketInstance>): TicketInstance => ({
 
 describe("The remediation on the ticket page", () => {
   const mountWith = (instances: TicketInstance[]) =>
-    mount(TicketRemediationView, { props: { remediation, instances } });
+    mount(TicketRemediationView, {
+      props: { remediation, instances, orgId: "org-1" },
+    });
 
   it("shows the change, the command and what it resolves with paths", () => {
     const wrapper = mountWith([
@@ -81,6 +83,10 @@ describe("The remediation on the ticket page", () => {
     );
     expect(rows).toHaveLength(2);
     expect(rows[0]!.text()).toContain("CVE-2099-7101");
+    expect(rows[0]!.findComponent({ name: "RouterLink" }).props("to")).toEqual({
+      name: "orgVulnerability",
+      params: { orgId: "org-1", vulnerabilityId: "CVE-2099-7101" },
+    });
     expect(rows[0]!.text()).toContain("6.5.0");
     expect(rows[0]!.text()).toContain("6.5.3");
     expect(rows[0]!.text()).toContain("express@4.17.0 > qs@6.5.0");
@@ -100,6 +106,7 @@ describe("The remediation on the ticket page", () => {
   it("shows the manifest edit when the command needs one", () => {
     const wrapper = mount(TicketRemediationView, {
       props: {
+        orgId: "org-1",
         remediation: {
           ...remediation,
           package_manager: "pnpm",

@@ -7,6 +7,7 @@ import type {
 } from "@/codeclarity_components/tickets/my_work.entity";
 import { TicketsRepository } from "@/codeclarity_components/tickets/tickets.repository";
 import { RemediationKind } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+import { orgVulnerabilityRoute } from "@/codeclarity_components/vulnerabilities/organization-vulnerability-route";
 import { Badge } from "@/shadcn/ui/badge";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
@@ -21,6 +22,8 @@ const userStore = useUserStore();
 const repository = new TicketsRepository();
 
 const entries = ref<MyWorkEntry[]>([]);
+// The organization the tickets belong to, for their links.
+const shownOrg = ref("");
 const loading = ref(true);
 const error = ref(false);
 
@@ -30,6 +33,7 @@ async function fetch(): Promise<void> {
   loading.value = true;
   error.value = false;
   try {
+    shownOrg.value = orgId;
     entries.value = await repository.getMyWork({
       orgId,
       bearerToken: authStore.getToken,
@@ -92,7 +96,13 @@ const formatDate = (date: string): string =>
             <span class="text-xs text-muted-foreground">
               {{ entry.project_name }}
               <template v-if="!entry.remediation && entry.vulnerability_id">
-                · {{ entry.vulnerability_id }}
+                ·
+                <RouterLink
+                  :to="orgVulnerabilityRoute(shownOrg, entry.vulnerability_id)"
+                  data-testid="my-work-vulnerability"
+                  class="hover:underline focus-visible:underline focus-visible:outline-none"
+                  >{{ entry.vulnerability_id }}</RouterLink
+                >
                 <template v-if="entry.affected_package">
                   in {{ entry.affected_package }}</template
                 >

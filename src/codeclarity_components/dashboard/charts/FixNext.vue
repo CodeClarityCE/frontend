@@ -5,6 +5,7 @@ import { TicketStatusLabels } from "@/codeclarity_components/tickets/tickets.ent
 import type { FixNextEntry } from "@/codeclarity_components/vulnerabilities/fix_next.entity";
 import { OrganizationVulnerabilitiesRepository } from "@/codeclarity_components/vulnerabilities/organization_vulnerabilities.repository";
 import { RemediationKind } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+import { orgVulnerabilityRoute } from "@/codeclarity_components/vulnerabilities/organization-vulnerability-route";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 
@@ -18,6 +19,8 @@ const userStore = useUserStore();
 const repository = new OrganizationVulnerabilitiesRepository();
 
 const entries = ref<FixNextEntry[]>([]);
+// The organization the entries belong to, for their links.
+const shownOrg = ref("");
 const loading = ref(true);
 const error = ref(false);
 
@@ -27,6 +30,7 @@ async function fetch(): Promise<void> {
   loading.value = true;
   error.value = false;
   try {
+    shownOrg.value = orgId;
     entries.value = await repository.getFixNext({
       orgId,
       bearerToken: authStore.getToken,
@@ -86,10 +90,7 @@ function ticketState(entry: FixNextEntry): {
         <div class="flex min-w-0 flex-col gap-1.5">
           <h3 class="truncate font-medium">
             <RouterLink
-              :to="{
-                name: 'orgVulnerability',
-                params: { vulnerabilityId: entry.vulnerability_id },
-              }"
+              :to="orgVulnerabilityRoute(shownOrg, entry.vulnerability_id)"
               class="hover:underline focus-visible:underline focus-visible:outline-none"
               >{{ title(entry) }}</RouterLink
             >

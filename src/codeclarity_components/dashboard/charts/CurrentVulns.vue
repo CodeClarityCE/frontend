@@ -6,6 +6,7 @@ import type {
   OrganizationVulnerabilityFilters,
   OrganizationVulnerabilityList,
 } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+import { orgVulnerabilityRoute } from "@/codeclarity_components/vulnerabilities/organization-vulnerability-route";
 import VulnerabilityListFilters from "@/codeclarity_components/vulnerabilities/VulnerabilityListFilters.vue";
 import { Badge } from "@/shadcn/ui/badge";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
@@ -25,6 +26,8 @@ const props = defineProps<{
     OrganizationVulnerabilityFilters
   >;
   projects: { id: string; name: string }[];
+  /** The organization listed, for links to its vulnerability pages */
+  orgId: string;
 }>();
 
 const filtered = computed(() => Object.keys(props.request.filters).length > 0);
@@ -133,10 +136,7 @@ const plural = (count: number, noun: string): string =>
         <ul aria-label="Vulnerabilities in your projects" class="divide-y">
           <li v-for="vuln in vulns" :key="vuln.id">
             <RouterLink
-              :to="{
-                name: 'orgVulnerability',
-                params: { vulnerabilityId: vuln.id },
-              }"
+              :to="orgVulnerabilityRoute(orgId, vuln.id)"
               class="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
               :class="{ 'opacity-60': fullyTicketed(vuln) }"
             >

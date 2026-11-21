@@ -18,6 +18,7 @@ describe("DashboardCharts", () => {
     const wrapper = mount(DashboardCharts, {
       props: {
         integrationIds: [],
+        orgId: "org-1",
         vulnerabilityList: useFilteredDashboardRequest<
           OrganizationVulnerabilityList,
           OrganizationVulnerabilityFilters

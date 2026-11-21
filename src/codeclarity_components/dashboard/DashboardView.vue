@@ -123,6 +123,7 @@ const {
           :vulnerability-list="vulnerabilityList"
           :trend="trend"
           :projects="orgData?.projects ?? []"
+          :org-id="defaultOrg?.id ?? ''"
         />
       </template>
     </section>

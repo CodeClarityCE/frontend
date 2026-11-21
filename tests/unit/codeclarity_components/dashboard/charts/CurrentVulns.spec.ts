@@ -27,7 +27,7 @@ function testRouter(): Router {
     routes: [
       { path: "/", component: { template: "<div />" } },
       {
-        path: "/vulnerabilities/:vulnerabilityId",
+        path: "/org/:orgId/vulnerabilities/:vulnerabilityId",
         name: "orgVulnerability",
         component: { template: "<div />" },
       },
@@ -49,7 +49,7 @@ async function mountCard(): Promise<{
   );
   void request.run();
   const wrapper = mount(CurrentVulns, {
-    props: { request, projects: PROJECTS },
+    props: { request, projects: PROJECTS, orgId: "org-1" },
     // The real link, which the shared test setup stubs.
     global: { plugins: [router], stubs: { RouterLink: false } },
   });
@@ -142,7 +142,9 @@ describe("CurrentVulns", () => {
     getVulnerabilities.mockResolvedValue(two);
     const { wrapper, router } = await mountCard();
 
-    const link = wrapper.find('a[href="/vulnerabilities/CVE-2024-0001"]');
+    const link = wrapper.find(
+      'a[href="/org/org-1/vulnerabilities/CVE-2024-0001"]',
+    );
     expect(link.exists()).toBe(true);
     await link.trigger("click");
     await flushPromises();

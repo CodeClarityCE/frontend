@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
+
 // The shared test setup mocks the router; this spec needs the real routes.
 vi.unmock("@/router");
 

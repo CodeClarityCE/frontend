@@ -1,10 +1,15 @@
 import { mount } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import ExperimentFixLag from "./ExperimentFixLag.vue";
 import ExperimentResidence from "./ExperimentResidence.vue";
 import ExperimentSurvival from "./ExperimentSurvival.vue";
 import ExperimentUpstreamLeverage from "./ExperimentUpstreamLeverage.vue";
+
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 const INTERVAL = { low: 0.2, high: 0.4 };
 const SUMMARY = {

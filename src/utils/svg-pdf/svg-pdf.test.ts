@@ -1,8 +1,13 @@
 import { inflateSync } from "node:zlib";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { svgToPdf } from "./index";
 import { testPdfFonts } from "./test/fonts";
+
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 const FONTS = testPdfFonts();
 

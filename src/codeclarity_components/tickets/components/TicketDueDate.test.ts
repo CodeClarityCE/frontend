@@ -31,7 +31,7 @@ async function openDueDate(dueDate?: string): Promise<TestApp> {
 
 // The body of the last ticket update the page sent.
 const saved = (app: TestApp): unknown =>
-  app.http.requests.findLast((r) => r.method === "PATCH")?.body;
+  app.http.requests.filter((r) => r.method === "PATCH").at(-1)?.body;
 
 describe("TicketDueDate", () => {
   it("shows the ticket's due date as a day", async () => {

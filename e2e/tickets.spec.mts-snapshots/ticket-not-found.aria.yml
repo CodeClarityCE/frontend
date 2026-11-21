@@ -1,0 +1,8 @@
+- main:
+  - link "Tickets":
+    - /url: /tickets
+  - img "The CodeClarity owl"
+  - heading "Ticket not found" [level=2]
+  - paragraph: It may have been deleted with its project, or belong to another organization.
+  - link "All tickets":
+    - /url: /tickets

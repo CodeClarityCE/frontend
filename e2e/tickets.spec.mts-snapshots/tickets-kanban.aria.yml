@@ -1,0 +1,36 @@
+- main:
+  - heading "Tickets" [level=1]
+  - paragraph: Track and manage security remediation tickets.
+  - group "View":
+    - button "List"
+    - button "Kanban" [pressed]
+  - button "Integrations"
+  - button "Refresh"
+  - list "Ticket numbers":
+    - listitem: Total 3
+    - listitem: Open 1
+    - listitem: Critical 1
+    - listitem: High priority 1
+  - region "Open 1":
+    - heading "Open 1" [level=2]
+    - list "Open, 1 ticket":
+      - listitem:
+        - 'button /High CVE-\d+-\d+: lodash prototype pollution CVE-\d+-\d+ lodash web-frontend/'
+  - region "In Progress 1":
+    - heading "In Progress 1" [level=2]
+    - list "In Progress, 1 ticket":
+      - listitem:
+        - 'button /Critical CVE-\d+-\d+: axios SSRF CVE-\d+-\d+ axios api-gateway Jane Roe/'
+  - region "Resolved 1":
+    - heading "Resolved 1" [level=2]
+    - list "Resolved, 1 ticket":
+      - listitem:
+        - button "Low Upgrade express to 5 express web-frontend"
+  - region "Closed 0":
+    - heading "Closed 0" [level=2]
+    - list "Closed, 0 tickets":
+      - listitem: No tickets
+  - region "Won't Fix 0":
+    - heading "Won't Fix 0" [level=2]
+    - list "Won't Fix, 0 tickets":
+      - listitem: No tickets

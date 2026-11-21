@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
@@ -171,6 +172,7 @@ test.describe("Tickets list", () => {
 
     await axe(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "tickets-list");
     await expectScreenshots(page, "tickets-list");
   });
 
@@ -184,6 +186,7 @@ test.describe("Tickets list", () => {
 
     await axe(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "tickets-empty");
     await expectScreenshots(page, "tickets-empty");
   });
 
@@ -234,6 +237,7 @@ test.describe("Kanban board", () => {
 
     await axe(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "tickets-kanban");
     await expectScreenshots(page, "tickets-kanban");
   });
 });
@@ -311,6 +315,7 @@ test.describe("Ticket page", () => {
     await tickets.goto("/tickets/t-404");
 
     await expect(tickets.detail().getByText("Ticket not found")).toBeVisible();
+    await expectMainSnapshot(page, "ticket-not-found");
   });
 
   test("a remediation shows what its external issue says, grouped by vulnerability", async ({
@@ -367,6 +372,7 @@ test.describe("Ticket page", () => {
 
     await axe(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "ticket-page");
     await expectScreenshots(page, "ticket-page");
   });
 
@@ -380,6 +386,7 @@ test.describe("Ticket page", () => {
 
     await axe(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "ticket-page-remediation");
     await expectScreenshots(page, "ticket-page-remediation");
   });
 });

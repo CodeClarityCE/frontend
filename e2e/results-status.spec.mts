@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
@@ -47,6 +48,7 @@ test.describe("Results page for an analysis it cannot show", () => {
       await expect(results.tabs).toHaveCount(0);
       await expectNoAxeViolations(page);
       if (label === "missing") await expectPageSweep(page);
+      await expectMainSnapshot(page, "results-not-found");
       await expectScreenshots(page, "results-not-found");
       await expectBackTo(page, "Back to projects", /\/projects$/);
     });
@@ -84,6 +86,7 @@ test.describe("Results page for an unfinished analysis", () => {
     expect(results.requested("/sbom/stats")).toBe(false);
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "results-failed");
     await expectScreenshots(page, "results-failed");
   });
 
@@ -190,6 +193,7 @@ test.describe("Detail pages for something they cannot show", () => {
 
     await expect(results.heading).toHaveText("Dependency not found");
     expect(results.requested("/sbom/dependency")).toBe(false);
+    await expectMainSnapshot(page, "dependency-not-found");
     await expectNoAxeViolations(page);
     await expectBackTo(
       page,
@@ -239,6 +243,7 @@ test.describe("Detail pages for something they cannot show", () => {
 
     await expect(results.heading).toHaveText("Vulnerability not found");
     expect(results.requested("/vulnerabilities/vulnerability/")).toBe(false);
+    await expectMainSnapshot(page, "vulnerability-not-found");
     await expectNoAxeViolations(page);
     await expectBackTo(
       page,

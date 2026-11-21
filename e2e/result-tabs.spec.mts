@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
@@ -247,6 +248,7 @@ test.describe("SBOM results", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "sbom");
     await expectScreenshots(page, "sbom");
   });
 
@@ -263,6 +265,7 @@ test.describe("SBOM results", () => {
     await expect(page.getByText("No dependencies found")).toBeVisible();
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "sbom-empty");
     await expectScreenshots(page, "sbom-empty");
   });
 
@@ -365,6 +368,7 @@ test.describe("SBOM dependency details", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "sbom-details");
     await expectScreenshots(page, "sbom-details");
   });
 });
@@ -476,7 +480,17 @@ test.describe("License results", () => {
     await expect(tabs.rows("Licenses")).toHaveCount(3);
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "licenses");
     await expectScreenshots(page, "licenses");
+  });
+
+  test("no licenses says so", async ({ page }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn({ licenses: [] });
+    await tabs.goto("Licenses");
+
+    await expect(page.getByText("No licenses found.")).toBeVisible();
+    await expectMainSnapshot(page, "licenses-empty");
   });
 });
 
@@ -561,6 +575,7 @@ test.describe("Patch results", () => {
     await expect(tabs.rows("Patches")).toHaveCount(3);
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "patches");
     await expectScreenshots(page, "patches");
   });
 });
@@ -600,6 +615,7 @@ test.describe("CodeQL results", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "codeql");
     await expectScreenshots(page, "codeql");
   });
 
@@ -613,6 +629,7 @@ test.describe("CodeQL results", () => {
     await expect(page.getByText("No findings")).toBeVisible();
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "codeql-empty");
     await expectScreenshots(page, "codeql-empty");
   });
 });

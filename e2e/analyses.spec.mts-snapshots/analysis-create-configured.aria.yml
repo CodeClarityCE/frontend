@@ -1,0 +1,52 @@
+- main:
+  - link "Projects":
+    - /url: /projects
+  - heading "New Analysis" [level=1]
+  - paragraph: Choose an analyzer, set its options and how often it runs.
+  - text: example/web-frontend GitHub repository
+  - link "View repository":
+    - /url: https://github.com/example/web-frontend
+  - group:
+    - heading "Analyzer" [level=2]
+    - paragraph: The plugins that run on the project, in order.
+    - radiogroup "Analyzer":
+      - radio "JavaScript Analyzer SBOM, vulnerabilities and licenses for npm" [checked]
+      - text: JavaScript Analyzer SBOM, vulnerabilities and licenses for npm
+      - radio "PHP SBOM, vulnerabilities and licenses for Composer"
+      - text: PHP SBOM, vulnerabilities and licenses for Composer
+    - link "Create an analyzer":
+      - /url: /orgs/add/analyzers/org-123/
+    - heading "Repository" [level=2]
+    - paragraph: The code the analysis reads.
+    - text: Branch
+    - textbox "Branch" [invalid]
+    - paragraph: A branch is required
+    - text: Commit
+    - textbox "Commit"
+    - paragraph: Optional. Leave it empty for the latest commit.
+    - heading "Policies" [level=2]
+    - paragraph: Optional rules that shape the results.
+    - heading "Vulnerability policy" [level=3]
+    - paragraph: Vulnerabilities a policy ignores are left out of the results.
+    - radiogroup "Vulnerability policy":
+      - radio "No policy Every vulnerability is reported." [checked]
+      - text: No policy Every vulnerability is reported.
+      - 'radio /Ignore disputed CVEs the team disputed Ignored: CVE-\d+-\d+, CVE-\d+-\d+/'
+      - text: "/Ignore disputed CVEs the team disputed Ignored: CVE-\\d+-\\d+, CVE-\\d+-\\d+/"
+    - heading "License policy" [level=3]
+    - paragraph: Licenses a policy disallows are flagged in the results.
+    - radiogroup "License policy":
+      - radio "No policy Every license is reported without restrictions."
+      - text: No policy Every license is reported without restrictions.
+      - 'radio "No copyleft Default Strong copyleft is not allowed Disallowed: GPL-3.0, AGPL-3.0" [checked]'
+      - text: "No copyleft Default Strong copyleft is not allowed Disallowed: GPL-3.0, AGPL-3.0"
+    - heading "Schedule" [level=2]
+    - paragraph: A scheduled analysis runs again on the latest commit.
+    - text: Runs
+    - combobox "Runs": Weekly
+    - text: First run date
+    - textbox "First run date": /\d+-\d+-\d+/
+    - text: First run time
+    - textbox "First run time": /\d+:\d+/
+    - paragraph: /Runs weekly from May 6, \d+, 9:\d+ AM\./
+    - button "Start Analysis"

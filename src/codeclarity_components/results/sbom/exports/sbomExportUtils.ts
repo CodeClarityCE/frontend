@@ -2,7 +2,7 @@
  * Utility functions for exporting SBOM data in various formats
  */
 
-import { lightTokens } from "@/utils/light-tokens";
+import { lightTokens } from "@/utils/css-tokens";
 
 import { hasUpdate } from "../utils/sbomUtils";
 

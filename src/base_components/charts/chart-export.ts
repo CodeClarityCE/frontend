@@ -1,4 +1,4 @@
-import { lightTokens, tokensOf } from "@/utils/light-tokens";
+import { lightTokens, tokensOf } from "@/utils/css-tokens";
 
 import chartCss from "./chart.css?raw";
 import { type ChartMarks, chartMarkText } from "./chart-caption";

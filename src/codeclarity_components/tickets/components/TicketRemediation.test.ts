@@ -1,14 +1,20 @@
 import { mount } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   type InstanceDiffLinks,
   RemediationKind,
 } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
 
+import { createTestApp } from "../../../../tests/real-app";
 import type { TicketInstance, TicketRemediation } from "../tickets.entity";
 
 import TicketRemediationView from "./TicketRemediation.vue";
+
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 const remediation: TicketRemediation = {
   kind: RemediationKind.ForceVersion,
@@ -85,6 +91,7 @@ describe("The remediation on the ticket page", () => {
         instances,
         orgId: "org-1",
       },
+      global: createTestApp().global,
     });
 
   const text = (wrapper: ReturnType<typeof mountWith>): string =>
@@ -118,11 +125,8 @@ describe("The remediation on the ticket page", () => {
     const items = vulnerabilityItems(wrapper);
     expect(items).toHaveLength(2);
     expect(items[0]!.text()).toContain("CVE-2099-7101");
-    expect(items[0]!.findComponent({ name: "RouterLink" }).props("to")).toEqual(
-      {
-        name: "orgVulnerability",
-        params: { orgId: "org-1", vulnerabilityId: "CVE-2099-7101" },
-      },
+    expect(items[0]!.find("a").attributes("href")).toBe(
+      "/org/org-1/vulnerabilities/CVE-2099-7101",
     );
     expect(items[0]!.text()).toContain("6.5.0");
     expect(items[0]!.text()).toContain("6.5.3");
@@ -140,6 +144,7 @@ describe("The remediation on the ticket page", () => {
         orgId: "org-1",
         ticketTitle: "Force qs to 6.5.3 in packages/web",
       },
+      global: createTestApp().global,
     });
 
     expect(text(wrapper)).not.toContain("Force qs to 6.5.3");

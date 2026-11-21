@@ -1,26 +1,20 @@
 import { fireEvent, render, screen } from "@testing-library/vue";
 import { describe, expect, it, vi } from "vitest";
-import { createMemoryHistory, createRouter } from "vue-router";
 
 import type { Project } from "@/codeclarity_components/projects/project.entity";
 
+import {
+  createTestApp,
+  org,
+  type TestApp,
+} from "../../../../../tests/real-app";
+
 import ProjectAnalysesDialog from "./ProjectAnalysesDialog.vue";
 
-vi.mock("@/codeclarity_components/analyses/analysis.repository", () => ({
-  AnalysisRepository: class {
-    deleteAnalysis = vi.fn();
-  },
-}));
-
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "test-token" }),
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
-
-// The real helpers, so dialogs behave as in the browser.
-vi.mock("@vueuse/core", async () => await vi.importActual("@vueuse/core"));
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 const project = {
   id: "p-1",
@@ -36,33 +30,48 @@ const project = {
   ],
 } as unknown as Project;
 
+const analysisPath = `/org/${org.id}/projects/p-1/analyses/a-1`;
+
+// The projects page with the project's analyses dialog open, at the delete confirmation.
+async function confirmDelete(): Promise<{
+  app: TestApp;
+  view: ReturnType<typeof render>;
+}> {
+  const app = createTestApp({ signedIn: true });
+  app.http.on("DELETE", analysisPath, { status_code: 200, status: "success" });
+  await app.visit("/projects");
+  const view = render(ProjectAnalysesDialog, {
+    props: { project, open: true },
+    global: app.global,
+  });
+  await fireEvent.click(
+    await screen.findByRole("button", {
+      name: /^Delete the analysis started/,
+    }),
+  );
+  return { app, view };
+}
+
 describe("ProjectAnalysesDialog", () => {
   it("says that deleting an analysis keeps its tickets", async () => {
-    const router = createRouter({
-      history: createMemoryHistory(),
-      routes: [
-        { path: "/", component: { template: "<div />" } },
-        {
-          path: "/results",
-          name: "results",
-          component: { template: "<div />" },
-        },
-      ],
-    });
-    render(ProjectAnalysesDialog, {
-      props: { project, open: true },
-      global: { plugins: [router] },
-    });
-
-    await fireEvent.click(
-      await screen.findByRole("button", {
-        name: /^Delete the analysis started/,
-      }),
-    );
+    await confirmDelete();
 
     expect(
       (await screen.findByRole("dialog", { name: "Delete this analysis?" }))
         .textContent,
     ).toContain("Tickets it found are kept.");
+  });
+
+  it("deletes the analysis once confirmed and tells the list", async () => {
+    const { app, view } = await confirmDelete();
+
+    await fireEvent.click(
+      await screen.findByRole("button", { name: "Delete analysis" }),
+    );
+
+    await vi.waitFor(() => expect(view.emitted("changed")).toHaveLength(1));
+    expect(
+      app.http.requests.filter((r) => r.method === "DELETE").map((r) => r.path),
+    ).toEqual([analysisPath]);
   });
 });

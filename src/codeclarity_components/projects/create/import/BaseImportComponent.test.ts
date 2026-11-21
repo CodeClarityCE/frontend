@@ -1,97 +1,33 @@
-import { mount, type VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { nextTick } from "vue";
+import userEvent from "@testing-library/user-event";
+import { render, screen, within } from "@testing-library/vue";
+import { describe, expect, it, vi } from "vitest";
 
-import type { Repository } from "@/codeclarity_components/projects/project.entity";
-import router from "@/router";
-import { APIErrors } from "@/utils/api/ApiErrors";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
+import {
+  type GetRepositoriesRequestOptions,
+  IntegrationsRepository,
+} from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
+
+import {
+  createTestApp,
+  org,
+  type TestApp,
+  withToaster,
+} from "../../../../../tests/real-app";
 
 import BaseImportComponent, {
   IMPORT_CONCURRENCY,
   stripGitSuffix,
 } from "./BaseImportComponent.vue";
 
-const { createProject, successToast, errorToast } = vi.hoisted(() => ({
-  createProject: vi.fn(),
-  successToast: vi.fn(),
-  errorToast: vi.fn(),
-}));
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
-vi.mock("@/codeclarity_components/projects/project.repository", () => ({
-  ProjectRepository: class {
-    createProject = createProject;
-  },
-}));
+const reposPath = `/org/${org.id}/integrations/github/gh-1/repositories`;
+const projectsPath = `/org/${org.id}/projects`;
 
-vi.mock("@/utils/toasts", () => ({ successToast, errorToast }));
-
-// The real helpers, so the shadcn Input's v-model works.
-vi.mock("@vueuse/core", async () => await vi.importActual("@vueuse/core"));
-
-// The global setup mocks BaseRepository without its error classes; the
-// component needs a real BusinessLogicError for its instanceof checks.
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class {},
-  BusinessLogicError: class BusinessLogicError extends Error {
-    error_code: string;
-    error_message: string;
-    constructor(error_code: string, error_message: string) {
-      super(error_message);
-      this.error_code = error_code;
-      this.error_message = error_message;
-    }
-  },
-}));
-
-vi.mock("./components/RepoTable.vue", () => ({
-  default: {
-    name: "RepoTable",
-    props: ["integration", "getRepos", "config", "disabled"],
-    emits: ["onSelectedReposChange", "onForceRefresh"],
-    setup(_props: unknown, { expose }: { expose: (api: object) => void }) {
-      expose({
-        clearSelection: vi.fn(),
-        fetchRepos: vi.fn().mockResolvedValue(undefined),
-      });
-      return {};
-    },
-    template: '<div data-testid="repo-table" />',
-  },
-}));
-
-vi.mock("./components/ImportErrorTable.vue", () => ({
-  default: {
-    name: "ImportErrorTable",
-    props: ["reposFailedToImport"],
-    template:
-      '<div data-testid="import-error-table"><span v-for="(failed, id) in reposFailedToImport" :key="id" :data-testid="`failed-${id}`">{{ failed.reason }}</span></div>',
-  },
-}));
-
-vi.mock("./components/FaqComponent.vue", () => ({
-  default: { name: "Faq", template: '<div data-testid="faq" />' },
-}));
-
-vi.mock("@/shadcn/ui/progress", () => ({
-  Progress: {
-    name: "Progress",
-    props: ["modelValue"],
-    template: '<div data-testid="progress" :data-value="modelValue" />',
-  },
-}));
-
-vi.mock("@/shadcn/ui/button/Button.vue", () => ({
-  default: {
-    name: "Button",
-    props: ["variant", "size", "disabled", "type"],
-    emits: ["click"],
-    template:
-      '<button :type="type ?? \'button\'" :disabled="disabled" @click="$emit(\'click\', $event)"><slot /></button>',
-  },
-}));
-
-function repo(index: number): Repository {
+function repo(index: number) {
   return {
     id: `repo-${index}`,
     url: `https://github.com/org/repo-${index}`,
@@ -99,199 +35,213 @@ function repo(index: number): Repository {
     visibility: "public",
     fully_qualified_name: `org/repo-${index}`,
     description: "",
-    created_at: new Date("2026-01-01"),
+    created_at: "2026-01-01T00:00:00.000Z",
     imported_already: false,
     integration_id: "gh-1",
   };
 }
 
-async function flush(): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  await nextTick();
+const repos = Array.from({ length: 10 }, (_, i) => repo(i));
+
+const reposPage = {
+  data: repos,
+  entry_count: repos.length,
+  page: 0,
+  entries_per_page: 100,
+  total_entries: repos.length,
+  total_pages: 1,
+  status: "success",
+  matching_count: repos.length,
+  filter_count: {},
+};
+
+// The GitHub importer's own request for the repositories.
+const getRepos = (options: GetRepositoriesRequestOptions) =>
+  new IntegrationsRepository().getGithubRepositories(options);
+
+// Holds every project import the page sends until the test releases it.
+interface HeldImports {
+  sent: string[];
+  releaseNext: () => void;
+  releaseAll: () => void;
 }
 
-describe("BaseImportComponent bulk import", () => {
-  let wrapper: VueWrapper;
-  const repos = Array.from({ length: 10 }, (_, i) => repo(i));
-
-  beforeEach(async () => {
-    createProject.mockReset();
-    successToast.mockReset();
-    errorToast.mockReset();
-    vi.mocked(router.push).mockClear();
-
-    wrapper = mount(BaseImportComponent, {
-      props: {
-        integration: "gh-1",
-        getRepos: vi.fn().mockResolvedValue({ data: [] }),
-      },
-    });
-    wrapper
-      .findComponent({ name: "RepoTable" })
-      .vm.$emit("onSelectedReposChange", repos);
-    await nextTick();
-  });
-
-  it("imports a bounded number of repositories at a time and reports progress", async () => {
-    const pending: (() => void)[] = [];
-    createProject.mockImplementation(
-      () =>
-        new Promise<{ id: string }>((resolve) => {
-          pending.push(() => resolve({ id: "project" }));
-        }),
+function holdImports(): HeldImports {
+  const fake = globalThis.fetch;
+  const waiting: (() => void)[] = [];
+  const sent: string[] = [];
+  let holding = true;
+  vi.stubGlobal("fetch", (input: string, init: RequestInit = {}) => {
+    const isImport =
+      init.method === "POST" &&
+      new URL(String(input)).pathname.endsWith(projectsPath);
+    if (!isImport) return fake(input, init);
+    sent.push((JSON.parse(init.body as string) as { url: string }).url);
+    if (!holding) return fake(input, init);
+    return new Promise<Response>((resolve) =>
+      waiting.push(() => resolve(fake(input, init))),
     );
+  });
+  return {
+    sent,
+    releaseNext: () => waiting.shift()?.(),
+    releaseAll: () => {
+      holding = false;
+      waiting.splice(0).forEach((release) => release());
+    },
+  };
+}
 
-    const button = wrapper.find('[data-testid="bulk-import-button"]');
-    expect(button.text()).toContain("Import 10 Projects");
-    await button.trigger("click");
-    await flush();
+// The GitHub import page with every repository listed and the toaster shown.
+async function openImporter(): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  app.http.on("GET", reposPath, reposPage);
+  app.http.on("POST", projectsPath, { id: "project" }, 201);
+  await app.visit("/projects/add");
+  render(withToaster(BaseImportComponent, { integration: "gh-1", getRepos }), {
+    global: app.global,
+  });
+  await screen.findByText("org/repo-9");
+  return app;
+}
 
-    expect(createProject).toHaveBeenCalledTimes(IMPORT_CONCURRENCY);
-    expect(
-      wrapper.find('[data-testid="bulk-import-button"]').attributes("disabled"),
-    ).toBeDefined();
-    expect(wrapper.find('[data-testid="import-progress"]').text()).toContain(
+async function selectEveryRepository(): Promise<void> {
+  await userEvent.click(
+    screen.getByRole("checkbox", {
+      name: "Select every repository not imported yet",
+    }),
+  );
+}
+
+const importButton = (): HTMLElement =>
+  screen.getByTestId("bulk-import-button");
+
+describe("BaseImportComponent bulk import", () => {
+  it("imports a bounded number of repositories at a time and reports progress", async () => {
+    const app = await openImporter();
+    const held = holdImports();
+    await selectEveryRepository();
+
+    expect(importButton().textContent).toContain("Import 10 Projects");
+    await userEvent.click(importButton());
+
+    await vi.waitFor(() => expect(held.sent).toHaveLength(IMPORT_CONCURRENCY));
+    expect(importButton()).toBeDisabled();
+    expect(screen.getByTestId("import-progress").textContent).toContain(
       "Importing 0 / 10",
     );
 
-    pending[0]!();
-    await flush();
-    expect(createProject).toHaveBeenCalledTimes(IMPORT_CONCURRENCY + 1);
-    expect(wrapper.find('[data-testid="import-progress"]').text()).toContain(
-      "Importing 1 / 10",
+    held.releaseNext();
+    await vi.waitFor(() =>
+      expect(held.sent).toHaveLength(IMPORT_CONCURRENCY + 1),
     );
+    const progress = within(screen.getByTestId("import-progress"));
+    expect(progress.getByText(/Importing 1 \/\s+10/)).toBeInTheDocument();
+    expect(progress.getByText("10%")).toBeInTheDocument();
+
+    held.releaseAll();
     expect(
-      wrapper.find('[data-testid="progress"]').attributes("data-value"),
-    ).toBe("10");
-
-    // Let everything else through
-    createProject.mockResolvedValue({ id: "project" });
-    pending.slice(1).forEach((resolve) => resolve());
-    await vi.waitFor(() => expect(router.push).toHaveBeenCalledTimes(1));
-
-    expect(createProject).toHaveBeenCalledTimes(10);
-    expect(createProject).toHaveBeenCalledWith(
-      expect.objectContaining({
-        orgId: "test-org-id",
-        data: { integration_id: "gh-1", url: "https://github.com/org/repo-7" },
-        bearerToken: "test-token",
-      }),
+      await screen.findByText("Successfully imported 10 repositories"),
+    ).toBeInTheDocument();
+    expect(held.sent).toHaveLength(10);
+    expect(held.sent).toContain("https://github.com/org/repo-7");
+    await vi.waitFor(() =>
+      expect(app.router.currentRoute.value.fullPath).toBe("/projects"),
     );
-    expect(successToast).toHaveBeenCalledWith(
-      "Successfully imported 10 repositories",
-    );
-    expect(errorToast).not.toHaveBeenCalled();
-    expect(router.push).toHaveBeenCalledWith({ name: "projects" });
-    expect(wrapper.find('[data-testid="import-progress"]').exists()).toBe(
-      false,
-    );
+    expect(screen.queryByTestId("import-progress")).toBeNull();
   });
 
   it("freezes the table and keeps the progress visible for the whole import", async () => {
-    const pending: (() => void)[] = [];
-    createProject.mockImplementation(
-      () =>
-        new Promise<{ id: string }>((resolve) => {
-          pending.push(() => resolve({ id: "project" }));
-        }),
-    );
-    const table = wrapper.findComponent({ name: "RepoTable" });
-    expect(table.props("disabled")).toBe(false);
+    await openImporter();
+    const held = holdImports();
+    await selectEveryRepository();
+    const checkbox = screen.getByRole("checkbox", {
+      name: "Select org/repo-3",
+    });
+    expect(checkbox).toBeEnabled();
 
-    await wrapper.find('[data-testid="bulk-import-button"]').trigger("click");
-    await flush();
-    expect(table.props("disabled")).toBe(true);
+    await userEvent.click(importButton());
+    await vi.waitFor(() => expect(checkbox).toBeDisabled());
+    expect(screen.getByTestId("import-progress")).toBeInTheDocument();
 
-    table.vm.$emit("onSelectedReposChange", []);
-    await flush();
-    expect(wrapper.find('[data-testid="import-progress"]').exists()).toBe(true);
-
-    createProject.mockResolvedValue({ id: "project" });
-    pending.forEach((resolve) => resolve());
-    await vi.waitFor(() => expect(router.push).toHaveBeenCalledTimes(1));
-    expect(table.props("disabled")).toBe(false);
+    held.releaseAll();
+    await screen.findByText("Successfully imported 10 repositories");
   });
 
   it("keeps the page open and lists failures when some imports fail", async () => {
-    createProject.mockImplementation(({ data }: { data: { url: string } }) =>
-      data.url.endsWith("/repo-2")
-        ? Promise.reject(
-            new BusinessLogicError(APIErrors.AlreadyExists, "exists"),
-          )
-        : Promise.resolve({ id: "project" }),
-    );
+    const app = await openImporter();
+    const fake = globalThis.fetch;
+    // The API refuses the repository that is already a project.
+    vi.stubGlobal("fetch", (input: string, init: RequestInit = {}) => {
+      if ((init.body as string).includes('/repo-2"')) {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              status_code: 409,
+              error_code: "AlreadyExists",
+              error_message: "exists",
+            }),
+            { status: 409 },
+          ),
+        );
+      }
+      return fake(input, init);
+    });
+    await selectEveryRepository();
 
-    await wrapper.find('[data-testid="bulk-import-button"]').trigger("click");
-    await vi.waitFor(() => expect(successToast).toHaveBeenCalled());
-    await flush();
+    await userEvent.click(importButton());
 
-    expect(createProject).toHaveBeenCalledTimes(10);
-    expect(successToast).toHaveBeenCalledWith(
-      "Successfully imported 9 repositories",
-    );
-    expect(errorToast).toHaveBeenCalledWith("Failed to import 1 repositories");
-    expect(router.push).not.toHaveBeenCalled();
-    expect(wrapper.find('[data-testid="import-error-table"]').exists()).toBe(
-      true,
-    );
-    expect(wrapper.find('[data-testid="failed-repo-2"]').text()).toBe(
-      "Already imported",
-    );
+    expect(
+      await screen.findByText("Successfully imported 9 repositories"),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText("Failed to import 1 repositories"),
+    ).toBeInTheDocument();
+    const failures = await screen.findByRole("table", {
+      name: "Failed imports",
+    });
+    const row = within(failures).getByText("org/repo-2").closest("tr")!;
+    expect(within(row).getByText("Already imported")).toBeInTheDocument();
+    expect(app.router.currentRoute.value.fullPath).toBe("/projects/add");
   });
 
   it("ignores a second click while an import is running", async () => {
-    const pending: (() => void)[] = [];
-    createProject.mockImplementation(
-      () =>
-        new Promise<{ id: string }>((resolve) => {
-          pending.push(() => resolve({ id: "project" }));
-        }),
-    );
+    await openImporter();
+    const held = holdImports();
+    await selectEveryRepository();
 
-    const button = wrapper.find('[data-testid="bulk-import-button"]');
-    await button.trigger("click");
-    await flush();
-    await button.trigger("click");
-    await flush();
+    await userEvent.click(importButton());
+    await vi.waitFor(() => expect(held.sent).toHaveLength(IMPORT_CONCURRENCY));
+    await userEvent.click(importButton());
 
-    expect(createProject).toHaveBeenCalledTimes(IMPORT_CONCURRENCY);
-
-    createProject.mockResolvedValue({ id: "project" });
-    pending.forEach((resolve) => resolve());
-    await vi.waitFor(() => expect(router.push).toHaveBeenCalledTimes(1));
-    expect(createProject).toHaveBeenCalledTimes(10);
+    expect(held.sent).toHaveLength(IMPORT_CONCURRENCY);
+    held.releaseAll();
+    await screen.findByText("Successfully imported 10 repositories");
+    expect(held.sent).toHaveLength(10);
   });
 });
 
 describe("BaseImportComponent manual import", () => {
-  beforeEach(() => {
-    createProject.mockReset();
-    createProject.mockResolvedValue({ id: "project" });
-    vi.mocked(router.push).mockClear();
-  });
-
   it("imports the typed url without its trailing .git", async () => {
-    const wrapper = mount(BaseImportComponent, {
-      props: {
-        integration: "gh-1",
-        getRepos: vi.fn().mockResolvedValue({ data: [] }),
-      },
-    });
+    const app = await openImporter();
 
-    await wrapper
-      .find('input[aria-describedby="manual-repository-hint"]')
-      .setValue("https://github.com/octo/octo.github.io.git");
-    await wrapper.find("form").trigger("submit");
-
-    await vi.waitFor(() => expect(createProject).toHaveBeenCalledTimes(1));
-    expect(createProject).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: {
-          integration_id: "gh-1",
-          url: "https://github.com/octo/octo.github.io",
-        },
-      }),
+    await userEvent.type(
+      screen.getByLabelText("Repository URL"),
+      "https://github.com/octo/octo.github.io.git",
     );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Import repository" }),
+    );
+
+    await vi.waitFor(() =>
+      expect(app.router.currentRoute.value.fullPath).toBe("/projects"),
+    );
+    const imports = app.http.requests.filter(
+      (r) => r.method === "POST" && r.path === projectsPath,
+    );
+    expect(imports.map((r) => r.body)).toEqual([
+      { integration_id: "gh-1", url: "https://github.com/octo/octo.github.io" },
+    ]);
   });
 });
 

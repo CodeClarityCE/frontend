@@ -1,121 +1,130 @@
-import { flushPromises, mount } from "@vue/test-utils";
+import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/vue";
+import { flushPromises } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { defineComponent, h } from "vue";
+import { h } from "vue";
 
+import { Toaster } from "@/shadcn/ui/sonner";
 import { APIErrors } from "@/utils/api/ApiErrors";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
+
+import { analysisPath } from "../../../../../tests/fixtures/results";
+import { createTestApp, type TestApp } from "../../../../../tests/real-app";
 
 import SourceVerdictExportMenu from "./SourceVerdictExportMenu.vue";
 
-vi.unmock("@/utils/api/BaseRepository");
-
-const download = vi.hoisted(() => vi.fn());
-vi.mock("@/codeclarity_components/results/results.repository", () => ({
-  ResultsRepository: class {
-    downloadSourceVerdicts = download;
-  },
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getAuthenticated: true, getToken: "token" }),
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
-const saveBlob = vi.hoisted(() => vi.fn());
-vi.mock("@/utils/download", () => ({ saveBlob }));
-const errorToast = vi.hoisted(() => vi.fn());
-vi.mock("@/utils/toasts", () => ({ errorToast }));
-
-// Renders the menu inline so its items can be clicked.
-const passthrough = defineComponent({
-  setup:
-    (_, { slots }) =>
-    () =>
-      h("div", slots.default?.()),
-});
-const item = defineComponent({
-  emits: ["select"],
-  setup:
-    (_, { slots, emit }) =>
-    () =>
-      h("button", { onClick: () => emit("select") }, slots.default?.()),
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
 });
 
-function mountMenu(): ReturnType<typeof mount<typeof SourceVerdictExportMenu>> {
-  return mount(SourceVerdictExportMenu, {
-    props: { analysisID: "analysis-1", projectID: "project-1" },
-    global: {
-      stubs: {
-        DropdownMenu: passthrough,
-        DropdownMenuTrigger: passthrough,
-        DropdownMenuContent: passthrough,
-        DropdownMenuLabel: passthrough,
-        DropdownMenuSeparator: passthrough,
-        DropdownMenuItem: item,
-      },
+const EXPORT_PATH = `${analysisPath}/vulnerabilities/source-verdicts`;
+
+let app: TestApp;
+let urls: URL[];
+let saved: { name: string; blob: Blob }[];
+
+// Records the URLs sent and the files the browser was asked to save; jsdom has no object URLs.
+function watchBrowser(): void {
+  urls = [];
+  saved = [];
+  const answerRequest = globalThis.fetch;
+  vi.stubGlobal("fetch", (input: string | URL, init?: RequestInit) => {
+    urls.push(new URL(String(input)));
+    return answerRequest(input, init);
+  });
+  const blobs = new Map<string, Blob>();
+  Object.assign(URL, {
+    createObjectURL: (blob: Blob) => {
+      const url = `blob:test/${blobs.size}`;
+      blobs.set(url, blob);
+      return url;
     },
+    revokeObjectURL: () => undefined,
+  });
+  vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
+    this: HTMLAnchorElement,
+  ) {
+    const blob = blobs.get(this.getAttribute("href") ?? "");
+    if (blob) saved.push({ name: this.download, blob });
   });
 }
 
+// Opens the menu, next to the app's toaster, and picks a format.
+async function exportAs(name: "CSV" | "JSON"): Promise<void> {
+  render(
+    {
+      render: () =>
+        h("div", [
+          h(SourceVerdictExportMenu, { analysisID: "a-1", projectID: "p-1" }),
+          h(Toaster),
+        ]),
+    },
+    { global: app.global },
+  );
+  const user = userEvent.setup();
+  await user.click(
+    screen.getByRole("button", { name: /Export source verdicts/ }),
+  );
+  await user.click(
+    await screen.findByRole("menuitem", {
+      name: (text) => text.startsWith(name),
+    }),
+  );
+  await flushPromises();
+}
+
 describe("SourceVerdictExportMenu", () => {
-  beforeEach(() => {
-    download.mockReset();
-    saveBlob.mockReset();
-    errorToast.mockReset();
+  beforeEach(async () => {
+    app = createTestApp({ signedIn: true });
+    await app.visit("/projects");
+    watchBrowser();
   });
 
-  it.each(["csv", "json"] as const)(
-    "saves the %s export of the analysis",
-    async (format) => {
-      const blob = new Blob(["rows"]);
-      download.mockResolvedValue(blob);
+  it.each([
+    ["CSV", "csv"],
+    ["JSON", "json"],
+  ] as const)("saves the %s export of the analysis", async (name, format) => {
+    app.http.on("GET", EXPORT_PATH, "rows");
 
-      const wrapper = mountMenu();
-      await wrapper
-        .find(`[data-testid="export-verdicts-${format}"]`)
-        .trigger("click");
-      await flushPromises();
+    await exportAs(name);
 
-      expect(download).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orgId: "org-1",
-          projectId: "project-1",
-          analysisId: "analysis-1",
-          format,
-          bearerToken: "token",
-        }),
-      );
-      expect(saveBlob).toHaveBeenCalledWith(
-        blob,
-        `source-verdicts-analysis-1.${format}`,
-      );
-    },
-  );
+    const request = urls.find((url) => url.pathname.endsWith(EXPORT_PATH));
+    expect(request?.searchParams.get("format")).toBe(format);
+    expect(saved.map((file) => file.name)).toEqual([
+      `source-verdicts-a-1.${format}`,
+    ]);
+    expect(await saved[0]?.blob.text()).toBe('"rows"');
+  });
 
   it("says the analysis predates source verdicts when the API has none", async () => {
-    download.mockRejectedValue(
-      new BusinessLogicError(APIErrors.SourceVerdictsNotAvailable, "none"),
+    app.http.on(
+      "GET",
+      EXPORT_PATH,
+      {
+        error_code: APIErrors.SourceVerdictsNotAvailable,
+        error_message: "none",
+      },
+      404,
     );
 
-    const wrapper = mountMenu();
-    await wrapper.find('[data-testid="export-verdicts-csv"]').trigger("click");
-    await flushPromises();
+    await exportAs("CSV");
 
-    expect(saveBlob).not.toHaveBeenCalled();
-    expect(errorToast).toHaveBeenCalledWith(
-      "This analysis predates source verdicts. Re-run it to export them.",
-    );
+    expect(saved).toEqual([]);
+    expect(
+      await screen.findByText(
+        "This analysis predates source verdicts. Re-run it to export them.",
+      ),
+    ).toBeTruthy();
   });
 
   it("reports any other failure", async () => {
-    download.mockRejectedValue(new Error("network"));
+    vi.stubGlobal("fetch", () => Promise.reject(new TypeError("network")));
 
-    const wrapper = mountMenu();
-    await wrapper.find('[data-testid="export-verdicts-json"]').trigger("click");
-    await flushPromises();
+    await exportAs("JSON");
 
-    expect(errorToast).toHaveBeenCalledWith(
-      "Could not export the source verdicts",
-    );
+    expect(saved).toEqual([]);
+    expect(
+      await screen.findByText("Could not export the source verdicts"),
+    ).toBeTruthy();
   });
 });

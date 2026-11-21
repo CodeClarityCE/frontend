@@ -58,7 +58,7 @@ config.global.stubs = {
     name: "Icon",
     props: ["icon", "class", "width", "height", "style"],
     template:
-      '<span data-testid="icon" class="mock-icon" :class="$props.class" :data-icon="icon">{{ typeof icon === "object" ? "" : (icon ?? "mock-icon") }}</span>',
+      '<span data-testid="icon" class="mock-icon" :class="$props.class" :data-icon="icon">{{ typeof icon === "object" && icon !== null ? "" : (icon ?? "mock-icon") }}</span>',
   },
   RouterLink: {
     name: "RouterLink",

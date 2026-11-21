@@ -1,10 +1,15 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen, within } from "@testing-library/vue";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { PatchInfo, ToPatch } from "../Patching";
 
 import PatchComponent from "./PatchComponent.vue";
+
+// Runs against the real stores and router, with no global mocks.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 const semver = (Major: number, Minor: number, Patch: number) => ({
   Major,

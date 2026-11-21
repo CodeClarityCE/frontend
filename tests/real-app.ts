@@ -30,6 +30,7 @@ export { user };
 export interface FakeRequest {
   method: string;
   path: string;
+  // The URL's query parameters.
   query: URLSearchParams;
   headers: Headers;
   body: unknown;

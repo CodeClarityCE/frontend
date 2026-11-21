@@ -1,24 +1,19 @@
 import { flushPromises, mount } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { APIErrors } from "@/utils/api/ApiErrors";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
+
+import { analysisPath } from "../../../../../tests/fixtures/results";
+import { createTestApp, type TestApp } from "../../../../../tests/real-app";
 
 import MaliciousPackageAdvisories from "./MaliciousPackageAdvisories.vue";
 
-vi.unmock("@/utils/api/BaseRepository");
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
-const getAdvisories = vi.hoisted(() => vi.fn());
-vi.mock("@/codeclarity_components/results/results.repository", () => ({
-  ResultsRepository: class {
-    getMaliciousPackageAdvisories = getAdvisories;
-  },
-}));
-const auth = vi.hoisted(() => ({ getAuthenticated: true, getToken: "token" }));
-vi.mock("@/stores/auth", () => ({ useAuthStore: () => auth }));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
+const ADVISORIES_PATH = `${analysisPath}/vulnerabilities/malicious-packages`;
 
 const advisory = {
   AdvisoryId: "MAL-2025-1234",
@@ -28,28 +23,76 @@ const advisory = {
   Summary: "Malicious code in evil-package",
 };
 
+let app: TestApp;
+
+// Answers the advisories request with this list, or this error.
+function answer(data: unknown[]): void {
+  app.http.on("GET", ADVISORIES_PATH, { data });
+}
+
+function answerError(code: string, status = 400): void {
+  app.http.on(
+    "GET",
+    ADVISORIES_PATH,
+    { error_code: code, error_message: "no result" },
+    status,
+  );
+}
+
+// The workspace each advisories request asked for.
+function requestedWorkspaces(): (string | null)[] {
+  return urls
+    .filter((url) => url.pathname.endsWith("/malicious-packages"))
+    .map((url) => url.searchParams.get("workspace"));
+}
+
+let urls: URL[] = [];
+
+// Records every URL and lets a test hold the next answer until it says so.
+function recordUrls(): { holdNext: () => () => void } {
+  urls = [];
+  const answerRequest = globalThis.fetch;
+  let held: Promise<void> | null = null;
+  vi.stubGlobal(
+    "fetch",
+    async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      urls.push(new URL(String(input)));
+      const response = answerRequest(input, init);
+      const wait = held;
+      held = null;
+      if (wait) await wait;
+      return response;
+    },
+  );
+  return {
+    holdNext() {
+      let release: () => void = () => undefined;
+      held = new Promise((resolve) => {
+        release = resolve;
+      });
+      return release;
+    },
+  };
+}
+
 function mountAdvisories(
   workspace = ".",
 ): ReturnType<typeof mount<typeof MaliciousPackageAdvisories>> {
   return mount(MaliciousPackageAdvisories, {
-    props: { analysisID: "analysis-1", projectID: "project-1", workspace },
+    props: { analysisID: "a-1", projectID: "p-1", workspace },
+    global: app.global,
   });
 }
 
 describe("MaliciousPackageAdvisories", () => {
-  beforeEach(() => {
-    getAdvisories.mockReset();
-    getAdvisories.mockResolvedValue({ data: [] });
-    auth.getAuthenticated = true;
-    vi.spyOn(console, "warn").mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
+  beforeEach(async () => {
+    app = createTestApp({ signedIn: true });
+    await app.visit("/projects");
+    answer([]);
   });
 
   it("marks advisories as malicious and says to remove the package", async () => {
-    getAdvisories.mockResolvedValue({ data: [advisory] });
+    answer([advisory]);
 
     const wrapper = mountAdvisories();
     await flushPromises();
@@ -77,9 +120,7 @@ describe("MaliciousPackageAdvisories", () => {
   it.each([APIErrors.PluginResultNotAvailable, APIErrors.UnknownWorkspace])(
     "renders nothing when the analysis has no result yet (%s)",
     async (code) => {
-      getAdvisories.mockRejectedValue(
-        new BusinessLogicError(code, "no result"),
-      );
+      answerError(code);
 
       const wrapper = mountAdvisories();
       await flushPromises();
@@ -88,14 +129,17 @@ describe("MaliciousPackageAdvisories", () => {
     },
   );
 
-  it.each([
-    ["network failure", new Error("Failed to fetch")],
-    [
-      "plugin failure",
-      new BusinessLogicError(APIErrors.PluginFailed, "failed"),
-    ],
-  ])("shows that the check could not run on a %s", async (_name, error) => {
-    getAdvisories.mockRejectedValue(error);
+  it("shows that the check could not run when the network is down", async () => {
+    vi.stubGlobal("fetch", () => Promise.reject(new TypeError("offline")));
+
+    const wrapper = mountAdvisories();
+    await flushPromises();
+
+    expect(wrapper.text()).toMatch(/could not check for malicious packages/i);
+  });
+
+  it("shows that the check could not run when the plugin failed", async () => {
+    answerError(APIErrors.PluginFailed, 500);
 
     const wrapper = mountAdvisories();
     await flushPromises();
@@ -104,10 +148,12 @@ describe("MaliciousPackageAdvisories", () => {
   });
 
   it("clears the failure when a later selection loads", async () => {
-    getAdvisories.mockRejectedValueOnce(new Error("Failed to fetch"));
-
+    answerError(APIErrors.PluginFailed, 500);
     const wrapper = mountAdvisories();
     await flushPromises();
+    expect(wrapper.text()).toMatch(/could not check/i);
+
+    answer([]);
     await wrapper.setProps({ workspace: "other" });
     await flushPromises();
 
@@ -115,7 +161,7 @@ describe("MaliciousPackageAdvisories", () => {
   });
 
   it("shows no severity scores", async () => {
-    getAdvisories.mockResolvedValue({ data: [advisory] });
+    answer([advisory]);
 
     const wrapper = mountAdvisories();
     await flushPromises();
@@ -126,17 +172,15 @@ describe("MaliciousPackageAdvisories", () => {
   });
 
   it("shows whether the package is a direct dependency", async () => {
-    getAdvisories.mockResolvedValue({
-      data: [
-        advisory,
-        {
-          ...advisory,
-          AffectedDependency: "deep-evil",
-          AdvisoryId: "MAL-2",
-          DirectDependency: false,
-        },
-      ],
-    });
+    answer([
+      advisory,
+      {
+        ...advisory,
+        AffectedDependency: "deep-evil",
+        AdvisoryId: "MAL-2",
+        DirectDependency: false,
+      },
+    ]);
 
     const wrapper = mountAdvisories();
     await flushPromises();
@@ -147,9 +191,7 @@ describe("MaliciousPackageAdvisories", () => {
   });
 
   it("keeps two advisories for the same package apart", async () => {
-    getAdvisories.mockResolvedValue({
-      data: [advisory, { ...advisory, AdvisoryId: "GHSA-aaaa-bbbb-cccc" }],
-    });
+    answer([advisory, { ...advisory, AdvisoryId: "GHSA-aaaa-bbbb-cccc" }]);
 
     const wrapper = mountAdvisories();
     await flushPromises();
@@ -158,16 +200,14 @@ describe("MaliciousPackageAdvisories", () => {
   });
 
   it("shows details, aliases and the publication date when present", async () => {
-    getAdvisories.mockResolvedValue({
-      data: [
-        {
-          ...advisory,
-          Details: "Steals environment variables on install",
-          Aliases: ["GHSA-aaaa-bbbb-cccc"],
-          Published: "2025-03-04T00:00:00Z",
-        },
-      ],
-    });
+    answer([
+      {
+        ...advisory,
+        Details: "Steals environment variables on install",
+        Aliases: ["GHSA-aaaa-bbbb-cccc"],
+        Published: "2025-03-04T00:00:00Z",
+      },
+    ]);
 
     const wrapper = mountAdvisories();
     await flushPromises();
@@ -179,17 +219,12 @@ describe("MaliciousPackageAdvisories", () => {
   });
 
   it("links web references and does not link anything else", async () => {
-    getAdvisories.mockResolvedValue({
-      data: [
-        {
-          ...advisory,
-          References: [
-            "https://example.com/report",
-            "ftp://example.com/payload",
-          ],
-        },
-      ],
-    });
+    answer([
+      {
+        ...advisory,
+        References: ["https://example.com/report", "ftp://example.com/payload"],
+      },
+    ]);
 
     const wrapper = mountAdvisories();
     await flushPromises();
@@ -199,36 +234,31 @@ describe("MaliciousPackageAdvisories", () => {
   });
 
   it("loads the selected workspace when it changes and drops the old list", async () => {
-    getAdvisories.mockResolvedValueOnce({ data: [advisory] });
+    recordUrls();
+    answer([advisory]);
     const wrapper = mountAdvisories("first");
     await flushPromises();
     expect(wrapper.text()).toContain("evil-package");
 
-    getAdvisories.mockResolvedValueOnce({ data: [] });
+    answer([]);
     await wrapper.setProps({ workspace: "second" });
     await flushPromises();
 
-    expect(getAdvisories).toHaveBeenLastCalledWith(
-      expect.objectContaining({ workspace: "second" }),
-    );
+    expect(requestedWorkspaces()).toEqual(["first", "second"]);
     expect(wrapper.text()).toBe("");
   });
 
   it("ignores a slow answer for a workspace no longer selected", async () => {
-    let finishFirst: (value: unknown) => void = () => undefined;
-    getAdvisories.mockReturnValueOnce(
-      new Promise((resolve) => {
-        finishFirst = resolve;
-      }),
-    );
+    const { holdNext } = recordUrls();
+    answer([{ ...advisory, AffectedDependency: "old-package" }]);
+    const finishFirst = holdNext();
     const wrapper = mountAdvisories("first");
+    await flushPromises();
 
-    getAdvisories.mockResolvedValueOnce({
-      data: [{ ...advisory, AffectedDependency: "current-package" }],
-    });
+    answer([{ ...advisory, AffectedDependency: "current-package" }]);
     await wrapper.setProps({ workspace: "second" });
     await flushPromises();
-    finishFirst({ data: [{ ...advisory, AffectedDependency: "old-package" }] });
+    finishFirst();
     await flushPromises();
 
     expect(wrapper.text()).toContain("current-package");
@@ -236,11 +266,11 @@ describe("MaliciousPackageAdvisories", () => {
   });
 
   it("does not ask for advisories when signed out", async () => {
-    auth.getAuthenticated = false;
+    app = createTestApp();
 
     mountAdvisories();
     await flushPromises();
 
-    expect(getAdvisories).not.toHaveBeenCalled();
+    expect(app.http.requests).toEqual([]);
   });
 });

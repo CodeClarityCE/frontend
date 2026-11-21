@@ -1,18 +1,19 @@
-import { flushPromises, mount } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/vue";
+import { flushPromises } from "@vue/test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { h } from "vue";
+
+import { Toaster } from "@/shadcn/ui/sonner";
+
+import { analysisPath } from "../../../../../tests/fixtures/results";
+import { createTestApp, type TestApp } from "../../../../../tests/real-app";
 
 import KnowledgeStatusNotice from "./KnowledgeStatusNotice.vue";
 
-// Runs the real repository so only the network is faked.
-vi.unmock("@/utils/api/BaseRepository");
-vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
-const toast = vi.hoisted(() => ({ error: vi.fn() }));
-vi.mock("vue-sonner", () => ({ toast }));
-const auth = vi.hoisted(() => ({ getAuthenticated: true, getToken: "token" }));
-vi.mock("@/stores/auth", () => ({ useAuthStore: () => auth }));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 const healthy = {
   status: "healthy",
@@ -49,8 +50,9 @@ function statusBody(overrides: Record<string, object> = {}): object {
   };
 }
 
-const SNAPSHOT_URL =
-  "/org/org-1/projects/project-1/analysis/analysis-1/vulnerabilities/knowledge-snapshot";
+const SNAPSHOT_PATH = `${analysisPath}/vulnerabilities/knowledge-snapshot`;
+
+let app: TestApp;
 
 // Answers the current status request, and the snapshot request with no snapshot unless given.
 function respondWith(
@@ -58,17 +60,8 @@ function respondWith(
   status = 200,
   snapshot: { body: object; status?: number } = { body: { data: null } },
 ): void {
-  vi.mocked(fetch).mockImplementation((input) => {
-    const url = input instanceof Request ? input.url : input.toString();
-    let answer: { body: object; status?: number } = { body: {}, status: 404 };
-    if (url.includes(SNAPSHOT_URL)) answer = snapshot;
-    else if (url.includes("/knowledge/status")) answer = { body, status };
-    return Promise.resolve(
-      new Response(JSON.stringify(answer.body), {
-        status: answer.status ?? 200,
-      }),
-    );
-  });
+  app.http.on("GET", "/knowledge/status", body, status);
+  app.http.on("GET", SNAPSHOT_PATH, snapshot.body, snapshot.status ?? 200);
 }
 
 // Builds a snapshot of all seven sources, healthy unless overridden.
@@ -96,24 +89,44 @@ function snapshotBody(
   };
 }
 
-async function mountNotice(): Promise<ReturnType<typeof mount>> {
-  const wrapper = mount(KnowledgeStatusNotice, {
-    props: { analysisID: "analysis-1", projectID: "project-1" },
-  });
+// Shows the notice next to the app's toaster, so error toasts would be visible.
+async function mountNotice(): Promise<HTMLElement> {
+  render(
+    {
+      render: () =>
+        h("div", [
+          h(KnowledgeStatusNotice, {
+            analysisID: "a-1",
+            projectID: "p-1",
+          }),
+          h(Toaster),
+        ]),
+    },
+    { global: app.global },
+  );
   await flushPromises();
-  return wrapper;
+  return (
+    screen.queryByTestId("knowledge-status-notice") ??
+    document.createElement("div")
+  );
+}
+
+// The texts of the toasts on screen.
+function toasts(): string[] {
+  return [...document.querySelectorAll("[data-sonner-toast]")].map(
+    (toast) => toast.textContent ?? "",
+  );
+}
+
+// Whether the app reported an error to the server log.
+function reportedError(): boolean {
+  return app.http.requests.some((request) => request.path === "/logs");
 }
 
 describe("KnowledgeStatusNotice", () => {
-  beforeEach(() => {
-    auth.getAuthenticated = true;
-    toast.error.mockClear();
-    vi.stubGlobal("fetch", vi.fn());
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-    vi.restoreAllMocks();
+  beforeEach(async () => {
+    app = createTestApp({ signedIn: true });
+    await app.visit("/projects");
   });
 
   it("names each stale or failed source and no healthy one", async () => {
@@ -124,7 +137,7 @@ describe("KnowledgeStatusNotice", () => {
       }),
     );
 
-    const text = (await mountNotice()).text();
+    const text = (await mountNotice()).textContent;
 
     expect(text).toContain("NVD");
     expect(text).toContain("FriendsOfPHP");
@@ -135,38 +148,36 @@ describe("KnowledgeStatusNotice", () => {
   it("names the KEV catalog by its publisher", async () => {
     respondWith(statusBody({ kev: { status: "stale" } }));
 
-    expect((await mountNotice()).text()).toContain("CISA KEV");
+    expect((await mountNotice()).textContent).toContain("CISA KEV");
   });
 
   it("shows nothing when every source is healthy", async () => {
     respondWith(statusBody());
 
-    expect((await mountNotice()).text()).toBe("");
+    expect((await mountNotice()).textContent).toBe("");
   });
 
   it("shows nothing and no error when the status request fails", async () => {
     respondWith({}, 500);
-    const warn = vi.spyOn(console, "warn");
 
-    const wrapper = await mountNotice();
-
-    expect(wrapper.text()).toBe("");
-    expect(toast.error).not.toHaveBeenCalled();
-    expect(warn).not.toHaveBeenCalled();
+    expect((await mountNotice()).textContent).toBe("");
+    expect(toasts()).toEqual([]);
+    expect(reportedError()).toBe(false);
   });
 
   it("shows nothing when the network is down", async () => {
-    vi.mocked(fetch).mockRejectedValue(new TypeError("offline"));
+    vi.stubGlobal("fetch", () => Promise.reject(new TypeError("offline")));
 
-    expect((await mountNotice()).text()).toBe("");
+    expect((await mountNotice()).textContent).toBe("");
+    expect(toasts()).toEqual([]);
   });
 
   it("does not request status for a signed-out user", async () => {
-    auth.getAuthenticated = false;
+    app = createTestApp();
 
     await mountNotice();
 
-    expect(fetch).not.toHaveBeenCalled();
+    expect(app.http.requests).toEqual([]);
   });
 
   it("explains a source that has never run without calling it broken", async () => {
@@ -184,7 +195,7 @@ describe("KnowledgeStatusNotice", () => {
       ),
     );
 
-    const text = (await mountNotice()).text();
+    const text = (await mountNotice()).textContent;
 
     expect(text).toContain("No update has been recorded yet");
     expect(text).toContain("new installation");
@@ -202,7 +213,7 @@ describe("KnowledgeStatusNotice", () => {
       }),
     );
 
-    const text = (await mountNotice()).text();
+    const text = (await mountNotice()).textContent;
 
     expect(text).toContain("No update has been recorded yet");
     expect(text).toContain("2025");
@@ -216,7 +227,8 @@ describe("KnowledgeStatusNotice", () => {
       }),
     );
 
-    const items = (await mountNotice()).findAll("li").map((li) => li.text());
+    await mountNotice();
+    const items = screen.getAllByRole("listitem").map((li) => li.textContent);
 
     expect(items.find((item) => item.startsWith("NVD"))).toMatch(
       /last update failed/i,
@@ -229,7 +241,7 @@ describe("KnowledgeStatusNotice", () => {
   it("says the notice reflects current status", async () => {
     respondWith(statusBody({ nvd: { status: "stale" } }));
 
-    expect((await mountNotice()).text()).toMatch(/current status/i);
+    expect((await mountNotice()).textContent).toMatch(/current status/i);
   });
 
   it("does not claim an update is running", async () => {
@@ -243,7 +255,9 @@ describe("KnowledgeStatusNotice", () => {
       }),
     );
 
-    expect((await mountNotice()).text()).not.toMatch(/in progress|running/i);
+    expect((await mountNotice()).textContent).not.toMatch(
+      /in progress|running/i,
+    );
   });
 
   it("shows the sources as they were when the analysis ran", async () => {
@@ -259,7 +273,7 @@ describe("KnowledgeStatusNotice", () => {
       }),
     );
 
-    const text = (await mountNotice()).text();
+    const text = (await mountNotice()).textContent;
 
     expect(text).toContain("NVD");
     expect(text).not.toContain("OSV");
@@ -273,11 +287,11 @@ describe("KnowledgeStatusNotice", () => {
       status: 500,
     });
 
-    const wrapper = await mountNotice();
+    const text = (await mountNotice()).textContent;
 
-    expect(wrapper.text()).toContain("OSV");
-    expect(wrapper.text()).toMatch(/current status/i);
-    expect(toast.error).not.toHaveBeenCalled();
+    expect(text).toContain("OSV");
+    expect(text).toMatch(/current status/i);
+    expect(toasts()).toEqual([]);
   });
 
   it("uses current status when the snapshot could not read any source", async () => {
@@ -296,7 +310,7 @@ describe("KnowledgeStatusNotice", () => {
       ),
     );
 
-    const text = (await mountNotice()).text();
+    const text = (await mountNotice()).textContent;
 
     expect(text).toContain("OSV");
     expect(text).not.toContain("NVD");
@@ -312,12 +326,12 @@ describe("KnowledgeStatusNotice", () => {
       }),
     );
 
-    const wrapper = await mountNotice();
-    const items = wrapper.findAll("li").map((li) => li.text());
+    const notice = await mountNotice();
+    const items = screen.getAllByRole("listitem").map((li) => li.textContent);
 
     expect(items).toHaveLength(1);
     expect(items[0]).toMatch(/^NVD: Status could not be read/);
-    expect(wrapper.text()).not.toContain("new installation");
+    expect(notice.textContent).not.toContain("new installation");
   });
 
   it("names the as-of day of an as-of analysis", async () => {
@@ -330,6 +344,6 @@ describe("KnowledgeStatusNotice", () => {
       ),
     );
 
-    expect((await mountNotice()).text()).toMatch(/as of June 1, 2026/);
+    expect((await mountNotice()).textContent).toMatch(/as of June 1, 2026/);
   });
 });

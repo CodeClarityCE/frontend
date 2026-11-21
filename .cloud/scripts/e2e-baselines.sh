@@ -2,9 +2,10 @@
 # Runs the mocked Playwright suite in the pinned Playwright image and, by
 # default, rewrites the screenshot baselines that changed.
 #
-#   .cloud/scripts/e2e-baselines.sh            update baselines (chromium only)
-#   .cloud/scripts/e2e-baselines.sh --check    run the default projects, fail
-#                                              on any failure or pixel diff
+#   .cloud/scripts/e2e-baselines.sh            update changed baselines and
+#                                              aria snapshots
+#   .cloud/scripts/e2e-baselines.sh --check    compare only, fail on any
+#                                              failure or diff
 #   .cloud/scripts/e2e-baselines.sh -- <args>  extra Playwright arguments
 #
 # Needs Docker. Run from anywhere; it works on the frontend checkout that
@@ -24,8 +25,8 @@ fi
 if [ "${1:-}" = "--" ]; then shift; fi
 
 if [ "$MODE" = update ]; then
-  # Only the chromium project takes screenshots.
-  set -- --project=chromium --update-snapshots=changed "$@"
+  # The default projects, chromium and pixel-5, are the ones with baselines.
+  set -- --update-snapshots=changed "$@"
 fi
 
 # amd64 always, so a run on an arm64 machine renders the same pixels as CI.

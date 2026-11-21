@@ -104,6 +104,10 @@ blocks written with `describeOnAPhone` (`e2e/helpers/phone.mts`), tagged `@phone
 on `pixel-5` at 390 px, and every other test runs on `chromium`. Set `E2E_ALL_BROWSERS=1`
 to add desktop `firefox` and `webkit`, for nightly or manual runs.
 
+Every PR runs the default projects in CI, in the same pinned Playwright image as the
+baseline script (`e2e-image` in `.github/workflows/ci.yml`), and a failure fails `ci`. A failed
+run attaches the HTML report, screenshots and traces as the `e2e-report` artifact.
+
 ### Screenshot baselines
 
 `expectScreenshots` (`e2e/helpers/screenshots.mts`) captures at 1280 px in `chromium` and

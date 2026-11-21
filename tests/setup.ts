@@ -1,6 +1,7 @@
 import "reflect-metadata";
 
 import { addCollection } from "@iconify/vue";
+import { configure } from "@testing-library/vue";
 import { enableAutoUnmount } from "@vue/test-utils";
 import logoIcons from "virtual:logo-icons";
 import { afterEach, beforeEach, vi } from "vitest";
@@ -25,6 +26,9 @@ process.on("unhandledRejection", (reason: unknown) => {
 
 // Brand and language logos ship with the app, as in main.ts, so Iconify never fetches them.
 for (const collection of logoIcons) addCollection(collection);
+
+// findBy and waitFor wait up to 5s, so a lazy component transformed on first use under load still appears.
+configure({ asyncUtilTimeout: 5000 });
 
 // A fresh in-memory storage, so no test sees another's saved state.
 function memoryStorage(): Storage {

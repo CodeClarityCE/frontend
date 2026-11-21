@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { RouterView } from "vue-router";
 
 import {
@@ -70,6 +70,19 @@ function tabNames(): string[] {
 }
 
 describe("ResultsView", () => {
+  // Loads the lazy tabs up front: transforming them on first render can outlast findBy's 1s wait.
+  beforeAll(async () => {
+    await Promise.all([
+      import("./sbom/ResultsSBOM.vue"),
+      import("./sbom/ResultsSBOMDetails.vue"),
+      import("./licenses/ResultsLicenses.vue"),
+      import("./vulnerabilities/ResultsVulnerabilities.vue"),
+      import("./vulnerabilities/ResultsVulnerabilitiesDetails.vue"),
+      import("./patching/ResultsPatching.vue"),
+      import("./codeql/ResultsCodeQL.vue"),
+    ]);
+  }, 30000);
+
   it("names the project and opens on the SBOM", async () => {
     await open([step("js-sbom")]);
     expect(

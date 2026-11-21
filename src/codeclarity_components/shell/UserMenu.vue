@@ -5,9 +5,6 @@ import {
   CircleAlert,
   CircleHelp,
   LogOut,
-  Monitor,
-  Moon,
-  Sun,
   UserRound,
 } from "@lucide/vue";
 import { computed } from "vue";
@@ -31,9 +28,10 @@ import {
 } from "@/shadcn/ui/sidebar";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
-import { isThemeChoice, type ThemeChoice, useTheme } from "@/utils/theme";
+import { isThemeChoice, useTheme } from "@/utils/theme";
 
 import { initials } from "./initials";
+import { themeOptions } from "./theme-options";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -45,12 +43,6 @@ const fullName = computed(() => {
 });
 
 const theme = useTheme();
-const themeOptions: { value: ThemeChoice; label: string; icon: typeof Sun }[] =
-  [
-    { value: "system", label: "System", icon: Monitor },
-    { value: "light", label: "Light", icon: Sun },
-    { value: "dark", label: "Dark", icon: Moon },
-  ];
 
 function pickTheme(value: unknown): void {
   if (isThemeChoice(value)) theme.setChoice(value);

@@ -4,11 +4,8 @@ import {
   FlaskConical,
   FolderGit2,
   type LucideIcon,
-  Monitor,
-  Moon,
   Plus,
   Settings2,
-  Sun,
   UserRound,
 } from "@lucide/vue";
 import { useEventListener } from "@vueuse/core";
@@ -37,6 +34,7 @@ import { type ThemeChoice, useTheme } from "@/utils/theme";
 
 import { navGroups, orgSettingsItem } from "./nav-items";
 import { isPaletteShortcut } from "./shortcut";
+import { themeOptions } from "./theme-options";
 
 interface Entry {
   id: string;
@@ -55,12 +53,6 @@ const userStore = useUserStore();
 const authStore = useAuthStore();
 
 const theme = useTheme();
-const themeCommands: { value: ThemeChoice; label: string; icon: LucideIcon }[] =
-  [
-    { value: "system", label: "Theme: System", icon: Monitor },
-    { value: "light", label: "Theme: Light", icon: Sun },
-    { value: "dark", label: "Theme: Dark", icon: Moon },
-  ];
 
 const datasets = ref<Entry[]>([]);
 const experiments = ref<Entry[]>([]);
@@ -270,13 +262,13 @@ function go(to: RouteLocationRaw): void {
       </CommandGroup>
       <CommandGroup heading="Theme">
         <CommandItem
-          v-for="item in themeCommands"
+          v-for="item in themeOptions"
           :key="item.value"
           :value="`theme-${item.value}`"
           @select="setTheme(item.value)"
         >
           <component :is="item.icon" aria-hidden="true" />
-          {{ item.label }}
+          Theme: {{ item.label }}
         </CommandItem>
       </CommandGroup>
     </CommandList>

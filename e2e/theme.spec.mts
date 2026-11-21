@@ -156,6 +156,30 @@ test.describe("Signed out", () => {
   });
 });
 
+test.describe("The auth pages in dark", () => {
+  for (const path of [
+    "/login",
+    "/signup",
+    "/email_action/confirm_registration?token=t1&userid=u1",
+  ]) {
+    test(`use the app's near-black page background on ${path}`, async ({
+      page,
+    }) => {
+      await page.route("**/api/**", (route) =>
+        route.fulfill({ json: { status_code: 200, status: "success" } }),
+      );
+      await page.emulateMedia({ colorScheme: "dark" });
+      await page.goto(path);
+      await expectTheme(page, "dark");
+
+      await expect(page.getByRole("main").locator("..")).toHaveCSS(
+        "background-color",
+        BACKGROUND.dark,
+      );
+    });
+  }
+});
+
 test.describe("With browser storage blocked", () => {
   for (const os of ["light", "dark"] as const) {
     test(`the login page loads and follows a ${os} OS`, async ({ page }) => {

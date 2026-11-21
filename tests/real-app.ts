@@ -2,9 +2,11 @@
 // The test file must opt out of the global mocks first, see tests/TESTING_CONVENTIONS.md.
 import { createPinia, type Pinia, setActivePinia } from "pinia";
 import { vi } from "vitest";
+import { type Component, defineComponent, h } from "vue";
 import type { Router } from "vue-router";
 
 import router from "@/router";
+import { Toaster } from "@/shadcn/ui/sonner";
 import { loadAuthStoreFromLocalStorage, useAuthStore } from "@/stores/auth";
 
 import user from "../e2e/fixtures/user.json";
@@ -28,6 +30,7 @@ export { user };
 export interface FakeRequest {
   method: string;
   path: string;
+  query: URLSearchParams;
   headers: Headers;
   body: unknown;
 }
@@ -70,7 +73,13 @@ function fakeHttp(): FakeHttp {
         typeof init.body === "string"
           ? (JSON.parse(init.body) as unknown)
           : undefined;
-      requests.push({ method, path, headers: new Headers(init.headers), body });
+      requests.push({
+        method,
+        path,
+        query: url.searchParams,
+        headers: new Headers(init.headers),
+        body,
+      });
       const answer = answers.get(`${method} ${path}`);
       if (!answer) return new Response(null, { status: 404 });
       return new Response(JSON.stringify(answer.body), {
@@ -118,4 +127,12 @@ function signIn(http: FakeHttp): void {
   auth.setAuthenticated(true);
   http.on("GET", "/auth/user", { data: user });
   http.on("GET", `/org/${org.id}`, { data: org });
+}
+
+// The component next to the app's toaster, so its toast messages render as text.
+export function withToaster(
+  component: Component,
+  props: Record<string, unknown> = {},
+): Component {
+  return defineComponent(() => () => [h(component, props), h(Toaster)]);
 }

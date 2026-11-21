@@ -59,15 +59,23 @@ function describe(violation: AxeViolation): string {
   return `  ${violation.id} (${violation.impact ?? "n/a"}): ${violation.help}\n${targets}`;
 }
 
-// Waits for finite animations, such as a dialog opening, so axe sees final colours and sizes.
+// Waits for running finite animations, such as a dialog opening, so axe sees final colours and sizes.
+// Gives up after 5 seconds, since WebKit can leave an animation unfinished.
 export async function waitForAnimations(page: Page): Promise<void> {
   await page.evaluate(() =>
-    Promise.all(
-      document
-        .getAnimations()
-        .filter((a) => a.effect?.getTiming().iterations !== Infinity)
-        .map((a) => a.finished.catch(() => undefined)),
-    ),
+    Promise.race([
+      Promise.all(
+        document
+          .getAnimations()
+          .filter(
+            (a) =>
+              a.playState === "running" &&
+              a.effect?.getTiming().iterations !== Infinity,
+          )
+          .map((a) => a.finished.catch(() => undefined)),
+      ),
+      new Promise((done) => setTimeout(done, 5000)),
+    ]),
   );
 }
 
@@ -231,7 +239,8 @@ export async function expectVisibleFocus(
   const page = locator.page();
   // Measure where the element ends up, not mid-animation.
   await waitForAnimations(page);
-  await locator.scrollIntoViewIfNeeded();
+  // Not scrollIntoViewIfNeeded: in WebKit its wait for a stable box can hang.
+  await locator.evaluate((el) => el.scrollIntoView({ block: "nearest" }));
   const box = await locator.boundingBox();
   if (!box) {
     throw new Error("Element has no box, so it has no visible focus indicator");

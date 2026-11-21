@@ -9,14 +9,13 @@
       - button "Organisation Test Organization , switch organisation"
   - list:
     - listitem:
-      - button "Search Ctrl K"
+      - button /Search (Ctrl K|⌘K)/
   - navigation "Main":
     - list:
       - listitem:
         - link "Dashboard":
           - /url: /
     - group "Research":
-      - text: ""
       - list:
         - listitem:
           - link "Datasets":
@@ -25,7 +24,6 @@
           - link "Experiments":
             - /url: /experiments
     - group "Projects":
-      - text: ""
       - list:
         - listitem:
           - link "Projects":

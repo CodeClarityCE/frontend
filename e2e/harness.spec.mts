@@ -172,6 +172,8 @@ const helloPage = `<!doctype html><html lang="en"><head><meta name="viewport" co
 
 test.describe("Screenshot harness", () => {
   test("desktop captures are 1280px wide", async ({ page }, testInfo) => {
+    // Only chromium takes desktop screenshots.
+    test.skip(testInfo.project.name !== "chromium", "no screenshots here");
     await page.setContent(helloPage);
     await expectScreenshots(page, "harness-hello");
     expect(pngWidth(testInfo.snapshotPath("harness-hello-1280.png"))).toBe(

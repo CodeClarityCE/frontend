@@ -5,6 +5,8 @@ import authUser from "./contracts/auth-user.json" with { type: "json" };
 import licensePolicy from "./contracts/license-policy.json" with { type: "json" };
 import licensePolicyList from "./contracts/license-policy-list.json" with { type: "json" };
 import members from "./contracts/members.json" with { type: "json" };
+import orgVulnerability from "./contracts/org-vulnerability.json" with { type: "json" };
+import orgVulnerabilityFreshness from "./contracts/org-vulnerability-freshness.json" with { type: "json" };
 import organizationList from "./contracts/organization-list.json" with { type: "json" };
 import projectTickets from "./contracts/project-tickets.json" with { type: "json" };
 import ticketDetail from "./contracts/ticket-detail.json" with { type: "json" };
@@ -13,6 +15,11 @@ import { AnalysesPage } from "./pages/analyses.page.mjs";
 import { OrgMembersPage } from "./pages/org-members.page.mjs";
 import { OrgPoliciesPage } from "./pages/org-policies.page.mjs";
 import { OrgSettingsPage } from "./pages/org-settings.page.mjs";
+import {
+  notYetChecked,
+  OrgVulnerabilityPage,
+  VULNERABILITY,
+} from "./pages/org-vulnerability.page.mjs";
 import {
   ANALYSIS,
   PROJECT,
@@ -193,6 +200,29 @@ const contracts = [
       nullable: ["$.data.steps[][].Result"],
       records: ["$.data.steps[][].Config"],
     },
+  },
+  {
+    name: "organisation vulnerability",
+    capture: orgVulnerability,
+    path: `/api/org/org-123/vulnerabilities/${VULNERABILITY}`,
+    signIn: (page: Page) => new OrgVulnerabilityPage(page).signIn(),
+    // Only some instances have an open ticket, and no dev vulnerability is
+    // in the KEV catalog.
+    rules: {
+      nullable: [
+        "$.data.projects[].instances[].ticket",
+        "$.data.details.known_exploited",
+      ],
+    },
+  },
+  {
+    name: "projects not yet checked",
+    capture: orgVulnerabilityFreshness,
+    path: `/api/org/org-123/vulnerabilities/${VULNERABILITY}/freshness`,
+    signIn: (page: Page) =>
+      new OrgVulnerabilityPage(page).signIn({ notYetChecked: [notYetChecked] }),
+    // Every dev project was analysed after its vulnerabilities were published.
+    rules: { nullable: ["$.data.projects"] },
   },
 ];
 

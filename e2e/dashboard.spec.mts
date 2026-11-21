@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { onAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
 import { DashboardPage, week } from "./pages/dashboard.page.mjs";
@@ -620,5 +621,19 @@ test.describe("Whole page", () => {
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
     await expectScreenshots(page, "dashboard-empty");
+  });
+});
+
+test.describe("On a phone", () => {
+  onAPhone();
+
+  test("the dashboard does not scroll sideways", async ({ page }) => {
+    const dashboard = new DashboardPage(page);
+    await dashboard.signIn();
+    await dashboard.goto();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
   });
 });

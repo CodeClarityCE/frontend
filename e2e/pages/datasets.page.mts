@@ -133,6 +133,8 @@ export class DatasetsPage {
       entries?: unknown[];
       integrations?: unknown[];
       hold?: boolean;
+      /** Answer the detail request with a server error. */
+      detailFails?: boolean;
     } = {},
   ): Promise<() => void> {
     await this.shell.signIn();
@@ -154,6 +156,17 @@ export class DatasetsPage {
         return fulfil(route, paginated(options.entries ?? sampleEntries));
       }
       await wait();
+      if (options.detailFails) {
+        return route.fulfill({
+          status: 500,
+          json: {
+            status_code: 500,
+            status: "failure",
+            error_code: "InternalError",
+            error_message: "Internal Server Error",
+          },
+        });
+      }
       return fulfil(route, { data: options.detail ?? sampleDatasets[0] });
     });
     await this.page.route(`**/api/org/${ORG}/projects**`, (route) => {

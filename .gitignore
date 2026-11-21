@@ -40,3 +40,5 @@ package-lock.json
 tmp
 # TypeScript incremental build state
 *.tsbuildinfo
+# Output of .cloud/scripts/e2e-real-stack.sh
+/playwright-real-stack

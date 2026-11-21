@@ -7,3 +7,4 @@ coverage
 .ci-home
 test-results
 playwright-report
+playwright-real-stack

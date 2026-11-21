@@ -28,6 +28,11 @@ jobs:
     with:
       # Vitest in run mode; plain test:unit would watch.
       test-command: pnpm test:unit:run
+      # Mocked Playwright suite, default projects (chromium, pixel-5). Keep the image in step
+      # with @playwright/test and .cloud/scripts/e2e-baselines.sh.
+      e2e-image: mcr.microsoft.com/playwright:v1.65.1-noble@sha256:1507cbfc550a63a6b7396791ca4f00df17beb56342d2447b3f106c306f525579
+      # CI=true means one worker in the config; a runner has room for four.
+      e2e-command: pnpm exec playwright test --workers=4
 
   # The required check, kept here because called jobs show as "node / <job>".
   # Fails if any needed job failed or was cancelled; skipped counts as success.

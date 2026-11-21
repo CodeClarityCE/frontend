@@ -19,6 +19,11 @@ import { defineConfig, devices } from "@playwright/test";
  * Browsers: chromium desktop and Pixel 5 run by default. E2E_ALL_BROWSERS=1
  * adds desktop firefox and webkit, for nightly or manual runs. Phone tests
  * (tagged @phone) run on Pixel 5, all others on the desktop projects.
+ *
+ * The real-stack journey (e2e/real-stack/*.journey.mts) mocks nothing. Its
+ * `real-stack` project exists only when E2E_BASE_URL is set, so a default run
+ * never has it; run it with `--project=real-stack` (umbrella CI does, through
+ * .cloud/scripts/e2e-real-stack.sh, against its trimmed stack).
  */
 const liveBaseURL = process.env.E2E_BASE_URL;
 const hostResolverRules = process.env.E2E_HOST_RESOLVER_RULES;
@@ -68,6 +73,25 @@ const extraBrowsers = [
   },
 ];
 
+// Only against a real stack: one journey, no retries, a trace kept on failure.
+const realStackProjects = liveBaseURL
+  ? [
+      {
+        name: "real-stack",
+        testDir: "./e2e/real-stack",
+        testMatch: "**/*.journey.mts",
+        retries: 0,
+        timeout: 6 * 60 * 1000,
+        use: {
+          ...devices["Desktop Chrome"],
+          viewport: { width: 1280, height: 1024 },
+          trace: "retain-on-failure",
+          launchOptions: chromiumLaunch,
+        },
+      },
+    ]
+  : [];
+
 /**
  * Playwright configuration for CodeClarity E2E tests
  * @see https://playwright.dev/docs/test-configuration
@@ -107,7 +131,11 @@ export default defineConfig({
     video: "retain-on-failure",
   },
 
-  projects: [...defaultProjects, ...(allBrowsers ? extraBrowsers : [])],
+  projects: [
+    ...defaultProjects,
+    ...(allBrowsers ? extraBrowsers : []),
+    ...realStackProjects,
+  ],
 
   /* Run your local dev server before starting the tests */
   webServer: liveBaseURL

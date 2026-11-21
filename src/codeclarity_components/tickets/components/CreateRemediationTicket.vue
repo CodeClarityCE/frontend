@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Ticket } from "@lucide/vue";
 import { ref } from "vue";
-import type { RouteLocationRaw } from "vue-router";
 
+import { ticketRoute } from "@/codeclarity_components/tickets/ticket-route";
 import type { Remediation } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
 import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
@@ -23,11 +23,6 @@ const busy = ref(false);
 const failed = ref(false);
 const createdId = ref<string | null>(null);
 const duplicate = ref<CreateRemediationTicketResult["duplicate"]>(null);
-
-const ticketRoute = (ticketId: string): RouteLocationRaw => ({
-  path: "/tickets",
-  query: { ticket_id: ticketId },
-});
 
 async function create(allowDuplicate = false): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;

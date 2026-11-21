@@ -17,7 +17,7 @@ const emit = defineEmits<{
   updateStatus: [ticketId: string, newStatus: TicketStatus];
 }>();
 
-// Dragging a card to another column changes its status; the detail panel
+// Dragging a card to another column changes its status; the ticket page
 // offers the same change from the keyboard.
 let draggedTicketId: string | null = null;
 

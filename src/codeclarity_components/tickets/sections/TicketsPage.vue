@@ -26,9 +26,9 @@ import { useUserStore } from "@/stores/user";
 
 import { useTicketsData } from "../composables/useTicketsData";
 import IntegrationsConfigPanel from "../integrations/IntegrationsConfigPanel.vue";
+import { ticketRoute } from "../ticket-route";
 import { TicketsRepository } from "../tickets.repository";
 
-import TicketDetail from "./TicketDetail.vue";
 import TicketsKanban from "./TicketsKanban.vue";
 import TicketsList from "./TicketsList.vue";
 
@@ -42,14 +42,8 @@ const {
   hasError,
   isEmpty,
   viewMode,
-  selectedTicket,
-  isLoadingDetail,
-  vulnerabilityDetails,
-  isLoadingVulnDetails,
   quickStats,
   ticketsByStatus,
-  loadTicketDetail,
-  clearSelectedTicket,
   updateTicketStatus,
   refresh,
 } = useTicketsData({ autoLoad: true });
@@ -58,9 +52,26 @@ const {
 const viewToggleClass =
   "h-8 rounded-button px-3.5 text-xs font-semibold text-foreground hover:bg-muted hover:text-foreground-strong focus-visible:ring-offset-2 focus-visible:ring-offset-background data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground data-[state=on]:hover:bg-border";
 
+// The view and text filter live in the URL, so going back from a ticket restores them.
+if (route.query.view === "kanban") viewMode.value = "kanban";
+const filter = ref(typeof route.query.q === "string" ? route.query.q : "");
+watch([viewMode, filter], ([view, q]) => {
+  const query = { ...route.query, view: undefined, q: undefined } as Record<
+    string,
+    string | undefined
+  >;
+  if (view === "kanban") query.view = view;
+  if (q) query.q = q;
+  void router.replace({ query });
+});
+
 // Clicking the active view emits no value; keep it selected.
 function setViewMode(value: AcceptableValue | AcceptableValue[]): void {
   if (value === "list" || value === "kanban") viewMode.value = value;
+}
+
+function openTicket(ticketId: string): void {
+  void router.push(ticketRoute(ticketId));
 }
 
 const { defaultOrg } = storeToRefs(useUserStore());
@@ -115,20 +126,11 @@ watch(
   },
 );
 
-function handleTicketUpdated(): void {
-  refresh();
-  if (selectedTicket.value) void loadTicketDetail(selectedTicket.value.id);
-}
-
 onMounted(() => {
   // Back from the ClickUp authorisation: continue the setup.
   if (route.query.clickup_oauth === "success") {
     showIntegrationsModal.value = true;
     void router.replace({ path: route.path, query: {} });
-  }
-  // A link to one ticket opens its detail.
-  if (typeof route.query.ticket_id === "string") {
-    void loadTicketDetail(route.query.ticket_id);
   }
 });
 </script>
@@ -208,27 +210,17 @@ onMounted(() => {
 
       <TicketsList
         v-if="viewMode === 'list' || !loaded"
+        v-model:filter="filter"
         :tickets="tickets"
         :is-loading="!loaded"
-        @select="loadTicketDetail"
       />
       <TicketsKanban
         v-else
         :tickets-by-status="ticketsByStatus"
-        @select="loadTicketDetail"
+        @select="openTicket"
         @update-status="updateTicketStatus"
       />
     </template>
-
-    <TicketDetail
-      v-if="selectedTicket"
-      :ticket="selectedTicket"
-      :is-loading="isLoadingDetail"
-      :vulnerability-details="vulnerabilityDetails"
-      :is-loading-vuln-details="isLoadingVulnDetails"
-      @close="clearSelectedTicket"
-      @updated="handleTicketUpdated"
-    />
 
     <Dialog v-model:open="showIntegrationsModal">
       <DialogContent class="max-h-[85vh] max-w-2xl overflow-y-auto">

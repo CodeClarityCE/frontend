@@ -10,7 +10,7 @@ defineProps<{ href: string }>();
     :href="href"
     target="_blank"
     rel="noopener noreferrer"
-    class="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
+    class="inline-flex items-center gap-1 text-brand-subtle-foreground underline-offset-4 hover:underline"
   >
     <slot />
     <ExternalLink class="size-3 shrink-0" aria-hidden="true" />

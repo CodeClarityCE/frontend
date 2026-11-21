@@ -458,7 +458,7 @@ test.describe("Tickets from vulnerability results", () => {
     ).toHaveCount(0);
     await expect(
       card.getByRole("link", { name: "View ticket" }),
-    ).toHaveAttribute("href", "/tickets?ticket_id=t-new-1");
+    ).toHaveAttribute("href", "/tickets/t-new-1");
   });
 
   test("a finding that already has a ticket links to it", async ({ page }) => {
@@ -483,7 +483,7 @@ test.describe("Tickets from vulnerability results", () => {
 
     await expect(
       vulns.cards.nth(1).getByRole("link", { name: "View ticket" }),
-    ).toHaveAttribute("href", "/tickets?ticket_id=t-9");
+    ).toHaveAttribute("href", "/tickets/t-9");
     await expect(
       vulns.cards.first().getByRole("button", { name: "Create Ticket" }),
     ).toBeVisible();

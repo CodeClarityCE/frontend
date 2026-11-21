@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
+import { ticketRoute } from "@/codeclarity_components/tickets/ticket-route";
 import { TicketStatusLabels } from "@/codeclarity_components/tickets/tickets.entity";
 import type { FixNextEntry } from "@/codeclarity_components/vulnerabilities/fix_next.entity";
 import { OrganizationVulnerabilitiesRepository } from "@/codeclarity_components/vulnerabilities/organization_vulnerabilities.repository";
@@ -112,10 +113,7 @@ function ticketState(entry: FixNextEntry): {
         <RouterLink
           v-if="ticketState(entry).ticketId"
           data-testid="fix-next-ticket"
-          :to="{
-            name: 'tickets',
-            query: { ticket_id: ticketState(entry).ticketId },
-          }"
+          :to="ticketRoute(ticketState(entry).ticketId ?? '')"
           class="shrink-0 text-sm hover:underline"
           >{{ ticketState(entry).text }}</RouterLink
         >

@@ -27,6 +27,7 @@ import ResultsView from "@/codeclarity_components/results/ResultsView.vue";
 import SettingsView from "@/codeclarity_components/settings/SettingsView.vue";
 import ClickUpOAuthCallback from "@/codeclarity_components/tickets/integrations/ClickUpOAuthCallback.vue";
 import TicketsView from "@/codeclarity_components/tickets/TicketsView.vue";
+import TicketView from "@/codeclarity_components/tickets/TicketView.vue";
 import HelpView from "@/codeclarity_components/views/HelpView.vue";
 import NotFoundView from "@/codeclarity_components/views/NotFoundView.vue";
 import TermsView from "@/codeclarity_components/views/TermsView.vue";
@@ -203,9 +204,23 @@ const router = createRouter({
       component: ClickUpOAuthCallback as Component,
     },
     {
-      path: "/tickets/:page?",
+      path: "/tickets",
       name: "tickets",
       component: TicketsView as Component,
+      // Old links named the ticket in the query; its page has its own path now.
+      beforeEnter: (to) =>
+        typeof to.query.ticket_id === "string"
+          ? {
+              name: "ticket",
+              params: { ticketId: to.query.ticket_id },
+              replace: true,
+            }
+          : true,
+    },
+    {
+      path: "/tickets/:ticketId",
+      name: "ticket",
+      component: TicketView as Component,
       props: true,
     },
     {

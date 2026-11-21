@@ -75,6 +75,11 @@ async function mountRemediations() {
     routes: [
       { path: "/", component: { template: "<div />" } },
       { path: "/tickets", name: "tickets", component: { template: "<div />" } },
+      {
+        path: "/tickets/:ticketId",
+        name: "ticket",
+        component: { template: "<div />" },
+      },
     ],
   });
   await router.push("/");
@@ -111,7 +116,7 @@ describe("Creating a ticket from a remediation", () => {
         data: { kind: "force_version", workspace: ".", package: "qs" },
       }),
     );
-    const link = wrapper.find('a[href="/tickets?ticket_id=ticket-1"]');
+    const link = wrapper.find('a[href="/tickets/ticket-1"]');
     expect(link.text()).toBe("View ticket");
     expect(wrapper.text()).toContain("Ticket created");
   });
@@ -141,9 +146,7 @@ describe("Creating a ticket from a remediation", () => {
     expect(warning.text()).toContain(
       "An open ticket already tracks this remediation: Force qs to 6.5.3",
     );
-    expect(warning.find('a[href="/tickets?ticket_id=ticket-1"]').exists()).toBe(
-      true,
-    );
+    expect(warning.find('a[href="/tickets/ticket-1"]').exists()).toBe(true);
 
     const anyway = warning
       .findAll("button")
@@ -161,9 +164,7 @@ describe("Creating a ticket from a remediation", () => {
         },
       }),
     );
-    expect(wrapper.find('a[href="/tickets?ticket_id=ticket-2"]').exists()).toBe(
-      true,
-    );
+    expect(wrapper.find('a[href="/tickets/ticket-2"]').exists()).toBe(true);
     expect(wrapper.find('[role="alert"]').exists()).toBe(false);
   });
 

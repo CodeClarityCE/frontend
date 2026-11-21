@@ -3,6 +3,7 @@ import { Eye, Ticket } from "@lucide/vue";
 import { ref } from "vue";
 import { RouterLink } from "vue-router";
 
+import { ticketRoute } from "@/codeclarity_components/tickets/ticket-route";
 import { Button } from "@/shadcn/ui/button";
 import {
   Tooltip,
@@ -55,7 +56,7 @@ function handleCreated(id: string): void {
       :size="size || 'sm'"
       :variant="variant || 'outline'"
     >
-      <RouterLink :to="{ path: '/tickets', query: { ticket_id: ticketId } }">
+      <RouterLink :to="ticketRoute(ticketId)">
         <Eye aria-hidden="true" />
         View ticket
       </RouterLink>

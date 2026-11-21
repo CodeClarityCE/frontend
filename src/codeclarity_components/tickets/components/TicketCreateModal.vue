@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Eye, Plus, Ticket } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -25,6 +26,7 @@ import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 
+import { ticketRoute } from "../ticket-route";
 import {
   TicketPriority,
   TicketPriorityLabels,
@@ -34,6 +36,7 @@ import {
 } from "../tickets.entity";
 import { TicketsRepository } from "../tickets.repository";
 
+const router = useRouter();
 const props = defineProps<{
   projectId: string;
   projectName?: string;
@@ -194,8 +197,7 @@ function handleClose(): void {
 
 function viewExistingTicket(): void {
   if (duplicateTicket.value) {
-    // Navigate to existing ticket
-    window.location.href = `/tickets?ticket_id=${duplicateTicket.value.id}`;
+    void router.push(ticketRoute(duplicateTicket.value.id));
   }
 }
 </script>

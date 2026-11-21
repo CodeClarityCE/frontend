@@ -3,6 +3,7 @@ import { computed, type Ref, ref } from "vue";
 import { RouterLink } from "vue-router";
 
 import TicketPriorityBadge from "@/codeclarity_components/tickets/components/TicketPriorityBadge.vue";
+import { ticketRoute } from "@/codeclarity_components/tickets/ticket-route";
 import {
   type TicketDashboardStats,
   TicketPriority,
@@ -170,7 +171,7 @@ const priorities = computed(() =>
         >
           <li v-for="ticket in stats.recent_tickets" :key="ticket.id">
             <RouterLink
-              :to="{ name: 'tickets', query: { ticket_id: ticket.id } }"
+              :to="ticketRoute(ticket.id)"
               class="flex items-center justify-between gap-3 px-3 py-2 text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <span class="flex min-w-0 items-center gap-2">

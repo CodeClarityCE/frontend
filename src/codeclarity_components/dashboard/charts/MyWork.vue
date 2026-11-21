@@ -5,6 +5,7 @@ import type {
   DueDateState,
   MyWorkEntry,
 } from "@/codeclarity_components/tickets/my_work.entity";
+import { ticketRoute } from "@/codeclarity_components/tickets/ticket-route";
 import { TicketsRepository } from "@/codeclarity_components/tickets/tickets.repository";
 import { RemediationKind } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
 import { orgVulnerabilityRoute } from "@/codeclarity_components/vulnerabilities/organization-vulnerability-route";
@@ -86,7 +87,7 @@ const formatDate = (date: string): string =>
         <div class="flex min-w-0 flex-col gap-1.5">
           <h3 class="truncate font-medium">
             <RouterLink
-              :to="{ name: 'tickets', query: { ticket_id: entry.ticket_id } }"
+              :to="ticketRoute(entry.ticket_id)"
               class="hover:underline focus-visible:underline focus-visible:outline-none"
               >{{ heading(entry) }}</RouterLink
             >

@@ -1,9 +1,16 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen, within } from "@testing-library/vue";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+import { createTestApp } from "../../../../tests/real-app";
 
 import type { License } from "./License";
 import LicenseComponent from "./LicenseComponent.vue";
+
+// Runs against the real stores and router, with no global mocks.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 function license(overrides: Partial<License> = {}): License {
   return {
@@ -28,8 +35,10 @@ function license(overrides: Partial<License> = {}): License {
 }
 
 async function open(value: License): Promise<HTMLElement> {
+  const app = createTestApp();
   render(LicenseComponent, {
     props: { license: value, analysisID: "a-1", projectID: "p-1" },
+    global: app.global,
   });
   await userEvent.click(
     screen.getByRole("button", { name: `Details of ${value.name}` }),
@@ -73,9 +82,10 @@ describe("LicenseComponent", () => {
         name: "Dependencies using it (2)",
       }),
     ).toBeTruthy();
-    expect(
-      within(dialog).getByRole("link", { name: "express@4.18.2" }),
-    ).toBeTruthy();
+    const link = within(dialog).getByRole("link", { name: "express@4.18.2" });
+    expect(link.getAttribute("href")).toBe(
+      "/results/sbom_details?analysis_id=a-1&project_id=p-1&package_id=express@4.18.2",
+    );
   });
 
   it("opens references in a new tab and says so", async () => {

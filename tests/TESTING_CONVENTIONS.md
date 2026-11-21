@@ -94,6 +94,8 @@ expect(app.http.requests.at(-1)?.body).toEqual({ name: "x" });
   and answers `GET /auth/user` and `GET /org/org-123`; leave it out to start
   signed out.
 - A request with no answer gets a 404, and is still recorded in `app.http.requests`.
+- Each recorded request has `method`, `path`, `query` (the URL's search
+  params), `headers` and `body`.
 - The router is the app's own (memory history in tests), so navigation goes
   through `app.router` or `app.visit`.
 - To simulate a reload, unmount the page and call `createTestApp()` again: it

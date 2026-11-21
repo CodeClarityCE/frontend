@@ -1,53 +1,30 @@
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createMemoryHistory, createRouter } from "vue-router";
+import { describe, expect, it, vi } from "vitest";
+
+import { createTestApp, org, type TestApp } from "../../../../tests/real-app";
 
 import SbomDetails from "./SbomDetails.vue";
 import { dependency } from "./SbomDetails/dependency.fixture";
 
-const repo = vi.hoisted(() => ({ getDependency: vi.fn() }));
-vi.mock("@/codeclarity_components/results/results.repository", () => ({
-  ResultsRepository: class {
-    getDependency = repo.getDependency;
-  },
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token" }),
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
-const route = vi.hoisted(() => {
-  const query: Record<string, string> = { package_id: "lodash@4.17.20" };
-  return { query };
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
 });
-vi.mock("vue-router", async (importOriginal) => ({
-  ...(await importOriginal<object>()),
-  useRoute: () => ({ query: route.query, params: {} }),
-}));
 
 const ANALYSIS = "5d6e7f80-91a2-4b3c-8d4e-5f6a7b8c9d0e";
 const PROJECT = "9b0f6a4e-2c1d-4c3b-8f7a-1e2d3c4b5a69";
+const dependencyPath = `/org/${org.id}/projects/${PROJECT}/analysis/${ANALYSIS}/sbom/dependency`;
 
-// A router with the results route, so links resolve to real addresses.
-function resultsRouter(): ReturnType<typeof createRouter> {
-  return createRouter({
-    history: createMemoryHistory(),
-    routes: [
-      {
-        path: "/results/:page?",
-        name: "results",
-        component: { render: () => null },
-      },
-    ],
-  });
-}
-
+// Opens the dependency page at the address and answers the dependency request.
 async function show(
   overrides: Parameters<typeof dependency>[0] = {},
-): Promise<void> {
-  repo.getDependency.mockResolvedValue({ data: dependency(overrides) });
+  address = "/results/sbom_details?package_id=lodash@4.17.20",
+): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  app.http.on("GET", dependencyPath, { data: dependency(overrides) });
+  app.http.on("GET", `${dependencyPath}/graph`, { data: [] });
+  await app.visit(address);
   render(SbomDetails, {
     props: {
       analysisID: ANALYSIS,
@@ -55,13 +32,16 @@ async function show(
       showBack: true,
       runIndex: 1,
     },
-    global: {
-      plugins: [resultsRouter()],
-      // The real link, so its address can be checked.
-      stubs: { SbomDependencyGraph: true, RouterLink: false },
-    },
+    global: app.global,
   });
   await flushPromises();
+  return app;
+}
+
+// The query of the last dependency request.
+function dependencyQuery(app: TestApp): URLSearchParams | undefined {
+  return app.http.requests.filter((r) => r.path === dependencyPath).at(-1)
+    ?.query;
 }
 
 // The visible text pieces of an element, in reading order.
@@ -84,40 +64,30 @@ function linkWorkspace(name: RegExp): string | null {
 }
 
 describe("SbomDetails", () => {
-  beforeEach(() => {
-    route.query = { package_id: "lodash@4.17.20" };
-  });
-
   it("loads the dependency from the root workspace by default", async () => {
-    await show();
-    expect(repo.getDependency).toHaveBeenLastCalledWith(
-      expect.objectContaining({ workspace: "." }),
-    );
+    const app = await show();
+    expect(dependencyQuery(app)?.get("workspace")).toBe(".");
   });
 
   it("loads the dependency and its findings from the workspace in the address", async () => {
-    route.query = {
-      package_id: "lodash@4.17.20",
-      workspace: "packages/app",
-    };
-    await show({
-      vulnerabilities: ["CVE-2021-23337"],
-      severity_dist: { critical: 1, high: 0, medium: 0, low: 0, none: 0 },
-    });
-    expect(repo.getDependency).toHaveBeenLastCalledWith(
-      expect.objectContaining({ workspace: "packages/app" }),
+    const app = await show(
+      {
+        vulnerabilities: ["CVE-2021-23337"],
+        severity_dist: { critical: 1, high: 0, medium: 0, low: 0, none: 0 },
+      },
+      "/results/sbom_details?package_id=lodash@4.17.20&workspace=packages/app",
     );
+    expect(dependencyQuery(app)?.get("workspace")).toBe("packages/app");
     expect(linkWorkspace(/CVE-2021-23337/)).toBe("packages/app");
   });
 
   it("loads the dependency named in the address", async () => {
-    await show();
+    const app = await show();
     expect(
       screen.getByRole("heading", { level: 1, name: /lodash/ }),
     ).toBeTruthy();
-    expect(repo.getDependency).toHaveBeenCalledWith(
-      expect.objectContaining({ dependency: "lodash@4.17.20", runIndex: 1 }),
-    );
+    expect(dependencyQuery(app)?.get("dependency")).toBe("lodash@4.17.20");
+    expect(dependencyQuery(app)?.get("run_index")).toBe("1");
   });
 
   it("grades a package without vulnerabilities A", async () => {
@@ -159,14 +129,13 @@ describe("SbomDetails", () => {
   });
 
   it("says so when the dependency cannot be loaded", async () => {
-    repo.getDependency.mockRejectedValue(new Error("down"));
+    const app = createTestApp({ signedIn: true });
+    app.http.on("GET", dependencyPath, {}, 500);
+    await app.visit("/results/sbom_details?package_id=lodash@4.17.20");
     // Real ids: a request with malformed ids that fails reads as not found.
     render(SbomDetails, {
-      props: {
-        analysisID: "5d6e7f80-91a2-4b3c-8d4e-5f6a7b8c9d0e",
-        projectID: "9b0f6a4e-2c1d-4c3b-8f7a-1e2d3c4b5a69",
-      },
-      global: { stubs: { SbomDependencyGraph: true } },
+      props: { analysisID: ANALYSIS, projectID: PROJECT },
+      global: app.global,
     });
     await flushPromises();
     expect(screen.getByText("Could not load this dependency")).toBeTruthy();

@@ -28,6 +28,8 @@ export { user };
 export interface FakeRequest {
   method: string;
   path: string;
+  // The URL's query parameters.
+  query: URLSearchParams;
   headers: Headers;
   body: unknown;
 }
@@ -70,7 +72,13 @@ function fakeHttp(): FakeHttp {
         typeof init.body === "string"
           ? (JSON.parse(init.body) as unknown)
           : undefined;
-      requests.push({ method, path, headers: new Headers(init.headers), body });
+      requests.push({
+        method,
+        path,
+        query: url.searchParams,
+        headers: new Headers(init.headers),
+        body,
+      });
       const answer = answers.get(`${method} ${path}`);
       if (!answer) return new Response(null, { status: 404 });
       return new Response(JSON.stringify(answer.body), {

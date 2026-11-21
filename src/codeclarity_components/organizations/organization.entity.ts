@@ -47,6 +47,21 @@ export class Organization {
   @IsBoolean()
   auto_resolve_tickets?: boolean;
 
+  @IsOptional()
+  @IsNumber()
+  freshness_threshold_days?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  service_level_targets_enabled?: boolean;
+
+  @IsOptional()
+  service_level_targets?: ServiceLevelTargetDays;
+
+  /** The days the API suggests to start from */
+  @IsOptional()
+  suggested_service_level_targets?: ServiceLevelTargetDays;
+
   @IsNotEmpty()
   role!: MemberRole;
 
@@ -58,6 +73,14 @@ export class Organization {
 
   @IsDateString()
   joined_on!: Date;
+}
+
+/** Days allowed per severity; null means no target for that severity. */
+export interface ServiceLevelTargetDays {
+  critical: number | null;
+  high: number | null;
+  medium: number | null;
+  low: number | null;
 }
 
 export interface Integration {

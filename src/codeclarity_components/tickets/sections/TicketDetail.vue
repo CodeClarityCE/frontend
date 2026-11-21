@@ -48,8 +48,10 @@ import { errorToast } from "@/utils/toasts";
 
 import RiskScoreGauge from "../components/RiskScoreGauge.vue";
 import ScoreProgressBar from "../components/ScoreProgressBar.vue";
+import TicketDueDate from "../components/TicketDueDate.vue";
 import TicketHistory from "../components/TicketHistory.vue";
 import TicketPriorityBadge from "../components/TicketPriorityBadge.vue";
+import TicketRemediation from "../components/TicketRemediation.vue";
 import {
   ExternalProviderIcons,
   ExternalProviderLabels,
@@ -449,8 +451,14 @@ onMounted(() => {
           </section>
         </template>
 
+        <TicketRemediation
+          v-if="ticket.remediation && defaultOrg"
+          :org-id="defaultOrg.id"
+          :remediation="ticket.remediation"
+          :instances="ticket.instances ?? []"
+        />
         <section
-          v-if="ticket.affected_package"
+          v-else-if="ticket.affected_package"
           aria-labelledby="ticket-component"
           class="flex flex-col gap-3 rounded-card bg-muted p-4"
         >
@@ -669,12 +677,11 @@ onMounted(() => {
           <div>
             <dt class="text-xs text-muted-foreground">Due date</dt>
             <dd class="text-foreground-strong">
-              {{
-                formatShortDate(ticket.due_date, {
-                  time: true,
-                  fallback: "Not set",
-                })
-              }}
+              <TicketDueDate
+                :ticket-id="ticket.id"
+                :due-date="ticket.due_date"
+                @updated="emit('updated')"
+              />
             </dd>
           </div>
           <div>
@@ -702,7 +709,7 @@ onMounted(() => {
         </dl>
 
         <p
-          v-if="ticket.occurrence_count > 0"
+          v-if="ticket.occurrence_count > 0 && !ticket.remediation"
           class="border-t pt-4 text-sm text-foreground"
         >
           <strong>{{ ticket.occurrence_count }}</strong> total occurrences,

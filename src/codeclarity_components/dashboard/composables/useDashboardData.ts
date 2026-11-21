@@ -1,11 +1,6 @@
 import { storeToRefs } from "pinia";
 import { computed, type ComputedRef, onMounted, type Ref, ref } from "vue";
 
-import type {
-  LatestVulns,
-  QuickStats,
-} from "@/codeclarity_components/dashboard/dashboard.entity";
-import { DashboardRepository } from "@/codeclarity_components/dashboard/dashboard.repository";
 import { IntegrationsRepository } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 import type {
   Integration,
@@ -13,13 +8,23 @@ import type {
   OrganizationMetaData,
 } from "@/codeclarity_components/organizations/organization.entity";
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
+import { OrganizationVulnerabilitiesRepository } from "@/codeclarity_components/vulnerabilities/organization_vulnerabilities.repository";
+import type {
+  OrganizationVulnerabilityFilters,
+  OrganizationVulnerabilityList,
+} from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+import {
+  TrendPeriod,
+  type VulnerabilityTrend,
+  type VulnerabilityTrendFilters,
+} from "@/codeclarity_components/vulnerabilities/vulnerability_trend.entity";
 import { useAuthStore } from "@/stores/auth";
 import { useStateStore } from "@/stores/state";
 import { useUserStore } from "@/stores/user";
 
 import {
-  type DashboardRequest,
-  useDashboardRequest,
+  type FilteredDashboardRequest,
+  useFilteredDashboardRequest,
 } from "./useDashboardRequest";
 
 /**
@@ -40,8 +45,14 @@ export function useDashboardData(): {
   hasAnalyses: ComputedRef<boolean>;
   refreshData: () => Promise<void>;
   defaultOrg: Ref<Organization | undefined>;
-  quickStats: DashboardRequest<QuickStats>;
-  recentVulns: DashboardRequest<LatestVulns>;
+  trend: FilteredDashboardRequest<
+    VulnerabilityTrend,
+    VulnerabilityTrendFilters
+  >;
+  vulnerabilityList: FilteredDashboardRequest<
+    OrganizationVulnerabilityList,
+    OrganizationVulnerabilityFilters
+  >;
 } {
   const state = useStateStore();
   const { defaultOrg } = storeToRefs(useUserStore());
@@ -65,7 +76,6 @@ export function useDashboardData(): {
     ),
   );
 
-  const dashboardRepository = new DashboardRepository();
   const requestOptions = (): {
     orgId: string;
     bearerToken: string;
@@ -77,13 +87,26 @@ export function useDashboardData(): {
     handleBusinessErrors: true,
     integrationIds: activeIntegrationIds.value,
   });
-  const quickStats = useDashboardRequest(
-    async () =>
-      (await dashboardRepository.getQuickStats(requestOptions())).data,
+  const vulnerabilitiesRepository = new OrganizationVulnerabilitiesRepository();
+  // The project numbers and the trend card share it, so both follow its filters.
+  const trend = useFilteredDashboardRequest<
+    VulnerabilityTrend,
+    VulnerabilityTrendFilters
+  >(
+    async (filters) =>
+      await vulnerabilitiesRepository.getTrend({
+        ...requestOptions(),
+        filters,
+      }),
+    { period: TrendPeriod.Week },
   );
-  const recentVulns = useDashboardRequest(
-    async () =>
-      (await dashboardRepository.getRecentVulns(requestOptions())).data,
+  const vulnerabilityList = useFilteredDashboardRequest(
+    async (filters: OrganizationVulnerabilityFilters) =>
+      await vulnerabilitiesRepository.getVulnerabilities({
+        ...requestOptions(),
+        filters,
+      }),
+    {},
   );
 
   const hasIntegrations = computed(() => integrations.value.length > 0);
@@ -91,8 +114,13 @@ export function useDashboardData(): {
     () => (orgData.value?.projects?.length ?? 0) > 0,
   );
   // Unknown counts as analysed: a failed request must not show onboarding.
+  // Narrowed to one project, the organization is known to have data.
   const hasAnalyses = computed(
-    () => quickStats.error || (quickStats.data?.nmb_projects ?? 0) > 0,
+    () =>
+      trend.error ||
+      trend.filters.project !== undefined ||
+      (trend.data?.points[trend.data.points.length - 1]?.project_count ?? 0) >
+        0,
   );
   const hasData = computed(() => hasProjects.value && hasAnalyses.value);
 
@@ -130,8 +158,8 @@ export function useDashboardData(): {
     }
 
     if (hasProjects.value) {
-      void recentVulns.run();
-      await quickStats.run();
+      void vulnerabilityList.run();
+      await trend.run();
     }
     isLoading.value = false;
   }
@@ -154,7 +182,7 @@ export function useDashboardData(): {
     loadDashboardData,
     refreshData: loadDashboardData,
     defaultOrg: defaultOrg!,
-    quickStats,
-    recentVulns,
+    trend,
+    vulnerabilityList,
   };
 }

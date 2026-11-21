@@ -67,6 +67,19 @@ const states = computed(() => [
   },
 ]);
 
+const deadlines = computed(() => [
+  {
+    label: "Overdue",
+    value: stats.value?.total_overdue ?? 0,
+    urgent: (stats.value?.total_overdue ?? 0) > 0,
+  },
+  {
+    label: "Due this week",
+    value: stats.value?.total_due_this_week ?? 0,
+    urgent: false,
+  },
+]);
+
 const PRIORITY_KEYS = [
   [TicketPriority.CRITICAL, "critical"],
   [TicketPriority.HIGH, "high"],
@@ -103,6 +116,25 @@ const priorities = computed(() =>
           <span
             class="text-2xl font-bold tabular-nums text-foreground-strong"
             >{{ state.value }}</span
+          >
+        </li>
+      </ul>
+
+      <ul aria-label="Tickets by due date" class="grid grid-cols-2 gap-3">
+        <li
+          v-for="deadline in deadlines"
+          :key="deadline.label"
+          class="flex items-center justify-between gap-2 rounded-control border px-3 py-2"
+        >
+          <span class="text-sm text-muted-foreground">{{
+            deadline.label
+          }}</span>
+          <span
+            class="text-lg font-semibold tabular-nums"
+            :class="
+              deadline.urgent ? 'text-destructive' : 'text-foreground-strong'
+            "
+            >{{ deadline.value }}</span
           >
         </li>
       </ul>

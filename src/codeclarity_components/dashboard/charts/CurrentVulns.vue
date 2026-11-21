@@ -2,7 +2,17 @@
 import { computed } from "vue";
 
 import { SeverityBadge } from "@/base_components/page";
-import type { LatestVulns } from "@/codeclarity_components/dashboard/dashboard.entity";
+import {
+  formatPercent,
+  HIGH_EPSS,
+} from "@/codeclarity_components/results/vulnerabilities/vuln-format";
+import type {
+  OrganizationVulnerabilityFilters,
+  OrganizationVulnerabilityList,
+} from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+import { orgVulnerabilityRoute } from "@/codeclarity_components/vulnerabilities/organization-vulnerability-route";
+import VulnerabilityListFilters from "@/codeclarity_components/vulnerabilities/VulnerabilityListFilters.vue";
+import { Badge } from "@/shadcn/ui/badge";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
 import {
   SEVERITY_LABELS,
@@ -10,17 +20,33 @@ import {
   type SeverityLevel,
 } from "@/utils/severity";
 
-import type { DashboardRequest } from "../composables/useDashboardRequest";
+import type { FilteredDashboardRequest } from "../composables/useDashboardRequest";
 import CardState from "../layout/CardState.vue";
 
 const props = defineProps<{
-  request: DashboardRequest<LatestVulns>;
+  /** Shared with the KPI tiles, so they follow the same filters */
+  request: FilteredDashboardRequest<
+    OrganizationVulnerabilityList,
+    OrganizationVulnerabilityFilters
+  >;
+  projects: { id: string; name: string }[];
+  /** The organization listed, for links to its vulnerability pages */
+  orgId: string;
 }>();
 
+const filtered = computed(() => Object.keys(props.request.filters).length > 0);
+
 interface Vuln {
+  id: string;
   severity: number;
   level: SeverityLevel;
-  name: string;
+  projects: number;
+  instances: number;
+  uncorroborated: boolean;
+  knownExploited: boolean;
+  ticketed: number;
+  overdue: number;
+  epss: number | null;
 }
 
 /** The levels counted at the top of the card */
@@ -39,33 +65,58 @@ const counts = computed(() => {
     low: 0,
     none: 0,
   };
-  for (const item of props.request.data?.severity_count ?? []) {
-    next[levelOf(item.severity_class)] = item.count;
+  for (const [severityClass, count] of Object.entries(
+    props.request.data?.severity_counts ?? {},
+  )) {
+    next[levelOf(severityClass)] = count;
   }
   return next;
 });
 
+// The API lists the worst vulnerabilities first.
 const vulns = computed((): Vuln[] =>
-  Object.values(props.request.data?.vulns ?? {})
-    .map((vuln) => ({
-      severity: vuln.severity ?? 0,
-      level: levelOf(vuln.severity_class),
-      name: vuln.cwe_name,
-    }))
-    .sort((a, b) => b.severity - a.severity),
+  (props.request.data?.data ?? []).map((vuln) => ({
+    id: vuln.vulnerability_id,
+    severity: vuln.severity_score ?? 0,
+    level: levelOf(vuln.severity_class),
+    projects: vuln.project_count,
+    instances: vuln.instance_count,
+    uncorroborated: vuln.uncorroborated_count > 0,
+    knownExploited: vuln.known_exploited,
+    ticketed: vuln.ticketed_instance_count,
+    overdue: vuln.overdue_instance_count,
+    epss: vuln.epss,
+  })),
 );
+
+// Every instance has an open ticket, so nothing is left untracked.
+const fullyTicketed = (vuln: Vuln): boolean =>
+  vuln.instances > 0 && vuln.ticketed >= vuln.instances;
+
+const plural = (count: number, noun: string): string =>
+  `${count} ${noun}${count === 1 ? "" : "s"}`;
 </script>
 
 <template>
-  <CardState
-    label="vulnerabilities summary"
-    :loading="request.loading || (!request.data && !request.error)"
-    :error="request.error"
-    :empty="vulns.length === 0"
-    empty-text="No vulnerabilities found."
-    @retry="() => void request.run()"
-  >
-    <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-4">
+    <VulnerabilityListFilters
+      :filters="request.filters"
+      :projects="projects"
+      :hidden-counts="request.data?.hidden_counts"
+      @update:filters="(filters) => void request.filter(filters)"
+    />
+    <CardState
+      label="vulnerabilities summary"
+      :loading="request.loading || (!request.data && !request.error)"
+      :error="request.error"
+      :empty="vulns.length === 0"
+      :empty-text="
+        filtered
+          ? 'No vulnerabilities match these filters.'
+          : 'No vulnerabilities found.'
+      "
+      @retry="() => void request.run()"
+    >
       <ul
         aria-label="Vulnerabilities by severity"
         class="grid grid-cols-3 gap-3"
@@ -88,20 +139,77 @@ const vulns = computed((): Vuln[] =>
         class="rounded-control border"
         :class="{ 'h-64': vulns.length > 6 }"
       >
-        <ul aria-label="Most severe vulnerabilities" class="divide-y">
-          <li
-            v-for="(vuln, index) in vulns"
-            :key="index"
-            class="flex items-center gap-3 px-3 py-2 text-sm"
-          >
-            <SeverityBadge
-              :level="vuln.level"
-              :score="vuln.severity || undefined"
-            />
-            <span class="truncate">{{ vuln.name }}</span>
+        <ul aria-label="Vulnerabilities in your projects" class="divide-y">
+          <li v-for="vuln in vulns" :key="vuln.id">
+            <RouterLink
+              :to="orgVulnerabilityRoute(orgId, vuln.id)"
+              class="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+              :class="{ 'opacity-60': fullyTicketed(vuln) }"
+            >
+              <SeverityBadge
+                :level="vuln.level"
+                :score="vuln.severity || undefined"
+              />
+              <span class="min-w-0 flex-1 truncate font-medium">{{
+                vuln.id
+              }}</span>
+              <Badge
+                v-if="vuln.knownExploited"
+                variant="destructive"
+                title="Listed in the CISA KEV catalog"
+                class="shrink-0"
+                >Known exploited</Badge
+              >
+              <Badge
+                v-if="vuln.uncorroborated"
+                variant="outline"
+                title="Matched by one source origin only"
+                class="shrink-0"
+                >Uncorroborated</Badge
+              >
+              <Badge
+                v-if="vuln.overdue > 0"
+                variant="destructive"
+                title="An open ticket is past its due date"
+                class="shrink-0"
+                >Overdue</Badge
+              >
+              <Badge
+                v-if="fullyTicketed(vuln)"
+                variant="secondary"
+                title="Every instance has an open ticket"
+                class="shrink-0"
+                >Ticketed</Badge
+              >
+              <span
+                v-else-if="vuln.ticketed > 0"
+                class="shrink-0 text-muted-foreground tabular-nums"
+                >{{ vuln.ticketed }} of {{ vuln.instances }} ticketed</span
+              >
+              <span
+                class="shrink-0 tabular-nums"
+                :class="
+                  vuln.epss !== null && vuln.epss >= HIGH_EPSS
+                    ? 'font-medium text-destructive'
+                    : 'text-muted-foreground'
+                "
+                title="Chance of exploitation in the next 30 days (EPSS)"
+                >{{
+                  vuln.epss === null
+                    ? "No EPSS"
+                    : `EPSS ${formatPercent(vuln.epss)}`
+                }}</span
+              >
+              <span class="shrink-0 text-muted-foreground">{{
+                plural(vuln.projects, "project")
+              }}</span>
+              <span class="shrink-0 text-muted-foreground tabular-nums">{{
+                plural(vuln.instances, "instance")
+              }}</span>
+            </RouterLink>
           </li>
         </ul>
       </ScrollArea>
-    </div>
-  </CardState>
+    </CardState>
+  </div>
 </template>

@@ -25,6 +25,7 @@ import {
   Organization,
   OrganizationInfoForInvitee,
   OrganizationMetaData,
+  type ServiceLevelTargetDays,
 } from "./organization.entity";
 import { OrganizationMembership } from "./organization_membership.entity";
 
@@ -82,6 +83,9 @@ export interface GetOrgMetaDataRequestOptions
 
 export interface OrganizationSettingsUpdate {
   auto_resolve_tickets?: boolean;
+  freshness_threshold_days?: number;
+  service_level_targets_enabled?: boolean;
+  service_level_targets?: Partial<ServiceLevelTargetDays>;
 }
 
 export interface UpdateOrgSettingsRequestOptions

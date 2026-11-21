@@ -3,8 +3,8 @@ import { Check, ChevronsUpDown, Plus, Settings2 } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 
-import { UserRepository } from "@/codeclarity_components/authentication/user.repository";
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
+import { switchDefaultOrg } from "@/codeclarity_components/organizations/switch-org";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +33,6 @@ const router = useRouter();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 const orgRepository = new OrgRepository();
-const userRepository = new UserRepository();
 
 const orgs = ref<OrgOption[]>([]);
 const currentId = computed(() => userStore.getDefaultOrg?.id);
@@ -63,21 +62,10 @@ async function loadOrgs(): Promise<void> {
 }
 
 async function switchOrg(org: OrgOption): Promise<void> {
-  const user = userStore.getUser;
-  if (!user || !authStore.getToken || org.id === currentId.value) return;
+  if (!userStore.getUser || !authStore.getToken || org.id === currentId.value)
+    return;
   try {
-    await userRepository.setDefaultOrg({
-      bearerToken: authStore.getToken,
-      userId: user.id,
-      data: { default_org: org.id },
-      handleBusinessErrors: true,
-    });
-    const next = await orgRepository.get({
-      bearerToken: authStore.getToken,
-      handleBusinessErrors: true,
-      orgId: org.id,
-    });
-    userStore.setDefaultOrg(next);
+    await switchDefaultOrg(org.id);
     if (router.currentRoute.value.name === "home") {
       router.go(0);
     } else {

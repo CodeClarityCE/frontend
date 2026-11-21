@@ -17,6 +17,7 @@ const SOURCE_LABELS: Record<string, string> = {
   epss: "EPSS",
   friends_of_php: "FriendsOfPHP",
   gcve: "GCVE",
+  kev: "CISA KEV",
   licenses: "Licenses",
   nvd: "NVD",
   osv: "OSV",

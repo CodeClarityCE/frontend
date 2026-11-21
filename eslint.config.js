@@ -9,6 +9,7 @@ import testingLibrary from "eslint-plugin-testing-library";
 
 import designSystem from "./eslint-rules/design-system.js";
 import designSystemAllowlist from "./eslint-rules/design-system-allowlist.json" with { type: "json" };
+import noCondensedWhitespace from "./eslint-rules/no-condensed-whitespace.js";
 
 /** @type {import('eslint').Linter.Config[]} */
 export default typescriptEslint.config(
@@ -376,6 +377,22 @@ export default typescriptEslint.config(
       "testing-library/no-container": "off",
       // Allow common naming patterns for render results in Vue tests
       "testing-library/render-result-naming-convention": "off",
+    },
+  },
+
+  // ==========================================
+  // Run-together Text
+  // ==========================================
+  // Flags spaces at an element's edge that Vue's whitespace condensing removes.
+  {
+    files: ["src/**/*.vue"],
+    plugins: {
+      whitespace: {
+        rules: { "no-condensed-whitespace": noCondensedWhitespace },
+      },
+    },
+    rules: {
+      "whitespace/no-condensed-whitespace": "error",
     },
   },
 

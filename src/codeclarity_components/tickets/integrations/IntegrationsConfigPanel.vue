@@ -329,7 +329,7 @@ onMounted(() => {
             size="sm"
             @click="openConfigModal(providerInfo.provider)"
           >
-            Connect<span class="sr-only"> {{ providerInfo.name }}</span>
+            Connect <span class="sr-only">{{ providerInfo.name }}</span>
           </Button>
         </div>
       </li>

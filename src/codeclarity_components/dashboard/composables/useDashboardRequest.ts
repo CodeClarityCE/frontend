@@ -31,3 +31,26 @@ export function useDashboardRequest<T>(
   }) as DashboardRequest<T>;
   return request;
 }
+
+/** A shared dashboard request narrowed by filters that its cards can change. */
+export interface FilteredDashboardRequest<T, F> extends DashboardRequest<T> {
+  filters: F;
+  /** Replaces the filters and sends the request again; never throws */
+  filter: (filters: F) => Promise<void>;
+}
+
+export function useFilteredDashboardRequest<T, F extends object>(
+  load: (filters: F) => Promise<T>,
+  initial: F,
+): FilteredDashboardRequest<T, F> {
+  const request = useDashboardRequest(
+    async () => await load(request.filters),
+  ) as FilteredDashboardRequest<T, F>;
+  // Set on the reactive request, so the filters are reactive too.
+  request.filters = initial;
+  request.filter = async (filters: F): Promise<void> => {
+    request.filters = filters;
+    await request.run();
+  };
+  return request;
+}

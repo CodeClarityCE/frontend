@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
+import { expectTheme } from "./helpers/theme.mjs";
 import { DashboardPage, week } from "./pages/dashboard.page.mjs";
 
 test.beforeEach(async ({ page }) => {
@@ -167,8 +168,8 @@ test.describe("Project overview", () => {
       name: "Project numbers",
     });
     await expect(numbers.getByRole("listitem")).toHaveText([
-      /Critical issues\s*2\s*2 issues found/,
-      /High severity\s*5\s*5 issues found/,
+      /Critical vulnerabilities\s*2\s*Same as last week/,
+      /High vulnerabilities\s*5\s*1 fewer than last week/,
       /Projects scanned\s*3/,
       /Security score\s*B/,
     ]);
@@ -181,28 +182,25 @@ test.describe("Project overview", () => {
     );
   });
 
-  test("draws exposure, licenses and impact on the shared charts", async ({
+  test("draws the trend, licenses and impact on the shared charts", async ({
     page,
   }) => {
     const dashboard = new DashboardPage(page);
     await dashboard.signIn();
     await dashboard.goto();
 
-    const exposure = dashboard.chart(
-      "Summed severity of vulnerabilities by week",
+    const open = dashboard.chart(
+      "Open vulnerability instances by severity, per week",
     );
-    await expect(exposure.getByRole("img")).toHaveCount(4);
-    await expect(exposure.getByRole("img").first()).toHaveAccessibleName(
-      /Oct 12 - Oct 18, 2026: summed severity 120/,
+    await expect(open.getByRole("img")).toHaveCount(4);
+    await expect(open.getByRole("img").first()).toHaveAccessibleName(
+      "Week of Oct 12, 2026: 23 open (3 critical, 6 high, 10 medium, 4 low)",
     );
-    const weeks = dashboard.projects.getByRole("list", {
-      name: "Weekly exposure",
-    });
-    await expect(weeks.getByRole("listitem").first()).toHaveText(
-      /Nov 02 - Nov 08, 2026\s*No vulnerabilities/,
+    const changes = dashboard.chart(
+      "Vulnerability instances introduced and fixed per week",
     );
-    await expect(weeks.getByRole("listitem").nth(1)).toContainText(
-      "2 Critical",
+    await expect(changes.getByRole("img").nth(1)).toHaveAccessibleName(
+      "Week of Oct 19, 2026: 0 introduced, 2 fixed",
     );
 
     const licenses = dashboard.chart("Dependencies by license");
@@ -219,7 +217,7 @@ test.describe("Project overview", () => {
     );
   });
 
-  test("lists the most severe vulnerabilities with their severity in words", async ({
+  test("lists the vulnerabilities with their severity in words and their reach", async ({
     page,
   }) => {
     const dashboard = new DashboardPage(page);
@@ -233,13 +231,13 @@ test.describe("Project overview", () => {
     ).toHaveText([/Critical\s*2/, /High\s*5/, /Medium\s*9/]);
     await expect(
       dashboard.projects
-        .getByRole("list", { name: "Most severe vulnerabilities" })
+        .getByRole("list", { name: "Vulnerabilities in your projects" })
         .getByRole("listitem"),
     ).toHaveText([
-      /Critical\s*9.8\s*Code Injection/,
-      /High\s*7.5\s*Prototype Pollution/,
-      /Medium\s*5.3\s*Uncontrolled Resource Consumption/,
-      /Low\s*2.1\s*Information Exposure/,
+      /Critical\s*9.8\s*CVE-2026-0001\s*2 projects\s*2 instances/,
+      /High\s*7.5\s*CVE-2026-0002\s*3 projects\s*5 instances/,
+      /Medium\s*5.3\s*CVE-2026-0003\s*1 project\s*9 instances/,
+      /Low\s*2.1\s*CVE-2026-0004\s*1 project\s*4 instances/,
     ]);
   });
 
@@ -267,34 +265,25 @@ test.describe("Project overview", () => {
     await expect(page).toHaveURL(/\/tickets\?ticket_id=t-1$/);
   });
 
-  test("labels each week with its ISO week, also across the new year", async ({
-    page,
-  }) => {
+  test("narrows the numbers and the trend to one project", async ({ page }) => {
     const dashboard = new DashboardPage(page);
-    await dashboard.signIn({
-      weeklySeverity: [
-        week(52, 10, [1, 0, 0, 0, 0], 2024),
-        week(1, 20, [2, 0, 0, 0, 0], 2025),
-        week(1, 30, [3, 0, 0, 0, 0], 2026),
-      ],
-    });
+    await dashboard.signIn();
     await dashboard.goto();
 
-    await expect(
-      dashboard.projects
-        .getByRole("list", { name: "Weekly exposure" })
-        .getByRole("listitem"),
-    ).toHaveText([
-      /^Dec 29, 2025 - Jan 04, 2026/,
-      /^Dec 30, 2024 - Jan 05, 2025/,
-      /^Dec 23 - Dec 29, 2024/,
-    ]);
+    const request = page.waitForRequest((r) =>
+      r.url().includes("/vulnerabilities/trend?period=week&project=proj-1"),
+    );
+    await dashboard.projects
+      .getByRole("combobox", { name: "Project" })
+      .first()
+      .selectOption("proj-1");
+    await request;
   });
 
   test("a failed summary request shows an error instead of numbers, and retries", async ({
     page,
   }) => {
-    const fail = ["/dashboard/quick_stats"];
+    const fail = ["/vulnerabilities/trend"];
     const dashboard = new DashboardPage(page);
     await dashboard.signIn({ fail });
     await dashboard.goto();
@@ -321,31 +310,28 @@ test.describe("Project overview", () => {
         .getByRole("list", { name: "Project numbers" })
         .getByRole("listitem"),
     ).toHaveText([
-      /Critical issues\s*2/,
-      /High severity\s*5/,
+      /Critical vulnerabilities\s*2/,
+      /High vulnerabilities\s*5/,
       /Projects scanned\s*3/,
       /Security score\s*B/,
     ]);
   });
 
-  test("failed vulnerability counts show errors on the tiles and on their card", async ({
+  test("a failed vulnerability list shows an error on its card only", async ({
     page,
   }) => {
     const dashboard = new DashboardPage(page);
-    await dashboard.signIn({ fail: ["/dashboard/recent_vulns"] });
+    await dashboard.signIn({ fail: ["/vulnerabilities"] });
     await dashboard.goto();
 
-    await expect(
-      dashboard.projects.getByRole("alert").filter({
-        hasText: "The project numbers could not be loaded.",
-      }),
-    ).toBeVisible();
     await expect(
       dashboard.projects.getByRole("alert").filter({
         hasText: "The vulnerabilities summary could not be loaded.",
       }),
     ).toBeVisible();
-    await expect(dashboard.projects).not.toContainText("No critical issues");
+    await expect(
+      dashboard.projects.getByRole("list", { name: "Project numbers" }),
+    ).toBeVisible();
   });
 
   test("each chart card that fails says so and offers a retry", async ({
@@ -354,7 +340,7 @@ test.describe("Project overview", () => {
     const dashboard = new DashboardPage(page);
     await dashboard.signIn({
       fail: [
-        "/dashboard/weekly_severity_info",
+        "/vulnerabilities/trend",
         "/dashboard/overall_license_dist",
         "/dashboard/overall_cia_impact",
         "/tickets/stats",
@@ -363,7 +349,7 @@ test.describe("Project overview", () => {
     await dashboard.goto();
 
     for (const label of [
-      "vulnerability exposure",
+      "open vulnerabilities over time",
       "licenses",
       "impact analysis",
       "ticket statistics",
@@ -436,7 +422,7 @@ test.describe("Project overview", () => {
       dashboard.projects.getByRole("list", { name: "Tickets by state" }),
     ).toBeVisible();
     expect([...dashboard.requests].filter(([, n]) => n > 1)).toEqual([]);
-    expect(dashboard.requests.get("/dashboard/quick_stats")).toBe(1);
+    expect(dashboard.requests.get("/vulnerabilities/trend")).toBe(1);
   });
 
   test("chart axes use whole numbers for counts and keep their labels apart", async ({
@@ -452,16 +438,19 @@ test.describe("Project overview", () => {
         "GPL-3.0-only": 1,
         "MPL-2.0": 1,
       },
-      // Two months of weeks, the API's default period.
-      weeklySeverity: [38, 39, 40, 41, 42, 43, 44, 45, 46].map((n) =>
-        week(n, 2, [0, 0, 0, 1, 0]),
+      // Twelve weeks, the API's default.
+      trend: Array.from({ length: 12 }, (_, i) =>
+        week(
+          new Date(Date.UTC(2026, 7, 31 + 7 * i)).toISOString().slice(0, 10),
+          [0, 0, 0, 1, 0],
+        ),
       ),
     });
     await dashboard.goto();
 
     for (const name of [
       "Dependencies by license",
-      "Summed severity of vulnerabilities by week",
+      "Open vulnerability instances by severity, per week",
     ]) {
       const chart = dashboard.chart(name);
       await expect(chart).toBeVisible();
@@ -551,6 +540,8 @@ test.describe("Whole page", () => {
       link("Recent Published results", "Fix lag study"),
       link("Recent Published results", "Fix lag study", 1),
       dashboard.projects.getByRole("button", { name: "Refresh" }),
+      dashboard.projects.getByRole("combobox", { name: "Project" }).first(),
+      dashboard.projects.getByRole("combobox", { name: "Period" }),
       dashboard.projects.getByRole("button", {
         name: "About the security score",
       }),
@@ -582,7 +573,7 @@ test.describe("Whole page", () => {
     await expect(dashboard.list("Recent Published results")).toBeVisible();
     await expect(dashboard.chart("Dependencies by license")).toBeVisible();
     await expect(
-      dashboard.chart("Summed severity of vulnerabilities by week"),
+      dashboard.chart("Open vulnerability instances by severity, per week"),
     ).toBeVisible();
     await expect(
       dashboard.projects.getByRole("list", { name: "Tickets by state" }),
@@ -590,6 +581,24 @@ test.describe("Whole page", () => {
 
     await expectNoAxeViolations(page);
     await expectScreenshots(page, "dashboard");
+  });
+
+  test("matches the dark screenshots", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    const dashboard = new DashboardPage(page);
+    await dashboard.signIn();
+    await dashboard.goto();
+    await expect(dashboard.list("Recent Published results")).toBeVisible();
+    await expect(dashboard.chart("Dependencies by license")).toBeVisible();
+    await expect(
+      dashboard.chart("Summed severity of vulnerabilities by week"),
+    ).toBeVisible();
+    await expect(
+      dashboard.projects.getByRole("list", { name: "Tickets by state" }),
+    ).toBeVisible();
+
+    await expectTheme(page, "dark");
+    await expectScreenshots(page, "dashboard-dark");
   });
 
   test("the empty organisation passes axe and matches the screenshots", async ({

@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
+import { expectTheme } from "./helpers/theme.mjs";
 import {
   affected,
   ANALYSIS,
@@ -284,6 +285,17 @@ test.describe("Vulnerability results", () => {
     await expectScreenshots(page, "vulnerabilities-list");
   });
 
+  test("the list matches the dark screenshots", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn();
+    await vulns.gotoResults();
+    await expect(vulns.cards).toHaveCount(4);
+
+    await expectTheme(page, "dark");
+    await expectScreenshots(page, "vulnerabilities-list-dark");
+  });
+
   test("the table passes axe and matches the screenshots", async ({ page }) => {
     const vulns = new VulnerabilitiesPage(page);
     await vulns.signIn();
@@ -446,7 +458,7 @@ test.describe("Tickets from vulnerability results", () => {
     ).toHaveCount(0);
     await expect(
       card.getByRole("link", { name: "View ticket" }),
-    ).toHaveAttribute("href", "/tickets?ticket_id=t-new-1");
+    ).toHaveAttribute("href", "/tickets/t-new-1");
   });
 
   test("a finding that already has a ticket links to it", async ({ page }) => {
@@ -471,7 +483,7 @@ test.describe("Tickets from vulnerability results", () => {
 
     await expect(
       vulns.cards.nth(1).getByRole("link", { name: "View ticket" }),
-    ).toHaveAttribute("href", "/tickets?ticket_id=t-9");
+    ).toHaveAttribute("href", "/tickets/t-9");
     await expect(
       vulns.cards.first().getByRole("button", { name: "Create Ticket" }),
     ).toBeVisible();

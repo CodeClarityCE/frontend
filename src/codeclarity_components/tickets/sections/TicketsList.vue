@@ -6,6 +6,7 @@ import { StatusBadge } from "@/base_components/page";
 import { formatShortDate } from "@/utils/dateUtils";
 
 import TicketPriorityBadge from "../components/TicketPriorityBadge.vue";
+import { ticketRoute } from "../ticket-route";
 import {
   TicketPriorityRank,
   TicketStatusLabels,
@@ -20,9 +21,8 @@ defineProps<{
   isLoading: boolean;
 }>();
 
-const emit = defineEmits<{
-  select: [ticketId: string];
-}>();
+// The text filter, kept by the parent so it survives a visit to a ticket.
+const filter = defineModel<string>("filter", { default: "" });
 
 const columns: DataTableColumn<TicketSummary>[] = [
   {
@@ -56,6 +56,7 @@ const columns: DataTableColumn<TicketSummary>[] = [
 
 <template>
   <DataTable
+    v-model:filter="filter"
     :columns="columns"
     :data="tickets"
     :loading="isLoading"
@@ -84,13 +85,12 @@ const columns: DataTableColumn<TicketSummary>[] = [
           class="mt-0.5 size-4 shrink-0 text-muted-foreground"
         />
         <div class="flex min-w-0 flex-col">
-          <button
-            type="button"
+          <RouterLink
+            :to="ticketRoute(row.id)"
             class="w-fit rounded-sm text-left font-semibold text-foreground-strong underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            @click="emit('select', row.id)"
           >
             {{ row.title }}
-          </button>
+          </RouterLink>
           <span class="text-xs text-muted-foreground">
             <span class="sr-only">{{ TicketTypeLabels[row.type] }}</span>
             <span v-if="row.vulnerability_id" class="font-mono">

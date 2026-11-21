@@ -6,6 +6,7 @@ import {
   IsDefined,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   ValidateNested,
 } from "class-validator";
@@ -65,6 +66,10 @@ export class MembershipOrganization {
   @IsOptional()
   @IsBoolean()
   auto_resolve_tickets?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  freshness_threshold_days?: number;
 
   /** Every membership of the organisation; only GET /org includes it. */
   @IsOptional()

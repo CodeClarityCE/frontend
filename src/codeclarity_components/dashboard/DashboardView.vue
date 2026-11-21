@@ -3,11 +3,21 @@ import { RefreshCw } from "@lucide/vue";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
 import { Button } from "@/shadcn/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shadcn/ui/card";
 import { Skeleton } from "@/shadcn/ui/skeleton";
 
+import FixNext from "./charts/FixNext.vue";
+import MyWork from "./charts/MyWork.vue";
 import { useDashboardData } from "./composables/useDashboardData";
 import DashboardEmptyState from "./layout/DashboardEmptyState.vue";
 import DashboardCharts from "./sections/DashboardCharts.vue";
+import DashboardOverviewFilters from "./sections/DashboardOverviewFilters.vue";
 import DashboardQuickStats from "./sections/DashboardQuickStats.vue";
 import DashboardResearch from "./sections/DashboardResearch.vue";
 
@@ -21,8 +31,9 @@ const {
   isLoading,
   defaultOrg,
   refreshData,
-  quickStats,
-  recentVulns,
+  trend,
+  vulnerabilityList,
+  orgData,
 } = useDashboardData();
 </script>
 
@@ -77,13 +88,42 @@ const {
         @retry="refreshData"
       />
       <template v-else>
-        <DashboardQuickStats
-          :quick-stats="quickStats"
-          :recent-vulns="recentVulns"
+        <Card class="rounded-card shadow-card">
+          <CardHeader>
+            <CardTitle class="text-base">Fix next</CardTitle>
+            <CardDescription>
+              Remediations ranked by the worst severity they resolve, then known
+              exploited or high EPSS, then prod over dev only, then how many
+              instances they resolve
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FixNext />
+          </CardContent>
+        </Card>
+        <Card class="rounded-card shadow-card">
+          <CardHeader>
+            <CardTitle class="text-base">My work</CardTitle>
+            <CardDescription>
+              Open tickets assigned to you: overdue first, then due soon, then
+              by Fix next rank
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <MyWork />
+          </CardContent>
+        </Card>
+        <DashboardOverviewFilters
+          :trend="trend"
+          :projects="orgData?.projects ?? []"
         />
+        <DashboardQuickStats :trend="trend" />
         <DashboardCharts
           :integration-ids="activeIntegrationIds"
-          :recent-vulns="recentVulns"
+          :vulnerability-list="vulnerabilityList"
+          :trend="trend"
+          :projects="orgData?.projects ?? []"
+          :org-id="defaultOrg?.id ?? ''"
         />
       </template>
     </section>

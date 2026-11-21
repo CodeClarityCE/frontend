@@ -75,6 +75,135 @@ export const sampleDetail = {
   active_occurrence_count: 2,
 };
 
+// One installed version of a vulnerability the remediation resolves.
+function remediationInstance(
+  id: string,
+  vulnerabilityId: string,
+  installed: string,
+  fixed: string | null,
+  severity: [string, number],
+  extra: Record<string, unknown> = {},
+): Record<string, unknown> {
+  const repo = "https://github.com/nodeca/js-yaml";
+  return {
+    id,
+    analysis_id: "a-1",
+    vulnerability_id: vulnerabilityId,
+    analysis_vulnerability_id: vulnerabilityId,
+    package: "js-yaml",
+    ecosystem: "npm",
+    installed_version: installed,
+    workspace: ".",
+    prod: false,
+    severity_class: severity[0],
+    severity_score: severity[1],
+    fixed_version: fixed,
+    top_level_dependencies: [
+      {
+        name: "grunt",
+        version: "1.5.3",
+        dev: true,
+        path: [
+          { name: "grunt", version: "1.5.3" },
+          { name: "js-yaml", version: installed },
+        ],
+      },
+      {
+        name: "lockfile-lint",
+        version: "4.14.1",
+        dev: true,
+        path: [
+          { name: "lockfile-lint", version: "4.14.1" },
+          { name: "lockfile-lint-api", version: "5.9.2" },
+          { name: "@yarnpkg/parsers", version: "3.0.3" },
+          { name: "js-yaml", version: installed },
+        ],
+      },
+    ],
+    is_active: true,
+    detected_on: "2026-10-01T09:00:00Z",
+    resolved_on: null,
+    diff_links: {
+      fix_commits: [
+        {
+          url: `${repo}/commit/24f13e7a3e6b5c9d8f0a1b2c3d4e5f60718293a4`,
+          sha: "24f13e7a3e6b5c9d8f0a1b2c3d4e5f60718293a4",
+        },
+      ],
+      compare: fixed
+        ? {
+            url: `${repo}/compare/v${installed}...v${fixed}`,
+            host: "github",
+            repository: repo,
+            from_tag: `v${installed}`,
+            to_tag: `v${fixed}`,
+            guessed: true,
+          }
+        : null,
+      registry_diff: fixed
+        ? {
+            tool: "npm",
+            command: `npm diff --diff=js-yaml@${installed} --diff=js-yaml@${fixed}`,
+          }
+        : null,
+    },
+    ...extra,
+  };
+}
+
+/** A remediation ticket resolving several vulnerabilities in two installed versions. */
+export const remediationDetail = {
+  ...sampleDetail,
+  id: "t-9",
+  title: "Force js-yaml to 4.3.2",
+  vulnerability_id: "CVE-2026-59869",
+  affected_package: "js-yaml",
+  description: "The external issue body, shown as structured fields instead.",
+  remediation_notes: undefined,
+  occurrence_count: 6,
+  active_occurrence_count: 5,
+  remediation: {
+    kind: "force_version",
+    workspace: ".",
+    package: "js-yaml",
+    installed_versions: ["3.14.1", "4.1.0"],
+    target_version: "4.3.2",
+    potentially_breaking: true,
+    package_manager: "npm",
+    command: "npm pkg set 'overrides[js-yaml]=4.3.2' && npm install",
+    manifest_edit: null,
+  },
+  instances: [
+    remediationInstance("i-1", "CVE-2026-59869", "3.14.1", "3.15.0", [
+      "HIGH",
+      7.5,
+    ]),
+    remediationInstance("i-2", "CVE-2026-59869", "4.1.0", "4.3.0", [
+      "HIGH",
+      7.5,
+    ]),
+    remediationInstance("i-3", "GHSA-5p4m-2wfm-xmqj", "3.14.1", "3.15.1", [
+      "HIGH",
+      7.5,
+    ]),
+    remediationInstance(
+      "i-4",
+      "CVE-2025-64718",
+      "4.1.0",
+      "4.1.1",
+      ["MEDIUM", 5.3],
+      {
+        is_active: false,
+        resolved_on: "2026-10-10T09:00:00Z",
+      },
+    ),
+    remediationInstance("i-5", "CVE-2026-53550", "3.14.1", null, [
+      "MEDIUM",
+      5.3,
+    ]),
+  ],
+};
+
 export const sampleVulnerability = {
   vulnerability_info: {
     vulnerability_id: "CVE-2026-0001",
@@ -161,6 +290,8 @@ export class TicketsPage {
       // Page size the mocked API serves, to test fetching every page.
       pageSize?: number;
       fail?: boolean;
+      // The ticket endpoint answers 404.
+      missing?: boolean;
       // Fields that replace the sample detail's and vulnerability's.
       detail?: Record<string, unknown>;
       vulnerability?: Record<string, unknown>;
@@ -188,6 +319,12 @@ export class TicketsPage {
       }
       if (path.endsWith("/tickets/integrations")) {
         return fulfil(route, { data: options.integrations ?? [] });
+      }
+      if (path.endsWith("/events")) {
+        return fulfil(route, { data: [] });
+      }
+      if (options.missing && request.method() === "GET") {
+        return route.fulfill({ status: 404, json: { status: "failure" } });
       }
       if (path.endsWith("/vulnerability")) {
         return fulfil(route, {
@@ -224,9 +361,9 @@ export class TicketsPage {
     return this.columnHeader(name).getByRole("button");
   }
 
-  /** The ticket detail panel. */
+  /** The ticket page's content. */
   detail(): Locator {
-    return this.page.getByRole("dialog", { name: sampleDetail.title });
+    return this.page.getByRole("main");
   }
 }
 

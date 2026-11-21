@@ -119,7 +119,8 @@ export function owaspCategories(
   return [...ids].map(owaspCategory);
 }
 
-// EPSS above this share means a high chance of exploitation.
+// EPSS at or above this share means a high chance of exploitation.
+// Same value and check as the API's HIGH_EPSS (knowledge/epss/epss-threshold.ts).
 export const HIGH_EPSS = 0.1;
 
 export function formatPercent(share: number): string {
@@ -198,7 +199,7 @@ export function findingSignals(finding: VulnerabilityMerged): Signal[] {
         : "Excluded by a vulnerability policy.",
     });
   }
-  if (finding.EPSS?.Score > HIGH_EPSS) {
+  if (finding.EPSS?.Score >= HIGH_EPSS) {
     signals.push({
       label: `Exploit risk ${formatPercent(finding.EPSS.Score)}`,
       tone: "danger",

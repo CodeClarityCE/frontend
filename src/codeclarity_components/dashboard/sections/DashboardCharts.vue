@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import type { LatestVulns } from "@/codeclarity_components/dashboard/dashboard.entity";
+import type {
+  OrganizationVulnerabilityFilters,
+  OrganizationVulnerabilityList,
+} from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+import type {
+  VulnerabilityTrend,
+  VulnerabilityTrendFilters,
+} from "@/codeclarity_components/vulnerabilities/vulnerability_trend.entity";
 import {
   Card,
   CardContent,
@@ -9,17 +16,30 @@ import {
 } from "@/shadcn/ui/card";
 
 import CurrentVulns from "../charts/CurrentVulns.vue";
-import ExposureOverview from "../charts/ExposureOverview.vue";
 import LicenseDist from "../charts/LicenseDist.vue";
+import OpenVulnerabilitiesTrend from "../charts/OpenVulnerabilitiesTrend.vue";
+import StaleProjects from "../charts/StaleProjects.vue";
 import TicketsDashboardCard from "../charts/TicketsDashboardCard.vue";
 import VulnerabilityImpact from "../charts/VulnerabilityImpact.vue";
-import type { DashboardRequest } from "../composables/useDashboardRequest";
+import type { FilteredDashboardRequest } from "../composables/useDashboardRequest";
 
 // The project overview's charts and summaries, one card each.
 defineProps<{
   integrationIds: string[];
   /** Shared with the project numbers, so it is requested once */
-  recentVulns: DashboardRequest<LatestVulns>;
+  vulnerabilityList: FilteredDashboardRequest<
+    OrganizationVulnerabilityList,
+    OrganizationVulnerabilityFilters
+  >;
+  /** Shared with the project numbers, which follow its filters */
+  trend: FilteredDashboardRequest<
+    VulnerabilityTrend,
+    VulnerabilityTrendFilters
+  >;
+  /** The projects the vulnerability list can be narrowed to */
+  projects: { id: string; name: string }[];
+  /** The organization shown, for links to its vulnerability pages */
+  orgId: string;
 }>();
 </script>
 
@@ -27,13 +47,14 @@ defineProps<{
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
     <Card class="rounded-card shadow-card lg:col-span-2">
       <CardHeader>
-        <CardTitle class="text-base">Vulnerability exposure</CardTitle>
+        <CardTitle class="text-base">Open vulnerabilities over time</CardTitle>
         <CardDescription>
-          Total severity of vulnerabilities across all your projects
+          Vulnerability instances in each project's current analysis at the end
+          of each period, and how many were introduced and fixed
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ExposureOverview :integration-ids="integrationIds" />
+        <OpenVulnerabilitiesTrend :request="trend" />
       </CardContent>
     </Card>
     <Card class="rounded-card shadow-card">
@@ -44,7 +65,11 @@ defineProps<{
         >
       </CardHeader>
       <CardContent>
-        <CurrentVulns :request="recentVulns" />
+        <CurrentVulns
+          :request="vulnerabilityList"
+          :projects="projects"
+          :org-id="orgId"
+        />
       </CardContent>
     </Card>
     <Card class="rounded-card shadow-card">
@@ -56,6 +81,15 @@ defineProps<{
       </CardHeader>
       <CardContent>
         <TicketsDashboardCard :integration-ids="integrationIds" />
+      </CardContent>
+    </Card>
+    <Card class="rounded-card shadow-card">
+      <CardHeader>
+        <CardTitle class="text-base">Stale projects</CardTitle>
+        <CardDescription>Projects not analysed lately</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <StaleProjects />
       </CardContent>
     </Card>
     <Card class="rounded-card shadow-card">

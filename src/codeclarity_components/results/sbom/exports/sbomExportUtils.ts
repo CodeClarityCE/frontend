@@ -2,6 +2,8 @@
  * Utility functions for exporting SBOM data in various formats
  */
 
+import { lightTokens } from "@/utils/css-tokens";
+
 import { hasUpdate } from "../utils/sbomUtils";
 
 export type ExportFormat = "csv" | "json" | "cyclonedx" | "html";
@@ -42,16 +44,12 @@ const EXPORT_TOKENS = [
   "neutral-subtle",
 ];
 
-// The page's colour tokens, copied into the report so it matches the app.
+// The light colour tokens, copied into the report so it prints the same in any theme.
 function exportPalette(): string {
-  const style =
-    typeof document === "undefined"
-      ? null
-      : getComputedStyle(document.documentElement);
-  return EXPORT_TOKENS.map((name) => {
-    const value = style?.getPropertyValue(`--${name}`).trim();
-    return `            --${name}: ${value === undefined || value === "" ? "inherit" : value};`;
-  }).join("\n");
+  const tokens = lightTokens();
+  return EXPORT_TOKENS.map(
+    (name) => `            --${name}: ${tokens.get(`--${name}`) ?? "inherit"};`,
+  ).join("\n");
 }
 
 /**

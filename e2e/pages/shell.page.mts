@@ -183,6 +183,12 @@ export class ShellPage {
     await this.nav.waitFor();
   }
 
+  /** Reloads and waits for the shell, so its keyboard shortcuts are listening. */
+  async reload(): Promise<void> {
+    await this.page.reload();
+    await this.nav.waitFor();
+  }
+
   /** Hides the routed page so screenshots show only the shell. */
   async hidePageContent(): Promise<void> {
     await this.page.addStyleTag({

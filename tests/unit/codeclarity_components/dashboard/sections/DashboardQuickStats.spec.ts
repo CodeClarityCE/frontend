@@ -1,69 +1,96 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useDashboardRequest } from "@/codeclarity_components/dashboard/composables/useDashboardRequest";
+import { useFilteredDashboardRequest } from "@/codeclarity_components/dashboard/composables/useDashboardRequest";
 import DashboardQuickStats from "@/codeclarity_components/dashboard/sections/DashboardQuickStats.vue";
+import {
+  TrendPeriod,
+  type VulnerabilityTrend,
+  type VulnerabilityTrendFilters,
+  type VulnerabilityTrendPoint,
+} from "@/codeclarity_components/vulnerabilities/vulnerability_trend.entity";
 
-const getRecentVulns = vi.fn();
-const getQuickStats = vi.fn();
+const getTrend = vi.fn();
+
+function point(
+  open: Partial<VulnerabilityTrendPoint["open"]>,
+  project_count: number,
+  security_score: number,
+): VulnerabilityTrendPoint {
+  return {
+    start: "2026-11-09T00:00:00.000Z",
+    end: "2026-11-16T00:00:00.000Z",
+    open: { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0, NONE: 0, ...open },
+    introduced: 0,
+    fixed: 0,
+    project_count,
+    security_score,
+  };
+}
 
 async function mountTiles(): Promise<ReturnType<typeof mount>> {
-  const quickStats = useDashboardRequest(
-    async () => (await getQuickStats()).data,
-  );
-  const recentVulns = useDashboardRequest(
-    async () => (await getRecentVulns()).data,
-  );
-  void quickStats.run();
-  void recentVulns.run();
-  const wrapper = mount(DashboardQuickStats, {
-    props: { quickStats, recentVulns },
-  });
+  const trend = useFilteredDashboardRequest<
+    VulnerabilityTrend,
+    VulnerabilityTrendFilters
+  >(async () => await getTrend(), { period: TrendPeriod.Week });
+  void trend.run();
+  const wrapper = mount(DashboardQuickStats, { props: { trend } });
   await flushPromises();
   return wrapper;
 }
 
-describe("DashboardQuickStats", () => {
-  beforeEach(() => {
-    getRecentVulns.mockReset();
-    getQuickStats.mockReset();
-  });
+const tiles = (wrapper: ReturnType<typeof mount>) =>
+  wrapper
+    .find('[aria-label="Project numbers"]')
+    .findAll("li")
+    .map((li) =>
+      li
+        .findAll(":scope > span")
+        .map((span) => span.text().trim())
+        .join(" "),
+    );
 
-  it("shows critical and high counts, projects scanned and the security grade", async () => {
-    getRecentVulns.mockResolvedValue({
-      data: {
-        vulns: {},
-        severity_count: [
-          { severity_class: "CRITICAL", count: 1 },
-          { severity_class: "HIGH", count: 0 },
-        ],
-      },
-    });
-    getQuickStats.mockResolvedValue({
-      data: { nmb_projects: 3, max_grade: { score: 4.2, class: "B" } },
+describe("DashboardQuickStats", () => {
+  beforeEach(() => getTrend.mockReset());
+
+  it("shows the current numbers with their change since the previous period", async () => {
+    getTrend.mockResolvedValue({
+      period: TrendPeriod.Week,
+      points: [
+        point({ CRITICAL: 3, HIGH: 2 }, 2, 70),
+        point({ CRITICAL: 1, HIGH: 2 }, 3, 80),
+      ],
     });
     const wrapper = await mountTiles();
 
-    // Each tile reads label, value, hint.
-    const tiles = wrapper
-      .find('[aria-label="Project numbers"]')
-      .findAll("li")
-      .map((li) => li.findAll("span").map((span) => span.text()));
-    expect(tiles).toEqual([
-      ["Critical issues", "1", "1 issue found"],
-      ["High severity", "0", "No high severity"],
-      ["Projects scanned", "3", "Projects with an analysis"],
-      ["Security score", "B", "Good security posture"],
+    expect(tiles(wrapper)).toEqual([
+      "Critical vulnerabilities 1 2 fewer than last week",
+      "High vulnerabilities 2 Same as last week",
+      "Projects scanned 3 1 more than last week",
+      "Security score B Up 10 points since last week",
     ]);
   });
 
-  it("shows an error instead of numbers when a request fails", async () => {
-    getRecentVulns.mockResolvedValue({
-      data: { vulns: {}, severity_count: [] },
+  it("compares with last month when the trend is monthly", async () => {
+    getTrend.mockResolvedValue({
+      period: TrendPeriod.Month,
+      points: [point({ HIGH: 1 }, 1, 90), point({ HIGH: 4 }, 1, 60)],
     });
-    getQuickStats.mockRejectedValueOnce(new Error("down"));
-    getQuickStats.mockResolvedValueOnce({
-      data: { nmb_projects: 3, max_grade: { score: 4.2, class: "B" } },
+    const wrapper = await mountTiles();
+
+    expect(tiles(wrapper)[1]).toBe(
+      "High vulnerabilities 4 3 more than last month",
+    );
+    expect(tiles(wrapper)[3]).toBe(
+      "Security score C Down 30 points since last month",
+    );
+  });
+
+  it("shows an error instead of numbers when the trend fails", async () => {
+    getTrend.mockRejectedValueOnce(new Error("down"));
+    getTrend.mockResolvedValueOnce({
+      period: TrendPeriod.Week,
+      points: [point({}, 1, 100)],
     });
     const wrapper = await mountTiles();
 
@@ -71,13 +98,9 @@ describe("DashboardQuickStats", () => {
       "The project numbers could not be loaded.",
     );
     expect(wrapper.find('[aria-label="Project numbers"]').exists()).toBe(false);
-    expect(wrapper.text()).not.toContain("A+");
 
     await wrapper.find('[role="alert"] button').trigger("click");
     await flushPromises();
-    expect(getRecentVulns).toHaveBeenCalledTimes(1);
-    expect(wrapper.find('[aria-label="Project numbers"]').text()).toContain(
-      "B",
-    );
+    expect(tiles(wrapper)[3]).toBe("Security score A+");
   });
 });

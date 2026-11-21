@@ -58,72 +58,101 @@ const metaData = {
   integrations: [],
 };
 
-const quickStats = {
-  max_grade: { score: 4.2, class: "B" },
-  max_grade_trend: { trend: "NONE" },
-  nmb_deprecated: 0,
-  nmb_deprecated_trend: { trend: "NONE" },
-  nmb_projects: 3,
-};
-
-const recentVulns = {
-  vulns: {
-    "CVE-2026-0001": {
-      severity: 9.8,
+// The organization vulnerability list, worst first, as the API pages it.
+const vulnerabilities = {
+  data: [
+    {
+      vulnerability_id: "CVE-2026-0001",
       severity_class: "CRITICAL",
-      cwe: "CWE-94",
-      cwe_name: "Code Injection",
+      severity_score: 9.8,
+      project_count: 2,
+      instance_count: 2,
+      uncorroborated_count: 0,
+      known_exploited: false,
+      ticketed_instance_count: 0,
+      overdue_instance_count: 0,
+      epss: null,
     },
-    "CVE-2026-0002": {
-      severity: 7.5,
+    {
+      vulnerability_id: "CVE-2026-0002",
       severity_class: "HIGH",
-      cwe: "CWE-1321",
-      cwe_name: "Prototype Pollution",
+      severity_score: 7.5,
+      project_count: 3,
+      instance_count: 5,
+      uncorroborated_count: 0,
+      known_exploited: false,
+      ticketed_instance_count: 0,
+      overdue_instance_count: 0,
+      epss: null,
     },
-    "CVE-2026-0003": {
-      severity: 5.3,
+    {
+      vulnerability_id: "CVE-2026-0003",
       severity_class: "MEDIUM",
-      cwe: "CWE-400",
-      cwe_name: "Uncontrolled Resource Consumption",
+      severity_score: 5.3,
+      project_count: 1,
+      instance_count: 9,
+      uncorroborated_count: 0,
+      known_exploited: false,
+      ticketed_instance_count: 0,
+      overdue_instance_count: 0,
+      epss: null,
     },
-    "CVE-2026-0004": {
-      severity: 2.1,
+    {
+      vulnerability_id: "CVE-2026-0004",
       severity_class: "LOW",
-      cwe: "CWE-200",
-      cwe_name: "Information Exposure",
+      severity_score: 2.1,
+      project_count: 1,
+      instance_count: 4,
+      uncorroborated_count: 0,
+      known_exploited: false,
+      ticketed_instance_count: 0,
+      overdue_instance_count: 0,
+      epss: null,
     },
-  },
-  severity_count: [
-    { severity_class: "CRITICAL", count: 2 },
-    { severity_class: "HIGH", count: 5 },
-    { severity_class: "MEDIUM", count: 9 },
-    { severity_class: "LOW", count: 4 },
   ],
+  page: 0,
+  entry_count: 4,
+  entries_per_page: 50,
+  total_entries: 4,
+  total_pages: 1,
+  matching_count: 4,
+  filter_count: {},
+  severity_counts: { CRITICAL: 2, HIGH: 5, MEDIUM: 9, LOW: 4, NONE: 0 },
+  hidden_counts: { contradicted: 0, retired_all: 0, excluded_by_policy: 0 },
 };
 
-/** One week of exposure as the API sends it: an ISO week number and year. */
+/** One week of the trend as the API sends it, starting on Monday `start` (UTC). */
 export function week(
-  n: number,
-  summed: number,
-  counts: [number, number, number, number, number],
-  year = 2026,
+  start: string,
+  open: [number, number, number, number, number],
+  introduced = 0,
+  fixed = 0,
+  projects = 3,
+  score = 80,
 ): Record<string, unknown> {
+  const from = new Date(`${start}T00:00:00.000Z`);
   return {
-    week_number: { week: n, year },
-    summed_severity: summed,
-    nmb_critical: counts[0],
-    nmb_high: counts[1],
-    nmb_medium: counts[2],
-    nmb_low: counts[3],
-    nmb_none: counts[4],
+    start: from.toISOString(),
+    end: new Date(from.getTime() + 7 * 86_400_000).toISOString(),
+    open: {
+      CRITICAL: open[0],
+      HIGH: open[1],
+      MEDIUM: open[2],
+      LOW: open[3],
+      NONE: open[4],
+    },
+    introduced,
+    fixed,
+    project_count: projects,
+    security_score: score,
   };
 }
 
-const weeklySeverity = [
-  week(42, 120.4, [3, 6, 10, 4, 0]),
-  week(43, 98.1, [2, 6, 9, 4, 0]),
-  week(44, 87.6, [2, 5, 9, 4, 0]),
-  week(45, 0, [0, 0, 0, 0, 0]),
+const trendWeeks = [
+  week("2026-10-12", [3, 6, 10, 4, 0], 23, 0, 3, 70),
+  week("2026-10-19", [2, 6, 9, 4, 0], 0, 2),
+  week("2026-10-26", [2, 6, 9, 4, 0], 1, 1),
+  week("2026-11-02", [2, 5, 9, 4, 0], 0, 1),
 ];
 
 const licenseDist = { MIT: 40, "Apache-2.0": 12, ISC: 5 };
@@ -206,7 +235,8 @@ export class DashboardPage {
       hold?: boolean;
       /** Paths below the organisation, e.g. "/meta_data", answered with a 500 */
       fail?: string[];
-      weeklySeverity?: unknown[];
+      /** Points of the trend, oldest first */
+      trend?: unknown[];
       licenseDist?: Record<string, number>;
     } = {},
   ): Promise<() => void> {
@@ -255,18 +285,24 @@ export class DashboardPage {
       if (path === "/integrations/vcs") return fulfil(route, paginated([]));
       if (path === "/tickets/stats")
         return fulfil(route, { data: ticketStats });
+      const points = (options.trend ?? trendWeeks) as Record<string, unknown>[];
       const dashboard: Record<string, unknown> = {
-        "/dashboard/quick_stats":
-          withProjects && (options.analyses ?? true)
-            ? quickStats
-            : { ...quickStats, nmb_projects: 0 },
-        "/dashboard/recent_vulns": recentVulns,
-        "/dashboard/weekly_severity_info":
-          options.weeklySeverity ?? weeklySeverity,
+        "/vulnerabilities/trend": {
+          period: "week",
+          points:
+            withProjects && (options.analyses ?? true)
+              ? points
+              : points.map((p) => ({ ...p, project_count: 0 })),
+        },
         "/dashboard/overall_license_dist": options.licenseDist ?? licenseDist,
         "/dashboard/overall_cia_impact": ciaImpact,
       };
       if (path in dashboard) return fulfil(route, { data: dashboard[path] });
+      if (path === "/vulnerabilities") return fulfil(route, vulnerabilities);
+      if (path === "/remediations/fix-next") return fulfil(route, { data: [] });
+      if (path === "/freshness") {
+        return fulfil(route, { data: { threshold_days: 14, projects: [] } });
+      }
       return route.fallback();
     });
     return release;

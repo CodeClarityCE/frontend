@@ -54,13 +54,16 @@ watch(
 </script>
 
 <template>
-  <section aria-labelledby="ticket-history" class="border-t pt-4">
-    <h3
+  <section
+    aria-labelledby="ticket-history"
+    class="rounded-card border bg-card p-5"
+  >
+    <h2
       id="ticket-history"
-      class="mb-3 text-sm font-semibold text-foreground-strong"
+      class="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
     >
       History
-    </h3>
+    </h2>
     <p
       v-if="isLoading && events.length === 0"
       role="status"

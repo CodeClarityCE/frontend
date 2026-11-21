@@ -14,7 +14,9 @@ withDefaults(
 </script>
 
 <template>
-  <div class="flex min-h-svh flex-col bg-muted text-foreground">
+  <div
+    class="flex min-h-svh flex-col bg-muted text-foreground dark:bg-background"
+  >
     <BrandHeader />
 
     <main class="flex flex-1 items-start justify-center px-4 py-12">

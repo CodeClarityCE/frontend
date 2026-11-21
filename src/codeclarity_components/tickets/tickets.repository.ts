@@ -13,6 +13,7 @@ import { DataResponse } from "../../utils/api/responses/DataResponse";
 import { NoDataResponse } from "../../utils/api/responses/NoDataResponse";
 import { PaginatedResponse } from "../../utils/api/responses/PaginatedResponse";
 
+import type { MyWorkEntry } from "./my_work.entity";
 import {
   type BulkSyncFromExternalResult,
   type BulkSyncResult,
@@ -21,6 +22,8 @@ import {
   type CheckDuplicateRequest,
   type ConfigureClickUpRequest,
   type ConnectionTestResult,
+  type CreateRemediationTicketRequest,
+  type CreateRemediationTicketResult,
   type CreateTicketRequest,
   type DuplicateCheckResult,
   type ExternalLink,
@@ -81,8 +84,19 @@ export interface GetDashboardStatsRequestOptions extends AuthRepoMethodGetReques
   orgId: string;
 }
 
+export interface GetMyWorkRequestOptions extends AuthRepoMethodGetRequestOptions {
+  orgId: string;
+  /** How many entries; the API defaults to 20 */
+  limit?: number;
+}
+
 export interface CreateTicketRequestOptions extends AuthRepoMethodPostRequestOptions<CreateTicketRequest> {
   orgId: string;
+}
+
+export interface CreateRemediationTicketRequestOptions extends AuthRepoMethodPostRequestOptions<CreateRemediationTicketRequest> {
+  orgId: string;
+  projectId: string;
 }
 
 export interface UpdateTicketRequestOptions extends AuthRepoMethodPatchRequestOptions<UpdateTicketRequest> {
@@ -437,6 +451,21 @@ export class TicketsRepository extends BaseRepository {
   }
 
   /**
+   * The open tickets assigned to the signed-in user, most pressing first
+   */
+  async getMyWork(options: GetMyWorkRequestOptions): Promise<MyWorkEntry[]> {
+    const response = await this.getRequest<{ data: MyWorkEntry[] }>({
+      bearerToken: options.bearerToken,
+      queryParams: options.limit ? { limit: options.limit } : {},
+      url: this.buildUrl(`/org/${options.orgId}/tickets/my-work`),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+    return response.data;
+  }
+
+  /**
    * Create a new ticket
    */
   async createTicket(
@@ -457,6 +486,30 @@ export class TicketsRepository extends BaseRepository {
     });
 
     return Entity.unMarshal<CreatedResponse>(response, CreatedResponse);
+  }
+
+  /** Creates a ticket from a remediation, or names the open one that already tracks it. */
+  async createRemediationTicket(
+    options: CreateRemediationTicketRequestOptions,
+  ): Promise<DataResponse<CreateRemediationTicketResult>> {
+    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/tickets/from-remediation`;
+
+    const response = await this.postRequest<
+      DataResponse<CreateRemediationTicketResult>,
+      CreateRemediationTicketRequest
+    >({
+      bearerToken: options.bearerToken,
+      data: options.data,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<DataResponse<CreateRemediationTicketResult>>(
+      response,
+      DataResponse<CreateRemediationTicketResult>,
+    );
   }
 
   /**

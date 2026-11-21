@@ -1,6 +1,8 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { createRequire } from "node:module";
 
+import { THEME_KEY } from "./theme.mjs";
+
 const axePath = createRequire(import.meta.url).resolve("axe-core/axe.min.js");
 
 // WCAG 2.2 AA means every A and AA rule from 2.0 through 2.2.
@@ -13,10 +15,14 @@ export const WCAG_22_AA_TAGS = [
 ];
 
 // An axe rule a page is known to break today, and the ticket that fixes it.
+// `theme: "dark"` limits the entry to the dark check.
 export interface KnownViolation {
   rule: string;
   owner: string;
+  theme?: "dark";
 }
+
+type Theme = "light" | "dark";
 
 interface AxeNode {
   target: string[];
@@ -44,7 +50,11 @@ declare global {
 function describe(violation: AxeViolation): string {
   const targets = violation.nodes
     .slice(0, 5)
-    .map((node) => `    ${node.target.join(" ")}`)
+    .map((node) => {
+      // Keeps axe's reason, such as the measured colours, under each target.
+      const why = node.failureSummary?.split("\n").slice(1, 2).join("").trim();
+      return `    ${node.target.join(" ")}${why ? `\n      ${why}` : ""}`;
+    })
     .join("\n");
   return `  ${violation.id} (${violation.impact ?? "n/a"}): ${violation.help}\n${targets}`;
 }
@@ -61,42 +71,149 @@ export async function waitForAnimations(page: Page): Promise<void> {
   );
 }
 
-/**
- * Runs axe-core with the WCAG 2.2 AA tags and fails on any violation.
- * `known` lists rules the page still breaks; it fails if one of them is fixed,
- * so the entry gets removed.
- */
-export async function expectNoAxeViolations(
-  page: Page,
-  options: { known?: KnownViolation[] } = {},
-): Promise<void> {
-  const known = options.known ?? [];
+async function runAxe(page: Page): Promise<AxeViolation[]> {
   await waitForAnimations(page);
-  await page.addScriptTag({ path: axePath });
+  if (!(await page.evaluate(() => "axe" in window))) {
+    await page.addScriptTag({ path: axePath });
+  }
   const { violations } = await page.evaluate(
     (tags) =>
       window.axe.run(document, { runOnly: { type: "tag", values: tags } }),
     WCAG_22_AA_TAGS,
   );
+  return violations;
+}
 
-  const knownRules = new Set(known.map((entry) => entry.rule));
+// Lists unexpected violations and known ones that no longer occur in one theme.
+function problemsIn(
+  theme: Theme,
+  violations: AxeViolation[],
+  known: KnownViolation[],
+): string[] {
+  const expected = known.filter(
+    (entry) => !entry.theme || entry.theme === theme,
+  );
+  const knownRules = new Set(expected.map((entry) => entry.rule));
   const unexpected = violations.filter((v) => !knownRules.has(v.id));
   const found = new Set(violations.map((v) => v.id));
-  const fixed = known.filter((entry) => !found.has(entry.rule));
+  const fixed = expected.filter((entry) => !found.has(entry.rule));
 
   const problems: string[] = [];
   if (unexpected.length > 0) {
     problems.push(
-      `axe found WCAG 2.2 AA violations:\n${unexpected.map(describe).join("\n")}`,
+      `axe found WCAG 2.2 AA violations in ${theme}:\n${unexpected.map(describe).join("\n")}`,
     );
   }
   if (fixed.length > 0) {
     problems.push(
-      `Known violations no longer occur, remove them from the list: ${fixed
+      `Known violations no longer occur in ${theme}, remove them from the list: ${fixed
         .map((entry) => `${entry.rule} (${entry.owner})`)
         .join(", ")}`,
     );
   }
+  return problems;
+}
+
+const themeOf = async (page: Page): Promise<Theme> =>
+  (await page.evaluate(() =>
+    document.documentElement.classList.contains("dark"),
+  ))
+    ? "dark"
+    : "light";
+
+const osIsDark = (page: Page): Promise<boolean> =>
+  page.evaluate(() => matchMedia("(prefers-color-scheme: dark)").matches);
+
+// Waits two frames so a theme change has restyled the page before measuring.
+const nextFrames = (page: Page): Promise<void> =>
+  page.evaluate(
+    () =>
+      new Promise<void>((done) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => done())),
+      ),
+  );
+
+// Stores a Theme choice and tells the app, as a change from another tab would.
+// Returns the previous value, or `ok: false` when storage is unavailable.
+const storeChoice = (
+  page: Page,
+  value: string | null,
+): Promise<{ ok: boolean; old?: string | null }> =>
+  page.evaluate(
+    ([key, v]) => {
+      try {
+        const old = localStorage.getItem(key);
+        if (v === null) localStorage.removeItem(key);
+        else localStorage.setItem(key, v);
+        window.dispatchEvent(
+          new StorageEvent("storage", { key, oldValue: old, newValue: v }),
+        );
+        return { ok: true, old };
+      } catch {
+        return { ok: false };
+      }
+    },
+    [THEME_KEY, value] as const,
+  );
+
+// Puts the page in `theme` through the OS scheme, then the app's stored choice,
+// and on pages without the app through the root class alone. Returns an undo.
+async function switchTo(
+  page: Page,
+  theme: Theme,
+): Promise<() => Promise<void>> {
+  const osWasDark = await osIsDark(page);
+  await page.emulateMedia({ colorScheme: theme });
+  await nextFrames(page);
+
+  let stored: { ok: boolean; old?: string | null } = { ok: false };
+  if ((await themeOf(page)) !== theme) {
+    stored = await storeChoice(page, theme);
+    await nextFrames(page);
+    if (stored.ok && (await themeOf(page)) !== theme) {
+      await storeChoice(page, stored.old ?? null);
+      stored = { ok: false };
+    }
+  }
+  const toggledClass = (await themeOf(page)) !== theme;
+  if (toggledClass) {
+    await page.evaluate(() =>
+      document.documentElement.classList.toggle("dark"),
+    );
+  }
+  await nextFrames(page);
+
+  return async () => {
+    if (toggledClass) {
+      await page.evaluate(() =>
+        document.documentElement.classList.toggle("dark"),
+      );
+    }
+    if (stored.ok) await storeChoice(page, stored.old ?? null);
+    await page.emulateMedia({ colorScheme: osWasDark ? "dark" : "light" });
+    await nextFrames(page);
+    await waitForAnimations(page);
+  };
+}
+
+/** Runs axe (WCAG 2.2 AA) in the page's theme, then the other one, and fails on any violation.
+ * `known` lists rules the page still breaks; it also fails when one of them is fixed. */
+export async function expectNoAxeViolations(
+  page: Page,
+  options: { known?: KnownViolation[] } = {},
+): Promise<void> {
+  const known = options.known ?? [];
+  const first = await themeOf(page);
+  const second: Theme = first === "light" ? "dark" : "light";
+  const problems = problemsIn(first, await runAxe(page), known);
+
+  const restore = await switchTo(page, second);
+  try {
+    problems.push(...problemsIn(second, await runAxe(page), known));
+  } finally {
+    await restore();
+  }
+
   if (problems.length > 0) {
     throw new Error(problems.join("\n\n"));
   }

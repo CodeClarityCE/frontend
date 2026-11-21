@@ -15,6 +15,8 @@ import { computed, type Ref, ref } from "vue";
 import { RouterLink } from "vue-router";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
+import FreshnessThresholdSetting from "@/codeclarity_components/organizations/manage/FreshnessThresholdSetting.vue";
+import ServiceLevelTargetsSetting from "@/codeclarity_components/organizations/manage/ServiceLevelTargetsSetting.vue";
 import {
   MemberRole,
   type Organization,
@@ -127,6 +129,9 @@ const faqs = [
       "Three days. You can resend or revoke it from Invites while it is pending.",
   },
 ];
+
+// No target for any severity, when the organization sent neither its own nor suggested days.
+const NO_TARGETS = { critical: null, high: null, medium: null, low: null };
 
 function setOrgInfo(org: Organization): void {
   orgInfo.value = org;
@@ -244,6 +249,43 @@ function afterAction(): void {
             :disabled="savingSettings"
             aria-describedby="org-auto-resolve-hint"
             @update:model-value="setAutoResolve($event)"
+          />
+        </CardContent>
+      </Card>
+
+      <Card v-if="isAdmin" class="rounded-card shadow-card">
+        <CardHeader>
+          <h2
+            class="text-lg font-semibold leading-none tracking-tight text-foreground-strong"
+          >
+            Service level targets
+          </h2>
+        </CardHeader>
+        <CardContent>
+          <ServiceLevelTargetsSetting
+            :org-id="orgInfo.id"
+            :enabled="orgInfo.service_level_targets_enabled ?? false"
+            :days="
+              orgInfo.service_level_targets ??
+              orgInfo.suggested_service_level_targets ??
+              NO_TARGETS
+            "
+          />
+        </CardContent>
+      </Card>
+
+      <Card v-if="isAdmin" class="rounded-card shadow-card">
+        <CardHeader>
+          <h2
+            class="text-lg font-semibold leading-none tracking-tight text-foreground-strong"
+          >
+            Freshness
+          </h2>
+        </CardHeader>
+        <CardContent>
+          <FreshnessThresholdSetting
+            :org-id="orgInfo.id"
+            :days="orgInfo.freshness_threshold_days ?? 14"
           />
         </CardContent>
       </Card>

@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   type Analysis,
@@ -12,11 +12,6 @@ import { analysisPath, paginated } from "../../../../tests/fixtures/results";
 import { createTestApp } from "../../../../tests/real-app";
 
 import ResultsSBOM from "./ResultsSBOM.vue";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 describe("ResultsSBOM", () => {
   it("shows the SBOM of the analysis", async () => {

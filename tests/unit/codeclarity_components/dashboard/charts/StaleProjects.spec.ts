@@ -1,15 +1,10 @@
 import { flushPromises, mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import StaleProjects from "@/codeclarity_components/dashboard/charts/StaleProjects.vue";
 import type { OrganizationFreshness } from "@/codeclarity_components/vulnerabilities/project_freshness.entity";
 
 import { createTestApp, org, type TestApp } from "../../../../real-app";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const daysAgo = (days: number): string =>
   new Date(Date.now() - days * 86_400_000).toISOString();

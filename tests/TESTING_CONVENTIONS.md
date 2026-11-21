@@ -68,19 +68,14 @@ real navigation guard.
 
 ### Real stores, router and HTTP only (`tests/real-app.ts`)
 
-`tests/setup.ts` still mocks Pinia, the stores, the router, the repositories and
-`@vueuse/core` for every file. A file opts out of all of them with this block
-right after its imports:
-
-```typescript
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-```
-
-The file then gets the real modules, a fresh in-memory `localStorage` per test,
-no mock Pinia or `RouterLink` stub, and every mounted component is unmounted
-after each test. Build the app with `createTestApp` from `tests/real-app.ts`:
+`tests/setup.ts` mocks no app code and no library: every test runs the real
+stores, router, repositories and components. It only adds the browser APIs jsdom
+lacks (`ResizeObserver`, `IntersectionObserver`, `matchMedia`, `scrollTo`,
+`scrollIntoView`, `animate` and an immediate `requestAnimationFrame`), registers
+the logo icons the app ships (as `main.ts` does), gives each test a fresh
+in-memory `localStorage` and `sessionStorage`, and unmounts every mounted
+component after each test. HTTP is the only thing a test fakes. Build the app
+with `createTestApp` from `tests/real-app.ts`:
 
 ```typescript
 const app = createTestApp({ signedIn: true }); // fresh Pinia; fetch is faked

@@ -1,16 +1,11 @@
 import { render, screen } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createTestApp, org } from "../../../../tests/real-app";
 
 import ResultsSBOMDetails from "./ResultsSBOMDetails.vue";
 import { dependency } from "./SbomDetails/dependency.fixture";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const ANALYSIS = "5d6e7f80-91a2-4b3c-8d4e-5f6a7b8c9d0e";
 const PROJECT = "9b0f6a4e-2c1d-4c3b-8f7a-1e2d3c4b5a69";

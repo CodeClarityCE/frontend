@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import type { Project } from "@/codeclarity_components/projects/project.entity";
@@ -8,11 +8,6 @@ import type { Project } from "@/codeclarity_components/projects/project.entity";
 import { createTestApp, type TestApp } from "../../../../tests/real-app";
 
 import ResultsCodeQL from "./ResultsCodeQL.vue";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const finding = (ruleId: string, uri: string, start: number, end: number) => ({
   ruleId,

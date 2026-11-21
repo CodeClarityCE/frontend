@@ -1,16 +1,11 @@
 import { render, screen, within } from "@testing-library/vue";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { createTestApp, type TestApp } from "../../../../tests/real-app";
 
 import VulnList from "./VulnList.vue";
 import type { VulnerabilityMerged } from "./VulnStats";
 import VulnTable from "./VulnTable.vue";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 let app: TestApp;
 beforeEach(async () => {

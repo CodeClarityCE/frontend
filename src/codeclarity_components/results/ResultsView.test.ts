@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { RouterView } from "vue-router";
 
 import {
@@ -10,11 +10,6 @@ import {
   PROJECT_ID,
 } from "../../../tests/fixtures/results";
 import { createTestApp, org, type TestApp } from "../../../tests/real-app";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const project = {
   id: PROJECT_ID,

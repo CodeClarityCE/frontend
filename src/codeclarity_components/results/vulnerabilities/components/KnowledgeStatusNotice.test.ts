@@ -10,11 +10,6 @@ import { createTestApp, type TestApp } from "../../../../../tests/real-app";
 
 import KnowledgeStatusNotice from "./KnowledgeStatusNotice.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const healthy = {
   status: "healthy",
   watermark: "2026-11-09T06:00:00.000Z",

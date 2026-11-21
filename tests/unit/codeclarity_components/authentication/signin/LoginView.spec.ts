@@ -1,14 +1,9 @@
 import { render, screen } from "@testing-library/vue";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import LoginView from "@/codeclarity_components/authentication/signin/LoginView.vue";
 
 import { createTestApp } from "../../../../real-app";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 // Opens the login page at this address, as a signed-out visitor.
 async function openLogin(path = "/login"): Promise<void> {

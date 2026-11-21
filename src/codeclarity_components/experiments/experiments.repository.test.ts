@@ -1,14 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createTestApp } from "../../../tests/real-app";
 
 import { ExperimentRunStatus, ExperimentStatus } from "./experiment.entity";
 import { ExperimentsRepository } from "./experiments.repository";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const base = "/org/org-1/experiments/exp-1";
 const auth = { orgId: "org-1", experimentId: "exp-1", bearerToken: "token" };

@@ -6,11 +6,6 @@ import ChartExport from "./ChartExport.vue";
 import ColumnChart from "./ColumnChart.vue";
 import GridLineChart from "./GridLineChart.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const { saveBlob } = vi.hoisted(() => ({ saveBlob: vi.fn() }));
 vi.mock("@/utils/download", () => ({ saveBlob }));
 

@@ -1,15 +1,10 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/vue";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import PasswordResetRequestForm from "@/codeclarity_components/authentication/password_reset/PasswordResetRequestForm.vue";
 
 import { createTestApp, type TestApp } from "../../../../real-app";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 async function openRequestPage(): Promise<TestApp> {
   const app = createTestApp();

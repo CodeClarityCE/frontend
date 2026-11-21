@@ -1,16 +1,11 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen, within } from "@testing-library/vue";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createTestApp } from "../../../../tests/real-app";
 
 import type { License } from "./License";
 import LicenseComponent from "./LicenseComponent.vue";
-
-// Runs against the real stores and router, with no global mocks.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 function license(overrides: Partial<License> = {}): License {
   return {

@@ -9,11 +9,6 @@ import { createTestApp, type TestApp } from "../../../../tests/real-app";
 import type { License } from "./License";
 import LicensesComponent from "./LicensesComponent.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const license = (id: string, overrides: Partial<License> = {}): License =>
   ({
     id,

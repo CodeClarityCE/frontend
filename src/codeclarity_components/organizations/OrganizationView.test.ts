@@ -1,14 +1,9 @@
 import { render, screen } from "@testing-library/vue";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createTestApp, org } from "../../../tests/real-app";
 
 import OrganizationView from "./OrganizationView.vue";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 // Opens an /orgs URL and renders the view with the route's params, as the router does.
 async function open(path: string): Promise<void> {

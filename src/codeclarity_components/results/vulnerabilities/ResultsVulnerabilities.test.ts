@@ -11,11 +11,6 @@ import { createTestApp, type TestApp } from "../../../../tests/real-app";
 
 import ResultsVulnerabilities from "./ResultsVulnerabilities.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 // The show_blacklisted flag of the last request to this API path.
 function lastShowBlacklisted(app: TestApp, path: string): string | null {
   const request = app.http.requests

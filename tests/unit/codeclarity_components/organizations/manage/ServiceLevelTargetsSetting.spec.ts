@@ -1,15 +1,10 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/vue";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import ServiceLevelTargetsSetting from "@/codeclarity_components/organizations/manage/ServiceLevelTargetsSetting.vue";
 
 import { createTestApp, type TestApp, withToaster } from "../../../../real-app";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const SUGGESTED = { critical: 7, high: 30, medium: 90, low: null };
 const settingsPath = "/org/org-1/settings";

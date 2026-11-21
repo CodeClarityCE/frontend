@@ -1,16 +1,11 @@
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { analysisPath } from "../../../../tests/fixtures/results";
 import { createTestApp } from "../../../../tests/real-app";
 
 import PatchingContent from "./PatchingContent.vue";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const stats = {
   before_patch_number_of_issues: 4,

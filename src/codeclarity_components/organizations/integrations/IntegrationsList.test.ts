@@ -13,11 +13,6 @@ import {
 
 import IntegrationsList from "./IntegrationsList.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const vcsPath = `/org/${org.id}/integrations/vcs`;
 
 const github = {

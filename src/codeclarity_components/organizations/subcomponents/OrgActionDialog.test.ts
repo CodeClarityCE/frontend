@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/vue";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   createTestApp,
@@ -9,11 +9,6 @@ import {
 } from "../../../../tests/real-app";
 
 import OrgActionDialog from "./OrgActionDialog.vue";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const ok = { status_code: 200, status: "success" };
 

@@ -19,11 +19,6 @@ import BaseImportComponent, {
   stripGitSuffix,
 } from "./BaseImportComponent.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const reposPath = `/org/${org.id}/integrations/github/gh-1/repositories`;
 const projectsPath = `/org/${org.id}/projects`;
 

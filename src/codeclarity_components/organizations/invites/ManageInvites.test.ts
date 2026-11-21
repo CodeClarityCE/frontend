@@ -14,11 +14,6 @@ import {
 
 import ManageInvites from "./ManageInvites.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const invitesPath = `/org/${org.id}/invitations`;
 const ok = { status_code: 200, status: "success" };
 

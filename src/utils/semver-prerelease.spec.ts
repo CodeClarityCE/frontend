@@ -1,11 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { isPrerelease, shouldRecommendUpgrade } from "./semver";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 // Test the filtering logic that would be used in the component
 function shouldFilterNotification(notification: {

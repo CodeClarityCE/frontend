@@ -1,14 +1,9 @@
 import { IsString } from "class-validator";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createTestApp, type TestApp } from "../../../tests/real-app";
 
 import { Entity } from "./BaseEntity";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 class Named {
   @IsString()

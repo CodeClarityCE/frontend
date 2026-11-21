@@ -14,11 +14,6 @@ import {
 
 import ManageMembers from "./ManageMembers.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const membersPath = `/org/${org.id}/members`;
 
 function member(id: string, first: string, role: MemberRole): object {

@@ -1,13 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createTestApp } from "../../../../tests/real-app";
 
 import { IntegrationsRepository } from "./IntegrationsRepository";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const popularPath = "/org/org-1/integrations/github/gh-1/repositories/popular";
 

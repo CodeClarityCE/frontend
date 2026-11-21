@@ -57,7 +57,7 @@ async function openPopular(): Promise<TestApp> {
 
 // The query of the last request for the popular list.
 const lastQuery = (app: TestApp): URLSearchParams =>
-  app.http.requests.findLast((r) => r.path === popularPath)!.query;
+  app.http.requests.filter((r) => r.path === popularPath).at(-1)!.query;
 
 describe("PopularGithubImportComponent", () => {
   // jsdom lacks the pointer capture calls the select menu makes.

@@ -126,7 +126,8 @@ describe("CreateProject", () => {
     expect(await screen.findByText("GitHub")).toBeInTheDocument();
 
     app.http.on("GET", vcsPath("org-2"), page([vcs("GITLAB")]));
-    useUserStore().setDefaultOrg({ ...org, id: "org-2" });
+    const userStore = useUserStore();
+    userStore.setDefaultOrg({ ...userStore.defaultOrg!, id: "org-2" });
 
     expect(await screen.findByText("GitLab")).toBeInTheDocument();
     expect(screen.queryByText("GitHub")).toBeNull();

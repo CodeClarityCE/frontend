@@ -13,6 +13,7 @@ import { DataResponse } from "../../utils/api/responses/DataResponse";
 import { NoDataResponse } from "../../utils/api/responses/NoDataResponse";
 import { PaginatedResponse } from "../../utils/api/responses/PaginatedResponse";
 
+import type { MyWorkEntry } from "./my_work.entity";
 import {
   type BulkSyncFromExternalResult,
   type BulkSyncResult,
@@ -81,6 +82,12 @@ export interface GetVulnerabilityDetailsRequestOptions extends AuthRepoMethodGet
 
 export interface GetDashboardStatsRequestOptions extends AuthRepoMethodGetRequestOptions {
   orgId: string;
+}
+
+export interface GetMyWorkRequestOptions extends AuthRepoMethodGetRequestOptions {
+  orgId: string;
+  /** How many entries; the API defaults to 20 */
+  limit?: number;
 }
 
 export interface CreateTicketRequestOptions extends AuthRepoMethodPostRequestOptions<CreateTicketRequest> {
@@ -441,6 +448,21 @@ export class TicketsRepository extends BaseRepository {
       TicketDashboardStats,
     );
     return data;
+  }
+
+  /**
+   * The open tickets assigned to the signed-in user, most pressing first
+   */
+  async getMyWork(options: GetMyWorkRequestOptions): Promise<MyWorkEntry[]> {
+    const response = await this.getRequest<{ data: MyWorkEntry[] }>({
+      bearerToken: options.bearerToken,
+      queryParams: options.limit ? { limit: options.limit } : {},
+      url: this.buildUrl(`/org/${options.orgId}/tickets/my-work`),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+    return response.data;
   }
 
   /**

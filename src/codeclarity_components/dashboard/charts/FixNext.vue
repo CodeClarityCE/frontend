@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { SeverityBadge } from "@/base_components/page";
 import { TicketStatusLabels } from "@/codeclarity_components/tickets/tickets.entity";
 import type { FixNextEntry } from "@/codeclarity_components/vulnerabilities/fix_next.entity";
 import { OrganizationVulnerabilitiesRepository } from "@/codeclarity_components/vulnerabilities/organization_vulnerabilities.repository";
 import { RemediationKind } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
-import { levelOfClass } from "@/codeclarity_components/vulnerabilities/severity-class";
-import { Badge } from "@/shadcn/ui/badge";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 
 import CardState from "../layout/CardState.vue";
+
+import FixNextReasons from "./FixNextReasons.vue";
 
 // The organization's remediations, most urgent first, with the reasons for their rank.
 const authStore = useAuthStore();
@@ -96,33 +95,7 @@ function ticketState(entry: FixNextEntry): {
             >
           </h3>
           <div class="flex flex-wrap items-center gap-1.5">
-            <span data-testid="fix-next-reason">
-              <SeverityBadge :level="levelOfClass(entry.rank.severity_class)" />
-            </span>
-            <Badge
-              v-if="entry.rank.known_exploited"
-              data-testid="fix-next-reason"
-              variant="destructive"
-              title="Listed in the CISA KEV catalog"
-              >Exploited</Badge
-            >
-            <Badge
-              v-if="entry.rank.high_epss"
-              data-testid="fix-next-reason"
-              variant="destructive"
-              title="EPSS score at or above the high threshold"
-              >High EPSS</Badge
-            >
-            <Badge
-              data-testid="fix-next-reason"
-              variant="outline"
-              :title="
-                entry.rank.prod
-                  ? 'Installed for production'
-                  : 'Installed by development dependencies only'
-              "
-              >{{ entry.rank.prod ? "Prod" : "Dev only" }}</Badge
-            >
+            <FixNextReasons :rank="entry.rank" />
             <span class="text-xs text-muted-foreground">
               {{
                 plural(

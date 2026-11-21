@@ -2,6 +2,7 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { onAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   remediationDetail,
@@ -576,5 +577,19 @@ test.describe("Tickets read the same everywhere", () => {
       const box = await badge.boundingBox();
       expect(box?.height ?? 0).toBeLessThan(26);
     }
+  });
+});
+
+test.describe("On a phone", () => {
+  onAPhone();
+
+  test("the tickets list does not scroll sideways", async ({ page }) => {
+    const tickets = new TicketsPage(page);
+    await tickets.signIn();
+    await tickets.goto();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
   });
 });

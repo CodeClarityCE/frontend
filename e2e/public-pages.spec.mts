@@ -4,6 +4,7 @@ import user from "./fixtures/user.json" with { type: "json" };
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { seedAuthStore } from "./helpers/auth-store.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { onAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { org } from "./pages/shell.page.mjs";
 
@@ -194,5 +195,17 @@ test.describe("Help page", () => {
   test("matches the approved screenshots", async ({ page }) => {
     await expectPageSweep(page);
     await expectScreenshots(page, "help");
+  });
+});
+
+test.describe("On a phone", () => {
+  onAPhone();
+
+  test("the not found page does not scroll sideways", async ({ page }) => {
+    await page.goto("/this/does/not/exist");
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
   });
 });

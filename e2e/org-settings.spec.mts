@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { onAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   membership,
@@ -501,5 +502,29 @@ test.describe("Organisation settings in the sidebar", () => {
       "Policies",
       "Audit logs",
     ]);
+  });
+});
+
+test.describe("On a phone", () => {
+  onAPhone();
+
+  test("the organisations list does not scroll sideways", async ({ page }) => {
+    const orgs = new OrgSettingsPage(page);
+    await orgs.signIn();
+    await orgs.gotoList();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
+  });
+
+  test("the organisation form does not scroll sideways", async ({ page }) => {
+    const orgs = new OrgSettingsPage(page);
+    await orgs.signIn();
+    await orgs.gotoCreate();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
   });
 });

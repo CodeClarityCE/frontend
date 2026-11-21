@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectPageSweep, PHONE_WIDTH } from "./helpers/page-sweep.mjs";
+import { onAPhone } from "./helpers/phone.mjs";
 import { BACKGROUND, expectTheme, storeTheme } from "./helpers/theme.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 
@@ -203,6 +204,25 @@ test.describe("Page sweep harness", () => {
   test("passes a page that fits a phone", async ({ page }) => {
     await page.setViewportSize({ width: PHONE_WIDTH, height: 800 });
     await page.setContent(`<div style="max-width:600px">Narrow</div>`);
+    await expectPageSweep(page);
+  });
+});
+
+test.describe("Page sweep harness on a Pixel 5", () => {
+  onAPhone();
+
+  // A mobile browser zooms out to fit wide content instead of scrolling.
+  test("fails when the page is wider than the phone", async ({ page }) => {
+    await page.setContent(
+      `<meta name="viewport" content="width=device-width, initial-scale=1"><div style="width:900px">Wide</div>`,
+    );
+    await expect(expectPageSweep(page)).rejects.toThrow(/scrolls sideways/);
+  });
+
+  test("passes a page that fits the phone", async ({ page }) => {
+    await page.setContent(
+      `<meta name="viewport" content="width=device-width, initial-scale=1"><div style="max-width:900px">Narrow</div>`,
+    );
     await expectPageSweep(page);
   });
 });

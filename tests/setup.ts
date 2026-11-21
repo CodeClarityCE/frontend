@@ -25,10 +25,16 @@ Object.defineProperty(globalThis, "sessionStorage", {
 
 import "reflect-metadata";
 
-import { config } from "@vue/test-utils";
-import { beforeEach, vi } from "vitest";
+import { config, enableAutoUnmount } from "@vue/test-utils";
+import { afterEach, beforeEach, vi } from "vitest";
 
 import { getPiniaMock, resetPiniaMock } from "./test-utils/setup.js";
+
+declare global {
+  // Set by a test file to run against the real stores, router and repositories (see tests/real-app.ts).
+  var optOutOfGlobalMocks: boolean | undefined;
+}
+globalThis.optOutOfGlobalMocks = false;
 
 // The /vitest entrypoint augments Vitest's Assertion interface. The generic
 // entrypoint augments Jest's, which Vitest 5 no longer picks up.
@@ -174,6 +180,7 @@ if (typeof Element !== "undefined") {
 // Mock router
 vi.mock("vue-router", async (importOriginal) => {
   const actual = await importOriginal();
+  if (globalThis.optOutOfGlobalMocks) return actual;
   return Object.assign({}, actual, {
     useRouter: () => ({
       push: vi.fn(),
@@ -209,12 +216,18 @@ vi.mock("vue-router", async (importOriginal) => {
 // Mock Pinia with singleton instance
 const mockPinia = getPiniaMock();
 
-vi.mock("pinia", () => ({
-  createPinia: vi.fn(() => mockPinia),
-  defineStore: vi.fn(),
-  setActivePinia: vi.fn(),
-  storeToRefs: vi.fn(<T>(store: T): T => store),
-}));
+vi.mock("pinia", async (importOriginal) =>
+  globalThis.optOutOfGlobalMocks ? importOriginal() : piniaMockModule(),
+);
+
+function piniaMockModule(): Record<string, unknown> {
+  return {
+    createPinia: vi.fn(() => mockPinia),
+    defineStore: vi.fn(),
+    setActivePinia: vi.fn(),
+    storeToRefs: vi.fn(<T>(store: T): T => store),
+  };
+}
 
 // Mock VueCookies plugin with proper install function
 const mockVueCookies = {
@@ -226,29 +239,69 @@ const mockVueCookies = {
   keys: vi.fn(),
 };
 
-vi.mock("vue-cookies", () => ({
-  default: mockVueCookies,
-}));
+vi.mock("vue-cookies", async (importOriginal) =>
+  globalThis.optOutOfGlobalMocks
+    ? importOriginal()
+    : {
+        default: mockVueCookies,
+      },
+);
 
 // Configure global plugins - clear first to prevent duplicates
 config.global.plugins = [];
 config.global.plugins.push(mockPinia);
 
-// Reset pinia between tests
+// Reset pinia between tests, or give opted-out files a working storage and real plugins
 beforeEach(() => {
+  if (globalThis.optOutOfGlobalMocks) {
+    useRealAppGlobals();
+    return;
+  }
   resetPiniaMock();
 });
 
+// Opted-out files share the app router, whose guards use the first mounted app's Pinia.
+enableAutoUnmount((unmountAll) => {
+  afterEach(() => {
+    if (globalThis.optOutOfGlobalMocks) unmountAll();
+  });
+});
+
+// A fresh in-memory localStorage per test, and no mock Pinia or RouterLink stub.
+function useRealAppGlobals(): void {
+  const items = new Map<string, string>();
+  const storage: Storage = {
+    getItem: (key) => items.get(key) ?? null,
+    setItem: (key, value) => void items.set(key, String(value)),
+    removeItem: (key) => void items.delete(key),
+    clear: () => items.clear(),
+    key: (index) => [...items.keys()][index] ?? null,
+    get length() {
+      return items.size;
+    },
+  };
+  Object.defineProperty(globalThis, "localStorage", {
+    value: storage,
+    writable: true,
+  });
+  config.global.plugins = [];
+  delete config.global.stubs.RouterLink;
+}
+
 // Mock all repository classes to prevent "is not a function" errors
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class MockBaseRepository {
-    buildUrl = vi.fn();
-    getRequest = vi.fn();
-    postRequest = vi.fn();
-    putRequest = vi.fn();
-    deleteRequest = vi.fn();
-  },
-}));
+vi.mock("@/utils/api/BaseRepository", async (importOriginal) =>
+  globalThis.optOutOfGlobalMocks
+    ? importOriginal()
+    : {
+        BaseRepository: class MockBaseRepository {
+          buildUrl = vi.fn();
+          getRequest = vi.fn();
+          postRequest = vi.fn();
+          putRequest = vi.fn();
+          deleteRequest = vi.fn();
+        },
+      },
+);
 
 // Create mock repository class factory
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -265,185 +318,255 @@ function createMockRepositoryClass(methods: string[]) {
 }
 
 // Mock all main repositories
-vi.mock("@/codeclarity_components/results/results.repository", () => ({
-  ResultsRepository: createMockRepositoryClass([
-    "getSbomStat",
-    "getSbomWorkspaces",
-    "getSbom",
-    "getDependency",
-    "getVulnerabilities",
-    "getMaliciousPackageAdvisories",
-    "getVulnerability",
-    "getFinding",
-    "getLicenses",
-    "getPatches",
-    "getPatchedManifest",
-    "getCodeQLResults",
-    "getResults",
-  ]),
-}));
+vi.mock(
+  "@/codeclarity_components/results/results.repository",
+  async (importOriginal) =>
+    globalThis.optOutOfGlobalMocks
+      ? importOriginal()
+      : {
+          ResultsRepository: createMockRepositoryClass([
+            "getSbomStat",
+            "getSbomWorkspaces",
+            "getSbom",
+            "getDependency",
+            "getVulnerabilities",
+            "getMaliciousPackageAdvisories",
+            "getVulnerability",
+            "getFinding",
+            "getLicenses",
+            "getPatches",
+            "getPatchedManifest",
+            "getCodeQLResults",
+            "getResults",
+          ]),
+        },
+);
 
-vi.mock("@/codeclarity_components/analyses/analysis.repository", () => ({
-  AnalysisRepository: createMockRepositoryClass([
-    "createAnalysis",
-    "getAnalyses",
-    "getAnalysisById",
-    "getProjectById",
-    "deleteAnalysis",
-  ]),
-}));
+vi.mock(
+  "@/codeclarity_components/analyses/analysis.repository",
+  async (importOriginal) =>
+    globalThis.optOutOfGlobalMocks
+      ? importOriginal()
+      : {
+          AnalysisRepository: createMockRepositoryClass([
+            "createAnalysis",
+            "getAnalyses",
+            "getAnalysisById",
+            "getProjectById",
+            "deleteAnalysis",
+          ]),
+        },
+);
 
-vi.mock("@/codeclarity_components/projects/project.repository", () => ({
-  ProjectRepository: createMockRepositoryClass([
-    "createProject",
-    "getProjects",
-    "getProjectById",
-    "updateProject",
-    "deleteProject",
-  ]),
-}));
+vi.mock(
+  "@/codeclarity_components/projects/project.repository",
+  async (importOriginal) =>
+    globalThis.optOutOfGlobalMocks
+      ? importOriginal()
+      : {
+          ProjectRepository: createMockRepositoryClass([
+            "createProject",
+            "getProjects",
+            "getProjectById",
+            "updateProject",
+            "deleteProject",
+          ]),
+        },
+);
 
 vi.mock(
   "@/codeclarity_components/organizations/organization.repository",
-  () => ({
-    OrgRepository: createMockRepositoryClass([
-      "createOrganization",
-      "getOrganizations",
-      "getOrganizationById",
-      "updateOrganization",
-      "deleteOrganization",
-    ]),
-  }),
+  async (importOriginal) =>
+    globalThis.optOutOfGlobalMocks
+      ? importOriginal()
+      : {
+          OrgRepository: createMockRepositoryClass([
+            "createOrganization",
+            "getOrganizations",
+            "getOrganizationById",
+            "updateOrganization",
+            "deleteOrganization",
+          ]),
+        },
 );
 
-vi.mock("@/codeclarity_components/authentication/auth.repository", () => ({
-  AuthRepository: createMockRepositoryClass([
-    "login",
-    "logout",
-    "register",
-    "resetPassword",
-    "confirmEmail",
-  ]),
-}));
+vi.mock(
+  "@/codeclarity_components/authentication/auth.repository",
+  async (importOriginal) =>
+    globalThis.optOutOfGlobalMocks
+      ? importOriginal()
+      : {
+          AuthRepository: createMockRepositoryClass([
+            "login",
+            "logout",
+            "register",
+            "resetPassword",
+            "confirmEmail",
+          ]),
+        },
+);
 
-vi.mock("@/codeclarity_components/authentication/user.repository", () => ({
-  UserRepository: createMockRepositoryClass([
-    "getCurrentUser",
-    "updateUser",
-    "deleteUser",
-    "confirmRegistration",
-  ]),
-}));
+vi.mock(
+  "@/codeclarity_components/authentication/user.repository",
+  async (importOriginal) =>
+    globalThis.optOutOfGlobalMocks
+      ? importOriginal()
+      : {
+          UserRepository: createMockRepositoryClass([
+            "getCurrentUser",
+            "updateUser",
+            "deleteUser",
+            "confirmRegistration",
+          ]),
+        },
+);
 
-vi.mock("@/codeclarity_components/dashboard/dashboard.repository", () => ({
-  DashboardRepository: createMockRepositoryClass([
-    "getDashboardStats",
-    "getChartData",
-    "getVulnerabilityImpact",
-  ]),
-}));
+vi.mock(
+  "@/codeclarity_components/dashboard/dashboard.repository",
+  async (importOriginal) =>
+    globalThis.optOutOfGlobalMocks
+      ? importOriginal()
+      : {
+          DashboardRepository: createMockRepositoryClass([
+            "getDashboardStats",
+            "getChartData",
+            "getVulnerabilityImpact",
+          ]),
+        },
+);
 
-vi.mock("@/codeclarity_components/results/licenses/LicenseRepository", () => ({
-  LicenseRepository: createMockRepositoryClass([
-    "getLicenses",
-    "getLicenseById",
-  ]),
-}));
+vi.mock(
+  "@/codeclarity_components/results/licenses/LicenseRepository",
+  async (importOriginal) =>
+    globalThis.optOutOfGlobalMocks
+      ? importOriginal()
+      : {
+          LicenseRepository: createMockRepositoryClass([
+            "getLicenses",
+            "getLicenseById",
+          ]),
+        },
+);
 
 // Mock common stores with better defaults
-vi.mock("@/stores/user", () => ({
-  useUserStore: vi.fn(() => ({
-    // State
-    user: { id: "test-user-id", email: "test@example.com", name: "Test User" },
-    organizations: [{ id: "test-org-id", name: "Test Org" }],
-    defaultOrg: { id: "test-org-id", name: "Test Org" },
+vi.mock("@/stores/user", async (importOriginal) =>
+  globalThis.optOutOfGlobalMocks
+    ? importOriginal()
+    : {
+        useUserStore: vi.fn(() => ({
+          // State
+          user: {
+            id: "test-user-id",
+            email: "test@example.com",
+            name: "Test User",
+          },
+          organizations: [{ id: "test-org-id", name: "Test Org" }],
+          defaultOrg: { id: "test-org-id", name: "Test Org" },
 
-    // Getters
-    getUser: {
-      id: "test-user-id",
-      email: "test@example.com",
-      name: "Test User",
-    },
-    getDefaultOrg: { id: "test-org-id", name: "Test Org" },
-    getOrganizations: [{ id: "test-org-id", name: "Test Org" }],
+          // Getters
+          getUser: {
+            id: "test-user-id",
+            email: "test@example.com",
+            name: "Test User",
+          },
+          getDefaultOrg: { id: "test-org-id", name: "Test Org" },
+          getOrganizations: [{ id: "test-org-id", name: "Test Org" }],
 
-    // Actions
-    setUser: vi.fn(),
-    setDefaultOrg: vi.fn(),
-    setOrganizations: vi.fn(),
-    $reset: vi.fn(),
-    $patch: vi.fn(),
-  })),
-}));
+          // Actions
+          setUser: vi.fn(),
+          setDefaultOrg: vi.fn(),
+          setOrganizations: vi.fn(),
+          $reset: vi.fn(),
+          $patch: vi.fn(),
+        })),
+      },
+);
 
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: vi.fn(() => ({
-    // State
-    initialized: true,
-    token: "test-token",
-    tokenExpiry: new Date(Date.now() + 3600000),
-    refreshToken: "test-refresh-token",
-    refreshTokenExpiry: new Date(Date.now() + 7200000),
-    authenticated: true,
-    socialAuthState: "test-social-state",
+vi.mock("@/stores/auth", async (importOriginal) =>
+  globalThis.optOutOfGlobalMocks
+    ? importOriginal()
+    : {
+        useAuthStore: vi.fn(() => ({
+          // State
+          initialized: true,
+          token: "test-token",
+          tokenExpiry: new Date(Date.now() + 3600000),
+          refreshToken: "test-refresh-token",
+          refreshTokenExpiry: new Date(Date.now() + 7200000),
+          authenticated: true,
+          socialAuthState: "test-social-state",
 
-    // Getters
-    getToken: "test-token",
-    getRefreshToken: "test-refresh-token",
-    getTokenExpiry: new Date(Date.now() + 3600000),
-    getRefreshTokenExpiry: new Date(Date.now() + 7200000),
-    getAuthenticated: true,
-    getInitialized: true,
-    getSocialAuthState: "test-social-state",
+          // Getters
+          getToken: "test-token",
+          getRefreshToken: "test-refresh-token",
+          getTokenExpiry: new Date(Date.now() + 3600000),
+          getRefreshTokenExpiry: new Date(Date.now() + 7200000),
+          getAuthenticated: true,
+          getInitialized: true,
+          getSocialAuthState: "test-social-state",
 
-    // Actions
-    setToken: vi.fn(),
-    setRefreshToken: vi.fn(),
-    setTokenExpiry: vi.fn(),
-    setRefreshTokenExpiry: vi.fn(),
-    setAuthenticated: vi.fn(),
-    setInitialized: vi.fn(),
-    setSocialAuthState: vi.fn(),
-    $reset: vi.fn(),
-    $patch: vi.fn(),
-  })),
-  loadAuthStoreFromLocalStorage: vi.fn(),
-}));
+          // Actions
+          setToken: vi.fn(),
+          setRefreshToken: vi.fn(),
+          setTokenExpiry: vi.fn(),
+          setRefreshTokenExpiry: vi.fn(),
+          setAuthenticated: vi.fn(),
+          setInitialized: vi.fn(),
+          setSocialAuthState: vi.fn(),
+          $reset: vi.fn(),
+          $patch: vi.fn(),
+        })),
+        loadAuthStoreFromLocalStorage: vi.fn(),
+      },
+);
 
-vi.mock("@/stores/state", () => ({
-  useStateStore: vi.fn(() => ({
-    $reset: vi.fn(),
-    page: "test-page",
-    loading: false,
-    error: null,
-  })),
-}));
+vi.mock("@/stores/state", async (importOriginal) =>
+  globalThis.optOutOfGlobalMocks
+    ? importOriginal()
+    : {
+        useStateStore: vi.fn(() => ({
+          $reset: vi.fn(),
+          page: "test-page",
+          loading: false,
+          error: null,
+        })),
+      },
+);
 
-vi.mock("@/stores/StateStore", () => ({
-  useProjectsMainStore: vi.fn(() => ({
-    projectsResponse: {
-      entries_per_page: 10,
-      total_entries: 100,
-      data: [],
-    },
-    $reset: vi.fn(),
-    $patch: vi.fn(),
-  })),
-}));
+vi.mock("@/stores/StateStore", async (importOriginal) =>
+  globalThis.optOutOfGlobalMocks
+    ? importOriginal()
+    : {
+        useProjectsMainStore: vi.fn(() => ({
+          projectsResponse: {
+            entries_per_page: 10,
+            total_entries: 100,
+            data: [],
+          },
+          $reset: vi.fn(),
+          $patch: vi.fn(),
+        })),
+      },
+);
 
 // Mock router instance
-vi.mock("@/router", () => ({
-  default: {
-    push: vi.fn(),
-    replace: vi.fn(),
-    back: vi.fn(),
-    go: vi.fn(),
-    currentRoute: { value: { params: {}, query: {} } },
-  },
-}));
+vi.mock("@/router", async (importOriginal) =>
+  globalThis.optOutOfGlobalMocks
+    ? importOriginal()
+    : {
+        default: {
+          push: vi.fn(),
+          replace: vi.fn(),
+          back: vi.fn(),
+          go: vi.fn(),
+          currentRoute: { value: { params: {}, query: {} } },
+        },
+      },
+);
 
 // Mock @vueuse/core
-vi.mock("@vueuse/core", async () => {
+vi.mock("@vueuse/core", async (importOriginal) => {
+  if (globalThis.optOutOfGlobalMocks) return importOriginal();
   const { reactive, toRef } = await import("vue");
   return {
     useCurrentElement: () => ({ value: null }),
@@ -476,234 +599,238 @@ vi.mock("@vueuse/core", async () => {
 });
 
 // Mock @lucide/vue icons
-vi.mock("@lucide/vue", () => ({
-  CalendarDays: {
-    name: "CalendarDays",
-    template: '<svg data-testid="calendar-days-icon"><path/></svg>',
-  },
-  ChevronRight: {
-    name: "ChevronRight",
-    template: '<svg data-testid="chevron-right-icon"><path/></svg>',
-  },
-  CircleCheck: {
-    name: "CircleCheck",
-    template: '<svg data-testid="circle-check-icon"><path/></svg>',
-  },
-  Copy: {
-    name: "Copy",
-    template: '<svg data-testid="copy-icon"><path/></svg>',
-  },
-  Maximize: {
-    name: "Maximize",
-    template: '<svg data-testid="maximize-icon"><path/></svg>',
-  },
-  Minus: {
-    name: "Minus",
-    template: '<svg data-testid="minus-icon"><path/></svg>',
-  },
-  Search: {
-    name: "Search",
-    template: '<svg data-testid="search-icon"><path/></svg>',
-  },
-  User: {
-    name: "User",
-    template: '<svg data-testid="user-icon"><path/></svg>',
-  },
-  Settings: {
-    name: "Settings",
-    template: '<svg data-testid="settings-icon"><path/></svg>',
-  },
-  ChevronDown: {
-    name: "ChevronDown",
-    template: '<svg data-testid="chevron-down-icon"><path/></svg>',
-  },
-  Plus: {
-    name: "Plus",
-    template: '<svg data-testid="plus-icon"><path/></svg>',
-  },
-  X: { name: "X", template: '<svg data-testid="x-icon"><path/></svg>' },
-  Menu: {
-    name: "Menu",
-    template: '<svg data-testid="menu-icon"><path/></svg>',
-  },
-  Home: {
-    name: "Home",
-    template: '<svg data-testid="home-icon"><path/></svg>',
-  },
-  LogOut: {
-    name: "LogOut",
-    template: '<svg data-testid="logout-icon"><path/></svg>',
-  },
-  Bell: {
-    name: "Bell",
-    template: '<svg data-testid="bell-icon"><path/></svg>',
-  },
-  Check: {
-    name: "Check",
-    template: '<svg data-testid="check-icon"><path/></svg>',
-  },
-  AlertTriangle: {
-    name: "AlertTriangle",
-    template: '<svg data-testid="alert-triangle-icon"><path/></svg>',
-  },
-  Info: {
-    name: "Info",
-    template: '<svg data-testid="info-icon"><path/></svg>',
-  },
-  ExternalLink: {
-    name: "ExternalLink",
-    template: '<svg data-testid="external-link-icon"><path/></svg>',
-  },
-  CircleAlert: {
-    name: "CircleAlert",
-    template: '<svg data-testid="circle-alert-icon"><path/></svg>',
-  },
-  LoaderCircle: {
-    name: "LoaderCircle",
-    template: '<svg data-testid="loader-circle-icon"><path/></svg>',
-  },
-  ArrowRight: {
-    name: "ArrowRight",
-    template: '<svg data-testid="arrow-right-icon"><path/></svg>',
-  },
-  ArrowLeft: {
-    name: "ArrowLeft",
-    template: '<svg data-testid="arrow-left-icon"><path/></svg>',
-  },
-  ArrowUp: {
-    name: "ArrowUp",
-    template: '<svg data-testid="arrow-up-icon"><path/></svg>',
-  },
-  ArrowDown: {
-    name: "ArrowDown",
-    template: '<svg data-testid="arrow-down-icon"><path/></svg>',
-  },
-  ArrowUpDown: {
-    name: "ArrowUpDown",
-    template: '<svg data-testid="arrow-up-down-icon"><path/></svg>',
-  },
-  FlaskConical: {
-    name: "FlaskConical",
-    template: '<svg data-testid="flask-conical-icon"><path/></svg>',
-  },
-  FolderInput: {
-    name: "FolderInput",
-    template: '<svg data-testid="folder-input-icon"><path/></svg>',
-  },
-  ChevronLeftIcon: {
-    name: "ChevronLeftIcon",
-    template: '<svg data-testid="chevron-left-icon-icon"><path/></svg>',
-  },
-  ChevronRightIcon: {
-    name: "ChevronRightIcon",
-    template: '<svg data-testid="chevron-right-icon-icon"><path/></svg>',
-  },
-  MoreHorizontal: {
-    name: "MoreHorizontal",
-    template: '<svg data-testid="more-horizontal-icon"><path/></svg>',
-  },
-  Star: {
-    name: "Star",
-    template: '<svg data-testid="star-icon"><path/></svg>',
-  },
-  Upload: {
-    name: "Upload",
-    template: '<svg data-testid="upload-icon"><path/></svg>',
-  },
-  RefreshCw: {
-    name: "RefreshCw",
-    template: '<svg data-testid="refresh-cw-icon"><path/></svg>',
-  },
-  FolderArchive: {
-    name: "FolderArchive",
-    template: '<svg data-testid="folder-archive-icon"><path/></svg>',
-  },
-  Trash2: {
-    name: "Trash2",
-    template: '<svg data-testid="trash-2-icon"><path/></svg>',
-  },
-  Pencil: {
-    name: "Pencil",
-    template: '<svg data-testid="pencil-icon"><path/></svg>',
-  },
-  ScrollText: {
-    name: "ScrollText",
-    template: '<svg data-testid="scroll-text-icon"><path/></svg>',
-  },
-  MailX: {
-    name: "MailX",
-    template: '<svg data-testid="mail-x-icon"><path/></svg>',
-  },
-  UserMinus: {
-    name: "UserMinus",
-    template: '<svg data-testid="user-minus-icon"><path/></svg>',
-  },
-  UserPlus: {
-    name: "UserPlus",
-    template: '<svg data-testid="user-plus-icon"><path/></svg>',
-  },
-  Download: {
-    name: "Download",
-    template: '<svg data-testid="download-icon"><path/></svg>',
-  },
-  Lock: {
-    name: "Lock",
-    template: '<svg data-testid="lock-icon"><path/></svg>',
-  },
-  TriangleAlert: {
-    name: "TriangleAlert",
-    template: '<svg data-testid="triangle-alert-icon"><path/></svg>',
-  },
-  ListFilter: {
-    name: "ListFilter",
-    template: '<svg data-testid="list-filter-icon"><path/></svg>',
-  },
-  History: {
-    name: "History",
-    template: '<svg data-testid="history-icon"><path/></svg>',
-  },
-  BookOpen: {
-    name: "BookOpen",
-    template: '<svg data-testid="book-open-icon"><path/></svg>',
-  },
-  Mail: {
-    name: "Mail",
-    template: '<svg data-testid="mail-icon"><path/></svg>',
-  },
-  Ticket: {
-    name: "Ticket",
-    template: '<svg data-testid="ticket-icon"><path/></svg>',
-  },
-  Eye: {
-    name: "Eye",
-    template: '<svg data-testid="eye-icon"><path/></svg>',
-  },
-  FileArchive: {
-    name: "FileArchive",
-    template: '<svg data-testid="file-archive-icon"><path/></svg>',
-  },
-  Globe: {
-    name: "Globe",
-    template: '<svg data-testid="globe-icon"><path/></svg>',
-  },
-  Shield: {
-    name: "Shield",
-    template: '<svg data-testid="shield-icon"><path/></svg>',
-  },
-  ShieldCheck: {
-    name: "ShieldCheck",
-    template: '<svg data-testid="shield-check-icon"><path/></svg>',
-  },
-  ShieldPlus: {
-    name: "ShieldPlus",
-    template: '<svg data-testid="shield-plus-icon"><path/></svg>',
-  },
-  FolderPlus: {
-    name: "FolderPlus",
-    template: '<svg data-testid="folder-plus-icon"><path/></svg>',
-  },
-  Play: {
-    name: "Play",
-    template: '<svg data-testid="play-icon"><path/></svg>',
-  },
-}));
+vi.mock("@lucide/vue", async (importOriginal) =>
+  globalThis.optOutOfGlobalMocks
+    ? importOriginal()
+    : {
+        CalendarDays: {
+          name: "CalendarDays",
+          template: '<svg data-testid="calendar-days-icon"><path/></svg>',
+        },
+        ChevronRight: {
+          name: "ChevronRight",
+          template: '<svg data-testid="chevron-right-icon"><path/></svg>',
+        },
+        CircleCheck: {
+          name: "CircleCheck",
+          template: '<svg data-testid="circle-check-icon"><path/></svg>',
+        },
+        Copy: {
+          name: "Copy",
+          template: '<svg data-testid="copy-icon"><path/></svg>',
+        },
+        Maximize: {
+          name: "Maximize",
+          template: '<svg data-testid="maximize-icon"><path/></svg>',
+        },
+        Minus: {
+          name: "Minus",
+          template: '<svg data-testid="minus-icon"><path/></svg>',
+        },
+        Search: {
+          name: "Search",
+          template: '<svg data-testid="search-icon"><path/></svg>',
+        },
+        User: {
+          name: "User",
+          template: '<svg data-testid="user-icon"><path/></svg>',
+        },
+        Settings: {
+          name: "Settings",
+          template: '<svg data-testid="settings-icon"><path/></svg>',
+        },
+        ChevronDown: {
+          name: "ChevronDown",
+          template: '<svg data-testid="chevron-down-icon"><path/></svg>',
+        },
+        Plus: {
+          name: "Plus",
+          template: '<svg data-testid="plus-icon"><path/></svg>',
+        },
+        X: { name: "X", template: '<svg data-testid="x-icon"><path/></svg>' },
+        Menu: {
+          name: "Menu",
+          template: '<svg data-testid="menu-icon"><path/></svg>',
+        },
+        Home: {
+          name: "Home",
+          template: '<svg data-testid="home-icon"><path/></svg>',
+        },
+        LogOut: {
+          name: "LogOut",
+          template: '<svg data-testid="logout-icon"><path/></svg>',
+        },
+        Bell: {
+          name: "Bell",
+          template: '<svg data-testid="bell-icon"><path/></svg>',
+        },
+        Check: {
+          name: "Check",
+          template: '<svg data-testid="check-icon"><path/></svg>',
+        },
+        AlertTriangle: {
+          name: "AlertTriangle",
+          template: '<svg data-testid="alert-triangle-icon"><path/></svg>',
+        },
+        Info: {
+          name: "Info",
+          template: '<svg data-testid="info-icon"><path/></svg>',
+        },
+        ExternalLink: {
+          name: "ExternalLink",
+          template: '<svg data-testid="external-link-icon"><path/></svg>',
+        },
+        CircleAlert: {
+          name: "CircleAlert",
+          template: '<svg data-testid="circle-alert-icon"><path/></svg>',
+        },
+        LoaderCircle: {
+          name: "LoaderCircle",
+          template: '<svg data-testid="loader-circle-icon"><path/></svg>',
+        },
+        ArrowRight: {
+          name: "ArrowRight",
+          template: '<svg data-testid="arrow-right-icon"><path/></svg>',
+        },
+        ArrowLeft: {
+          name: "ArrowLeft",
+          template: '<svg data-testid="arrow-left-icon"><path/></svg>',
+        },
+        ArrowUp: {
+          name: "ArrowUp",
+          template: '<svg data-testid="arrow-up-icon"><path/></svg>',
+        },
+        ArrowDown: {
+          name: "ArrowDown",
+          template: '<svg data-testid="arrow-down-icon"><path/></svg>',
+        },
+        ArrowUpDown: {
+          name: "ArrowUpDown",
+          template: '<svg data-testid="arrow-up-down-icon"><path/></svg>',
+        },
+        FlaskConical: {
+          name: "FlaskConical",
+          template: '<svg data-testid="flask-conical-icon"><path/></svg>',
+        },
+        FolderInput: {
+          name: "FolderInput",
+          template: '<svg data-testid="folder-input-icon"><path/></svg>',
+        },
+        ChevronLeftIcon: {
+          name: "ChevronLeftIcon",
+          template: '<svg data-testid="chevron-left-icon-icon"><path/></svg>',
+        },
+        ChevronRightIcon: {
+          name: "ChevronRightIcon",
+          template: '<svg data-testid="chevron-right-icon-icon"><path/></svg>',
+        },
+        MoreHorizontal: {
+          name: "MoreHorizontal",
+          template: '<svg data-testid="more-horizontal-icon"><path/></svg>',
+        },
+        Star: {
+          name: "Star",
+          template: '<svg data-testid="star-icon"><path/></svg>',
+        },
+        Upload: {
+          name: "Upload",
+          template: '<svg data-testid="upload-icon"><path/></svg>',
+        },
+        RefreshCw: {
+          name: "RefreshCw",
+          template: '<svg data-testid="refresh-cw-icon"><path/></svg>',
+        },
+        FolderArchive: {
+          name: "FolderArchive",
+          template: '<svg data-testid="folder-archive-icon"><path/></svg>',
+        },
+        Trash2: {
+          name: "Trash2",
+          template: '<svg data-testid="trash-2-icon"><path/></svg>',
+        },
+        Pencil: {
+          name: "Pencil",
+          template: '<svg data-testid="pencil-icon"><path/></svg>',
+        },
+        ScrollText: {
+          name: "ScrollText",
+          template: '<svg data-testid="scroll-text-icon"><path/></svg>',
+        },
+        MailX: {
+          name: "MailX",
+          template: '<svg data-testid="mail-x-icon"><path/></svg>',
+        },
+        UserMinus: {
+          name: "UserMinus",
+          template: '<svg data-testid="user-minus-icon"><path/></svg>',
+        },
+        UserPlus: {
+          name: "UserPlus",
+          template: '<svg data-testid="user-plus-icon"><path/></svg>',
+        },
+        Download: {
+          name: "Download",
+          template: '<svg data-testid="download-icon"><path/></svg>',
+        },
+        Lock: {
+          name: "Lock",
+          template: '<svg data-testid="lock-icon"><path/></svg>',
+        },
+        TriangleAlert: {
+          name: "TriangleAlert",
+          template: '<svg data-testid="triangle-alert-icon"><path/></svg>',
+        },
+        ListFilter: {
+          name: "ListFilter",
+          template: '<svg data-testid="list-filter-icon"><path/></svg>',
+        },
+        History: {
+          name: "History",
+          template: '<svg data-testid="history-icon"><path/></svg>',
+        },
+        BookOpen: {
+          name: "BookOpen",
+          template: '<svg data-testid="book-open-icon"><path/></svg>',
+        },
+        Mail: {
+          name: "Mail",
+          template: '<svg data-testid="mail-icon"><path/></svg>',
+        },
+        Ticket: {
+          name: "Ticket",
+          template: '<svg data-testid="ticket-icon"><path/></svg>',
+        },
+        Eye: {
+          name: "Eye",
+          template: '<svg data-testid="eye-icon"><path/></svg>',
+        },
+        FileArchive: {
+          name: "FileArchive",
+          template: '<svg data-testid="file-archive-icon"><path/></svg>',
+        },
+        Globe: {
+          name: "Globe",
+          template: '<svg data-testid="globe-icon"><path/></svg>',
+        },
+        Shield: {
+          name: "Shield",
+          template: '<svg data-testid="shield-icon"><path/></svg>',
+        },
+        ShieldCheck: {
+          name: "ShieldCheck",
+          template: '<svg data-testid="shield-check-icon"><path/></svg>',
+        },
+        ShieldPlus: {
+          name: "ShieldPlus",
+          template: '<svg data-testid="shield-plus-icon"><path/></svg>',
+        },
+        FolderPlus: {
+          name: "FolderPlus",
+          template: '<svg data-testid="folder-plus-icon"><path/></svg>',
+        },
+        Play: {
+          name: "Play",
+          template: '<svg data-testid="play-icon"><path/></svg>',
+        },
+      },
+);

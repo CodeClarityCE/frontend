@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { onAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   ANALYSIS,
@@ -673,5 +674,19 @@ test.describe("Selected results tab", () => {
       "aria-selected",
       "true",
     );
+  });
+});
+
+test.describe("On a phone", () => {
+  onAPhone();
+
+  test("the analysis results does not scroll sideways", async ({ page }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn({ vulnFinder: true });
+    await tabs.goto();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
   });
 });

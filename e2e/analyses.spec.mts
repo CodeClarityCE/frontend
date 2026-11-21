@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { onAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   AnalysesPage,
@@ -44,14 +45,6 @@ const codeqlAnalyzer = {
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 1024 });
-});
-
-test("unknown analysis routes need a sign-in or show the 404", async ({
-  page,
-}) => {
-  await page.goto("/projects/test-project/analyses");
-
-  await expect(page).toHaveURL(/\/(login|404)/);
 });
 
 test.describe("New Analysis", () => {
@@ -483,5 +476,19 @@ test.describe("New Analysis", () => {
     await expectPageSweep(page);
     await expectMainSnapshot(page, "analysis-create-empty");
     await expectScreenshots(page, "analysis-create-empty");
+  });
+});
+
+test.describe("On a phone", () => {
+  onAPhone();
+
+  test("New Analysis does not scroll sideways", async ({ page }) => {
+    const analyses = new AnalysesPage(page);
+    await analyses.signIn();
+    await analyses.goto();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
   });
 });

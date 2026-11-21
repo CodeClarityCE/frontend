@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep, PHONE_WIDTH } from "./helpers/page-sweep.mjs";
+import { onAPhone } from "./helpers/phone.mjs";
 import { BACKGROUND, expectTheme, storeTheme } from "./helpers/theme.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 
@@ -250,6 +251,25 @@ test.describe("Aria snapshot harness", () => {
     await expect(
       expectMainSnapshot(page, "harness-main", { timeout: 500 }),
     ).rejects.toThrow();
+  });
+});
+
+test.describe("Page sweep harness on a Pixel 5", () => {
+  onAPhone();
+
+  // A mobile browser zooms out to fit wide content instead of scrolling.
+  test("fails when the page is wider than the phone", async ({ page }) => {
+    await page.setContent(
+      `<meta name="viewport" content="width=device-width, initial-scale=1"><div style="width:900px">Wide</div>`,
+    );
+    await expect(expectPageSweep(page)).rejects.toThrow(/scrolls sideways/);
+  });
+
+  test("passes a page that fits the phone", async ({ page }) => {
+    await page.setContent(
+      `<meta name="viewport" content="width=device-width, initial-scale=1"><div style="max-width:900px">Narrow</div>`,
+    );
+    await expectPageSweep(page);
   });
 });
 

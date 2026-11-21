@@ -63,16 +63,44 @@ describe("ComponentName", () => {
 
 ### Stores
 
-```typescript
-describe("useStoreName", () => {
-  beforeEach(() => setActivePinia(createPinia()));
+Store tests use the real-app setup below, so they run the real actions and the
+real navigation guard.
 
-  it("should initialize with default state", () => {
-    const store = useStoreName();
-    expect(store.items).toEqual([]);
-  });
+### Real stores, router and HTTP only (`tests/real-app.ts`)
+
+`tests/setup.ts` still mocks Pinia, the stores, the router, the repositories and
+`@vueuse/core` for every file. A file opts out of all of them with this block
+right after its imports:
+
+```typescript
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
 });
 ```
+
+The file then gets the real modules, a fresh in-memory `localStorage` per test,
+no mock Pinia or `RouterLink` stub, and every mounted component is unmounted
+after each test. Build the app with `createTestApp` from `tests/real-app.ts`:
+
+```typescript
+const app = createTestApp({ signedIn: true }); // fresh Pinia; fetch is faked
+app.http.on("GET", "/org/org-123/projects", { data: [] }); // API path, no /api
+await app.visit("/projects"); // a page load: the real guard runs
+render(ProjectsView, { global: app.global }); // real Pinia + memory router
+expect(app.http.requests.at(-1)?.body).toEqual({ name: "x" });
+```
+
+- `signedIn: true` signs in as `e2e/fixtures/user.json` through the auth store
+  and answers `GET /auth/user` and `GET /org/org-123`; leave it out to start
+  signed out.
+- A request with no answer gets a 404, and is still recorded in `app.http.requests`.
+- The router is the app's own (memory history in tests), so navigation goes
+  through `app.router` or `app.visit`.
+- To simulate a reload, unmount the page and call `createTestApp()` again: it
+  keeps `localStorage` and starts a new Pinia. The router runs its guards with
+  the first mounted app's Pinia, so a page left mounted keeps the old one.
+
+`src/stores/*.test.ts` are the reference examples.
 
 ### Composables
 

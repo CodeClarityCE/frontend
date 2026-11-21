@@ -1,6 +1,8 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { createRequire } from "node:module";
 
+import { THEME_KEY } from "./theme.mjs";
+
 const axePath = createRequire(import.meta.url).resolve("axe-core/axe.min.js");
 
 // WCAG 2.2 AA means every A and AA rule from 2.0 through 2.2.
@@ -112,8 +114,12 @@ function problemsIn(
   return problems;
 }
 
-const isDark = (page: Page): Promise<boolean> =>
-  page.evaluate(() => document.documentElement.classList.contains("dark"));
+const themeOf = async (page: Page): Promise<Theme> =>
+  (await page.evaluate(() =>
+    document.documentElement.classList.contains("dark"),
+  ))
+    ? "dark"
+    : "light";
 
 const osIsDark = (page: Page): Promise<boolean> =>
   page.evaluate(() => matchMedia("(prefers-color-scheme: dark)").matches);
@@ -127,48 +133,85 @@ const nextFrames = (page: Page): Promise<void> =>
       ),
   );
 
-// Turns the OS scheme dark, and sets the dark class itself on pages that do not follow the OS.
-async function switchToDark(page: Page): Promise<() => Promise<void>> {
+// Stores a Theme choice and tells the app, as a change from another tab would.
+// Returns the previous value, or `ok: false` when storage is unavailable.
+const storeChoice = (
+  page: Page,
+  value: string | null,
+): Promise<{ ok: boolean; old?: string | null }> =>
+  page.evaluate(
+    ([key, v]) => {
+      try {
+        const old = localStorage.getItem(key!);
+        if (v === null) localStorage.removeItem(key!);
+        else localStorage.setItem(key!, v!);
+        window.dispatchEvent(
+          new StorageEvent("storage", { key, oldValue: old, newValue: v }),
+        );
+        return { ok: true, old };
+      } catch {
+        return { ok: false };
+      }
+    },
+    [THEME_KEY, value] as const,
+  );
+
+// Puts the page in `theme` through the OS scheme, then the app's stored choice,
+// and on pages without the app through the root class alone. Returns an undo.
+async function switchTo(
+  page: Page,
+  theme: Theme,
+): Promise<() => Promise<void>> {
   const osWasDark = await osIsDark(page);
-  await page.emulateMedia({ colorScheme: "dark" });
+  await page.emulateMedia({ colorScheme: theme });
   await nextFrames(page);
-  const addedClass = !(await isDark(page));
-  if (addedClass) {
-    await page.evaluate(() => document.documentElement.classList.add("dark"));
+
+  let stored: { ok: boolean; old?: string | null } = { ok: false };
+  if ((await themeOf(page)) !== theme) {
+    stored = await storeChoice(page, theme);
+    await nextFrames(page);
+    if (stored.ok && (await themeOf(page)) !== theme) {
+      await storeChoice(page, stored.old ?? null);
+      stored = { ok: false };
+    }
+  }
+  const toggledClass = (await themeOf(page)) !== theme;
+  if (toggledClass) {
+    await page.evaluate(() =>
+      document.documentElement.classList.toggle("dark"),
+    );
   }
   await nextFrames(page);
+
   return async () => {
-    if (addedClass) {
+    if (toggledClass) {
       await page.evaluate(() =>
-        document.documentElement.classList.remove("dark"),
+        document.documentElement.classList.toggle("dark"),
       );
     }
+    if (stored.ok) await storeChoice(page, stored.old ?? null);
     await page.emulateMedia({ colorScheme: osWasDark ? "dark" : "light" });
     await nextFrames(page);
     await waitForAnimations(page);
   };
 }
 
-/**
- * Runs axe-core with the WCAG 2.2 AA tags in the current theme, then in dark,
- * and fails on any violation. `known` lists rules the page still breaks; it
- * fails if one of them is fixed, so the entry gets removed.
- */
+/** Runs axe (WCAG 2.2 AA) in the page's theme, then the other one, and fails on any violation.
+ * `known` lists rules the page still breaks; it also fails when one of them is fixed. */
 export async function expectNoAxeViolations(
   page: Page,
   options: { known?: KnownViolation[] } = {},
 ): Promise<void> {
   const known = options.known ?? [];
-  const startTheme: Theme = (await isDark(page)) ? "dark" : "light";
-  const problems = problemsIn(startTheme, await runAxe(page), known);
+  const first = await themeOf(page);
+  const second: Theme = first === "light" ? "dark" : "light";
+  const problems = problemsIn(first, await runAxe(page), known);
 
-  if (startTheme === "light") {
-    const restore = await switchToDark(page);
-    try {
-      problems.push(...problemsIn("dark", await runAxe(page), known));
-    } finally {
-      await restore();
-    }
+  const restore = await switchTo(page, second);
+  try {
+    problems.push(...problemsIn(second, await runAxe(page), known));
+  } finally {
+    await restore();
   }
 
   if (problems.length > 0) {

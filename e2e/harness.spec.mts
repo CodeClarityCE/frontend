@@ -3,6 +3,10 @@ import { expect, test } from "@playwright/test";
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectPageSweep, PHONE_WIDTH } from "./helpers/page-sweep.mjs";
 import { onAPhone } from "./helpers/phone.mjs";
+import {
+  discoverRoutes,
+  routeCoverageProblems,
+} from "./helpers/route-coverage.mjs";
 import { BACKGROUND, expectTheme, storeTheme } from "./helpers/theme.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 
@@ -278,4 +282,115 @@ test.describe("E2E harness in the app", () => {
       );
     });
   }
+});
+
+// Feeds the route-coverage check made-up routes, registries and spec files.
+test.describe("Route coverage harness", () => {
+  const routes = [
+    { key: "projects", path: "/projects/:page?" },
+    { key: "projects/add", path: "/projects/:page?" },
+  ];
+  const specFiles = ["projects.spec.mts"];
+
+  test("passes when every route has a registered spec", () => {
+    expect(
+      routeCoverageProblems({
+        routes,
+        registry: {
+          projects: "projects.spec.mts",
+          "projects/add": "projects.spec.mts",
+        },
+        specFiles,
+      }),
+    ).toEqual([]);
+  });
+
+  test("fails on a route with no registry entry, naming the route", () => {
+    expect(
+      routeCoverageProblems({
+        routes,
+        registry: { projects: "projects.spec.mts" },
+        specFiles,
+      }),
+    ).toEqual([
+      expect.stringMatching(/projects\/add .*\/projects\/:page\?.*no spec/),
+    ]);
+  });
+
+  test("fails on an entry whose spec file does not exist", () => {
+    expect(
+      routeCoverageProblems({
+        routes,
+        registry: {
+          projects: "projects.spec.mts",
+          "projects/add": "project-create.spec.mts",
+        },
+        specFiles,
+      }),
+    ).toEqual([
+      expect.stringMatching(
+        /projects\/add .*project-create\.spec\.mts.*does not exist/,
+      ),
+    ]);
+  });
+
+  test("fails on an entry for a route the router no longer has", () => {
+    expect(
+      routeCoverageProblems({
+        routes,
+        registry: {
+          projects: "projects.spec.mts",
+          "projects/add": "projects.spec.mts",
+          "projects/import": "projects.spec.mts",
+        },
+        specFiles,
+      }),
+    ).toEqual([expect.stringMatching(/projects\/import .*no such route/)]);
+  });
+
+  test("finds the router's routes, their subpages and results tabs", () => {
+    const router = `
+      import HomeView from "@/home/HomeView.vue";
+      import ResultsView from "@/results/ResultsView.vue";
+      const router = createRouter({
+        routes: [
+          { path: "/", name: "home", component: HomeView as Component },
+          { path: "/results/:page?", name: "results", component: ResultsView },
+          { path: "/:catchAll(.*)", redirect: "/404" },
+        ],
+      });`;
+    const views: Record<string, string> = {
+      "@/home/HomeView.vue": `<template><p>Home</p></template>`,
+      "@/results/ResultsView.vue": `<script setup>
+        const tab = ref({ sbom: false, "vuln-finder": false });
+        if (props.page !== "details") load();
+        </script>
+        <template>
+          <Details v-if="props.page === 'details'" />
+          <Other v-else-if="page === 'other'" />
+        </template>`,
+    };
+    expect(discoverRoutes(router, (from) => views[from] ?? "")).toEqual([
+      { key: "home", path: "/" },
+      { key: "results", path: "/results/:page?" },
+      { key: "results/details", path: "/results/:page?" },
+      { key: "results/other", path: "/results/:page?" },
+      { key: "results?tab=sbom", path: "/results/:page?" },
+      { key: "results?tab=vuln-finder", path: "/results/:page?" },
+    ]);
+  });
+
+  test("reads subpages only for a route with a :page param", () => {
+    const router = `
+      import TermsView from "@/TermsView.vue";
+      const router = createRouter({
+        routes: [
+          { path: "/privacy", name: "privacy", component: TermsView, props: { page: "privacy" } },
+        ],
+      });`;
+    const view = `<template><Privacy v-if="page === 'privacy'" /></template>`;
+    expect(discoverRoutes(router, () => view)).toEqual([
+      { key: "privacy", path: "/privacy" },
+    ]);
+  });
 });

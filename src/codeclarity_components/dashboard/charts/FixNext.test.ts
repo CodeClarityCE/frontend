@@ -64,7 +64,8 @@ function makeRouter(): Router {
         name: "orgVulnerability",
         component: page,
       },
-      { path: "/tickets/:page?", name: "tickets", component: page },
+      { path: "/tickets", name: "tickets", component: page },
+      { path: "/tickets/:ticketId", name: "ticket", component: page },
     ],
   });
 }
@@ -161,7 +162,7 @@ describe("FixNext", () => {
     );
     const ticket = second!.find("[data-testid='fix-next-ticket']");
     expect(ticket.text()).toBe("In Progress");
-    expect(ticket.attributes("href")).toBe("/tickets?ticket_id=t-1");
+    expect(ticket.attributes("href")).toBe("/tickets/t-1");
   });
 
   it("counts tickets when only some of the entry's projects have one", async () => {

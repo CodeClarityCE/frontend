@@ -63,7 +63,8 @@ function makeRouter(): Router {
         name: "orgVulnerability",
         component: page,
       },
-      { path: "/tickets/:page?", name: "tickets", component: page },
+      { path: "/tickets", name: "tickets", component: page },
+      { path: "/tickets/:ticketId", name: "ticket", component: page },
     ],
   });
 }
@@ -141,7 +142,7 @@ describe("MyWork", () => {
     expect(items[1]!.text()).toContain("web");
 
     const link = items[1]!.find("h3 a");
-    expect(link.attributes("href")).toBe("/tickets?ticket_id=t-2");
+    expect(link.attributes("href")).toBe("/tickets/t-2");
   });
 
   it("shows an old one-vulnerability ticket by its title and vulnerability", async () => {

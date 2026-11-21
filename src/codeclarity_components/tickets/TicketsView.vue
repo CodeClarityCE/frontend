@@ -15,10 +15,6 @@ const TicketsPage = defineAsyncComponent(
 const state = useStateStore();
 state.$reset();
 state.page = "tickets";
-
-defineProps<{
-  page?: string;
-}>();
 </script>
 
 <template>

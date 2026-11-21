@@ -2,7 +2,12 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
-import { sampleTickets, ticket, TicketsPage } from "./pages/tickets.page.mjs";
+import {
+  remediationDetail,
+  sampleTickets,
+  ticket,
+  TicketsPage,
+} from "./pages/tickets.page.mjs";
 
 // Waits for dialogs to finish fading in so axe sees the final colours.
 async function axe(page: Page): Promise<void> {
@@ -149,7 +154,7 @@ test.describe("Tickets list", () => {
       tickets.sortButton("Priority"),
       tickets.sortButton("Project"),
       tickets.sortButton("Created"),
-      tickets.table.getByRole("button", { name: /axios SSRF/ }),
+      tickets.table.getByRole("link", { name: /axios SSRF/ }),
     ]) {
       await page.keyboard.press("Tab");
       await expectVisibleFocus(target);
@@ -211,7 +216,7 @@ test.describe("Kanban board", () => {
     ).toContainText("No tickets");
 
     await open.getByRole("button", { name: /lodash/ }).click();
-    await expect(tickets.detail()).toBeVisible();
+    await expect(page).toHaveURL(/\/tickets\/t-1$/);
   });
 
   test("passes axe and matches the screenshots", async ({ page }) => {
@@ -228,8 +233,8 @@ test.describe("Kanban board", () => {
   });
 });
 
-test.describe("Ticket detail", () => {
-  test("opens from the list with the ticket's risk, details and actions", async ({
+test.describe("Ticket page", () => {
+  test("opens from the list with the ticket's fix, risk and facts", async ({
     page,
   }) => {
     const tickets = new TicketsPage(page);
@@ -237,71 +242,138 @@ test.describe("Ticket detail", () => {
     await tickets.goto();
 
     await tickets.table
-      .getByRole("button", { name: /lodash prototype pollution/ })
+      .getByRole("link", { name: /lodash prototype pollution/ })
       .click();
 
+    await expect(page).toHaveURL(/\/tickets\/t-1$/);
     const detail = tickets.detail();
-    await expect(detail).toBeVisible();
-    await expect(detail).toContainText("Open");
-    await expect(detail).toContainText("High");
-    await expect(detail).toContainText("High risk");
+    await expect(
+      detail.getByRole("heading", { level: 1, name: /lodash/ }),
+    ).toBeVisible();
     await expect(detail).toContainText("CVSS v3.1");
-    await expect(detail).toContainText("lodash");
     await expect(detail).toContainText("4.17.15");
     await expect(detail).toContainText("4.17.21");
-    await expect(detail).toContainText("3 total occurrences");
+    await expect(detail).toContainText("2 active of 3");
+    await expect(detail).toContainText("web-frontend");
   });
 
-  test("keeps focus inside, changes the status and closes with Escape", async ({
+  test("changes the status and goes back to the list as it was left", async ({
     page,
   }) => {
     const tickets = new TicketsPage(page);
     await tickets.signIn();
     await tickets.goto();
-    const opener = tickets.table.getByRole("button", {
-      name: /lodash prototype pollution/,
+    await tickets.filter.fill("lodash");
+    await expect(page).toHaveURL(/q=lodash/);
+    await tickets.table
+      .getByRole("link", { name: /lodash prototype pollution/ })
+      .click();
+
+    const start = tickets.detail().getByRole("button", {
+      name: "Start progress",
     });
-    await opener.click();
-    const detail = tickets.detail();
-    await expect(detail).toBeVisible();
-
-    for (let i = 0; i < 25; i++) {
+    // The actions come right after the header, so the keyboard reaches them early.
+    for (let i = 0; i < 30; i++) {
+      if (await start.evaluate((el) => el === document.activeElement)) break;
       await page.keyboard.press("Tab");
-      await expect(detail.locator(":focus")).toHaveCount(1);
     }
-
-    const start = detail.getByRole("button", { name: "Start progress" });
-    await start.focus();
     await expectVisibleFocus(start);
     await start.click();
     await expect
       .poll(() => tickets.updates)
       .toEqual([{ status: "IN_PROGRESS" }]);
 
-    await page.keyboard.press("Escape");
-    await expect(detail).toHaveCount(0);
-    await expect(opener).toBeFocused();
+    await tickets
+      .detail()
+      .getByRole("link", { name: "Tickets", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/tickets\?q=lodash$/);
+    await expect(tickets.filter).toHaveValue("lodash");
   });
 
-  test("opens straight from a ticket link", async ({ page }) => {
+  test("old ticket links open the ticket's page", async ({ page }) => {
     const tickets = new TicketsPage(page);
     await tickets.signIn();
     await tickets.goto("/tickets?ticket_id=t-1");
 
-    await expect(tickets.detail()).toBeVisible();
+    await expect(page).toHaveURL(/\/tickets\/t-1$/);
+    await expect(tickets.detail()).toContainText("CVSS v3.1");
+  });
+
+  test("says when the ticket does not exist", async ({ page }) => {
+    const tickets = new TicketsPage(page);
+    await tickets.signIn({ missing: true });
+    await tickets.goto("/tickets/t-404");
+
+    await expect(tickets.detail().getByText("Ticket not found")).toBeVisible();
+  });
+
+  test("a remediation shows what its external issue says, grouped by vulnerability", async ({
+    page,
+  }) => {
+    const tickets = new TicketsPage(page);
+    await tickets.signIn({ detail: remediationDetail });
+    await tickets.goto("/tickets/t-9");
+    const detail = tickets.detail();
+
+    await expect(detail).toContainText("Remediation ticket");
+    await expect(detail).toContainText("Installed: 3.14.1, 4.1.0");
+    await expect(detail).toContainText("it leaves the current major");
+    await expect(detail).toContainText("Resolves 4 vulnerabilities");
+    await expect(
+      detail
+        .getByRole("list", { name: "Resolved vulnerabilities" })
+        .locator(":scope > li"),
+    ).toHaveCount(4);
+    await expect(detail).toContainText(
+      "lockfile-lint@4.14.1 > lockfile-lint-api@5.9.2",
+    );
+    await expect(
+      detail.getByRole("link", { name: "Compare v4.1.0...v4.3.0 on GitHub" }),
+    ).toBeVisible();
+    // The stored Markdown body is not shown as text.
+    await expect(detail).not.toContainText("external issue body");
+    // One vulnerability's risk would misrepresent several.
+    await expect(detail).not.toContainText("CVSS v3.1");
+  });
+
+  test("never scrolls sideways, even on a phone", async ({ page }) => {
+    const tickets = new TicketsPage(page);
+    await tickets.signIn({ detail: remediationDetail });
+    for (const width of [390, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      // The shell's nav is hidden on a phone, so wait for the page instead.
+      await page.goto("/tickets/t-9");
+      await expect(tickets.detail()).toContainText("Resolves");
+      const overflow = await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth -
+          document.documentElement.clientWidth,
+      );
+      expect(overflow, `at ${width}px`).toBeLessThanOrEqual(0);
+    }
   });
 
   test("passes axe and matches the screenshots", async ({ page }) => {
     const tickets = new TicketsPage(page);
     await tickets.signIn();
-    await tickets.goto();
-    await tickets.table
-      .getByRole("button", { name: /lodash prototype pollution/ })
-      .click();
+    await tickets.goto("/tickets/t-1");
     await expect(tickets.detail()).toContainText("CVSS v3.1");
 
     await axe(page);
-    await expectScreenshots(page, "tickets-detail");
+    await expectScreenshots(page, "ticket-page");
+  });
+
+  test("a remediation passes axe and matches the screenshots", async ({
+    page,
+  }) => {
+    const tickets = new TicketsPage(page);
+    await tickets.signIn({ detail: remediationDetail });
+    await tickets.goto("/tickets/t-9");
+    await expect(tickets.detail()).toContainText("Resolves");
+
+    await axe(page);
+    await expectScreenshots(page, "ticket-page-remediation");
   });
 });
 
@@ -413,7 +485,7 @@ test.describe("Tickets read the same everywhere", () => {
     await expect(page.locator("main li[draggable]")).toHaveCount(4);
   });
 
-  test("a synced ticket shows the same status in the list, board and detail", async ({
+  test("a synced ticket shows the same status in the list, board and page", async ({
     page,
   }) => {
     const tickets = new TicketsPage(page);
@@ -431,13 +503,14 @@ test.describe("Tickets read the same everywhere", () => {
       page.getByRole("list", { name: "Resolved, 1 ticket" }),
     ).toContainText("lodash");
     await page.getByRole("button", { name: /lodash/ }).click();
+    await expect(page).toHaveURL(/\/tickets\/t-1$/);
     await expect(
       tickets.detail().getByText("Resolved", { exact: true }),
     ).toBeVisible();
     await expect(tickets.detail()).not.toContainText("complete");
   });
 
-  test("the detail words the exploit chance as the vulnerability pages do", async ({
+  test("the page words the exploit chance as the vulnerability pages do", async ({
     page,
   }) => {
     const tickets = new TicketsPage(page);
@@ -477,8 +550,11 @@ test.describe("Tickets read the same everywhere", () => {
     await expect(detail).not.toContainText("####");
     await expect(detail).not.toContainText("**");
     await expect(
-      detail.getByRole("button", { name: "References (2)" }),
-    ).toBeVisible();
+      detail.getByRole("link", { name: /example\.com\/advisory/ }),
+    ).toHaveCount(1);
+    await expect(
+      detail.getByRole("link", { name: /example\.com/ }),
+    ).toHaveCount(2);
   });
 
   test("status badges stay on one line", async ({ page }) => {

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ChevronRight } from "@lucide/vue";
 import { ref } from "vue";
-import type { RouteLocationRaw } from "vue-router";
 
 import { SeverityBadge } from "@/base_components/page";
 import { detailsRoute } from "@/codeclarity_components/results/vulnerabilities/vuln-format";
+import { ticketRoute } from "@/codeclarity_components/tickets/ticket-route";
 import { Badge } from "@/shadcn/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
 import {
@@ -113,11 +113,6 @@ function ticketsOf(project: AffectedProject): InstanceTicket[] {
   }
   return [...tickets.values()];
 }
-
-const ticketRoute = (ticketId: string): RouteLocationRaw => ({
-  path: "/tickets",
-  query: { ticket_id: ticketId },
-});
 
 const instanceKey = (instance: AffectedInstance): string =>
   [

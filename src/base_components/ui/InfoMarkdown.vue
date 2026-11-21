@@ -3,6 +3,8 @@ import VueMarkdown from "vue-markdown-render";
 
 defineProps<{
   markdown: string;
+  /** Turn bare URLs into links */
+  linkify?: boolean;
 }>();
 </script>
 
@@ -10,10 +12,21 @@ defineProps<{
   <vue-markdown
     class="short_listing_description"
     :source="markdown"
-    :options="{ linkify: false }"
+    :options="{ linkify }"
   />
 </template>
 <style scoped>
+/* Long URLs and package paths wrap instead of widening the page. */
+.short_listing_description {
+  overflow-wrap: anywhere;
+}
+
+.short_listing_description :deep(a) {
+  color: var(--brand-subtle-foreground);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 .short_listing_description :deep(:is(h1, h2, h3, h4, h5)) {
   color: var(--foreground-strong);
   font-weight: 500;

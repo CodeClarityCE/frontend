@@ -13,6 +13,7 @@ import {
 import { Skeleton } from "@/shadcn/ui/skeleton";
 
 import FixNext from "./charts/FixNext.vue";
+import MyWork from "./charts/MyWork.vue";
 import { useDashboardData } from "./composables/useDashboardData";
 import DashboardEmptyState from "./layout/DashboardEmptyState.vue";
 import DashboardCharts from "./sections/DashboardCharts.vue";
@@ -98,6 +99,18 @@ const {
           </CardHeader>
           <CardContent>
             <FixNext />
+          </CardContent>
+        </Card>
+        <Card class="rounded-card shadow-card">
+          <CardHeader>
+            <CardTitle class="text-base">My work</CardTitle>
+            <CardDescription>
+              Open tickets assigned to you: overdue first, then due soon, then
+              by Fix next rank
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <MyWork />
           </CardContent>
         </Card>
         <DashboardOverviewFilters

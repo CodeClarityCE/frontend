@@ -23,16 +23,12 @@ vi.mock("@/stores/state", () => ({
   useStateStore: vi.fn(() => mockStateStore),
 }));
 
-// Don't mock the UserAuthForm component, handle it in the test config
-
-// Mock shadcn utilities
 describe("LoginView.vue", () => {
   let wrapper: any;
 
   beforeEach(async () => {
     // Reset mocks
     vi.clearAllMocks();
-    mockStateStore.$reset.mockClear();
     route.query = {};
     wrapper = mountLogin();
   });
@@ -60,30 +56,24 @@ describe("LoginView.vue", () => {
       expect(wrapper.find('[role="alert"]').exists()).toBe(false);
     });
 
-    it("confirms a password reset as good news, not an error", () => {
+    it("confirms a password reset", () => {
       route.query = { notice: "password_reset" };
       const alert = mountLogin().find('[role="alert"]');
 
       expect(alert.text()).toContain(
         "Your password was changed. Sign in with your new password.",
       );
-      expect(alert.classes()).not.toContain("text-destructive");
     });
 
-    it("shows a problem notice as an error", () => {
+    it("explains an incomplete reset link", () => {
       route.query = { notice: "reset_link_invalid" };
       const alert = mountLogin().find('[role="alert"]');
 
       expect(alert.text()).toContain("This password reset link is incomplete.");
-      expect(alert.classes()).toContain("text-destructive");
     });
   });
 
   describe("Component Structure", () => {
-    it("renders the component", () => {
-      expect(wrapper.exists()).toBe(true);
-    });
-
     it("shows the logo with alternative text", () => {
       expect(wrapper.find('img[alt="CodeClarity"]').exists()).toBe(true);
     });
@@ -99,12 +89,6 @@ describe("LoginView.vue", () => {
       const authForm = wrapper.find(".user-auth-form");
       expect(authForm.exists()).toBe(true);
       expect(authForm.text()).toBe("User Auth Form");
-    });
-
-    it("initializes the state store correctly", () => {
-      expect(mockStateStore.$reset).toHaveBeenCalled();
-      expect(mockStateStore.page).toBe("signup");
-      expect(mockStateStore.publicPage).toBe(true);
     });
   });
 

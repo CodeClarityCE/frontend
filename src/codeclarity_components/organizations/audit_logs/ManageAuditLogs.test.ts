@@ -63,7 +63,7 @@ async function openLogs(
 // The query of the latest audit log request.
 const lastQuery = (app: TestApp): Record<string, string> =>
   Object.fromEntries(
-    app.http.requests.findLast((r) => r.path === logsPath)?.query ?? [],
+    app.http.requests.filter((r) => r.path === logsPath).at(-1)?.query ?? [],
   );
 
 describe("ManageAuditLogs", () => {

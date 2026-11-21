@@ -113,8 +113,8 @@ const vulnerabilityRoute = (instance: TicketInstance): RouteLocationRaw =>
     <div v-if="remediation.manifest_edit" class="space-y-1">
       <p class="text-xs">
         Add to
-        <code class="font-mono">{{ remediation.manifest_edit.file }}</code
-        >, then run:
+        <code class="font-mono">{{ remediation.manifest_edit.file }}</code>,
+        then run:
       </p>
       <pre
         class="rounded-control bg-background px-2 py-1 font-mono text-xs whitespace-pre-wrap"
@@ -200,8 +200,7 @@ const vulnerabilityRoute = (instance: TicketInstance): RouteLocationRaw =>
     >
       <li v-for="change in changes" :key="change.id" class="space-y-1">
         <p class="text-sm">
-          <span class="font-mono">{{ change.vulnerability_id }}</span
-          >:
+          <span class="font-mono">{{ change.vulnerability_id }}</span>:
           <span class="font-medium">{{ change.package }}</span>
           {{ " " }}
           <span class="tabular-nums">{{ change.installed_version }}</span>

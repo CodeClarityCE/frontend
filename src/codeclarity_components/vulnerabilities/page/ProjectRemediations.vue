@@ -96,8 +96,8 @@ const remediationKey = (r: Remediation): string =>
         <div v-if="remediation.manifest_edit" class="space-y-1">
           <p class="text-xs">
             Add to
-            <code class="font-mono">{{ remediation.manifest_edit.file }}</code
-            >, then run:
+            <code class="font-mono">{{ remediation.manifest_edit.file }}</code>,
+            then run:
           </p>
           <pre
             class="rounded-control bg-muted px-2 py-1 font-mono text-xs whitespace-pre-wrap"

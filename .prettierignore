@@ -1,1 +1,3 @@
 src/vue-global-types.d.ts
+# Written by Playwright; reformatting them makes every update a diff.
+*.aria.yml

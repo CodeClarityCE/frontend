@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
@@ -284,6 +285,7 @@ test.describe("Vulnerability results", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "vulnerabilities-list");
     await expectScreenshots(page, "vulnerabilities-list");
   });
 
@@ -308,6 +310,7 @@ test.describe("Vulnerability results", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "vulnerabilities-table");
     await expectScreenshots(page, "vulnerabilities-table");
   });
 
@@ -324,6 +327,7 @@ test.describe("Vulnerability results", () => {
     await expect(page.getByText("No vulnerabilities found.")).toBeVisible();
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "vulnerabilities-empty");
     await expectScreenshots(page, "vulnerabilities-empty");
   });
 });
@@ -435,6 +439,7 @@ test.describe("Vulnerability details", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "vulnerability-details");
     await expectScreenshots(page, "vulnerability-details");
   });
 });

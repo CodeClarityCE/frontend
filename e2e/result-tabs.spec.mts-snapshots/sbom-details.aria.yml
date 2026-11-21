@@ -1,0 +1,89 @@
+- main:
+  - link "Back to results":
+    - /url: /results?analysis_id=7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c02&project_id=3f2a1b4c-5d6e-4f70-8a91-b2c3d4e5f601
+  - heading "lodash" [level=1]
+  - code: /\d+\.\d+\.\d+/
+  - list:
+    - listitem:
+      - link "npm (opens in a new tab)":
+        - /url: https://www.npmjs.com/package/lodash/v/4.17.20
+    - listitem:
+      - link "Yarn (opens in a new tab)":
+        - /url: https://yarnpkg.com/package?name=lodash&version=4.17.20
+    - listitem:
+      - link "GitHub (opens in a new tab)":
+        - /url: https://github.com/lodash/lodash
+  - list "Dependency numbers":
+    - listitem: Security score D High vulnerabilities
+    - listitem: Vulnerabilities 2 1 critical or high
+    - listitem: "/Version v4\\.\\d+\\.\\d+ Latest: v4\\.\\d+\\.\\d+/"
+    - listitem: License MIT
+    - listitem: Added as Direct
+  - heading "Version and release" [level=2]
+  - text: Installed
+  - code: /\d+\.\d+\.\d+/
+  - text: 5 years ago Latest
+  - code: /\d+\.\d+\.\d+/
+  - text: 5 years ago 6 months behind latest
+  - heading "Package details" [level=2]
+  - term: License
+  - definition: MIT
+  - term: Release age
+  - definition: 5 years old
+  - term: Ecosystem
+  - definition:
+    - link "JavaScript (opens in a new tab)":
+      - /url: https://www.npmjs.com/package/lodash
+  - term: Engines
+  - definition:
+    - list:
+      - listitem:
+        - text: Node
+        - code: ">=4"
+  - term: Tools
+  - definition: npm, yarn, pnpm, bun
+  - heading "Dependency graph" [level=2]
+  - list:
+    - listitem: This dependency
+    - listitem: Project root
+    - listitem: Shown elsewhere in the graph
+    - listitem: Path to this dependency
+  - 'group "Dependency graph of lodash: 2 packages on the paths from the project root"':
+    - img:
+      - group /Edge from web-frontend@1\.0\.0 to lodash@\d+\.\d+\.\d+/
+    - group: web-frontend 1.0.0
+    - group: /lodash \d+\.\d+\.\d+ PROD/
+    - img
+    - button "Zoom in"
+    - button "Zoom out"
+    - button "Fit the graph to the view"
+    - img "Vue Flow mini map"
+  - heading "Security" [level=2]
+  - region "Health":
+    - heading "Health" [level=3]
+    - text: 2 issues
+    - list:
+      - listitem:
+        - text: Security vulnerabilities 2 found
+        - paragraph: 2 known vulnerabilities affect this version.
+      - listitem:
+        - text: /Outdated \d+ days behind/
+        - paragraph: /This release is \d+ days older than the latest\. Consider upgrading lodash\./
+  - heading "Vulnerabilities by severity" [level=3]
+  - list:
+    - listitem: Critical 0
+    - listitem: High 1
+    - listitem: Medium 1
+    - listitem: Low 0
+  - heading "Recommendations" [level=3]
+  - list:
+    - listitem: /Update to the latest version\. Upgrade from v4\.\d+\.\d+ to v4\.\d+\.\d+; it may fix some of these vulnerabilities\./
+    - listitem: Fix critical and high first. 1 critical or high vulnerabilities need attention now.
+  - heading "Vulnerabilities" [level=3]
+  - list:
+    - listitem:
+      - link /CVE-\d+-\d+/:
+        - /url: /results/vulnerabilities_details?analysis_id=7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c02&project_id=3f2a1b4c-5d6e-4f70-8a91-b2c3d4e5f601&finding_id=CVE-2021-23337&workspace=.&dependency=lodash&version=4.17.20
+    - listitem:
+      - link /CVE-\d+-\d+/:
+        - /url: /results/vulnerabilities_details?analysis_id=7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c02&project_id=3f2a1b4c-5d6e-4f70-8a91-b2c3d4e5f601&finding_id=CVE-2020-28500&workspace=.&dependency=lodash&version=4.17.20

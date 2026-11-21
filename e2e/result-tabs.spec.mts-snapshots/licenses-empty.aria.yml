@@ -1,0 +1,36 @@
+- main:
+  - heading "Results" [level=1]
+  - paragraph: web-frontend
+  - tablist "Results":
+    - tab "SBOM"
+    - tab "Patches"
+    - tab "Licenses" [selected]
+    - tab "CodeQL"
+  - tabpanel "Licenses":
+    - region "Licenses":
+      - heading "Licenses" [level=2]
+      - text: Language JavaScript Workspace Root
+      - list "License numbers":
+        - listitem: Licenses 0
+        - listitem: Dependencies 0 Using these licenses
+        - listitem: Permissive 0 MIT, BSD, Apache and similar
+        - listitem: Copyleft 0 GPL, LGPL, MPL and similar
+        - listitem: Policy violations 0 0 need review
+      - paragraph: A dependency under a license expression such as "MIT OR GPL-2.0" is listed under each license it names. It counts as copyleft if any of them is, even when an OR lets you pick a permissive one.
+      - searchbox "Search licenses"
+      - table "Licenses":
+        - caption: Licenses
+        - rowgroup:
+          - row "License Type Status Dependencies Details":
+            - columnheader "License":
+              - button "License"
+            - columnheader "Type":
+              - button "Type"
+            - columnheader "Status":
+              - button "Status"
+            - columnheader "Dependencies":
+              - button "Dependencies"
+            - columnheader "Details"
+        - rowgroup:
+          - row "No licenses found.":
+            - cell "No licenses found."

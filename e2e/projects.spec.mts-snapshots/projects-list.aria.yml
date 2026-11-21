@@ -1,0 +1,71 @@
+- main:
+  - heading "Projects" [level=1]
+  - paragraph: Repositories and uploads you analyse for vulnerabilities, licenses and outdated dependencies.
+  - link "Add Project":
+    - /url: /projects/add
+  - list "Project overview":
+    - listitem: Projects 3
+    - listitem: Completed analyses 2
+    - listitem: Running analyses 0
+    - listitem: /Last analysis Nov 2, \d+/
+  - searchbox "Filter projects"
+  - table "Projects":
+    - caption: Projects
+    - rowgroup:
+      - row "Project Source Languages Latest analysis Analyses Added Actions":
+        - columnheader "Project":
+          - button "Project"
+        - columnheader "Source":
+          - button "Source"
+        - columnheader "Languages"
+        - columnheader "Latest analysis":
+          - button "Latest analysis"
+        - columnheader "Analyses":
+          - button "Analyses"
+        - columnheader "Added":
+          - button "Added"
+        - columnheader "Actions"
+    - rowgroup:
+      - row /example\/web-frontend GitHub JavaScript Completed Nov 2, \d+, 9:\d+ AM 2 analyses of example\/web-frontend Oct 3, \d+ New analysis of example\/web-frontend Results of example\/web-frontend Delete example\/web-frontend/:
+        - cell "example/web-frontend"
+        - cell "GitHub"
+        - cell "JavaScript"
+        - cell /Completed Nov 2, \d+, 9:\d+ AM/
+        - cell "2 analyses of example/web-frontend":
+          - button "2 analyses of example/web-frontend"
+        - cell /Oct 3, \d+/
+        - cell "New analysis of example/web-frontend Results of example/web-frontend Delete example/web-frontend":
+          - link "New analysis of example/web-frontend":
+            - /url: /analyses/add?id=p-1
+            - text: ""
+          - link "Results of example/web-frontend":
+            - /url: /results?analysis_id=a-1&project_id=p-1
+            - text: ""
+          - button "Delete example/web-frontend"
+      - 'row /example\/api-server GitLab Analysis failed Failed Nov 1, \d+, 9:\d+ AM Clone failed: not found 1 analysis of example\/api-server Oct 2, \d+ New analysis of example\/api-server Delete example\/api-server/':
+        - cell "example/api-server"
+        - cell "GitLab"
+        - cell "Analysis failed"
+        - 'cell /Failed Nov 1, \d+, 9:\d+ AM Clone failed: not found/':
+          - text: ""
+          - paragraph: "Clone failed: not found"
+        - cell "1 analysis of example/api-server":
+          - button "1 analysis of example/api-server"
+        - cell /Oct 2, \d+/
+        - cell "New analysis of example/api-server Delete example/api-server":
+          - link "New analysis of example/api-server":
+            - /url: /analyses/add?id=p-2
+            - text: ""
+          - button "Delete example/api-server"
+      - row /Local archive Upload Not analysed Not analysed None Oct 1, \d+ New analysis of Local archive Delete Local archive/:
+        - cell "Local archive"
+        - cell "Upload"
+        - cell "Not analysed"
+        - cell "Not analysed"
+        - cell "None"
+        - cell /Oct 1, \d+/
+        - cell "New analysis of Local archive Delete Local archive":
+          - link "New analysis of Local archive":
+            - /url: /analyses/add?id=p-3
+            - text: ""
+          - button "Delete Local archive"

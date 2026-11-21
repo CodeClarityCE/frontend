@@ -73,9 +73,10 @@ export async function expectPageSweep(page: Page): Promise<void> {
     );
   }
 
+  // The layout width, since a mobile browser widens innerWidth to fit content.
   const [width, viewport] = await page.evaluate(() => [
     document.documentElement.scrollWidth,
-    window.innerWidth,
+    document.documentElement.clientWidth,
   ]);
   if (width > viewport) {
     throw new Error(

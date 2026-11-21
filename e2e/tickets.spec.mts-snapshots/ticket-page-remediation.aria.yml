@@ -1,0 +1,119 @@
+- main:
+  - link "Tickets":
+    - /url: /tickets
+  - paragraph: Remediation ticket
+  - heading "Force js-yaml to 4.3.2" [level=1]
+  - paragraph: Open High priority
+  - complementary "Ticket details":
+    - button "Start progress"
+    - button "Won't fix"
+    - term: Project
+    - definition: web-frontend
+    - term: Assigned to
+    - definition: Unassigned
+    - term: Due date
+    - definition:
+      - text: Due date
+      - textbox "Due date"
+      - button "Save"
+    - term: Created
+    - definition: /Oct 1, \d+ by John Doe/
+  - region "The fix":
+    - heading "The fix" [level=2]
+    - paragraph: "/Installed: \\d+\\.\\d+\\.1, 4\\.1\\.0/"
+    - alert: "Potentially breaking: it leaves the current major."
+    - list "Steps":
+      - listitem:
+        - paragraph: Run
+        - code: npm pkg set 'overrides[js-yaml]=4.3.2' && npm install
+        - button "Copy remediation command"
+        - status
+    - heading "Resolves 4 vulnerabilities" [level=3]
+    - list "Resolved vulnerabilities":
+      - listitem:
+        - paragraph:
+          - text: High 7.5
+          - link /CVE-\d+-\d+/:
+            - /url: /org/org-123/vulnerabilities/CVE-2026-59869
+        - list "Installed versions":
+          - listitem:
+            - paragraph: /js-yaml \d+\.\d+\.1 fixed in \d+\.\d+\.0 Dev only/
+            - group: Installed via 2 paths
+            - list:
+              - listitem:
+                - link "Fix commit 24f13e7":
+                  - /url: https://github.com/nodeca/js-yaml/commit/24f13e7a3e6b5c9d8f0a1b2c3d4e5f60718293a4
+              - listitem:
+                - link /Compare v3\.\d+\.\d+\.\.\.v3\.\d+\.\d+ on GitHub \(guessed tags\)/:
+                  - /url: https://github.com/nodeca/js-yaml/compare/v3.14.1...v3.15.0
+            - code: /npm diff --diff=js-yaml@\d+\.\d+\.1 --diff=js-yaml@\d+\.\d+\.0/
+            - button "Copy registry diff command"
+            - status
+          - listitem:
+            - paragraph: js-yaml 4.1.0 fixed in 4.3.0 Dev only
+            - group: Installed via 2 paths
+            - list:
+              - listitem:
+                - link "Fix commit 24f13e7":
+                  - /url: https://github.com/nodeca/js-yaml/commit/24f13e7a3e6b5c9d8f0a1b2c3d4e5f60718293a4
+              - listitem:
+                - link "Compare v4.1.0...v4.3.0 on GitHub (guessed tags)":
+                  - /url: https://github.com/nodeca/js-yaml/compare/v4.1.0...v4.3.0
+            - code: npm diff --diff=js-yaml@4.1.0 --diff=js-yaml@4.3.0
+            - button "Copy registry diff command"
+            - status
+      - listitem:
+        - paragraph:
+          - text: High 7.5
+          - link "GHSA-5p4m-2wfm-xmqj":
+            - /url: /org/org-123/vulnerabilities/GHSA-5p4m-2wfm-xmqj
+        - list "Installed versions":
+          - listitem:
+            - paragraph: /js-yaml \d+\.\d+\.1 fixed in \d+\.\d+\.1 Dev only/
+            - group: Installed via 2 paths
+            - list:
+              - listitem:
+                - link "Fix commit 24f13e7":
+                  - /url: https://github.com/nodeca/js-yaml/commit/24f13e7a3e6b5c9d8f0a1b2c3d4e5f60718293a4
+              - listitem:
+                - link /Compare v3\.\d+\.\d+\.\.\.v3\.\d+\.\d+ on GitHub \(guessed tags\)/:
+                  - /url: https://github.com/nodeca/js-yaml/compare/v3.14.1...v3.15.1
+            - code: /npm diff --diff=js-yaml@\d+\.\d+\.1 --diff=js-yaml@\d+\.\d+\.1/
+            - button "Copy registry diff command"
+            - status
+      - listitem:
+        - paragraph:
+          - text: Medium 5.3
+          - link /CVE-\d+-\d+/:
+            - /url: /org/org-123/vulnerabilities/CVE-2025-64718
+          - text: Resolved
+        - list "Installed versions":
+          - listitem:
+            - paragraph: js-yaml 4.1.0 fixed in 4.1.1 Dev only
+            - group: Installed via 2 paths
+            - list:
+              - listitem:
+                - link "Fix commit 24f13e7":
+                  - /url: https://github.com/nodeca/js-yaml/commit/24f13e7a3e6b5c9d8f0a1b2c3d4e5f60718293a4
+              - listitem:
+                - link "Compare v4.1.0...v4.1.1 on GitHub (guessed tags)":
+                  - /url: https://github.com/nodeca/js-yaml/compare/v4.1.0...v4.1.1
+            - code: npm diff --diff=js-yaml@4.1.0 --diff=js-yaml@4.1.1
+            - button "Copy registry diff command"
+            - status
+      - listitem:
+        - paragraph:
+          - text: Medium 5.3
+          - link /CVE-\d+-\d+/:
+            - /url: /org/org-123/vulnerabilities/CVE-2026-53550
+        - list "Installed versions":
+          - listitem:
+            - paragraph: /js-yaml \d+\.\d+\.1 · no fix Dev only/
+            - group: Installed via 2 paths
+            - list:
+              - listitem:
+                - link "Fix commit 24f13e7":
+                  - /url: https://github.com/nodeca/js-yaml/commit/24f13e7a3e6b5c9d8f0a1b2c3d4e5f60718293a4
+  - region "History":
+    - heading "History" [level=2]
+    - paragraph: Nothing has happened to this ticket yet.

@@ -1,0 +1,13 @@
+- main:
+  - heading "Tickets" [level=1]
+  - paragraph: Track and manage security remediation tickets.
+  - group "View":
+    - button "List" [pressed]
+    - button "Kanban"
+  - button "Integrations"
+  - button "Refresh"
+  - img "The CodeClarity owl"
+  - heading "No tickets yet" [level=2]
+  - paragraph: Tickets come from vulnerability results. Run an analysis on a project, then create tickets to track remediation.
+  - link "Go to Projects":
+    - /url: /projects

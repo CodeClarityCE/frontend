@@ -1,0 +1,50 @@
+- main:
+  - heading "Results" [level=1]
+  - paragraph: web-frontend
+  - tablist "Results":
+    - tab "SBOM"
+    - tab "Vulnerabilities" [selected]
+  - tabpanel "Vulnerabilities":
+    - region "Summary":
+      - heading "Summary" [level=2]
+      - text: Language JavaScript Workspace Root
+      - list "Vulnerability numbers":
+        - listitem: Vulnerabilities 4 +1 since the last scan
+        - listitem: Critical and high 2 Fix these first
+        - listitem: Vulnerable dependencies 4 No change since the last scan
+        - listitem: Security grade C Needs attention
+        - listitem: /Mean severity 6\.2 CVSS, 0 to \d+/
+        - listitem: /Max severity 9\.8 CVSS, 0 to \d+/
+      - button "How the security grade is set"
+      - heading "Vulnerabilities by severity" [level=3]
+      - group "Vulnerabilities by severity":
+        - 'img "Critical: 1 vulnerability"'
+        - 'img "High: 1 vulnerability"'
+        - 'img "Medium: 1 vulnerability"'
+        - 'img "Low: 1 vulnerability"'
+        - 'img "None: 0 vulnerabilities"'
+      - group: Show table
+      - heading "Security impact" [level=3]
+      - paragraph: /Mean impact across vulnerabilities, 0 to \d+\./
+      - term: Confidentiality
+      - definition: "8.1"
+      - term: Integrity
+      - definition: "3.3"
+      - term: Availability
+      - definition: "0.0"
+      - heading /OWASP Top \d+/ [level=3]
+      - list:
+        - listitem: A03 Injection 4
+    - region "Vulnerabilities":
+      - heading "Vulnerabilities" [level=2]
+      - paragraph: Security vulnerabilities found in your project dependencies
+      - button "Export source verdicts"
+      - searchbox "Search vulnerabilities"
+      - button "Filters"
+      - combobox "Sort by": Severity, highest first
+      - tablist "View":
+        - tab "List" [selected]
+        - tab "Table"
+      - paragraph: 0 vulnerabilities
+      - tabpanel "List":
+        - paragraph: No vulnerabilities found.

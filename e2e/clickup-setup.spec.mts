@@ -184,9 +184,13 @@ test.describe("Disconnecting ClickUp from the tickets page", () => {
     await expect(page.getByText("Disconnected ClickUp")).toBeVisible();
     expect(api.deleted).toEqual(["/CLICKUP"]);
     const panel = page.getByRole("dialog", { name: "Ticket integrations" });
-    await expect(
-      panel.getByRole("button", { name: "Connect ClickUp" }),
-    ).toBeVisible();
+    const connect = panel.getByRole("button", {
+      name: "Connect ClickUp",
+      exact: true,
+    });
+    await expect(connect).toBeVisible();
+    // Chromium spaces out the hidden name itself, so check the text as well.
+    await expect(connect).toHaveText("Connect ClickUp");
     await expectPageSweep(page);
   });
 });

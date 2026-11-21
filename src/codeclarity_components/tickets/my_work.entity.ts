@@ -4,7 +4,7 @@ import type { RemediationKind } from "@/codeclarity_components/vulnerabilities/o
 import type { TicketPriority, TicketStatus } from "./tickets.entity";
 
 /** Where a ticket stands against its due date, as the API computes it. */
-export type DeadlineState = "overdue" | "due_soon" | "on_track" | "none";
+export type DueDateState = "overdue" | "due_soon" | "on_track" | "none";
 
 /** One open ticket assigned to the signed-in user, most pressing first. */
 export interface MyWorkEntry {
@@ -15,7 +15,7 @@ export interface MyWorkEntry {
   project_id: string;
   project_name: string;
   due_date: string | null;
-  deadline: DeadlineState;
+  deadline: DueDateState;
   /** The remediation the ticket tracks; null for an old one-vulnerability ticket */
   remediation: {
     kind: RemediationKind;

@@ -59,7 +59,7 @@ function makeRouter(): Router {
     routes: [
       { path: "/", component: page },
       {
-        path: "/vulnerabilities/:vulnerabilityId",
+        path: "/org/:orgId/vulnerabilities/:vulnerabilityId",
         name: "orgVulnerability",
         component: page,
       },
@@ -166,7 +166,9 @@ describe("MyWork", () => {
 
     const item = wrapper.find("[data-testid='my-work-entry']");
     expect(item.find("h3").text()).toBe("Fix CVE-2099-7705 in axios");
-    expect(item.text()).toContain("CVE-2099-7705");
+    expect(
+      item.find("a[data-testid='my-work-vulnerability']").attributes("href"),
+    ).toBe("/org/org-1/vulnerabilities/CVE-2099-7705");
     expect(item.text()).toContain("axios");
     // Nothing tracked in the current analysis: no prod or dev only chip.
     expect(chips(item)).toEqual(["Low"]);

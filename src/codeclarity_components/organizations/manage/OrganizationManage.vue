@@ -130,8 +130,8 @@ const faqs = [
   },
 ];
 
-// Shown until the organization has loaded its own targets.
-const SUGGESTED_TARGETS = { critical: 7, high: 30, medium: 90, low: null };
+// No target for any severity, when the organization sent neither its own nor suggested days.
+const NO_TARGETS = { critical: null, high: null, medium: null, low: null };
 
 function setOrgInfo(org: Organization): void {
   orgInfo.value = org;
@@ -265,7 +265,11 @@ function afterAction(): void {
           <ServiceLevelTargetsSetting
             :org-id="orgInfo.id"
             :enabled="orgInfo.service_level_targets_enabled ?? false"
-            :days="orgInfo.service_level_targets ?? SUGGESTED_TARGETS"
+            :days="
+              orgInfo.service_level_targets ??
+              orgInfo.suggested_service_level_targets ??
+              NO_TARGETS
+            "
           />
         </CardContent>
       </Card>

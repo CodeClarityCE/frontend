@@ -60,7 +60,7 @@ function makeRouter(): Router {
     routes: [
       { path: "/", component: page },
       {
-        path: "/vulnerabilities/:vulnerabilityId",
+        path: "/org/:orgId/vulnerabilities/:vulnerabilityId",
         name: "orgVulnerability",
         component: page,
       },
@@ -154,7 +154,7 @@ describe("FixNext", () => {
     ]);
     const [first, second] = wrapper.findAll("[data-testid='fix-next-entry']");
     expect(first!.find("h3 a").attributes("href")).toBe(
-      "/vulnerabilities/CVE-2099-7501",
+      "/org/org-1/vulnerabilities/CVE-2099-7501",
     );
     expect(first!.find("[data-testid='fix-next-ticket']").text()).toBe(
       "No ticket",

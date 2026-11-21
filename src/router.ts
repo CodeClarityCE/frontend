@@ -179,7 +179,7 @@ const router = createRouter({
       props: true,
     },
     {
-      path: "/vulnerabilities/:vulnerabilityId",
+      path: "/org/:orgId/vulnerabilities/:vulnerabilityId",
       name: "orgVulnerability",
       component: OrganizationVulnerabilityView as Component,
       props: true,

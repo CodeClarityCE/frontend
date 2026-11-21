@@ -58,6 +58,10 @@ export class Organization {
   @IsOptional()
   service_level_targets?: ServiceLevelTargetDays;
 
+  /** The days the API suggests to start from */
+  @IsOptional()
+  suggested_service_level_targets?: ServiceLevelTargetDays;
+
   @IsNotEmpty()
   role!: MemberRole;
 

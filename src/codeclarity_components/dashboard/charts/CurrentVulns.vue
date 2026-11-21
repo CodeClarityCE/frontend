@@ -2,10 +2,15 @@
 import { computed } from "vue";
 
 import { SeverityBadge } from "@/base_components/page";
+import {
+  formatPercent,
+  HIGH_EPSS,
+} from "@/codeclarity_components/results/vulnerabilities/vuln-format";
 import type {
   OrganizationVulnerabilityFilters,
   OrganizationVulnerabilityList,
 } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+import { orgVulnerabilityRoute } from "@/codeclarity_components/vulnerabilities/organization-vulnerability-route";
 import VulnerabilityListFilters from "@/codeclarity_components/vulnerabilities/VulnerabilityListFilters.vue";
 import { Badge } from "@/shadcn/ui/badge";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
@@ -25,6 +30,8 @@ const props = defineProps<{
     OrganizationVulnerabilityFilters
   >;
   projects: { id: string; name: string }[];
+  /** The organization listed, for links to its vulnerability pages */
+  orgId: string;
 }>();
 
 const filtered = computed(() => Object.keys(props.request.filters).length > 0);
@@ -39,6 +46,7 @@ interface Vuln {
   knownExploited: boolean;
   ticketed: number;
   overdue: number;
+  epss: number | null;
 }
 
 /** The levels counted at the top of the card */
@@ -77,6 +85,7 @@ const vulns = computed((): Vuln[] =>
     knownExploited: vuln.known_exploited,
     ticketed: vuln.ticketed_instance_count,
     overdue: vuln.overdue_instance_count,
+    epss: vuln.epss,
   })),
 );
 
@@ -133,10 +142,7 @@ const plural = (count: number, noun: string): string =>
         <ul aria-label="Vulnerabilities in your projects" class="divide-y">
           <li v-for="vuln in vulns" :key="vuln.id">
             <RouterLink
-              :to="{
-                name: 'orgVulnerability',
-                params: { vulnerabilityId: vuln.id },
-              }"
+              :to="orgVulnerabilityRoute(orgId, vuln.id)"
               class="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
               :class="{ 'opacity-60': fullyTicketed(vuln) }"
             >
@@ -179,6 +185,20 @@ const plural = (count: number, noun: string): string =>
                 v-else-if="vuln.ticketed > 0"
                 class="shrink-0 text-muted-foreground tabular-nums"
                 >{{ vuln.ticketed }} of {{ vuln.instances }} ticketed</span
+              >
+              <span
+                class="shrink-0 tabular-nums"
+                :class="
+                  vuln.epss !== null && vuln.epss >= HIGH_EPSS
+                    ? 'font-medium text-destructive'
+                    : 'text-muted-foreground'
+                "
+                title="Chance of exploitation in the next 30 days (EPSS)"
+                >{{
+                  vuln.epss === null
+                    ? "No EPSS"
+                    : `EPSS ${formatPercent(vuln.epss)}`
+                }}</span
               >
               <span class="shrink-0 text-muted-foreground">{{
                 plural(vuln.projects, "project")

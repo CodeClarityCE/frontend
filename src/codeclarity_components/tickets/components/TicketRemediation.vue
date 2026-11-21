@@ -8,6 +8,7 @@ import {
   RemediationKind,
   type TopLevelDependency,
 } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
+import { orgVulnerabilityRoute } from "@/codeclarity_components/vulnerabilities/organization-vulnerability-route";
 import { levelOfClass } from "@/codeclarity_components/vulnerabilities/severity-class";
 import InstanceDiffLinks from "@/codeclarity_components/vulnerabilities/shared/InstanceDiffLinks.vue";
 import { Badge } from "@/shadcn/ui/badge";
@@ -24,6 +25,8 @@ import type { TicketInstance, TicketRemediation } from "../tickets.entity";
 
 // The remediation a ticket tracks and every vulnerability instance it resolves.
 const props = defineProps<{
+  /** The ticket's organization, for links to its vulnerability pages */
+  orgId: string;
   remediation: TicketRemediation;
   instances: TicketInstance[];
 }>();
@@ -64,10 +67,8 @@ const changes = computed(() => {
   return [...found.values()];
 });
 
-const vulnerabilityRoute = (instance: TicketInstance): RouteLocationRaw => ({
-  name: "orgVulnerability",
-  params: { vulnerabilityId: instance.vulnerability_id },
-});
+const vulnerabilityRoute = (instance: TicketInstance): RouteLocationRaw =>
+  orgVulnerabilityRoute(props.orgId, instance.vulnerability_id);
 </script>
 
 <template>

@@ -452,7 +452,8 @@ onMounted(() => {
         </template>
 
         <TicketRemediation
-          v-if="ticket.remediation"
+          v-if="ticket.remediation && defaultOrg"
+          :org-id="defaultOrg.id"
           :remediation="ticket.remediation"
           :instances="ticket.instances ?? []"
         />

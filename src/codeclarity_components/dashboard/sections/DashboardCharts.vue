@@ -38,6 +38,8 @@ defineProps<{
   >;
   /** The projects the vulnerability list can be narrowed to */
   projects: { id: string; name: string }[];
+  /** The organization shown, for links to its vulnerability pages */
+  orgId: string;
 }>();
 </script>
 
@@ -63,7 +65,11 @@ defineProps<{
         >
       </CardHeader>
       <CardContent>
-        <CurrentVulns :request="vulnerabilityList" :projects="projects" />
+        <CurrentVulns
+          :request="vulnerabilityList"
+          :projects="projects"
+          :org-id="orgId"
+        />
       </CardContent>
     </Card>
     <Card class="rounded-card shadow-card">

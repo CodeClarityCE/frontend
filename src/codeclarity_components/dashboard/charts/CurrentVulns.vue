@@ -37,6 +37,7 @@ interface Vuln {
   instances: number;
   uncorroborated: boolean;
   knownExploited: boolean;
+  ticketed: number;
 }
 
 /** The levels counted at the top of the card */
@@ -73,8 +74,13 @@ const vulns = computed((): Vuln[] =>
     instances: vuln.instance_count,
     uncorroborated: vuln.uncorroborated_count > 0,
     knownExploited: vuln.known_exploited,
+    ticketed: vuln.ticketed_instance_count,
   })),
 );
+
+// Every instance has an open ticket, so nothing is left untracked.
+const fullyTicketed = (vuln: Vuln): boolean =>
+  vuln.instances > 0 && vuln.ticketed >= vuln.instances;
 
 const plural = (count: number, noun: string): string =>
   `${count} ${noun}${count === 1 ? "" : "s"}`;
@@ -130,6 +136,7 @@ const plural = (count: number, noun: string): string =>
                 params: { vulnerabilityId: vuln.id },
               }"
               class="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+              :class="{ 'opacity-60': fullyTicketed(vuln) }"
             >
               <SeverityBadge
                 :level="vuln.level"
@@ -151,6 +158,18 @@ const plural = (count: number, noun: string): string =>
                 title="Matched by one source origin only"
                 class="shrink-0"
                 >Uncorroborated</Badge
+              >
+              <Badge
+                v-if="fullyTicketed(vuln)"
+                variant="secondary"
+                title="Every instance has an open ticket"
+                class="shrink-0"
+                >Ticketed</Badge
+              >
+              <span
+                v-else-if="vuln.ticketed > 0"
+                class="shrink-0 text-muted-foreground tabular-nums"
+                >{{ vuln.ticketed }} of {{ vuln.instances }} ticketed</span
               >
               <span class="shrink-0 text-muted-foreground">{{
                 plural(vuln.projects, "project")

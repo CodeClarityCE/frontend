@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ChevronRight } from "@lucide/vue";
 import { ref } from "vue";
+import type { RouteLocationRaw } from "vue-router";
 
 import { SeverityBadge } from "@/base_components/page";
 import { detailsRoute } from "@/codeclarity_components/results/vulnerabilities/vuln-format";
@@ -15,10 +16,12 @@ import {
   TableRow,
 } from "@/shadcn/ui/table";
 
-import type {
-  AffectedInstance,
-  AffectedProject,
-  TopLevelDependency,
+import {
+  type AffectedInstance,
+  type AffectedProject,
+  type InstanceTicket,
+  TicketState,
+  type TopLevelDependency,
 } from "../organization_vulnerability.entity";
 import { levelOfClass } from "../severity-class";
 import InstanceDiffLinks from "../shared/InstanceDiffLinks.vue";
@@ -81,6 +84,31 @@ function changesOf(project: AffectedProject): AffectedInstance[] {
   return [...changes.values()];
 }
 
+// The ticket state of a project's instances, as its row words it.
+function ticketText(project: AffectedProject): string {
+  const ticketed = project.instances.filter((i) => i.ticket).length;
+  if (project.ticket_state === TicketState.None || ticketed === 0) {
+    return "No ticket";
+  }
+  return ticketed === project.instances.length
+    ? "Ticket open"
+    : `${ticketed} of ${project.instances.length} ticketed`;
+}
+
+// The distinct open tickets tracking a project's instances.
+function ticketsOf(project: AffectedProject): InstanceTicket[] {
+  const tickets = new Map<string, InstanceTicket>();
+  for (const { ticket } of project.instances) {
+    if (ticket) tickets.set(ticket.id, ticket);
+  }
+  return [...tickets.values()];
+}
+
+const ticketRoute = (ticketId: string): RouteLocationRaw => ({
+  path: "/tickets",
+  query: { ticket_id: ticketId },
+});
+
 const instanceKey = (instance: AffectedInstance): string =>
   [
     instance.workspace,
@@ -116,6 +144,15 @@ const instanceKey = (instance: AffectedInstance): string =>
             <span class="min-w-0 flex-1 truncate font-medium">{{
               project.project_name
             }}</span>
+            <Badge
+              :variant="
+                project.ticket_state === TicketState.None
+                  ? 'outline'
+                  : 'secondary'
+              "
+              class="shrink-0"
+              >{{ ticketText(project) }}</Badge
+            >
             <SeverityBadge
               :level="levelOfClass(project.severity_class)"
               :score="project.severity_score ?? undefined"
@@ -207,6 +244,19 @@ const instanceKey = (instance: AffectedInstance): string =>
                 </TableRow>
               </TableBody>
             </Table>
+            <ul
+              v-if="ticketsOf(project).length > 0"
+              aria-label="Open tickets"
+              class="mt-3 flex flex-wrap gap-3 text-sm"
+            >
+              <li v-for="ticket in ticketsOf(project)" :key="ticket.id">
+                <RouterLink
+                  :to="ticketRoute(ticket.id)"
+                  class="text-primary underline-offset-4 hover:underline"
+                  >View ticket</RouterLink
+                >
+              </li>
+            </ul>
             <ProjectRemediations :project="project" />
             <ul
               v-if="changesOf(project).length > 0"

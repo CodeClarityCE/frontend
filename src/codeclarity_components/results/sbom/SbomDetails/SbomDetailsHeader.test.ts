@@ -1,8 +1,13 @@
 import { render, screen } from "@testing-library/vue";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { dependency } from "./dependency.fixture";
 import SbomDetailsHeader from "./SbomDetailsHeader.vue";
+
+// Runs without the global store and router mocks.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 function links(overrides: Parameters<typeof dependency>[0] = {}) {
   render(SbomDetailsHeader, { props: { dependency: dependency(overrides) } });

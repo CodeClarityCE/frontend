@@ -8,32 +8,27 @@ import {
 } from "@/codeclarity_components/analyses/analysis.entity";
 import type { Project } from "@/codeclarity_components/projects/project.entity";
 
+import { analysisPath, paginated } from "../../../../tests/fixtures/results";
+import { createTestApp } from "../../../../tests/real-app";
+
 import ResultsSBOM from "./ResultsSBOM.vue";
 
-const repo = vi.hoisted(() => ({
-  getSbomStat: vi.fn(),
-  getSbom: vi.fn(),
-  getVulnerabilitiesStat: vi.fn(),
-}));
-vi.mock("@/codeclarity_components/results/results.repository", () => ({
-  ResultsRepository: class {
-    getSbomStat = repo.getSbomStat;
-    getSbom = repo.getSbom;
-    getVulnerabilitiesStat = repo.getVulnerabilitiesStat;
-  },
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token", getAuthenticated: true }),
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 describe("ResultsSBOM", () => {
   it("shows the SBOM of the analysis", async () => {
-    repo.getSbomStat.mockResolvedValue({ data: { number_of_dependencies: 0 } });
-    repo.getSbom.mockResolvedValue({ data: [], total_pages: 1 });
-    repo.getVulnerabilitiesStat.mockResolvedValue({ data: null });
+    const app = createTestApp({ signedIn: true });
+    await app.visit("/projects");
+    app.http.on("GET", `${analysisPath}/sbom/workspaces`, {
+      data: { workspaces: ["."], package_manager: "NPM" },
+    });
+    app.http.on("GET", `${analysisPath}/sbom/stats`, {
+      data: { number_of_dependencies: 0 },
+    });
+    app.http.on("GET", `${analysisPath}/sbom`, paginated([]));
     render(ResultsSBOM, {
       props: {
         analysis: {
@@ -42,7 +37,7 @@ describe("ResultsSBOM", () => {
         } as unknown as Analysis,
         project: { id: "p-1", name: "web" } as Project,
       },
-      global: { stubs: { SelectWorkspace: true } },
+      global: app.global,
     });
     await flushPromises();
     expect(
@@ -52,8 +47,5 @@ describe("ResultsSBOM", () => {
       }),
     ).toBeTruthy();
     expect(screen.getByText("No dependencies found")).toBeTruthy();
-    expect(repo.getSbomStat).toHaveBeenCalledWith(
-      expect.objectContaining({ analysisId: "a-1", projectId: "p-1" }),
-    );
   });
 });

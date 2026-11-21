@@ -1,108 +1,27 @@
-import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { defineComponent, h, onMounted } from "vue";
+import userEvent from "@testing-library/user-event";
+import { render, screen, within } from "@testing-library/vue";
+import { describe, expect, it, vi } from "vitest";
 
 import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
-import router from "@/router";
+
+import {
+  createTestApp,
+  org,
+  type TestApp,
+  user,
+  withToaster,
+} from "../../../../tests/real-app";
 
 import ManageMembers from "./ManageMembers.vue";
 
-const { getOrgMembers, revokeMembership, orgInfo, toasts } = vi.hoisted(() => ({
-  getOrgMembers: vi.fn(),
-  revokeMembership: vi.fn(),
-  orgInfo: { current: {} },
-  toasts: { successToast: vi.fn(), errorToast: vi.fn() },
-}));
-
-vi.mock("@/router", () => ({ default: { back: vi.fn(), push: vi.fn() } }));
-
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getAuthenticated: true, getToken: "test-token" }),
-}));
-
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getUser: { id: "u-me" } }),
-}));
-
-vi.mock("@/utils/toasts", () => toasts);
-
-// The global @vueuse/core mock leaves shadcn Input inert, so use a plain input.
-vi.mock("@/shadcn/ui/input", () => ({
-  Input: defineComponent({
-    props: { modelValue: { type: String, default: "" } },
-    emits: ["update:modelValue"],
-    setup(props, { emit, attrs }) {
-      return () =>
-        h("input", {
-          ...attrs,
-          value: props.modelValue,
-          onInput: (e: Event) =>
-            emit("update:modelValue", (e.target as HTMLInputElement).value),
-        });
-    },
-  }),
-}));
-
-const { BusinessLogicError } = vi.hoisted(() => ({
-  BusinessLogicError: class BusinessLogicError extends Error {
-    error_code: string;
-    constructor(error_code: string) {
-      super(error_code);
-      this.error_code = error_code;
-    }
-  },
-}));
-
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class {},
-  BusinessLogicError,
-}));
-
-vi.mock(
-  "@/codeclarity_components/organizations/organization.repository",
-  () => ({
-    OrgRepository: class {
-      getOrgMembers = getOrgMembers;
-      revokeMembership = revokeMembership;
-    },
-  }),
-);
-
-// The header reports the organisation, as the real one does once loaded.
-vi.mock(
-  "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue",
-  () => ({
-    default: defineComponent({
-      emits: ["onOrgInfo"],
-      setup(_, { emit }) {
-        onMounted(() => emit("onOrgInfo", orgInfo.current));
-        return () => h("div", "Organisation header");
-      },
-    }),
-  }),
-);
-
-vi.mock("vue-router", async () => {
-  const actual =
-    await vi.importActual<typeof import("vue-router")>("vue-router");
-  return {
-    ...actual,
-    useRoute: () => ({ params: { orgId: "org-1" } }),
-    RouterLink: defineComponent({
-      props: { to: { type: Object, required: true } },
-      setup(_, { slots, attrs }) {
-        return () => h("a", { ...attrs, href: "#" }, slots.default?.());
-      },
-    }),
-  };
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
 });
 
-function member(
-  id: string,
-  first: string,
-  role: MemberRole,
-  extra: object = {},
-): object {
+const membersPath = `/org/${org.id}/members`;
+
+function member(id: string, first: string, role: MemberRole): object {
   return {
     role,
     joined_on: "2025-01-10T10:00:00Z",
@@ -113,13 +32,20 @@ function member(
       handle: first.toLowerCase(),
       email: `${first.toLowerCase()}@example.com`,
     },
-    organization: { id: "org-1", name: "Org" },
-    ...extra,
+    organization: {
+      id: org.id,
+      name: org.name,
+      description: org.description,
+      color_scheme: org.color_scheme,
+      created_on: org.created_on,
+      personal: false,
+    },
   };
 }
 
+// The signed-in user is Jane, an admin.
 const sample = [
-  member("u-me", "Jane", MemberRole.ADMIN),
+  member(user.id, "Jane", MemberRole.ADMIN),
   member("u-2", "Bob", MemberRole.USER),
   member("u-3", "Olga", MemberRole.OWNER),
   member("u-4", "Mia", MemberRole.MODERATOR),
@@ -127,229 +53,267 @@ const sample = [
 ];
 
 function page(data: object[], totalPages = 1): object {
-  return { data, total_pages: totalPages };
+  return {
+    data,
+    entry_count: data.length,
+    page: 0,
+    entries_per_page: 100,
+    total_entries: data.length,
+    total_pages: totalPages,
+    matching_count: data.length,
+    filter_count: {},
+    status: "success",
+  };
 }
 
-let wrapper: VueWrapper | undefined;
-
-async function render(props: object = { orgId: "org-1" }): Promise<VueWrapper> {
-  wrapper = mount(ManageMembers, { props, attachTo: document.body });
-  await flushPromises();
-  return wrapper;
+// Opens the members page as a member with this role; null leaves the members unanswered.
+async function openMembers(
+  options: {
+    role?: MemberRole;
+    personal?: boolean;
+    members?: object | null;
+    orgId?: string;
+  } = {},
+): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  app.http.on("GET", `/org/${org.id}`, {
+    data: {
+      ...org,
+      role: options.role ?? MemberRole.ADMIN,
+      personal: options.personal ?? false,
+    },
+  });
+  if (options.members !== null) {
+    app.http.on("GET", membersPath, options.members ?? page(sample));
+  }
+  await app.visit(`/orgs/manage/members/${org.id}`);
+  render(withToaster(ManageMembers, { orgId: options.orgId ?? org.id }), {
+    global: app.global,
+  });
+  return app;
 }
 
-function button(name: string): HTMLElement | undefined {
-  return [...document.querySelectorAll<HTMLElement>("button, a")].find(
-    (el) =>
-      el.getAttribute("aria-label") === name || el.textContent?.trim() === name,
-  );
+// Waits for the members table to show its rows.
+async function table(): Promise<HTMLElement> {
+  const found = await screen.findByRole("table");
+  await within(found).findByText("Bob Doe");
+  return found;
+}
+
+const button = (name: string) => screen.queryByRole("button", { name });
+
+async function removeBob(): Promise<void> {
+  await table();
+  await userEvent.click(button("Remove Bob Doe")!);
+  expect(
+    await screen.findByText("Remove Bob Doe from the organisation?"),
+  ).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Remove member" }));
 }
 
 describe("ManageMembers", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    orgInfo.current = {
-      id: "org-1",
-      role: MemberRole.ADMIN,
-      personal: false,
-    };
-    getOrgMembers.mockResolvedValue(page(sample));
-  });
-
-  afterEach(() => {
-    wrapper?.unmount();
-    wrapper = undefined;
-    document.body.innerHTML = "";
-  });
-
   it("shows the Members heading", async () => {
-    await render();
+    await openMembers();
 
-    expect(document.querySelector("h1")?.textContent).toContain("Members");
-  });
-
-  it("shows the organisation header above the list", async () => {
-    await render();
-
-    expect(document.body.textContent).toContain("Organisation header");
+    expect(
+      await screen.findByRole("heading", { level: 1, name: /Members/ }),
+    ).toBeInTheDocument();
   });
 
   it("shows a loading status until the members arrive", async () => {
-    getOrgMembers.mockReturnValue(new Promise(() => {}));
-    wrapper = mount(ManageMembers, {
-      props: { orgId: "org-1" },
-      attachTo: document.body,
-    });
-    await flushPromises();
+    await openMembers({ members: null });
 
     expect(
-      document.querySelector('[role="status"][aria-label="Loading Members"]'),
-    ).not.toBeNull();
+      screen.getByRole("status", { name: "Loading Members" }),
+    ).toBeInTheDocument();
   });
 
   it("lists every member with the role in words", async () => {
-    await render();
+    await openMembers();
 
-    const text = document.querySelector("table")?.textContent ?? "";
-    expect(text).toContain("Jane Doe");
-    expect(text).toContain("(you)");
-    expect(text).toContain("Bob Doe");
-    expect(text).toContain("User");
-    expect(text).toContain("Owner");
+    const rows = await table();
+    expect(rows).toHaveTextContent("Jane Doe");
+    expect(rows).toHaveTextContent("(you)");
+    expect(rows).toHaveTextContent("User");
+    expect(rows).toHaveTextContent("Owner");
   });
 
   it("says the members could not be loaded and offers a retry", async () => {
-    getOrgMembers.mockRejectedValueOnce(new Error("boom"));
-    await render();
+    const app = await openMembers({ members: null });
 
-    expect(document.body.textContent).toContain(
-      "The members could not be loaded.",
-    );
+    expect(
+      await screen.findByText("The members could not be loaded."),
+    ).toBeInTheDocument();
 
-    button("Try again")?.click();
-    await flushPromises();
+    app.http.on("GET", membersPath, page(sample));
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
 
-    expect(document.querySelector("table")?.textContent).toContain("Bob Doe");
+    await table();
   });
 
   it("offers invitations to admins", async () => {
-    await render();
+    await openMembers();
+    await table();
 
-    expect(button("Invite a member")).toBeDefined();
-    expect(button("Open invitations")).toBeDefined();
+    expect(
+      screen.getByRole("link", { name: /Invite a member/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Open invitations/ }),
+    ).toBeInTheDocument();
   });
 
   it("hides invitations in a personal organisation", async () => {
-    orgInfo.current = { ...orgInfo.current, personal: true };
-    await render();
+    await openMembers({ personal: true });
+    await table();
 
-    expect(button("Invite a member")).toBeUndefined();
-  });
-
-  it("loads the members once it is shown", async () => {
-    await render();
-
-    expect(getOrgMembers).toHaveBeenCalledTimes(1);
-    expect(getOrgMembers).toHaveBeenCalledWith(
-      expect.objectContaining({ orgId: "org-1", bearerToken: "test-token" }),
-    );
+    expect(
+      screen.queryByRole("link", { name: /Invite a member/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("loads every page of members so sorting covers them all", async () => {
-    getOrgMembers
-      .mockResolvedValueOnce(page(sample.slice(0, 2), 2))
-      .mockResolvedValueOnce(page(sample.slice(2), 2));
-    await render();
+    const app = createTestApp({ signedIn: true });
+    // Answers each page of members with its own slice.
+    const fake = globalThis.fetch;
+    vi.stubGlobal("fetch", (input: string, init?: RequestInit) => {
+      const second = new URL(input).searchParams.get("page") === "1";
+      app.http.on(
+        "GET",
+        membersPath,
+        second ? page(sample.slice(2), 2) : page(sample.slice(0, 2), 2),
+      );
+      return fake(input, init);
+    });
+    await app.visit(`/orgs/manage/members/${org.id}`);
+    render(ManageMembers, { props: { orgId: org.id }, global: app.global });
 
-    expect(getOrgMembers).toHaveBeenCalledTimes(2);
-    expect(document.querySelector("table")?.textContent).toContain("Olga Doe");
+    expect(within(await table()).getByText("Olga Doe")).toBeInTheDocument();
+    expect(
+      app.http.requests
+        .filter((r) => r.path === membersPath)
+        .map((r) => r.query.get("page")),
+    ).toEqual(["0", "1"]);
   });
 
   it("sorting by Role puts owners first", async () => {
-    await render();
+    await openMembers();
+    const rows = await table();
 
-    const header = [...document.querySelectorAll("th")].find((th) =>
-      th.textContent?.includes("Role"),
-    );
-    header?.querySelector("button")?.click();
-    await flushPromises();
+    await userEvent.click(within(rows).getByRole("button", { name: /Role/ }));
 
-    const firstRow = document.querySelector("tbody tr")?.textContent ?? "";
-    expect(firstRow).toContain("Olga Doe");
+    expect(within(rows).getAllByRole("row")[1]).toHaveTextContent("Olga Doe");
   });
 
   it("filtering narrows the rows and says when nothing matches", async () => {
-    const view = await render();
+    await openMembers();
+    const rows = await table();
+    const filter = screen.getByRole("searchbox");
 
-    await view.find('input[type="search"]').setValue("bob");
-    expect(document.querySelectorAll("tbody tr")).toHaveLength(1);
+    await userEvent.type(filter, "bob");
+    expect(within(rows).getAllByRole("row")).toHaveLength(2);
 
-    await view.find('input[type="search"]').setValue("nobody here");
-    expect(document.querySelector("tbody")?.textContent).toContain(
-      "No members match.",
-    );
+    await userEvent.clear(filter);
+    await userEvent.type(filter, "nobody here");
+    expect(rows).toHaveTextContent("No members match.");
   });
 
   it("sends users without admin rights back to the organisation overview", async () => {
-    orgInfo.current = { ...orgInfo.current, role: MemberRole.USER };
-    await render();
+    const app = await openMembers({ role: MemberRole.USER });
 
-    expect(router.push).toHaveBeenCalledWith({
-      name: "orgs",
-      params: { action: "manage", page: "main", orgId: "org-1" },
-    });
+    await vi.waitFor(() =>
+      expect(app.router.currentRoute.value.params).toMatchObject({
+        action: "manage",
+        page: "main",
+        orgId: org.id,
+      }),
+    );
   });
 
   it("goes back when no organisation is given", async () => {
-    await render({ orgId: "" });
+    const app = createTestApp({ signedIn: true });
+    await app.visit("/projects");
+    await app.router.push(`/orgs/manage/members/${org.id}`);
+    render(ManageMembers, { props: { orgId: "" }, global: app.global });
 
-    expect(router.back).toHaveBeenCalled();
+    await vi.waitFor(() =>
+      expect(app.router.currentRoute.value.path).toBe("/projects"),
+    );
   });
 
   it("offers an admin Remove for a moderator, a user and another admin", async () => {
-    await render();
+    await openMembers();
+    await table();
 
-    expect(button("Remove Bob Doe")).toBeDefined();
-    expect(button("Remove Mia Doe")).toBeDefined();
-    expect(button("Remove Adam Doe")).toBeDefined();
+    expect(button("Remove Bob Doe")).toBeInTheDocument();
+    expect(button("Remove Mia Doe")).toBeInTheDocument();
+    expect(button("Remove Adam Doe")).toBeInTheDocument();
   });
 
   it("offers an admin no Remove for an owner or themselves", async () => {
-    await render();
+    await openMembers();
+    await table();
 
-    expect(button("Remove Olga Doe")).toBeUndefined();
-    expect(button("Remove Jane Doe")).toBeUndefined();
+    expect(button("Remove Olga Doe")).not.toBeInTheDocument();
+    expect(button("Remove Jane Doe")).not.toBeInTheDocument();
   });
 
   it("offers a moderator no Remove at all", async () => {
-    orgInfo.current = { ...orgInfo.current, role: MemberRole.MODERATOR };
-    await render();
+    await openMembers({ role: MemberRole.MODERATOR });
+    const rows = await table();
 
-    expect(button("Remove Bob Doe")).toBeUndefined();
-    expect(document.body.textContent).not.toContain("Actions");
+    expect(button("Remove Bob Doe")).not.toBeInTheDocument();
+    expect(rows).not.toHaveTextContent("Actions");
   });
 
   it("offers no Remove in a personal organisation", async () => {
-    orgInfo.current = { ...orgInfo.current, personal: true };
-    await render();
+    await openMembers({ personal: true });
+    await table();
 
-    expect(button("Remove Bob Doe")).toBeUndefined();
+    expect(button("Remove Bob Doe")).not.toBeInTheDocument();
   });
 
   it.each([
     ["NotAuthorized", "Your role does not allow removing this member"],
     ["CannotRevokeOwnMembership", "You cannot remove yourself"],
   ])("says plainly why the API refused with %s", async (code, message) => {
-    revokeMembership.mockRejectedValue(new BusinessLogicError(code));
-    await render();
+    const app = await openMembers();
+    app.http.on(
+      "DELETE",
+      `${membersPath}/u-2`,
+      {
+        status_code: 403,
+        status: "failure",
+        error_code: code,
+        error_message: code,
+      },
+      403,
+    );
 
-    button("Remove Bob Doe")?.click();
-    await flushPromises();
-    button("Remove member")?.click();
-    await flushPromises();
+    await removeBob();
 
-    expect(toasts.errorToast).toHaveBeenCalledWith(message);
+    expect(await screen.findByText(message)).toBeInTheDocument();
   });
 
   it("removes a member after confirming and reloads the list", async () => {
-    revokeMembership.mockResolvedValue(undefined);
-    await render();
+    const app = await openMembers();
+    app.http.on("DELETE", `${membersPath}/u-2`, {
+      status_code: 200,
+      status: "success",
+    });
 
-    button("Remove Bob Doe")?.click();
-    await flushPromises();
-    expect(document.body.textContent).toContain(
-      "Remove Bob Doe from the organisation?",
-    );
+    await table();
+    app.http.on("GET", membersPath, page([sample[0]!, sample[2]!]));
+    await removeBob();
 
-    getOrgMembers.mockResolvedValue(page([sample[0]!, sample[2]!]));
-    button("Remove member")?.click();
-    await flushPromises();
-
-    expect(revokeMembership).toHaveBeenCalledWith(
-      expect.objectContaining({ orgId: "org-1", userId: "u-2" }),
+    expect(await screen.findByText("Removed Bob Doe")).toBeInTheDocument();
+    await vi.waitFor(() =>
+      expect(screen.getByRole("table")).not.toHaveTextContent("Bob Doe"),
     );
-    expect(document.querySelector("table")?.textContent).not.toContain(
-      "Bob Doe",
-    );
+    expect(
+      app.http.requests.some(
+        (r) => r.method === "DELETE" && r.path === `${membersPath}/u-2`,
+      ),
+    ).toBe(true);
   });
 });

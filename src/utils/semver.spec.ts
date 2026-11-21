@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   compareSemver,
@@ -14,6 +14,11 @@ import {
   shouldRecommendUpgrade,
   sortVersions,
 } from "./semver";
+
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 describe("semver utilities", () => {
   describe("parseSemver", () => {

@@ -1,8 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Entity } from "@/utils/api/BaseEntity";
 
 import { TicketEvent } from "./tickets.entity";
+
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 // Every value of the API's TicketEventType (api ticket-event.entity.ts).
 const API_EVENT_TYPES = [

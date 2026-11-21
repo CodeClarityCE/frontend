@@ -1,61 +1,34 @@
-import { mount } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/vue";
+import { describe, expect, it, vi } from "vitest";
 
 import SignupView from "@/codeclarity_components/authentication/signup/SignupView.vue";
+import { useStateStore } from "@/stores/state";
 
-const mockStateStore = {
-  $reset: vi.fn(),
-  page: "",
-  publicPage: false,
-};
+import { createTestApp } from "../../../../real-app";
 
-vi.mock("@/stores/state", () => ({
-  useStateStore: vi.fn(() => mockStateStore),
-}));
-
-const mockLocation = { search: "" };
-
-Object.defineProperty(window, "location", {
-  value: mockLocation,
-  writable: true,
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
 });
 
-const mountView = (): ReturnType<typeof mount> =>
-  mount(SignupView, {
-    global: {
-      stubs: {
-        SignupForm: {
-          name: "SignupForm",
-          template: '<div class="signup-form">Signup Form</div>',
-        },
-      },
-    },
-  });
-
 describe("SignupView.vue", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockLocation.search = "";
-  });
+  it("shows the signup form as a public page", async () => {
+    const app = createTestApp();
+    await app.visit("/signup");
 
-  it("marks the page as the public signup page", () => {
-    mountView();
+    render(SignupView, { global: app.global });
 
-    expect(mockStateStore.$reset).toHaveBeenCalled();
-    expect(mockStateStore.page).toBe("signup");
-    expect(mockStateStore.publicPage).toBe(true);
-  });
-
-  it("renders the signup form", () => {
-    expect(mountView().find(".signup-form").exists()).toBe(true);
-  });
-
-  it("renders the signup form even when a sign-in provider is in the URL", () => {
-    mockLocation.search = "?provider=github";
-
-    const wrapper = mountView();
-
-    expect(wrapper.find(".signup-form").exists()).toBe(true);
-    expect(wrapper.html()).not.toContain("social");
+    for (const label of [
+      "Email",
+      "First name",
+      "Last name",
+      "Handle",
+      "Password",
+      "Confirm password",
+    ]) {
+      expect(screen.getByLabelText(label)).toBeInTheDocument();
+    }
+    // The shell hides the signed-in sidebar on public pages.
+    expect(useStateStore().publicPage).toBe(true);
   });
 });

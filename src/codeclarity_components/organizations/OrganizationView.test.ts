@@ -1,405 +1,76 @@
-import { mount } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/vue";
+import { describe, expect, it, vi } from "vitest";
+
+import { createTestApp, org } from "../../../tests/real-app";
 
 import OrganizationView from "./OrganizationView.vue";
 
-// Mock the state store
-const mockStateStore = {
-  $reset: vi.fn(),
-  page: "orgs",
-};
-
-vi.mock("@/stores/state", () => ({
-  useStateStore: () => mockStateStore,
-}));
-
-// Mock Vue's defineAsyncComponent to return sync components
-vi.mock("vue", async () => {
-  const actual = await vi.importActual("vue");
-  return {
-    ...actual,
-    defineAsyncComponent: (options: any) => {
-      // Return the mock component directly based on the loader path
-      const loaderStr = (options.loader ?? options)?.toString();
-      if (loaderStr?.includes("OrganizationsList")) {
-        return {
-          name: "OrganizationsList",
-          template:
-            '<div data-testid="organizations-list">Organizations List</div>',
-        };
-      }
-      if (loaderStr?.includes("OrganizationCreate")) {
-        return {
-          name: "OrganizationCreate",
-          template:
-            '<div data-testid="organization-create">Create Organization</div>',
-        };
-      }
-      if (loaderStr?.includes("PoliciesView")) {
-        return {
-          name: "PoliciesView",
-          template: '<div data-testid="policies-view">Policies</div>',
-          props: ["page", "orgId", "action"],
-        };
-      }
-      if (loaderStr?.includes("ManageAuditLogs")) {
-        return {
-          name: "ManageAuditLogs",
-          template: '<div data-testid="manage-audit-logs">Audit Logs</div>',
-          props: ["page", "orgId"],
-        };
-      }
-      if (loaderStr?.includes("ManageMembers")) {
-        return {
-          name: "ManageMembers",
-          template: '<div data-testid="manage-members">Manage Members</div>',
-          props: ["page", "orgId"],
-        };
-      }
-      if (loaderStr?.includes("ManageInvites")) {
-        return {
-          name: "ManageInvites",
-          template: '<div data-testid="manage-invites">Manage Invites</div>',
-          props: ["page", "orgId"],
-        };
-      }
-      if (loaderStr?.includes("IntegrationsView")) {
-        return {
-          name: "IntegrationsView",
-          template: '<div data-testid="integrations-view">Integrations</div>',
-          props: ["page", "orgId", "action"],
-        };
-      }
-      if (loaderStr?.includes("AnalyzersView")) {
-        return {
-          name: "AnalyzersView",
-          template: '<div data-testid="analyzers-view">Analyzers</div>',
-          props: ["page", "orgId", "action"],
-        };
-      }
-      if (loaderStr?.includes("OrganizationManage")) {
-        return {
-          name: "OrganizationManage",
-          template:
-            '<div data-testid="organization-manage">Organization Manage</div>',
-          props: ["page", "orgId"],
-        };
-      }
-      // Fallback
-      return {
-        name: "AsyncComponent",
-        template: "<div>Loading...</div>",
-      };
-    },
-  };
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
 });
 
-// Mock the dynamic imports
-vi.mock(
-  "@/codeclarity_components/organizations/list/OrganizationsList.vue",
-  () => ({
-    default: {
-      name: "OrganizationsList",
-      template:
-        '<div data-testid="organizations-list">Organizations List</div>',
-    },
-  }),
-);
+// Opens an /orgs URL and renders the view with the route's params, as the router does.
+async function open(path: string): Promise<void> {
+  const app = createTestApp({ signedIn: true });
+  await app.visit(path);
+  render(OrganizationView, {
+    props: app.router.currentRoute.value.params,
+    global: app.global,
+  });
+}
 
-vi.mock(
-  "@/codeclarity_components/organizations/create/OrganizationCreate.vue",
-  () => ({
-    default: {
-      name: "OrganizationCreate",
-      template:
-        '<div data-testid="organization-create">Create Organization</div>',
-    },
-  }),
-);
-
-vi.mock("./audit_logs/ManageAuditLogs.vue", () => ({
-  default: {
-    name: "ManageAuditLogs",
-    template: '<div data-testid="manage-audit-logs">Audit Logs</div>',
-    props: ["page", "orgId"],
-  },
-}));
-
-vi.mock("./policy/PoliciesView.vue", () => ({
-  default: {
-    name: "PoliciesView",
-    template: '<div data-testid="policies-view">Policies</div>',
-    props: ["page", "orgId", "action"],
-  },
-}));
-
-vi.mock("./manage/OrganizationManage.vue", () => ({
-  default: {
-    name: "OrganizationManage",
-    template:
-      '<div data-testid="organization-manage">Organization Manage</div>',
-    props: ["page", "orgId"],
-  },
-}));
-
-vi.mock("./members/ManageMembers.vue", () => ({
-  default: {
-    name: "ManageMembers",
-    template: '<div data-testid="manage-members">Manage Members</div>',
-    props: ["page", "orgId"],
-  },
-}));
-
-vi.mock("./invites/ManageInvites.vue", () => ({
-  default: {
-    name: "ManageInvites",
-    template: '<div data-testid="manage-invites">Manage Invites</div>',
-    props: ["page", "orgId"],
-  },
-}));
-
-vi.mock("./integrations/IntegrationsView.vue", () => ({
-  default: {
-    name: "IntegrationsView",
-    template: '<div data-testid="integrations-view">Integrations</div>',
-    props: ["page", "orgId", "action"],
-  },
-}));
-
-vi.mock("./analyzers/AnalyzersView.vue", () => ({
-  default: {
-    name: "AnalyzersView",
-    template: '<div data-testid="analyzers-view">Analyzers</div>',
-    props: ["page", "orgId", "action"],
-  },
-}));
-
-vi.mock("./subcomponents/OrgNotFound.vue", () => ({
-  default: {
-    name: "OrgNotFound",
-    template: "<div>Not found</div>",
-    props: ["orgId"],
-  },
-}));
+const pageTitles = (): string[] =>
+  screen
+    .queryAllByRole("heading", { level: 1 })
+    .map((h) => h.textContent?.trim() ?? "");
 
 describe("OrganizationView", () => {
-  let wrapper: any;
+  it.each([
+    ["/orgs/list", "Organisations"],
+    ["/orgs/add", "New organisation"],
+    [`/orgs/manage/main/${org.id}`, "Organisation overview"],
+    [`/orgs/manage/members/${org.id}`, "Members"],
+    [`/orgs/manage/invites/${org.id}`, "Invitations"],
+    [`/orgs/manage/logs/${org.id}`, "Audit logs"],
+    [`/orgs/manage/analyzers/${org.id}`, "Analyzers"],
+    [`/orgs/manage/policies/${org.id}`, "Policies"],
+    [`/orgs/manage/policy/${org.id}`, "Policies"],
+  ])("%s shows only the %s page", async (path, title) => {
+    await open(path);
 
-  beforeEach(() => {
-    vi.clearAllMocks();
+    await screen.findByRole("heading", { level: 1, name: title });
+    expect(pageTitles()).toEqual([title]);
   });
 
-  afterEach(() => {
-    if (wrapper) {
-      wrapper.unmount();
-    }
+  it("shows the connected services on the integrations page", async () => {
+    await open(`/orgs/manage/integrations/${org.id}`);
+
+    expect(
+      await screen.findByRole("heading", { name: "Connected services" }),
+    ).toBeInTheDocument();
   });
 
-  it('shows OrganizationsList when action is "list" and no orgId', async () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "list",
-      },
-    });
+  it("opens the invites page with its invite dialog for the add action", async () => {
+    await open(`/orgs/add/invites/${org.id}`);
 
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("Organizations List");
-    expect(wrapper.html()).not.toContain("Create Organization");
+    expect(
+      await screen.findByRole("dialog", { name: "Invite a member" }),
+    ).toBeInTheDocument();
   });
 
-  it('shows OrganizationCreate when action is "add" and no orgId', async () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "add",
-      },
-    });
+  it.each([
+    "/orgs",
+    "/orgs/nothing",
+    `/orgs/manage/overview/${org.id}`,
+    `/orgs/edit/members/${org.id}`,
+    `/orgs/add/logs/${org.id}`,
+    `/orgs/remove/analyzers/${org.id}`,
+    "/orgs/manage/members",
+  ])("%s shows not found", async (path) => {
+    await open(path);
 
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("Create Organization");
-    expect(wrapper.html()).not.toContain("Organizations List");
-  });
-
-  it('shows PoliciesView when page is "policies" and orgId exists', async () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "manage",
-        page: "policies",
-        orgId: "test-org-id",
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("Policies");
-  });
-
-  it('shows PoliciesView when page is "policy" and orgId exists', async () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "manage",
-        page: "policy",
-        orgId: "test-org-id",
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("Policies");
-  });
-
-  it('shows ManageAuditLogs when page is "logs" and orgId exists', async () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "manage",
-        page: "logs",
-        orgId: "test-org-id",
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("Audit Logs");
-  });
-
-  it('shows ManageMembers when page is "members" and orgId exists', async () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "manage",
-        page: "members",
-        orgId: "test-org-id",
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("Manage Members");
-  });
-
-  it('shows ManageInvites when page is "invites" and orgId exists', async () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "manage",
-        page: "invites",
-        orgId: "test-org-id",
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("Manage Invites");
-  });
-
-  it('shows IntegrationsView when page is "integrations" and orgId exists', async () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "manage",
-        page: "integrations",
-        orgId: "test-org-id",
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("Integrations");
-  });
-
-  it('shows AnalyzersView when page is "analyzers" and orgId exists', async () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "manage",
-        page: "analyzers",
-        orgId: "test-org-id",
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("Analyzers");
-  });
-
-  it('shows OrganizationManage when page is "main" and orgId exists', async () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: "manage",
-        page: "main",
-        orgId: "test-org-id",
-      },
-    });
-
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.html()).toContain("Organization Manage");
-  });
-
-  it("opens the invites page with the add action for its dialog", () => {
-    wrapper = mount(OrganizationView, {
-      props: { action: "add", page: "invites", orgId: "test-org-id" },
-    });
-
-    expect(wrapper.text()).toBe("Manage Invites");
-  });
-
-  it("shows not found without any params", () => {
-    wrapper = mount(OrganizationView, {
-      props: {
-        action: undefined,
-        page: undefined,
-        orgId: undefined,
-      },
-    });
-
-    expect(wrapper.text()).toBe("Not found");
-  });
-
-  it.each<Record<string, string>>([
-    { action: "manage", page: "overview", orgId: "test-org-id" },
-    { action: "edit", page: "members", orgId: "test-org-id" },
-    { action: "add", page: "logs", orgId: "test-org-id" },
-    { action: "remove", page: "analyzers", orgId: "test-org-id" },
-    { action: "manage", page: "members" },
-    { action: "nothing" },
-  ])("route %o shows not found", (props) => {
-    wrapper = mount(OrganizationView, { props });
-
-    expect(wrapper.text()).toBe("Not found");
-  });
-  it("shows only the section the route asks for", () => {
-    wrapper = mount(OrganizationView, {
-      props: { action: "manage", page: "members", orgId: "test-org-id" },
-    });
-
-    expect(wrapper.text()).toBe("Manage Members");
-  });
-
-  // Each section owns its heading, so the view adds no title or description of its own.
-  it.each<[Record<string, string>, string]>([
-    [{ action: "add" }, "Create Organization"],
-    [{ action: "list" }, "Organizations List"],
-    [{ action: "manage", page: "policies", orgId: "test-org-id" }, "Policies"],
-    [
-      { action: "manage", page: "members", orgId: "test-org-id" },
-      "Manage Members",
-    ],
-    [{ action: "manage", page: "logs", orgId: "test-org-id" }, "Audit Logs"],
-    [
-      { action: "manage", page: "invites", orgId: "test-org-id" },
-      "Manage Invites",
-    ],
-    [
-      { action: "manage", page: "integrations", orgId: "test-org-id" },
-      "Integrations",
-    ],
-  ])("route %o shows only the section text %s", (props, text) => {
-    wrapper = mount(OrganizationView, { props });
-
-    expect(wrapper.text()).toBe(text);
-  });
-
-  it("renders no heading of its own", () => {
-    wrapper = mount(OrganizationView, { props: { action: "list" } });
-
-    expect(wrapper.find("h1, h2, [role=heading]").exists()).toBe(false);
+    await screen.findByRole("heading", { level: 1, name: "Page not found" });
+    expect(pageTitles()).toEqual(["Page not found"]);
   });
 });

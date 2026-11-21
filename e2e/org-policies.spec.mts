@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   license,
@@ -174,6 +175,7 @@ test.describe("Organisation policies list", () => {
       await expect(dialog.locator(":focus")).toHaveCount(1);
     }
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "org-policies-delete");
 
     await page.keyboard.press("Escape");
@@ -226,11 +228,13 @@ test.describe("Organisation policies list", () => {
     await expect(policies.rows("License policies")).toHaveCount(2);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "org-policies-license");
 
     await policies.tab("Vulnerability policies").click();
     await expect(policies.rows("Vulnerability policies")).toHaveCount(2);
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "org-policies-vulnerability");
   });
 });
@@ -255,6 +259,7 @@ test.describe("License policy form", () => {
     expect(policies.writes).toEqual([]);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "org-policies-create-errors");
   });
 
@@ -405,6 +410,7 @@ test.describe("License policy form", () => {
     ).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "org-policies-create");
   });
 });
@@ -430,6 +436,7 @@ test.describe("Vulnerability policy form", () => {
     expect(policies.writes).toEqual([]);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "org-policies-vulnerability-create-errors");
   });
 });

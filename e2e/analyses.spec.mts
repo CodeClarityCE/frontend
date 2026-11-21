@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   AnalysesPage,
@@ -449,6 +450,7 @@ test.describe("New Analysis", () => {
     await expect(page.getByRole("radio")).toHaveCount(2);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "analysis-create");
 
     await page.setViewportSize({ width: 1280, height: 1024 });
@@ -462,6 +464,7 @@ test.describe("New Analysis", () => {
     await expect(page.getByText("A branch is required")).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "analysis-create-configured");
   });
 
@@ -474,6 +477,7 @@ test.describe("New Analysis", () => {
     await expect(page.getByText("No analyzers yet")).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "analysis-create-empty");
   });
 });

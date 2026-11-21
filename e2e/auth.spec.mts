@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
 import { AuthPage } from "./pages/auth.page.mjs";
@@ -228,6 +229,7 @@ test.describe("Authentication E2E Tests", () => {
     test("matches the approved screenshots", async ({ page }) => {
       await authPage.goto();
       await authPage.expectFormVisible();
+      await expectPageSweep(page);
       await expectScreenshots(page, "login");
     });
 
@@ -236,6 +238,7 @@ test.describe("Authentication E2E Tests", () => {
       await authPage.goto();
       await authPage.expectFormVisible();
       await expectTheme(page, "dark");
+      await expectPageSweep(page);
       await expectScreenshots(page, "login-dark");
     });
   });
@@ -413,6 +416,7 @@ test.describe("Sign up", () => {
   test("matches the approved screenshots", async ({ page }) => {
     await page.goto("/signup");
     await expect(field(page, "Email")).toBeVisible();
+    await expectPageSweep(page);
     await expectScreenshots(page, "signup");
   });
 });

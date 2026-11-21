@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   ANALYSIS,
@@ -45,8 +46,8 @@ test.describe("Results page for an analysis it cannot show", () => {
       await expect(results.heading).toHaveText("Analysis not found");
       await expect(results.tabs).toHaveCount(0);
       await expectNoAxeViolations(page);
-      if (label === "missing")
-        await expectScreenshots(page, "results-not-found");
+      if (label === "missing") await expectPageSweep(page);
+      await expectScreenshots(page, "results-not-found");
       await expectBackTo(page, "Back to projects", /\/projects$/);
     });
   }
@@ -82,6 +83,7 @@ test.describe("Results page for an unfinished analysis", () => {
     await expect(page.getByText("Could not load the SBOM")).toHaveCount(0);
     expect(results.requested("/sbom/stats")).toBe(false);
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "results-failed");
   });
 

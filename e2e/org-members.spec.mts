@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   member,
@@ -325,6 +326,7 @@ test.describe("Organisation members, invitations and logs: keyboard, axe and scr
       await expect(members.rows().first()).toBeVisible();
 
       await expectNoAxeViolations(page);
+      await expectPageSweep(page);
       await expectScreenshots(page, `org-${view}`);
     });
   }

@@ -1,5 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { OrgAnalyzersPage } from "./pages/org-analyzers.page.mjs";
 import { OrgPoliciesPage } from "./pages/org-policies.page.mjs";
 import {
@@ -56,6 +57,7 @@ test.describe("Organisation URLs that match no page", () => {
           name: /Back to the organisation|Organisations/,
         }),
       ).toBeVisible();
+      await expectPageSweep(page);
     });
   }
 
@@ -70,6 +72,7 @@ test.describe("Organisation URLs that match no page", () => {
     await orgs.shell.goto(`/orgs/edit/integrations/${ORG}`);
     await expect(notFound(page)).toHaveText("Integration not found");
     await expect(page).toHaveURL(new RegExp(`/orgs/edit/integrations/${ORG}`));
+    await expectPageSweep(page);
   });
 });
 

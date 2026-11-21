@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   businessError,
@@ -107,6 +108,7 @@ test.describe("Organisation invitation", () => {
     await expect(join.heading).toHaveText("Join Open Source Lab?");
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "org-join");
   });
 
@@ -121,6 +123,7 @@ test.describe("Organisation invitation", () => {
     ).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "org-join-expired");
   });
 });

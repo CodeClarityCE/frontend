@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { analyzer, OrgAnalyzersPage } from "./pages/org-analyzers.page.mjs";
 
@@ -546,6 +547,7 @@ test.describe("Analyzers accessibility and look", () => {
     await analyzers.signIn();
     await analyzers.gotoList();
     await expect(analyzers.rows()).toHaveCount(2);
+    await expectPageSweep(page);
     await expectScreenshots(page, "org-analyzers");
 
     // The canvas fits itself to the width it opens at.
@@ -553,6 +555,7 @@ test.describe("Analyzers accessibility and look", () => {
     await analyzers.gotoCreate();
     await expect(page.getByRole("radio")).toHaveCount(2);
     await expect(page.getByText("js-sbom")).toBeVisible();
+    await expectPageSweep(page);
     await expectScreenshots(page, "org-analyzer-create");
   });
 });

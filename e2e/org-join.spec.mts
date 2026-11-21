@@ -36,6 +36,18 @@ test.describe("Organisation invitation", () => {
     expect(join.joinRequests).toBe(1);
   });
 
+  test("shows inside the app shell with a single main landmark", async ({
+    page,
+  }) => {
+    const join = new OrgJoinPage(page);
+    await join.signIn();
+    await join.goto();
+
+    await expect(join.heading).toHaveText("Join Open Source Lab?");
+    await expect(join.shell.nav).toBeVisible();
+    await expect(page.getByRole("main")).toHaveCount(1);
+  });
+
   test("a deleted inviter is named as such", async ({ page }) => {
     const join = new OrgJoinPage(page);
     await join.signIn({

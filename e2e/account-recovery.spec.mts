@@ -188,6 +188,16 @@ test.describe("Registration confirmation", () => {
     await expectNoAxeViolations(page);
   });
 
+  test("an unknown email link opens the registration confirmation", async ({
+    page,
+  }) => {
+    await answerConfirmation(page, true);
+    await page.goto("/email_action/unknown_page?token=t1&userid=u1");
+    await expect(
+      page.getByRole("heading", { name: /registration confirmed/i }),
+    ).toBeVisible();
+  });
+
   test("explains a failed confirmation", async ({ page }) => {
     await answerConfirmation(page, false);
     await page.goto(confirmUrl);

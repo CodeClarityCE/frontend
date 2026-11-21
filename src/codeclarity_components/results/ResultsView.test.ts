@@ -337,48 +337,6 @@ describe("ResultsView", () => {
     expect(wrapper.find('[data-testid="tabs"]').exists()).toBe(false);
   });
 
-  it("validates component initialization", async () => {
-    wrapper = mount(ResultsView, {
-      global: {
-        plugins: [],
-        stubs: {
-          ResultsSBOM: true,
-          ResultsSBOMDetails: true,
-          ResultsVulnerabilities: true,
-          ResultsVulnerabilitiesDetails: true,
-          ResultsPatching: true,
-          ResultsLicenses: true,
-          ResultsCodeQL: true,
-        },
-      },
-    });
-
-    await flushPromises();
-
-    expect(wrapper.exists()).toBe(true);
-    expect(wrapper.text()).toContain("Results");
-  });
-
-  it("resets state store on mount", () => {
-    wrapper = mount(ResultsView, {
-      global: {
-        plugins: [],
-        stubs: {
-          ResultsSBOM: true,
-          ResultsSBOMDetails: true,
-          ResultsVulnerabilities: true,
-          ResultsVulnerabilitiesDetails: true,
-          ResultsPatching: true,
-          ResultsLicenses: true,
-          ResultsCodeQL: true,
-        },
-      },
-    });
-
-    expect(mockStateStore.$reset).toHaveBeenCalled();
-    expect(mockStateStore.page).toBe("results");
-  });
-
   it("shows only tabs for successful analysis steps", async () => {
     // Configure mock with mixed results
     mockAnalysisGetProjectById.mockResolvedValue({

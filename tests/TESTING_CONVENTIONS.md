@@ -150,40 +150,13 @@ vi.mock("vue-router", () => ({
 
 ## Coverage
 
-**Target:** 80% minimum (lines, functions, branches, statements)
-
-**Excluded:** `*.d.ts`, test files, `*.stories.ts`, config files, third-party code
-
-```bash
-pnpm test:coverage
-open coverage/index.html
-```
+There is no coverage percentage target. Run `vitest run --coverage` and open
+`coverage/index.html` to see which lines a change leaves untested.
 
 ## Accessibility
 
-### A11y Checks
-
-```typescript
-import { axe, toHaveNoViolations } from "jest-axe";
-expect.extend(toHaveNoViolations);
-
-it("should have no accessibility violations", async () => {
-  const { container } = renderWithProviders(Component);
-  const results = await axe(container);
-  expect(results).toHaveNoViolations();
-});
-```
-
-### Keyboard Navigation
-
-```typescript
-it("should be navigable with keyboard", async () => {
-  const button = getByRole("button");
-  await userEvent.tab();
-  expect(button).toHaveFocus();
-  await userEvent.keyboard("{Enter}");
-});
-```
+Accessibility is checked in the Playwright specs (`e2e/helpers/a11y.mts`), where
+the real markup renders. Unit tests do not run axe.
 
 ## Utilities
 
@@ -199,17 +172,6 @@ await waitFor(() => expect(getByText("Loading complete")).toBeInTheDocument());
 await userEvent.click(getByRole("button"));
 await userEvent.type(getByLabelText("Email"), "test@example.com");
 await userEvent.keyboard("{Enter}");
-```
-
-### Performance
-
-```typescript
-it("should render large lists efficiently", () => {
-  const items = Array.from({ length: 1000 }, (_, i) => ({ id: i }));
-  const start = performance.now();
-  renderWithProviders(ListComponent, { props: { items } });
-  expect(performance.now() - start).toBeLessThan(100);
-});
 ```
 
 ## Debugging

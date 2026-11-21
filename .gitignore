@@ -38,6 +38,5 @@ coverage
 # CodeClarity
 package-lock.json
 tmp
-styker.log
 # TypeScript incremental build state
 *.tsbuildinfo

@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
+import { expectTheme } from "./helpers/theme.mjs";
 import { DashboardPage, week } from "./pages/dashboard.page.mjs";
 
 test.beforeEach(async ({ page }) => {
@@ -590,6 +591,24 @@ test.describe("Whole page", () => {
 
     await expectNoAxeViolations(page);
     await expectScreenshots(page, "dashboard");
+  });
+
+  test("matches the dark screenshots", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    const dashboard = new DashboardPage(page);
+    await dashboard.signIn();
+    await dashboard.goto();
+    await expect(dashboard.list("Recent Published results")).toBeVisible();
+    await expect(dashboard.chart("Dependencies by license")).toBeVisible();
+    await expect(
+      dashboard.chart("Summed severity of vulnerabilities by week"),
+    ).toBeVisible();
+    await expect(
+      dashboard.projects.getByRole("list", { name: "Tickets by state" }),
+    ).toBeVisible();
+
+    await expectTheme(page, "dark");
+    await expectScreenshots(page, "dashboard-dark");
   });
 
   test("the empty organisation passes axe and matches the screenshots", async ({

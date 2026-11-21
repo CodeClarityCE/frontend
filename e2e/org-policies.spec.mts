@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { onAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   license,
@@ -438,5 +439,29 @@ test.describe("Vulnerability policy form", () => {
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
     await expectScreenshots(page, "org-policies-vulnerability-create-errors");
+  });
+});
+
+test.describe("On a phone", () => {
+  onAPhone();
+
+  test("the policies list does not scroll sideways", async ({ page }) => {
+    const policies = new OrgPoliciesPage(page);
+    await policies.signIn();
+    await policies.gotoList();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
+  });
+
+  test("the license policy form does not scroll sideways", async ({ page }) => {
+    const policies = new OrgPoliciesPage(page);
+    await policies.signIn();
+    await policies.gotoCreateLicense();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
   });
 });

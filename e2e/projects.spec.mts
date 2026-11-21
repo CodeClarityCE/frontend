@@ -1,7 +1,8 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
-import { expectPageSweep, PHONE_WIDTH } from "./helpers/page-sweep.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { onAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   analysis,
@@ -934,8 +935,26 @@ function repoWithStars(name: string, stars: number): Record<string, unknown> {
 }
 
 test.describe("On a phone", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.setViewportSize({ width: PHONE_WIDTH, height: 844 });
+  onAPhone();
+
+  test("the projects list does not scroll sideways", async ({ page }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.gotoList();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
+  });
+
+  test("Add a Project does not scroll sideways", async ({ page }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.gotoCreate();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
   });
 
   test("the GitHub import fits without scrolling sideways", async ({

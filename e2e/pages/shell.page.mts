@@ -178,11 +178,6 @@ export class ShellPage {
     });
   }
 
-  /** Waits for the sidebar nav, or on a phone the button that opens it. */
-  async waitForShell(): Promise<void> {
-    await this.nav.or(this.navTrigger).first().waitFor();
-  }
-
   async goto(path = "/datasets"): Promise<void> {
     await this.page.goto(path);
     await this.waitForShell();
@@ -192,6 +187,12 @@ export class ShellPage {
   async reload(): Promise<void> {
     await this.page.reload();
     await this.waitForShell();
+  }
+
+  // Below the sidebar breakpoint the shell shows a header instead of the nav.
+  private async waitForShell(): Promise<void> {
+    const width = this.page.viewportSize()?.width ?? 1280;
+    await (width < 768 ? this.mobileHeader : this.nav).waitFor();
   }
 
   /** Hides the routed page so screenshots show only the shell. */

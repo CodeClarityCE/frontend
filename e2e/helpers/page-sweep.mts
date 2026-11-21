@@ -73,7 +73,7 @@ export async function expectPageSweep(page: Page): Promise<void> {
     );
   }
 
-  // clientWidth, not innerWidth: a phone widens innerWidth to fit the overflow.
+  // The layout width, since a mobile browser widens innerWidth to fit content.
   const [width, viewport] = await page.evaluate(() => [
     document.documentElement.scrollWidth,
     document.documentElement.clientWidth,

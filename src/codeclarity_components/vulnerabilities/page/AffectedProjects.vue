@@ -238,7 +238,7 @@ const instanceKey = (instance: AffectedInstance): string =>
                   <TableCell class="text-right">
                     <RouterLink
                       :to="instanceRoute(project, instance)"
-                      class="text-primary underline-offset-4 hover:underline"
+                      class="text-brand-subtle-foreground underline-offset-4 hover:underline"
                       >Details</RouterLink
                     >
                   </TableCell>
@@ -253,7 +253,7 @@ const instanceKey = (instance: AffectedInstance): string =>
               <li v-for="ticket in ticketsOf(project)" :key="ticket.id">
                 <RouterLink
                   :to="ticketRoute(ticket.id)"
-                  class="text-primary underline-offset-4 hover:underline"
+                  class="text-brand-subtle-foreground underline-offset-4 hover:underline"
                   >View ticket</RouterLink
                 >
               </li>

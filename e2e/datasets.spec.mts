@@ -445,6 +445,20 @@ test.describe("Dataset detail", () => {
     await expectScreenshots(page, "dataset-detail-failed");
   });
 
+  test("a Dataset that fails to load shows an error toast", async ({
+    page,
+  }) => {
+    const datasets = new DatasetsPage(page);
+    await datasets.signIn({ detailFails: true });
+    await datasets.gotoDetail();
+
+    const notifications = page.getByRole("region", { name: /Notifications/ });
+    await expect(
+      notifications.getByText("Failed to load the dataset"),
+    ).toBeVisible();
+    await expectPageSweep(page);
+  });
+
   test("while loading, a skeleton stands in for the page", async ({ page }) => {
     const datasets = new DatasetsPage(page);
     const release = await datasets.signIn({ hold: true });

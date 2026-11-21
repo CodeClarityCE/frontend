@@ -70,6 +70,7 @@ const vulnerabilities = {
       uncorroborated_count: 0,
       known_exploited: false,
       ticketed_instance_count: 0,
+      overdue_instance_count: 0,
     },
     {
       vulnerability_id: "CVE-2026-0002",
@@ -80,6 +81,7 @@ const vulnerabilities = {
       uncorroborated_count: 0,
       known_exploited: false,
       ticketed_instance_count: 0,
+      overdue_instance_count: 0,
     },
     {
       vulnerability_id: "CVE-2026-0003",
@@ -90,6 +92,7 @@ const vulnerabilities = {
       uncorroborated_count: 0,
       known_exploited: false,
       ticketed_instance_count: 0,
+      overdue_instance_count: 0,
     },
     {
       vulnerability_id: "CVE-2026-0004",
@@ -100,6 +103,7 @@ const vulnerabilities = {
       uncorroborated_count: 0,
       known_exploited: false,
       ticketed_instance_count: 0,
+      overdue_instance_count: 0,
     },
   ],
   page: 0,

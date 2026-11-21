@@ -93,6 +93,7 @@ const two = list(
       uncorroborated_count: 0,
       known_exploited: false,
       ticketed_instance_count: 0,
+      overdue_instance_count: 0,
     },
     {
       vulnerability_id: "CVE-2024-0002",
@@ -103,6 +104,7 @@ const two = list(
       uncorroborated_count: 0,
       known_exploited: false,
       ticketed_instance_count: 0,
+      overdue_instance_count: 0,
     },
   ],
   { CRITICAL: 3, MEDIUM: 1 },
@@ -198,6 +200,26 @@ describe("CurrentVulns", () => {
     expect(links[1]!.classes()).not.toContain("opacity-60");
   });
 
+  it("flags a vulnerability with an overdue ticket", async () => {
+    getVulnerabilities.mockResolvedValue(
+      list([
+        {
+          ...two.data[0]!,
+          ticketed_instance_count: 3,
+          overdue_instance_count: 1,
+        },
+        two.data[1]!,
+      ]),
+    );
+    const { wrapper } = await mountCard();
+
+    const links = wrapper
+      .find('[aria-label="Vulnerabilities in your projects"]')
+      .findAll("li a");
+    expect(links[0]!.text()).toContain("Overdue");
+    expect(links[1]!.text()).not.toContain("Overdue");
+  });
+
   it("does not grey out a vulnerability with some instances left untracked", async () => {
     getVulnerabilities.mockResolvedValue(
       list([{ ...two.data[0]!, ticketed_instance_count: 2 }]),
@@ -223,6 +245,10 @@ describe("CurrentVulns", () => {
     await select.setValue("open");
     await flushPromises();
     expect(getVulnerabilities).toHaveBeenLastCalledWith({ ticket: "open" });
+
+    await select.setValue("overdue");
+    await flushPromises();
+    expect(getVulnerabilities).toHaveBeenLastCalledWith({ ticket: "overdue" });
 
     await select.setValue("");
     await flushPromises();

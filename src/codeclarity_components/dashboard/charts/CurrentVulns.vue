@@ -38,6 +38,7 @@ interface Vuln {
   uncorroborated: boolean;
   knownExploited: boolean;
   ticketed: number;
+  overdue: number;
 }
 
 /** The levels counted at the top of the card */
@@ -75,6 +76,7 @@ const vulns = computed((): Vuln[] =>
     uncorroborated: vuln.uncorroborated_count > 0,
     knownExploited: vuln.known_exploited,
     ticketed: vuln.ticketed_instance_count,
+    overdue: vuln.overdue_instance_count,
   })),
 );
 
@@ -158,6 +160,13 @@ const plural = (count: number, noun: string): string =>
                 title="Matched by one source origin only"
                 class="shrink-0"
                 >Uncorroborated</Badge
+              >
+              <Badge
+                v-if="vuln.overdue > 0"
+                variant="destructive"
+                title="An open ticket is past its due date"
+                class="shrink-0"
+                >Overdue</Badge
               >
               <Badge
                 v-if="fullyTicketed(vuln)"

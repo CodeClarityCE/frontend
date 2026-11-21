@@ -90,10 +90,20 @@ function ticketText(project: AffectedProject): string {
   if (project.ticket_state === TicketState.None || ticketed === 0) {
     return "No ticket";
   }
+  if (project.ticket_state === TicketState.Overdue) return "Overdue";
   return ticketed === project.instances.length
     ? "Ticket open"
     : `${ticketed} of ${project.instances.length} ticketed`;
 }
+
+const BADGE_VARIANT: Record<
+  TicketState,
+  "outline" | "secondary" | "destructive"
+> = {
+  [TicketState.None]: "outline",
+  [TicketState.Open]: "secondary",
+  [TicketState.Overdue]: "destructive",
+};
 
 // The distinct open tickets tracking a project's instances.
 function ticketsOf(project: AffectedProject): InstanceTicket[] {
@@ -145,11 +155,7 @@ const instanceKey = (instance: AffectedInstance): string =>
               project.project_name
             }}</span>
             <Badge
-              :variant="
-                project.ticket_state === TicketState.None
-                  ? 'outline'
-                  : 'secondary'
-              "
+              :variant="BADGE_VARIANT[project.ticket_state] ?? 'outline'"
               class="shrink-0"
               >{{ ticketText(project) }}</Badge
             >

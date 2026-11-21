@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { onAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { OrgIntegrationsPage } from "./pages/org-integrations.page.mjs";
 
@@ -89,6 +90,35 @@ test.describe("Organisation integrations list", () => {
     release();
 
     await expect(integrations.rows()).toHaveCount(4);
+  });
+});
+
+test.describe("Integration logos", () => {
+  test("the add cards show bundled logos without asking an icon API", async ({
+    page,
+  }) => {
+    const integrations = new OrgIntegrationsPage(page);
+    // With nothing connected, every provider has an add card.
+    await integrations.signIn({ integrations: [], ticketing: [] });
+    // Record and block icon API calls, so a logo only shows if it is bundled.
+    const iconRequests: string[] = [];
+    await page.route(
+      /^https:\/\/api\d*\.(iconify\.design|simplesvg\.com|unisvg\.com)\//,
+      (route) => {
+        iconRequests.push(route.request().url());
+        return route.abort();
+      },
+    );
+    await integrations.gotoList();
+
+    for (const name of ["Add GitHub", "Add GitLab", "Add ClickUp"]) {
+      const card = page.getByRole("link", { name: new RegExp(name) });
+      await expect(card).toBeVisible();
+      // The logo is the card's first icon; bundled icons render as SVG paths.
+      await expect(card.locator("svg path").first()).toBeVisible();
+    }
+    expect(iconRequests).toEqual([]);
+    await expectPageSweep(page);
   });
 });
 
@@ -329,5 +359,31 @@ test.describe("Integrations accessibility and looks", () => {
     await expect(page.getByText("The token expires soon")).toBeVisible();
     await expectPageSweep(page);
     await expectScreenshots(page, "org-integrations-manage");
+  });
+});
+
+test.describe("On a phone", () => {
+  onAPhone();
+
+  test("the integrations list does not scroll sideways", async ({ page }) => {
+    const integrations = new OrgIntegrationsPage(page);
+    await integrations.signIn();
+    await integrations.gotoList();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
+  });
+
+  test("the GitHub integration form does not scroll sideways", async ({
+    page,
+  }) => {
+    const integrations = new OrgIntegrationsPage(page);
+    await integrations.signIn();
+    await integrations.gotoAdd("GITHUB");
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
   });
 });

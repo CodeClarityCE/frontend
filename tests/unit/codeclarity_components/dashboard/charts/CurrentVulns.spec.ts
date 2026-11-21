@@ -94,6 +94,7 @@ const two = list(
       known_exploited: false,
       ticketed_instance_count: 0,
       overdue_instance_count: 0,
+      epss: 0.42,
     },
     {
       vulnerability_id: "CVE-2024-0002",
@@ -105,6 +106,7 @@ const two = list(
       known_exploited: false,
       ticketed_instance_count: 0,
       overdue_instance_count: 0,
+      epss: null,
     },
   ],
   { CRITICAL: 3, MEDIUM: 1 },
@@ -130,10 +132,10 @@ describe("CurrentVulns", () => {
       .findAll("li");
     expect(rows.map((li) => li.text())).toEqual([
       expect.stringMatching(
-        /^Critical\s*9\.8\s*CVE-2024-0001\s*2 projects\s*3 instances$/,
+        /^Critical\s*9\.8\s*CVE-2024-0001\s*EPSS 42\.0%\s*2 projects\s*3 instances$/,
       ),
       expect.stringMatching(
-        /^Medium\s*5\.3\s*CVE-2024-0002\s*1 project\s*1 instance$/,
+        /^Medium\s*5\.3\s*CVE-2024-0002\s*No EPSS\s*1 project\s*1 instance$/,
       ),
     ]);
   });

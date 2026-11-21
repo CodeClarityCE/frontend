@@ -10,10 +10,13 @@
 # directory (default: playwright-real-stack in this checkout). Needs Docker.
 set -eu
 
-# Keep in sync with @playwright/test in package.json.
-IMAGE="mcr.microsoft.com/playwright:v1.65.1-noble@sha256:1507cbfc550a63a6b7396791ca4f00df17beb56342d2447b3f106c306f525579"
-
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
+# The pinned Playwright image of the mocked suite, so both run the same browser.
+IMAGE=$(sed -n 's/^IMAGE="\(.*\)"$/\1/p' "$ROOT/.cloud/scripts/e2e-baselines.sh")
+[ -n "$IMAGE" ] || {
+  echo "e2e-real-stack: no IMAGE= line in .cloud/scripts/e2e-baselines.sh" >&2
+  exit 1
+}
 BASE_URL=${1:-https://localhost}
 OUT=${2:-$ROOT/playwright-real-stack}
 mkdir -p "$OUT"

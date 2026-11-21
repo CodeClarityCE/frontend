@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
 import {
@@ -282,6 +283,7 @@ test.describe("Vulnerability results", () => {
     await expect(vulns.cards).toHaveCount(4);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "vulnerabilities-list");
   });
 
@@ -293,6 +295,7 @@ test.describe("Vulnerability results", () => {
     await expect(vulns.cards).toHaveCount(4);
 
     await expectTheme(page, "dark");
+    await expectPageSweep(page);
     await expectScreenshots(page, "vulnerabilities-list-dark");
   });
 
@@ -304,6 +307,7 @@ test.describe("Vulnerability results", () => {
     await expect(vulns.rows()).toHaveCount(4);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "vulnerabilities-table");
   });
 
@@ -319,6 +323,7 @@ test.describe("Vulnerability results", () => {
     release();
     await expect(page.getByText("No vulnerabilities found.")).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "vulnerabilities-empty");
   });
 });
@@ -429,6 +434,7 @@ test.describe("Vulnerability details", () => {
     await expect(vulns.heading).toContainText("CVE-2024-0001");
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "vulnerability-details");
   });
 });

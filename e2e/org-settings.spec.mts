@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   membership,
@@ -173,6 +174,7 @@ test.describe("Organisations list", () => {
     await expect(orgs.rows()).toHaveCount(3);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "orgs-list");
   });
 });
@@ -200,6 +202,7 @@ test.describe("Create an organisation", () => {
     expect(orgs.created).toEqual([]);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "orgs-create-errors");
   });
 
@@ -232,6 +235,7 @@ test.describe("Create an organisation", () => {
     await expect(orgs.heading).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "orgs-create");
   });
 });
@@ -390,6 +394,7 @@ test.describe("Organisation overview", () => {
     await expect(orgs.heading).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "org-overview");
 
     await page.getByRole("button", { name: "Delete organisation" }).click();

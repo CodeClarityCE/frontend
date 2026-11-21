@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { businessError, SettingsPage } from "./pages/settings.page.mjs";
 
@@ -273,6 +274,7 @@ test.describe("Account settings", () => {
     await settings.goto();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "settings-account");
 
     await settings
@@ -281,6 +283,7 @@ test.describe("Account settings", () => {
       .click();
     await expect(page.getByText("Enter your current password")).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "settings-account-errors");
   });
 
@@ -302,6 +305,7 @@ test.describe("Account settings", () => {
     await page.waitForFunction(() => document.getAnimations().length === 0);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "settings-delete-dialog");
   });
 });

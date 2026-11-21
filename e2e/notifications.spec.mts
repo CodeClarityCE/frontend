@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 
@@ -88,6 +89,7 @@ test.describe("Notifications", () => {
       Promise.all(document.getAnimations().map((a) => a.finished)),
     );
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "notifications-dialog");
   });
 

@@ -1,5 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { AnalysesPage } from "./pages/analyses.page.mjs";
 import { DashboardPage } from "./pages/dashboard.page.mjs";
@@ -97,10 +98,7 @@ test.describe("Pages on a 390px phone", () => {
       await expect(page.getByRole("heading").first()).toBeVisible();
       await page.waitForLoadState("networkidle");
 
-      const width = await page.evaluate(
-        () => document.documentElement.scrollWidth,
-      );
-      expect(width).toBeLessThanOrEqual(PHONE.width);
+      await expectPageSweep(page);
 
       await expectScreenshots(page, target.name, [PHONE.width]);
     });

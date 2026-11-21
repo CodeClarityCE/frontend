@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import user from "./fixtures/user.json" with { type: "json" };
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { seedAuthStore } from "./helpers/auth-store.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { org } from "./pages/shell.page.mjs";
 
@@ -40,6 +41,7 @@ test.describe("Not found page", () => {
   test("matches the approved screenshots", async ({ page }) => {
     await page.goto("/404");
     await expect(page.getByRole("img", { name: /owl/i })).toBeVisible();
+    await expectPageSweep(page);
     await expectScreenshots(page, "not-found");
   });
 });
@@ -82,6 +84,7 @@ for (const doc of [
     });
 
     test("matches the approved screenshots", async ({ page }) => {
+      await expectPageSweep(page);
       await expectScreenshots(page, doc.name);
     });
   });
@@ -189,6 +192,7 @@ test.describe("Help page", () => {
   });
 
   test("matches the approved screenshots", async ({ page }) => {
+    await expectPageSweep(page);
     await expectScreenshots(page, "help");
   });
 });

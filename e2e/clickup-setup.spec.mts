@@ -1,5 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import {
   BAD_KEY,
   ClickUpApi,
@@ -111,9 +112,11 @@ test.describe("ClickUp setup", () => {
     await expect(dialog.getByRole("status")).toContainText(
       "did not accept these credentials",
     );
+    await expectPageSweep(page);
 
     await dialog.getByRole("tab", { name: "OAuth" }).click();
     await expect(dialog).not.toContainText("did not accept these credentials");
+    await expectPageSweep(page);
     await dialog.getByRole("tab", { name: "API Key" }).click();
     await expect(dialog).not.toContainText("did not accept these credentials");
   });
@@ -139,6 +142,7 @@ test.describe("ClickUp connection test", () => {
       "ClickUp did not accept the connection test",
     );
     await expect(page.getByText("OAUTH_025")).toHaveCount(0);
+    await expectPageSweep(page);
   });
 });
 
@@ -160,6 +164,7 @@ test.describe("Disconnecting ClickUp from the tickets page", () => {
       name: "Disconnect ClickUp?",
     });
     await expect(confirm).toBeVisible();
+    await expectPageSweep(page);
     await confirm.getByRole("button", { name: "Cancel" }).click();
 
     await expect(confirm).toHaveCount(0);
@@ -182,5 +187,6 @@ test.describe("Disconnecting ClickUp from the tickets page", () => {
     await expect(
       panel.getByRole("button", { name: "Connect ClickUp" }),
     ).toBeVisible();
+    await expectPageSweep(page);
   });
 });

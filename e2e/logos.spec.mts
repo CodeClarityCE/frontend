@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import user from "./fixtures/user.json" with { type: "json" };
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 
 // Hosts the Iconify runtime falls back to when an icon is not bundled.
 const ICON_API =
@@ -86,5 +87,6 @@ test.describe("Brand and language logos", () => {
 
     // General icons are Lucide and logos are bundled, so nothing is fetched.
     expect(iconRequests).toEqual([]);
+    await expectPageSweep(page);
   });
 });

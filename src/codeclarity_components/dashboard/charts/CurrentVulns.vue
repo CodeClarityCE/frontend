@@ -137,75 +137,69 @@ const plural = (count: number, noun: string): string =>
       </ul>
       <ScrollArea
         class="rounded-control border"
-        :class="{ 'h-64': vulns.length > 6 }"
+        :class="{ 'h-80': vulns.length > 6 }"
       >
         <ul aria-label="Vulnerabilities in your projects" class="divide-y">
           <li v-for="vuln in vulns" :key="vuln.id">
             <RouterLink
               :to="orgVulnerabilityRoute(orgId, vuln.id)"
-              class="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+              class="flex flex-col gap-1 px-3 py-2 text-sm hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
               :class="{ 'opacity-60': fullyTicketed(vuln) }"
             >
-              <SeverityBadge
-                :level="vuln.level"
-                :score="vuln.severity || undefined"
-              />
-              <span class="min-w-0 flex-1 truncate font-medium">{{
-                vuln.id
-              }}</span>
-              <Badge
-                v-if="vuln.knownExploited"
-                variant="destructive"
-                title="Listed in the CISA KEV catalog"
-                class="shrink-0"
-                >Known exploited</Badge
-              >
-              <Badge
-                v-if="vuln.uncorroborated"
-                variant="outline"
-                title="Matched by one source origin only"
-                class="shrink-0"
-                >Uncorroborated</Badge
-              >
-              <Badge
-                v-if="vuln.overdue > 0"
-                variant="destructive"
-                title="An open ticket is past its due date"
-                class="shrink-0"
-                >Overdue</Badge
-              >
-              <Badge
-                v-if="fullyTicketed(vuln)"
-                variant="secondary"
-                title="Every instance has an open ticket"
-                class="shrink-0"
-                >Ticketed</Badge
-              >
+              <!-- First line: what it is and its state; badges wrap instead of hiding the id. -->
+              <span class="flex flex-wrap items-center gap-2">
+                <SeverityBadge
+                  :level="vuln.level"
+                  :score="vuln.severity || undefined"
+                />
+                <span class="font-medium break-all">{{ vuln.id }}</span>
+                <Badge
+                  v-if="vuln.knownExploited"
+                  variant="destructive"
+                  title="Listed in the CISA KEV catalog"
+                  >Known exploited</Badge
+                >
+                <Badge
+                  v-if="vuln.uncorroborated"
+                  variant="outline"
+                  title="Matched by one source origin only"
+                  >Uncorroborated</Badge
+                >
+                <Badge
+                  v-if="vuln.overdue > 0"
+                  variant="destructive"
+                  title="An open ticket is past its due date"
+                  >Overdue</Badge
+                >
+                <Badge
+                  v-if="fullyTicketed(vuln)"
+                  variant="secondary"
+                  title="Every instance has an open ticket"
+                  >Ticketed</Badge
+                >
+              </span>
+              <!-- Second line: reach and likelihood. -->
               <span
-                v-else-if="vuln.ticketed > 0"
-                class="shrink-0 text-muted-foreground tabular-nums"
-                >{{ vuln.ticketed }} of {{ vuln.instances }} ticketed</span
+                class="flex flex-wrap gap-x-3 text-xs text-muted-foreground tabular-nums"
               >
-              <span
-                class="shrink-0 tabular-nums"
-                :class="
-                  vuln.epss !== null && vuln.epss >= HIGH_EPSS
-                    ? 'font-medium text-destructive'
-                    : 'text-muted-foreground'
-                "
-                title="Chance of exploitation in the next 30 days (EPSS)"
-                >{{
-                  vuln.epss === null
-                    ? "No EPSS"
-                    : `EPSS ${formatPercent(vuln.epss)}`
-                }}</span
-              >
-              <span class="shrink-0 text-muted-foreground">{{
-                plural(vuln.projects, "project")
-              }}</span>
-              <span class="shrink-0 text-muted-foreground tabular-nums">{{
-                plural(vuln.instances, "instance")
-              }}</span>
+                <span
+                  :class="{
+                    'font-medium text-destructive':
+                      vuln.epss !== null && vuln.epss >= HIGH_EPSS,
+                  }"
+                  title="Chance of exploitation in the next 30 days (EPSS)"
+                  >{{
+                    vuln.epss === null
+                      ? "No EPSS"
+                      : `EPSS ${formatPercent(vuln.epss)}`
+                  }}</span
+                >
+                <span>{{ plural(vuln.projects, "project") }}</span>
+                <span>{{ plural(vuln.instances, "instance") }}</span>
+                <span v-if="!fullyTicketed(vuln) && vuln.ticketed > 0"
+                  >{{ vuln.ticketed }} of {{ vuln.instances }} ticketed</span
+                >
+              </span>
             </RouterLink>
           </li>
         </ul>

@@ -5,10 +5,16 @@
       :to="{ name: 'login' }"
       class="flex items-center gap-3 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     >
+      <!-- The black logo on light, the white one on dark. -->
       <img
         src="@/assets/images/logos/logo.svg"
         alt="CodeClarity"
-        class="h-9 w-auto"
+        class="h-9 w-auto dark:hidden"
+      />
+      <img
+        src="@/assets/images/logos/logo-white.svg"
+        alt="CodeClarity"
+        class="hidden h-9 w-auto dark:block"
       />
       <span
         aria-hidden="true"

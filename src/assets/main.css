@@ -6,6 +6,9 @@
    enter or exit transition. */
 @import "tw-animate-css";
 
+/* dark: utilities follow the root dark class the theme module sets, not the OS. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Static theme values: fonts and motion. */
 @theme {
   --font-sans: "Lato", ui-sans-serif, system-ui, sans-serif;
@@ -319,7 +322,7 @@
     --shadow-primary-value: 0 4px 14px rgba(29, 206, 121, 0.35);
   }
 
-  /* Dark values, used by the phase 2 dark theme. */
+  /* Dark values, applied while the root element has the dark class. */
   .dark {
     --brand: #1dce79;
     --brand-hover: #3fd58d;

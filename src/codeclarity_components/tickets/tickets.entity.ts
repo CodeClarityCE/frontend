@@ -10,6 +10,7 @@ import {
 
 import type { StatusTone } from "@/base_components/page";
 import type {
+  InstanceDiffLinks,
   RemediationKind,
   TopLevelDependency,
 } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
@@ -230,6 +231,8 @@ export interface TicketInstance {
   is_active: boolean;
   detected_on: string;
   resolved_on: string | null;
+  /** Fix commit, compare and registry diff links */
+  diff_links: InstanceDiffLinks;
 }
 
 // ============================================

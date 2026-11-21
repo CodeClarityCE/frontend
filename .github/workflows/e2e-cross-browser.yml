@@ -1,0 +1,41 @@
+# Runs the mocked e2e suite nightly, or by manual dispatch, in desktop firefox
+# and webkit in the pinned Playwright image, so cross-browser bugs surface
+# without slowing PRs. These projects take no screenshots (expectScreenshots
+# skips them); aria snapshots still run. Schedules only fire on main.
+name: E2E cross-browser
+
+on:
+  schedule:
+    - cron: "23 2 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cross-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run firefox and webkit in the Playwright image
+        env:
+          E2E_ALL_BROWSERS: "1"
+        run: .cloud/scripts/e2e-baselines.sh --check -- --project=firefox --project=webkit
+
+      # The HTML report holds the traces of retried tests.
+      - name: Upload the report and traces
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report-cross-browser
+          path: playwright-report/
+          if-no-files-found: ignore

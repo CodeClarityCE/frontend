@@ -8,6 +8,9 @@
 #                                              failure or diff
 #   .cloud/scripts/e2e-baselines.sh -- <args>  extra Playwright arguments
 #
+# E2E_ALL_BROWSERS=1 adds the firefox and webkit projects, e.g.
+#   E2E_ALL_BROWSERS=1 .cloud/scripts/e2e-baselines.sh --check -- --project=firefox --project=webkit
+#
 # Needs Docker. Run from anywhere; it works on the frontend checkout that
 # holds this script. The checkout is copied into the container, so the host's
 # node_modules and lockfile are never touched; only e2e/*-snapshots come back.
@@ -32,7 +35,7 @@ fi
 # amd64 always, so a run on an arm64 machine renders the same pixels as CI.
 docker run --rm --platform linux/amd64 --ipc=host \
   -v "$ROOT:/src" \
-  -e CI=1 -e MODE="$MODE" -e E2E_WORKERS="${E2E_WORKERS:-4}" -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
+  -e CI=1 -e MODE="$MODE" -e E2E_WORKERS="${E2E_WORKERS:-4}" -e E2E_ALL_BROWSERS="${E2E_ALL_BROWSERS:-}" -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
   -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
   -w /work "$IMAGE" sh -euc '
     tar -C /src --exclude=./node_modules --exclude=./dist --exclude=./.git \

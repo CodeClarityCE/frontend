@@ -526,6 +526,8 @@ test.describe("Analyses without a page", () => {
     await expect(projects.row("web-frontend")).toContainText("JavaScript");
     await axe(page);
     await expectPageSweep(page);
+    // The same tree as /projects, so it shares that snapshot.
+    await expectMainSnapshot(page, "projects-list");
 
     await page
       .getByRole("link", { name: "New analysis of example/web-frontend" })

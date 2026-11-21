@@ -2,7 +2,7 @@
 import { ref } from "vue";
 
 import type {
-  DeadlineState,
+  DueDateState,
   MyWorkEntry,
 } from "@/codeclarity_components/tickets/my_work.entity";
 import { TicketsRepository } from "@/codeclarity_components/tickets/tickets.repository";
@@ -56,7 +56,7 @@ function heading(entry: MyWorkEntry): string {
   return `${verb} ${r.package} to ${r.target_version}${where}`;
 }
 
-const DEADLINE_LABEL: Record<DeadlineState, string> = {
+const DUE_DATE_LABEL: Record<DueDateState, string> = {
   overdue: "Overdue",
   due_soon: "Due soon",
   on_track: "Due",
@@ -119,10 +119,10 @@ const formatDate = (date: string): string =>
               :variant="
                 entry.deadline === 'overdue' ? 'destructive' : 'outline'
               "
-              >{{ DEADLINE_LABEL[entry.deadline] }}</Badge
+              >{{ DUE_DATE_LABEL[entry.deadline] }}</Badge
             >
             <span v-else class="text-muted-foreground">{{
-              DEADLINE_LABEL[entry.deadline]
+              DUE_DATE_LABEL[entry.deadline]
             }}</span>
             {{ " " }}
             <time :datetime="entry.due_date">{{

@@ -116,12 +116,7 @@ export const sampleFindings = [
   finding("CVE-2024-0001", "critical", "lodash", {
     EPSS: { Score: 0.42, Percentile: 0.97 },
   }),
-  finding("CVE-2024-0002", "high", "express", {
-    Conflict: {
-      ConflictWinner: "OSV",
-      ConflictFlag: "MATCH_POSSIBLE_INCORRECT",
-    },
-  }),
+  finding("CVE-2024-0002", "high", "express", { Uncorroborated: true }),
   finding("CVE-2024-0003", "medium", "axios"),
   finding("CVE-2024-0004", "low", "minimist"),
 ];

@@ -37,7 +37,7 @@ test.describe("Vulnerability results", () => {
     await expect(vulns.cards.nth(2)).toContainText("Medium 5.3");
     await expect(vulns.cards.nth(3)).toContainText("Low 2.1");
     await expect(vulns.cards.nth(0)).toContainText("Exploit risk 42.0%");
-    await expect(vulns.cards.nth(1)).toContainText("Match uncertain");
+    await expect(vulns.cards.nth(1)).toContainText("Uncorroborated");
 
     const numbers = page.getByRole("list", { name: "Vulnerability numbers" });
     await expect(numbers.getByRole("listitem").first()).toHaveText(

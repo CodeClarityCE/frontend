@@ -86,6 +86,9 @@ test.describe("Public pages with a trailing slash", () => {
 });
 
 test.describe("Deep links through login", () => {
+  // The account menu checked at the end sits in the desktop sidebar.
+  test.use({ viewport: { width: 1280, height: 1024 } });
+
   test("lands on the requested page after signing in", async ({ page }) => {
     await page.route("**/api/**", (route) => {
       const path = new URL(route.request().url()).pathname;
@@ -271,6 +274,7 @@ test.describe("Document titles", () => {
   }
 
   test("the title follows client-side navigation", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 1024 });
     const shell = new ShellPage(page);
     await shell.signIn();
     await shell.goto("/datasets");

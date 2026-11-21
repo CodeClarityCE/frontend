@@ -374,13 +374,19 @@ test.describe("Organisation overview", () => {
     await page.keyboard.press("Tab");
     await expectVisibleFocus(main.getByRole("link", { name: /^Invites/ }));
 
-    const toggle = page.getByRole("switch");
+    const toggle = page.getByRole("switch", {
+      name: "Resolve tickets automatically",
+    });
     await toggle.focus();
     await expectVisibleFocus(toggle);
     await page.keyboard.press("Tab");
     await expectVisibleFocus(
-      page.getByRole("button", { name: "Leave organisation" }),
+      page.getByRole("switch", { name: "Use service level targets" }),
     );
+
+    const leave = page.getByRole("button", { name: "Leave organisation" });
+    await leave.focus();
+    await expectVisibleFocus(leave);
   });
 
   test("passes axe and matches the screenshots", async ({ page }) => {

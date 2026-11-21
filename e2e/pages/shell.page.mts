@@ -178,15 +178,20 @@ export class ShellPage {
     });
   }
 
+  /** Waits for the sidebar nav, or on a phone the button that opens it. */
+  async waitForShell(): Promise<void> {
+    await this.nav.or(this.navTrigger).first().waitFor();
+  }
+
   async goto(path = "/datasets"): Promise<void> {
     await this.page.goto(path);
-    await this.nav.waitFor();
+    await this.waitForShell();
   }
 
   /** Reloads and waits for the shell, so its keyboard shortcuts are listening. */
   async reload(): Promise<void> {
     await this.page.reload();
-    await this.nav.waitFor();
+    await this.waitForShell();
   }
 
   /** Hides the routed page so screenshots show only the shell. */

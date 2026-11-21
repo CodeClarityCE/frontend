@@ -498,7 +498,7 @@ test.describe("Projects list", () => {
     await page.getByRole("button", { name: "Delete Local archive" }).click();
     const confirm = page.getByRole("dialog", { name: "Delete Local archive?" });
     await expect(confirm).toContainText(
-      "The project is deleted. It has no analyses. This cannot be undone.",
+      "The project and its tickets are deleted. It has no analyses.",
     );
     await expect(confirm).not.toContainText("0 analyses");
   });

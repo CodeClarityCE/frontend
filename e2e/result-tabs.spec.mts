@@ -533,7 +533,7 @@ test.describe("Patch results", () => {
     await tabs.goto("Patches");
 
     const copy = page.getByRole("button", {
-      name: "Copy the patched manifest",
+      name: "Copy the dependency entries",
     });
     await copy.focus();
     await expectVisibleFocus(copy);

@@ -1,0 +1,15 @@
+- main:
+  - heading "Sign in to CodeClarity" [level=1]
+  - paragraph: Welcome back. Please enter your credentials.
+  - text: Email
+  - textbox "Email":
+    - /placeholder: Enter your email
+  - text: Password
+  - textbox "Password":
+    - /placeholder: Enter your password
+  - button "Sign in"
+  - link "Forgot your password?":
+    - /url: /password_reset_request
+  - text: New to CodeClarity?
+  - link "Create an account":
+    - /url: /signup

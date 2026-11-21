@@ -1,0 +1,10 @@
+- main:
+  - heading "Datasets" [level=1]
+  - paragraph: Reproducible cohorts of the most-starred GitHub projects.
+  - link "New Dataset":
+    - /url: /datasets/add
+  - img "The CodeClarity owl"
+  - heading "No Datasets yet" [level=2]
+  - paragraph: A Dataset ranks GitHub repositories by stars and keeps the ones whose root commits a package.json and a lockfile. Experiments run on it.
+  - link "Create a Dataset":
+    - /url: /datasets/add

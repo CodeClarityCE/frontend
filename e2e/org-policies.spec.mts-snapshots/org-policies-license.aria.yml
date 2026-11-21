@@ -1,0 +1,52 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - heading "Policies" [level=1]
+  - paragraph: License and vulnerability rules applied to the analyses of this organisation.
+  - tablist:
+    - tab "License policies" [selected]
+    - tab "Vulnerability policies"
+  - tabpanel "License policies":
+    - region "License policies":
+      - heading "License policies" [level=2]
+      - paragraph: Name the licenses projects in this organisation should not use. Analyses flag them.
+      - link "New license policy":
+        - /url: /orgs/add/policy/org-123/
+      - list "License policy totals":
+        - listitem: Policies 2
+        - listitem: Licenses covered 3
+      - searchbox "Filter license policies"
+      - table "License policies":
+        - caption: License policies
+        - rowgroup:
+          - row "Name Licenses Created Actions":
+            - columnheader "Name":
+              - button "Name"
+            - columnheader "Licenses":
+              - button "Licenses"
+            - columnheader "Created":
+              - button "Created"
+            - columnheader "Actions"
+        - rowgroup:
+          - row /Permissive only Default Permissive only for every project 2 Oct 1, \d+ Edit Permissive only Delete Permissive only/:
+            - cell "Permissive only Default Permissive only for every project"
+            - cell "2"
+            - cell /Oct 1, \d+/
+            - cell "Edit Permissive only Delete Permissive only":
+              - button "Edit Permissive only"
+              - button "Delete Permissive only"
+          - row /No copyleft No copyleft for every project 1 Oct 1, \d+ Edit No copyleft Delete No copyleft/:
+            - cell "No copyleft No copyleft for every project"
+            - cell "1"
+            - cell /Oct 1, \d+/
+            - cell "Edit No copyleft Delete No copyleft":
+              - button "Edit No copyleft"
+              - button "Delete No copyleft"

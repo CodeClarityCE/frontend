@@ -1,0 +1,36 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - heading "GitLab integration" [level=2]
+  - alert:
+    - heading "The token expires soon" [level=5]
+    - text: Replace it with "Replace token" before it expires, or analyses of its repositories stop.
+  - heading "Details" [level=3]
+  - paragraph: Your organization imports repositories from GitLab with this token.
+  - term: Status
+  - definition: Expiring soon Replace the token before it expires.
+  - term: Host
+  - definition: gitlab.example.com
+  - term: Added on
+  - definition: /January \d+, \d+/
+  - term: Expires
+  - definition: /November \d+, \d+ \(in 5 days\)/
+  - term: Token type
+  - definition: Personal access token
+  - heading "Actions" [level=3]
+  - link "Replace token":
+    - /url: /orgs/add/integrations/org-123/?update=gl-1&provider=GITLAB
+  - button "Delete integration"
+  - heading "Questions" [level=3]
+  - heading "When does an integration become invalid?" [level=3]:
+    - button "When does an integration become invalid?"
+  - heading "How do I fix an invalid integration?" [level=3]:
+    - button "How do I fix an invalid integration?"

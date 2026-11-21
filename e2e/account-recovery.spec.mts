@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 
@@ -52,6 +53,7 @@ test.describe("Password reset request", () => {
       page.getByRole("heading", { name: "Reset your password" }),
     ).toBeVisible();
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "password-reset-request");
     await expectScreenshots(page, "password-reset-request");
   });
 });
@@ -129,6 +131,7 @@ test.describe("Password reset from the emailed link", () => {
       page.getByRole("heading", { name: "Choose a new password" }),
     ).toBeVisible();
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "password-reset-form");
     await expectScreenshots(page, "password-reset-form");
   });
 });
@@ -166,6 +169,7 @@ test.describe("Registration confirmation", () => {
       /redirecting to sign in in 5 seconds/i,
     );
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "registration-confirmed");
     await expectScreenshots(page, "registration-confirmed");
     const signIn = page.getByRole("link", { name: "Go to sign in" });
     await signIn.focus();

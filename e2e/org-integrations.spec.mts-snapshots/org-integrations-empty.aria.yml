@@ -1,0 +1,44 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - list "Integration health":
+    - listitem: Healthy 0
+    - listitem: Expiring soon 0
+    - listitem: Invalid or expired 0
+    - listitem: Total 0
+  - region "Connected services":
+    - heading "Connected services" [level=2]
+    - table "Integrations":
+      - caption: Integrations
+      - rowgroup:
+        - row "Service Host Type Status Added Actions":
+          - columnheader "Service":
+            - button "Service"
+          - columnheader "Host":
+            - button "Host"
+          - columnheader "Type":
+            - button "Type"
+          - columnheader "Status":
+            - button "Status"
+          - columnheader "Added":
+            - button "Added"
+          - columnheader "Actions"
+      - rowgroup:
+        - row "No integrations yet. Add one below.":
+          - cell "No integrations yet. Add one below."
+  - heading "Add an integration" [level=2]
+  - paragraph: Import repositories from version control, or sync tickets to your tracker.
+  - link "Add GitHub":
+    - /url: /orgs/add/integrations/org-123/?provider=GITHUB
+  - link "Add GitLab":
+    - /url: /orgs/add/integrations/org-123/?provider=GITLAB
+  - link "Add ClickUp":
+    - /url: /orgs/add/integrations/org-123/?provider=CLICKUP

@@ -1,0 +1,34 @@
+- main:
+  - heading "Create your CodeClarity account" [level=1]
+  - paragraph: Welcome, please fill out the information below.
+  - text: Email
+  - textbox "Email":
+    - /placeholder: Enter your email
+  - text: First name
+  - textbox "First name":
+    - /placeholder: Enter your first name
+  - text: Last name
+  - textbox "Last name":
+    - /placeholder: Enter your last name
+  - text: Handle
+  - textbox "Handle":
+    - /placeholder: Enter your handle (username)
+  - text: Password
+  - textbox "Password":
+    - /placeholder: Enter your password
+  - text: Confirm password
+  - textbox "Confirm password":
+    - /placeholder: Confirm your password
+  - checkbox "I agree to the Terms of service and the Privacy policy."
+  - text: I agree to the
+  - link "Terms of service":
+    - /url: /terms
+  - text: and the
+  - link "Privacy policy":
+    - /url: /privacy
+  - text: .
+  - paragraph: We collect these data to manage your access to the platform. We use your email to send you information about your account, and to send you information about our products and services.
+  - button "Create account"
+  - text: Already have an account?
+  - link "Sign in":
+    - /url: /login

@@ -1,0 +1,6 @@
+- main:
+  - heading "Organisation invitation" [level=1]
+  - alert:
+    - heading "We could not load this invitation" [level=5]
+    - text: This invitation does not exist or has expired.
+  - button "Go back"

@@ -1,0 +1,63 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - link "Policies":
+    - /url: /orgs/manage/policies/org-123/
+  - heading "New license policy" [level=1]
+  - paragraph: Pick the licenses your projects should not use.
+  - group:
+    - text: Name
+    - textbox "Name":
+      - /placeholder: No copyleft licenses
+    - text: Description (optional)
+    - textbox "Description (optional)"
+    - paragraph: Tell your team what this policy is for.
+    - checkbox "Make this the default policy"
+    - text: Make this the default policy
+    - paragraph: New projects in this organisation use it.
+    - group "Licenses":
+      - text: ""
+      - paragraph: Projects that use a picked license are flagged.
+      - status: 0 licenses picked
+      - searchbox "Filter licenses"
+      - table "Licenses":
+        - caption: Licenses
+        - rowgroup:
+          - row "Include Identifier Name":
+            - columnheader "Include"
+            - columnheader "Identifier":
+              - button "Identifier"
+            - columnheader "Name":
+              - button "Name"
+        - rowgroup:
+          - row "Include MIT MIT MIT License":
+            - cell "Include MIT":
+              - checkbox "Include MIT"
+            - cell "MIT"
+            - cell "MIT License"
+          - row "Include Apache-2.0 Apache-2.0 Apache License 2.0":
+            - cell "Include Apache-2.0":
+              - checkbox "Include Apache-2.0"
+            - cell "Apache-2.0"
+            - cell "Apache License 2.0"
+          - row "Include GPL-3.0-only GPL-3.0-only GNU General Public License v3.0 only":
+            - cell "Include GPL-3.0-only":
+              - checkbox "Include GPL-3.0-only"
+            - cell "GPL-3.0-only"
+            - cell "GNU General Public License v3.0 only"
+          - row "Include BSD-3-Clause BSD-3-Clause BSD 3-Clause \"New\" or \"Revised\" License":
+            - cell "Include BSD-3-Clause":
+              - checkbox "Include BSD-3-Clause"
+            - cell "BSD-3-Clause"
+            - cell "BSD 3-Clause \"New\" or \"Revised\" License"
+    - link "Cancel":
+      - /url: /orgs/manage/policies/org-123/
+    - button "Create policy"

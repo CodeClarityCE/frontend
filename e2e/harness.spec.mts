@@ -38,6 +38,62 @@ test.describe("E2E harness", () => {
     ).rejects.toThrow(/image-alt/);
   });
 
+  // Grey text that only fails contrast while the root has the dark class.
+  const darkOnlyFailure = `<html lang="en"><head><title>t</title><style>.dark p{color:#777;background:#111}</style></head><body><main><p>Hello</p></main></body></html>`;
+
+  test("axe check also checks the page in dark", async ({ page }) => {
+    await page.setContent(darkOnlyFailure);
+    await expect(expectNoAxeViolations(page)).rejects.toThrow(
+      /in dark[\s\S]*color-contrast/,
+    );
+  });
+
+  test("axe check puts the page back in its own theme", async ({ page }) => {
+    await page.setContent(
+      `<html lang="en"><head><title>t</title></head><body><main><h1>Hello</h1></main></body></html>`,
+    );
+    await expectNoAxeViolations(page);
+    await expect(page.locator("html")).not.toHaveClass(/dark/);
+    expect(
+      await page.evaluate(
+        () => matchMedia("(prefers-color-scheme: dark)").matches,
+      ),
+    ).toBe(false);
+  });
+
+  test("axe check tolerates a dark-only known violation", async ({ page }) => {
+    await page.setContent(darkOnlyFailure);
+    await expectNoAxeViolations(page, {
+      known: [{ rule: "color-contrast", owner: "#0", theme: "dark" }],
+    });
+  });
+
+  test("a dark-only known violation does not excuse light", async ({
+    page,
+  }) => {
+    await page.setContent(
+      `<html lang="en"><head><title>t</title><style>html:not(.dark) p{color:#bbb;background:#fff}</style></head><body><main><p>Hello</p></main></body></html>`,
+    );
+    await expect(
+      expectNoAxeViolations(page, {
+        known: [{ rule: "color-contrast", owner: "#0", theme: "dark" }],
+      }),
+    ).rejects.toThrow(/in light[\s\S]*color-contrast/);
+  });
+
+  test("axe check fails when a dark-only known violation is gone", async ({
+    page,
+  }) => {
+    await page.setContent(
+      `<html lang="en"><head><title>t</title></head><body><main><h1>Hello</h1></main></body></html>`,
+    );
+    await expect(
+      expectNoAxeViolations(page, {
+        known: [{ rule: "color-contrast", owner: "#0", theme: "dark" }],
+      }),
+    ).rejects.toThrow(/no longer occur in dark[\s\S]*color-contrast/);
+  });
+
   test("focus check passes when focus is visible", async ({ page }) => {
     await page.setContent(
       `<style>button:focus-visible{outline:3px solid blue}</style><button>Go</button>`,

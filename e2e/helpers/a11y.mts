@@ -13,10 +13,14 @@ export const WCAG_22_AA_TAGS = [
 ];
 
 // An axe rule a page is known to break today, and the ticket that fixes it.
+// `theme: "dark"` limits the entry to the dark check.
 export interface KnownViolation {
   rule: string;
   owner: string;
+  theme?: "dark";
 }
+
+type Theme = "light" | "dark";
 
 interface AxeNode {
   target: string[];
@@ -44,7 +48,11 @@ declare global {
 function describe(violation: AxeViolation): string {
   const targets = violation.nodes
     .slice(0, 5)
-    .map((node) => `    ${node.target.join(" ")}`)
+    .map((node) => {
+      // Keeps axe's reason, such as the measured colours, under each target.
+      const why = node.failureSummary?.split("\n").slice(1, 2).join("").trim();
+      return `    ${node.target.join(" ")}${why ? `\n      ${why}` : ""}`;
+    })
     .join("\n");
   return `  ${violation.id} (${violation.impact ?? "n/a"}): ${violation.help}\n${targets}`;
 }
@@ -61,42 +69,108 @@ export async function waitForAnimations(page: Page): Promise<void> {
   );
 }
 
+async function runAxe(page: Page): Promise<AxeViolation[]> {
+  await waitForAnimations(page);
+  if (!(await page.evaluate(() => "axe" in window))) {
+    await page.addScriptTag({ path: axePath });
+  }
+  const { violations } = await page.evaluate(
+    (tags) =>
+      window.axe.run(document, { runOnly: { type: "tag", values: tags } }),
+    WCAG_22_AA_TAGS,
+  );
+  return violations;
+}
+
+// Lists unexpected violations and known ones that no longer occur in one theme.
+function problemsIn(
+  theme: Theme,
+  violations: AxeViolation[],
+  known: KnownViolation[],
+): string[] {
+  const expected = known.filter(
+    (entry) => !entry.theme || entry.theme === theme,
+  );
+  const knownRules = new Set(expected.map((entry) => entry.rule));
+  const unexpected = violations.filter((v) => !knownRules.has(v.id));
+  const found = new Set(violations.map((v) => v.id));
+  const fixed = expected.filter((entry) => !found.has(entry.rule));
+
+  const problems: string[] = [];
+  if (unexpected.length > 0) {
+    problems.push(
+      `axe found WCAG 2.2 AA violations in ${theme}:\n${unexpected.map(describe).join("\n")}`,
+    );
+  }
+  if (fixed.length > 0) {
+    problems.push(
+      `Known violations no longer occur in ${theme}, remove them from the list: ${fixed
+        .map((entry) => `${entry.rule} (${entry.owner})`)
+        .join(", ")}`,
+    );
+  }
+  return problems;
+}
+
+const isDark = (page: Page): Promise<boolean> =>
+  page.evaluate(() => document.documentElement.classList.contains("dark"));
+
+const osIsDark = (page: Page): Promise<boolean> =>
+  page.evaluate(() => matchMedia("(prefers-color-scheme: dark)").matches);
+
+// Waits two frames so a theme change has restyled the page before measuring.
+const nextFrames = (page: Page): Promise<void> =>
+  page.evaluate(
+    () =>
+      new Promise<void>((done) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => done())),
+      ),
+  );
+
+// Turns the OS scheme dark, and sets the dark class itself on pages that do not follow the OS.
+async function switchToDark(page: Page): Promise<() => Promise<void>> {
+  const osWasDark = await osIsDark(page);
+  await page.emulateMedia({ colorScheme: "dark" });
+  await nextFrames(page);
+  const addedClass = !(await isDark(page));
+  if (addedClass) {
+    await page.evaluate(() => document.documentElement.classList.add("dark"));
+  }
+  await nextFrames(page);
+  return async () => {
+    if (addedClass) {
+      await page.evaluate(() =>
+        document.documentElement.classList.remove("dark"),
+      );
+    }
+    await page.emulateMedia({ colorScheme: osWasDark ? "dark" : "light" });
+    await nextFrames(page);
+    await waitForAnimations(page);
+  };
+}
+
 /**
- * Runs axe-core with the WCAG 2.2 AA tags and fails on any violation.
- * `known` lists rules the page still breaks; it fails if one of them is fixed,
- * so the entry gets removed.
+ * Runs axe-core with the WCAG 2.2 AA tags in the current theme, then in dark,
+ * and fails on any violation. `known` lists rules the page still breaks; it
+ * fails if one of them is fixed, so the entry gets removed.
  */
 export async function expectNoAxeViolations(
   page: Page,
   options: { known?: KnownViolation[] } = {},
 ): Promise<void> {
   const known = options.known ?? [];
-  await waitForAnimations(page);
-  await page.addScriptTag({ path: axePath });
-  const { violations } = await page.evaluate(
-    (tags) =>
-      window.axe.run(document, { runOnly: { type: "tag", values: tags } }),
-    WCAG_22_AA_TAGS,
-  );
+  const startTheme: Theme = (await isDark(page)) ? "dark" : "light";
+  const problems = problemsIn(startTheme, await runAxe(page), known);
 
-  const knownRules = new Set(known.map((entry) => entry.rule));
-  const unexpected = violations.filter((v) => !knownRules.has(v.id));
-  const found = new Set(violations.map((v) => v.id));
-  const fixed = known.filter((entry) => !found.has(entry.rule));
+  if (startTheme === "light") {
+    const restore = await switchToDark(page);
+    try {
+      problems.push(...problemsIn("dark", await runAxe(page), known));
+    } finally {
+      await restore();
+    }
+  }
 
-  const problems: string[] = [];
-  if (unexpected.length > 0) {
-    problems.push(
-      `axe found WCAG 2.2 AA violations:\n${unexpected.map(describe).join("\n")}`,
-    );
-  }
-  if (fixed.length > 0) {
-    problems.push(
-      `Known violations no longer occur, remove them from the list: ${fixed
-        .map((entry) => `${entry.rule} (${entry.owner})`)
-        .join(", ")}`,
-    );
-  }
   if (problems.length > 0) {
     throw new Error(problems.join("\n\n"));
   }

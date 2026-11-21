@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Locator, test } from "@playwright/test";
 
 import {
   BACKGROUND,
@@ -10,6 +10,7 @@ import {
 } from "./helpers/theme.mjs";
 import { AuthPage } from "./pages/auth.page.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
+import { VulnerabilitiesPage } from "./pages/vulnerabilities.page.mjs";
 
 test.describe("Theme follows the OS", () => {
   let shell: ShellPage;
@@ -174,3 +175,45 @@ test.describe("The auth pages logo", () => {
     });
   }
 });
+
+test.describe("Severity in dark", () => {
+  test("keeps its labels and its red-to-yellow order", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 1024 });
+    await page.emulateMedia({ colorScheme: "dark" });
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn();
+    await vulns.gotoResults();
+    await expectTheme(page, "dark");
+
+    const hues: number[] = [];
+    for (const [i, label] of ["Critical", "High", "Medium", "Low"].entries()) {
+      const badge = vulns.cards
+        .nth(i)
+        .getByText(new RegExp(`^${label}\\b`))
+        .first();
+      await expect(badge).toBeVisible();
+      hues.push(await hue(badge));
+    }
+    // Red sits near 0 degrees and yellow near 50, so each step moves up.
+    for (let i = 1; i < hues.length; i++) {
+      expect(hues[i]!).toBeGreaterThan(hues[i - 1]!);
+    }
+    expect(hues[0]!).toBeLessThan(15);
+    expect(hues[3]!).toBeGreaterThan(35);
+    expect(hues[3]!).toBeLessThan(65);
+  });
+});
+
+// The hue of an element's background in degrees.
+async function hue(locator: Locator): Promise<number> {
+  const rgb = await locator.evaluate(
+    (el) => getComputedStyle(el).backgroundColor,
+  );
+  const [r, g, b] = (rgb.match(/\d+/g) ?? [])
+    .slice(0, 3)
+    .map((v) => Number(v) / 255);
+  // Hue angle from the RGB channels: 0 is red, 60 is yellow, reds past 0 go negative.
+  return (
+    (Math.atan2(Math.sqrt(3) * (g! - b!), 2 * r! - g! - b!) * 180) / Math.PI
+  );
+}

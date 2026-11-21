@@ -15,12 +15,40 @@ import { defineConfig, devices } from "@playwright/test";
  *   but Caddy only answers for the "localhost" server name.
  * - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: use a system Chromium instead of a
  *   Playwright-downloaded one.
+ *
+ * The real-stack journey (e2e/real-stack/*.journey.mts) mocks nothing. Its
+ * `real-stack` project exists only when E2E_BASE_URL is set; run it with
+ * `--project=real-stack` (umbrella CI does, against its trimmed stack).
  */
 const liveBaseURL = process.env.E2E_BASE_URL;
 const hostResolverRules = process.env.E2E_HOST_RESOLVER_RULES;
 const chromiumPath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
 const port = Number(process.env.E2E_PORT ?? 4173);
 const localURL = `http://127.0.0.1:${port}`;
+
+// Only against a real stack: one journey, no retries, a trace kept on failure.
+const realStackProjects = liveBaseURL
+  ? [
+      {
+        name: "real-stack",
+        testDir: "./e2e/real-stack",
+        testMatch: "**/*.journey.mts",
+        retries: 0,
+        timeout: 6 * 60 * 1000,
+        use: {
+          ...devices["Desktop Chrome"],
+          viewport: { width: 1280, height: 1024 },
+          trace: "retain-on-failure",
+          launchOptions: {
+            ...(chromiumPath ? { executablePath: chromiumPath } : {}),
+            args: hostResolverRules
+              ? [`--host-resolver-rules=${hostResolverRules}`]
+              : [],
+          },
+        },
+      },
+    ]
+  : [];
 
 /**
  * Playwright configuration for CodeClarity E2E tests
@@ -95,6 +123,8 @@ export default defineConfig({
       name: "Mobile Safari",
       use: { ...devices["iPhone 12"] },
     },
+
+    ...realStackProjects,
   ],
 
   /* Run your local dev server before starting the tests */

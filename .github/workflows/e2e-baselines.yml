@@ -1,0 +1,53 @@
+# Regenerates the Playwright screenshot baselines in the pinned Playwright
+# image, then checks the whole default suite against them. The updated
+# e2e/*-snapshots folders are uploaded as the "e2e-baselines" artifact.
+# Push any branch named baselines/** to run it; see the README's e2e section.
+name: E2E baselines
+
+on:
+  push:
+    branches: ["baselines/**"]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  baselines:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Update baselines in the Playwright image
+        run: .cloud/scripts/e2e-baselines.sh
+
+      - name: List changed baselines
+        if: ${{ !cancelled() }}
+        run: git status --porcelain -- e2e
+
+      - name: Upload baselines
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-baselines
+          path: e2e/*-snapshots/
+          if-no-files-found: error
+
+      - name: Check the default suite against them
+        run: .cloud/scripts/e2e-baselines.sh --check
+
+      - name: Upload the report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore

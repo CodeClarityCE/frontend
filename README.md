@@ -91,13 +91,44 @@ pnpm test:unit
 ### Run End-to-End Tests with [Playwright](https://playwright.dev/)
 
 ```sh
-node_modules/.bin/playwright test --project=chromium
+node_modules/.bin/playwright test
 ```
 
 Playwright builds the app, serves it with `vite preview` on `127.0.0.1:4173` and stops
 the server when the run ends. Set `E2E_PORT` to use another port, for example to run
 two worktrees at once. A server already listening on that port fails the run instead of
 being tested. `E2E_BASE_URL` targets a running stack instead and skips the build.
+
+A plain run uses two projects: `chromium` (desktop) and `pixel-5`. Set
+`E2E_ALL_BROWSERS=1` to add desktop `firefox` and `webkit`, for nightly or manual runs.
+
+### Screenshot baselines
+
+Screenshots are compared in the `chromium` project only, at 1280 px wide and, for phone
+layouts, 390 px (`e2e/helpers/screenshots.mts`). The baselines in `e2e/*-snapshots/` are
+generated in the digest-pinned Playwright image, so every machine renders the same pixels.
+A run on your machine may show small pixel diffs; the run in the image is the one that counts.
+
+With Docker, regenerate the baselines that changed, or check the suite as CI would:
+
+```sh
+.cloud/scripts/e2e-baselines.sh          # update changed baselines
+.cloud/scripts/e2e-baselines.sh --check  # default projects, fail on any diff
+```
+
+Pass Playwright arguments after `--`, for example
+`.cloud/scripts/e2e-baselines.sh -- e2e/tickets.spec.mts`. The script copies the checkout
+into the container and copies only `e2e/*-snapshots/` back. Delete a baseline file by hand
+when its screenshot is removed; Playwright never deletes them.
+
+Without Docker, let GitHub Actions do it: push your commit to a branch named
+`baselines/<anything>` in `CodeClarityCE/frontend`. The `E2E baselines` workflow runs the same
+script, uploads the updated folders as the `e2e-baselines` artifact, then runs `--check`.
+Fetch the artifact into the checkout and commit it:
+
+```sh
+gh run download <run-id> -R CodeClarityCE/frontend -n e2e-baselines -D e2e
+```
 
 ### Fixture contracts
 

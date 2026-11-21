@@ -7,7 +7,7 @@ Vue 3, Vitest, and Cypress testing standards for CodeClarity.
 ```
 tests/
 ├── setup.ts                 # Global test setup
-├── utils/test-utils.ts      # Testing utilities
+├── real-app.ts             # createTestApp: real app, faked HTTP
 ├── mocks/
 │   ├── handlers.ts          # MSW handlers
 │   └── server.ts            # MSW server
@@ -164,18 +164,19 @@ export const handlers = [
 
 ```typescript
 const mockChild = { template: '<div data-testid="mock-child">Mock</div>' };
-const wrapper = renderWithProviders(Parent, {
-  global: { stubs: { Child: mockChild } },
+render(Parent, {
+  global: { ...app.global, stubs: { Child: mockChild } },
 });
 ```
 
 ### Libraries
 
+Never mock the router, Pinia or the stores: use `createTestApp`. Mock a module
+only where jsdom cannot run it, such as a file download:
+
 ```typescript
-vi.mock("vue-router", () => ({
-  useRouter: () => ({ push: vi.fn() }),
-  useRoute: () => ({ params: {} }),
-}));
+const { saveBlob } = vi.hoisted(() => ({ saveBlob: vi.fn() }));
+vi.mock("@/utils/download", () => ({ saveBlob }));
 ```
 
 ## Coverage
@@ -224,7 +225,7 @@ console.log(wrapper.vm.$props); // Check component state
 
 **From Vue Test Utils to Testing Library:**
 
-- Replace `mount()` with `renderWithProviders()`
+- Replace `mount()` with `render()` from `@testing-library/vue`
 - Use semantic queries instead of `find()`
 - Focus on user interactions over implementation
 - Test behavior, not internals

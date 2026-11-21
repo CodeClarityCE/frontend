@@ -1,0 +1,12 @@
+- main:
+  - link "Organisations":
+    - /url: /orgs/list/
+  - heading "New organisation" [level=1]
+  - paragraph: An organisation groups projects, members, integrations and policies. You can invite people once it exists.
+  - text: Name
+  - textbox "Name":
+    - /placeholder: Research lab
+  - text: Description
+  - textbox "Description":
+    - /placeholder: What this organisation works on
+  - button "Create organisation"

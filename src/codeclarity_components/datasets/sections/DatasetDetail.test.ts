@@ -14,11 +14,6 @@ import {
 
 import DatasetDetail from "./DatasetDetail.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const datasetPath = `/org/${org.id}/datasets/ds-1`;
 const projectsPath = `/org/${org.id}/projects`;
 

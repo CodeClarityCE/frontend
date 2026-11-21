@@ -6,11 +6,6 @@ import { createTestApp, org, type TestApp } from "../../../../tests/real-app";
 
 import VulnDetails from "./VulnDetails.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 let app: TestApp;
 let queries: URLSearchParams[] = [];
 

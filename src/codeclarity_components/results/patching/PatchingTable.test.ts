@@ -1,16 +1,11 @@
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { analysisPath } from "../../../../tests/fixtures/results";
 import { createTestApp } from "../../../../tests/real-app";
 
 import PatchingTable from "./PatchingTable.vue";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const semver = (Major: number, Minor: number, Patch: number) => ({
   Major,

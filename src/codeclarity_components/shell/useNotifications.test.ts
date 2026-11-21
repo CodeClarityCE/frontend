@@ -1,5 +1,5 @@
 import { flushPromises } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { nextTick } from "vue";
 
 import { createTestApp, type TestApp } from "../../../tests/real-app";
@@ -9,11 +9,6 @@ import {
   NotificationContentType,
 } from "./notification.entity";
 import { useNotifications } from "./useNotifications";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const ok = { status_code: 200, status: "success" };
 

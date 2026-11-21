@@ -15,11 +15,6 @@ import {
 
 import OrganizationJoin from "./OrganizationJoin.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const JOIN_PATH =
   "/email_action/join_org?token=tok&useremail=digest&orgId=org-1";
 const infoPath = "/org/org-1/org_info_invitee";

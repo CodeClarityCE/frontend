@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   type Analysis,
@@ -9,11 +9,6 @@ import { useUserStore } from "@/stores/user";
 import { createTestApp, type TestApp, user } from "../../tests/real-app";
 
 import { LanguageDetectionService } from "./languageDetection";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 // A finished analysis; each test uses its own id, as the cache outlives a test.
 const analysisWith = (id: string): Analysis =>

@@ -1,15 +1,10 @@
 import { render, screen, within } from "@testing-library/vue";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createTestApp } from "../../../../tests/real-app";
 
 import PackageJsonUpdatesModal from "./PackageJsonUpdatesModal.vue";
 import type { PackageUpdate } from "./utils/packageManagerUtils";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const lodash: PackageUpdate = {
   name: "lodash",

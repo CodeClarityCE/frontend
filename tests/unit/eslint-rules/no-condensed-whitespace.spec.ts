@@ -1,13 +1,7 @@
 import { RuleTester } from "eslint";
-import { vi } from "vitest";
 import vueParser from "vue-eslint-parser";
 
 import rule from "../../../eslint-rules/no-condensed-whitespace.js";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const tester = new RuleTester({
   languageOptions: {

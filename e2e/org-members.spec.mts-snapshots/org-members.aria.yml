@@ -1,0 +1,52 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - heading "Members" [level=1]
+  - paragraph: Everyone in the organisation and the role they hold.
+  - link "Open invitations":
+    - /url: /orgs/manage/invites/org-123/
+  - link "Invite a member":
+    - /url: /orgs/add/invites/org-123/
+  - searchbox "Filter members"
+  - table "Members":
+    - caption: Members
+    - rowgroup:
+      - row "Member Email Role Joined Actions":
+        - columnheader "Member":
+          - button "Member"
+        - columnheader "Email":
+          - button "Email"
+        - columnheader "Role":
+          - button "Role"
+        - columnheader "Joined":
+          - button "Joined"
+        - columnheader "Actions"
+    - rowgroup:
+      - row /John Doe \(you\) @JohnDoe john\.doe@codeclarity\.io Owner Jun \d+, \d+/:
+        - cell "John Doe (you) @JohnDoe"
+        - cell "john.doe@codeclarity.io"
+        - cell "Owner"
+        - cell /Jun \d+, \d+/
+        - cell
+      - row /Alice Martin @alicemartin alice@example\.com Admin Jan \d+, \d+ Remove Alice Martin/:
+        - cell "Alice Martin @alicemartin"
+        - cell "alice@example.com"
+        - cell "Admin"
+        - cell /Jan \d+, \d+/
+        - cell "Remove Alice Martin":
+          - button "Remove Alice Martin"
+      - row /Bob Keller @bobkeller bob@example\.com User Mar \d+, \d+ Remove Bob Keller/:
+        - cell "Bob Keller @bobkeller"
+        - cell "bob@example.com"
+        - cell "User"
+        - cell /Mar \d+, \d+/
+        - cell "Remove Bob Keller":
+          - button "Remove Bob Keller"

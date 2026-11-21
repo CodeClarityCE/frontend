@@ -7,11 +7,6 @@ import { createTestApp, type TestApp } from "../../../../tests/real-app";
 
 import VulnFindings from "./VulnFindings.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const FINDINGS_PATH = `${analysisPath}/vulnerabilities`;
 
 let app: TestApp;

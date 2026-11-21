@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
@@ -231,6 +232,7 @@ test.describe("Authentication E2E Tests", () => {
       await authPage.goto();
       await authPage.expectFormVisible();
       await expectPageSweep(page);
+      await expectMainSnapshot(page, "login");
       await expectScreenshots(page, "login");
     });
 
@@ -418,6 +420,7 @@ test.describe("Sign up", () => {
     await page.goto("/signup");
     await expect(field(page, "Email")).toBeVisible();
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "signup");
     await expectScreenshots(page, "signup");
   });
 });

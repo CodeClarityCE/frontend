@@ -11,11 +11,6 @@ import type { ExperimentResults as Results } from "../experiment.entity";
 
 import ExperimentResults from "./ExperimentResults.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const { saveBlob, loadPdfFonts } = vi.hoisted(() => ({
   saveBlob: vi.fn(),
   loadPdfFonts: vi.fn(),

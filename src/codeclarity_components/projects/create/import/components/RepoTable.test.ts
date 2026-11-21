@@ -15,11 +15,6 @@ import {
 
 import RepoTable, { type RepoTableConfig } from "./RepoTable.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const reposPath = `/org/${org.id}/integrations/github/gh-1/repositories`;
 
 // The GitHub importer's own request for the repositories.

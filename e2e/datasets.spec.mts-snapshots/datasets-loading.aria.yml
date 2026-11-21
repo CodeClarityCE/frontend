@@ -1,0 +1,7 @@
+- main:
+  - heading "Datasets" [level=1]
+  - paragraph: Reproducible cohorts of the most-starred GitHub projects.
+  - link "New Dataset":
+    - /url: /datasets/add
+  - searchbox "Filter Datasets" [disabled]
+  - status "Loading Datasets"

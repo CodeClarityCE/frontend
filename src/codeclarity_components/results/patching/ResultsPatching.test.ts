@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import type { Project } from "@/codeclarity_components/projects/project.entity";
@@ -9,11 +9,6 @@ import { analysisPath } from "../../../../tests/fixtures/results";
 import { createTestApp } from "../../../../tests/real-app";
 
 import ResultsPatching from "./ResultsPatching.vue";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 describe("ResultsPatching", () => {
   it("shows the patches of the analysis", async () => {

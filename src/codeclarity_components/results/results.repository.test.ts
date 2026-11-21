@@ -4,11 +4,6 @@ import { createTestApp, org } from "../../../tests/real-app";
 
 import { ResultsRepository } from "./results.repository";
 
-// Runs the real repository so only the network is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const analysisPath = `/org/${org.id}/projects/project-1/analysis/analysis-1`;
 const ids = {
   orgId: org.id,

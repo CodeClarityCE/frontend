@@ -1,15 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { Entity } from "@/utils/api/BaseEntity";
 
 import { createTestApp } from "../../../../tests/real-app";
 
 import { AuditLog } from "./AuditLog";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 function auditLogEntry(action: string, actionClass = "Organization"): object {
   return {

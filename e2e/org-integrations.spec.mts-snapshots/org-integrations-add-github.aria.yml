@@ -1,0 +1,40 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - heading "Connect GitHub" [level=2]
+  - heading "Personal access token" [level=2]
+  - paragraph: Paste a classic token with the scopes below. It lets CodeClarity list and clone your repositories.
+  - text: GitHub classic token
+  - textbox "GitHub classic token" [invalid]:
+    - /placeholder: ghp_...
+  - paragraph: A classic token with the repo and write:org scopes, or public_repo for public repositories only.
+  - paragraph: Enter a GitHub classic token
+  - button "Connect GitHub"
+  - paragraph: Your token is encrypted and stored securely. It is only used to read your repositories for analysis.
+  - heading "Create a token" [level=2]
+  - paragraph: These links open GitHub with the scopes already selected.
+  - link "Full access token (opens GitHub in a new tab)":
+    - /url: https://github.com/settings/tokens/new?description=CodeClarity&scopes=repo,write:org
+  - link "Public repositories only (opens GitHub in a new tab)":
+    - /url: https://github.com/settings/tokens/new?description=CodeClarity+Public&scopes=public_repo
+  - list:
+    - listitem: Pick "Full access token" for private repositories, or "Public repositories only".
+    - listitem: Select an expiration that fits your security policy.
+    - listitem: Click "Generate token".
+    - listitem: Copy the token and paste it into the form.
+  - paragraph:
+    - text: Creating the token by hand? Select
+    - code: repo
+    - text: and
+    - code: write:org
+    - text: ", or only"
+    - code: public_repo
+    - text: .

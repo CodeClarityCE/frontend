@@ -1,0 +1,36 @@
+- main:
+  - link "Experiments":
+    - /url: /experiments
+  - heading "Broken cohort" [level=1]
+  - text: Failed
+  - paragraph:
+    - text: Analyzer
+    - strong: JavaScript analyzer
+    - text: over Dataset
+    - link "Top npm packages":
+      - /url: /datasets/detail?id=ds-1
+    - text: /, 2 retries per failed run\. Created Oct 5, \d+, \d+:\d+ AM by John Doe\. Started Oct 5, \d+, \d+:\d+ AM, ended -/
+  - button "Delete"
+  - alert: "The Experiment failed: Dataset entries could not be read"
+  - region "Progress":
+    - heading "Progress" [level=2]
+    - text: /Finished runs 0 \/ \d+/
+    - progressbar "Finished runs"
+    - list "Runs by state":
+      - listitem: Done 0
+      - listitem: Failed 0
+      - listitem: Skipped 0
+      - listitem: /Pending \d+/
+  - tablist:
+    - tab "Results" [selected]
+    - tab "Figures"
+  - tabpanel "Results":
+    - region "Results":
+      - heading "Results" [level=2]
+      - group "Downloads":
+        - button "runs.csv"
+        - button "vulnerabilities.csv"
+        - button "exposures.csv"
+        - button "fixes.csv"
+        - button "results.json"
+      - paragraph: Results appear once the first run is done.

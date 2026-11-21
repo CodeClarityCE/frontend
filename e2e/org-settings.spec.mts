@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
@@ -127,6 +128,7 @@ test.describe("Organisations list", () => {
     await expect(
       page.getByRole("heading", { name: "No organisations yet" }),
     ).toBeVisible();
+    await expectMainSnapshot(page, "orgs-empty");
     await page.getByRole("link", { name: "Create an organisation" }).click();
 
     await expect(page).toHaveURL(/\/orgs\/add\/?$/);
@@ -176,6 +178,7 @@ test.describe("Organisations list", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "orgs-list");
     await expectScreenshots(page, "orgs-list");
   });
 });
@@ -204,6 +207,7 @@ test.describe("Create an organisation", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "orgs-create-errors");
     await expectScreenshots(page, "orgs-create-errors");
   });
 
@@ -237,6 +241,7 @@ test.describe("Create an organisation", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "orgs-create");
     await expectScreenshots(page, "orgs-create");
   });
 });
@@ -402,6 +407,7 @@ test.describe("Organisation overview", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-overview");
     await expectScreenshots(page, "org-overview");
 
     await page.getByRole("button", { name: "Delete organisation" }).click();

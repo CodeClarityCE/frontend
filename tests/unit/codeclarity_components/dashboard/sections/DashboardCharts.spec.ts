@@ -1,5 +1,5 @@
 import { mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { useFilteredDashboardRequest } from "@/codeclarity_components/dashboard/composables/useDashboardRequest";
 import DashboardCharts from "@/codeclarity_components/dashboard/sections/DashboardCharts.vue";
@@ -12,11 +12,6 @@ import {
   type VulnerabilityTrend,
   type VulnerabilityTrendFilters,
 } from "@/codeclarity_components/vulnerabilities/vulnerability_trend.entity";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 describe("DashboardCharts", () => {
   it("shows a titled card for each part of the project overview", () => {

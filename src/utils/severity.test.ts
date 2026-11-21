@@ -1,15 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   cvssVersionLabel,
   findingSeverityLevel,
   severityLevelFromLabel,
 } from "./severity";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 describe("severityLevelFromLabel", () => {
   it("maps API severity names to severity levels", () => {

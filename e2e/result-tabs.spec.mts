@@ -578,6 +578,19 @@ test.describe("Patch results", () => {
     await expectMainSnapshot(page, "patches");
     await expectScreenshots(page, "patches");
   });
+
+  test("nothing to patch says so and passes axe", async ({ page }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn({ noPatches: true });
+    await tabs.goto("Patches");
+
+    await expect(
+      page.getByText("No vulnerable direct dependencies."),
+    ).toBeVisible();
+    await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "patches-empty");
+  });
 });
 
 test.describe("CodeQL results", () => {

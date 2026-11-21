@@ -9,11 +9,6 @@ import type {
   OrganizationVulnerabilityList,
 } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const getVulnerabilities =
   vi.fn<
     (

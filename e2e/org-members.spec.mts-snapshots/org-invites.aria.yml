@@ -1,0 +1,51 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - heading "Invitations" [level=1]
+  - paragraph: Invitations that have not been accepted yet.
+  - link "Members":
+    - /url: /orgs/manage/members/org-123/
+  - button "Invite a member"
+  - searchbox "Filter invitations"
+  - table "Open invitations":
+    - caption: Open invitations
+    - rowgroup:
+      - row "Invitee Role Invited by Invited on Expires Actions":
+        - columnheader "Invitee":
+          - button "Invitee"
+        - columnheader "Role":
+          - button "Role"
+        - columnheader "Invited by":
+          - button "Invited by"
+        - columnheader "Invited on":
+          - button "Invited on"
+        - columnheader "Expires":
+          - button "Expires"
+        - columnheader "Actions"
+    - rowgroup:
+      - row /carol@example\.com User John Doe @JohnDoe Nov \d+, \d+ in 5 days Resend the invitation to carol@example\.com Revoke the invitation to carol@example\.com/:
+        - cell "carol@example.com"
+        - cell "User"
+        - cell "John Doe @JohnDoe"
+        - cell /Nov \d+, \d+/
+        - cell "in 5 days"
+        - cell "Resend the invitation to carol@example.com Revoke the invitation to carol@example.com":
+          - button "Resend the invitation to carol@example.com"
+          - button "Revoke the invitation to carol@example.com"
+      - row /dave@example\.com Moderator Alice Martin @alicemartin Nov \d+, \d+ in 5 days Resend the invitation to dave@example\.com Revoke the invitation to dave@example\.com/:
+        - cell "dave@example.com"
+        - cell "Moderator"
+        - cell "Alice Martin @alicemartin"
+        - cell /Nov \d+, \d+/
+        - cell "in 5 days"
+        - cell "Resend the invitation to dave@example.com Revoke the invitation to dave@example.com":
+          - button "Resend the invitation to dave@example.com"
+          - button "Revoke the invitation to dave@example.com"

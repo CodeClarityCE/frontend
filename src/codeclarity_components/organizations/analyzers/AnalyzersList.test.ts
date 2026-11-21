@@ -13,11 +13,6 @@ import {
 
 import AnalyzersList from "./AnalyzersList.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const listPath = `/org/${org.id}/analyzers`;
 
 const sample = [

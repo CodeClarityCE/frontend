@@ -295,7 +295,7 @@ onBeforeMount(async () => {
     />
     <template v-else-if="!loading">
       <Alert v-if="failed" variant="destructive">
-        <AlertTitle>Could not load this analysis</AlertTitle>
+        <AlertTitle as="h2">Could not load this analysis</AlertTitle>
         <AlertDescription>Reload the page to try again.</AlertDescription>
       </Alert>
       <Alert
@@ -309,7 +309,7 @@ onBeforeMount(async () => {
             : 'default'
         "
       >
-        <AlertTitle>{{ statusNotice.title }}</AlertTitle>
+        <AlertTitle as="h2">{{ statusNotice.title }}</AlertTitle>
         <AlertDescription>{{ statusNotice.text }}</AlertDescription>
       </Alert>
       <Alert
@@ -317,7 +317,7 @@ onBeforeMount(async () => {
         role="status"
         aria-label="Skipped folders"
       >
-        <AlertTitle>Some folders were not analysed</AlertTitle>
+        <AlertTitle as="h2">Some folders were not analysed</AlertTitle>
         <AlertDescription>
           <ul class="flex flex-col gap-1">
             <li

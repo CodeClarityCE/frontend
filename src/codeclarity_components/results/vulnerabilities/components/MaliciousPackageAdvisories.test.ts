@@ -8,11 +8,6 @@ import { createTestApp, type TestApp } from "../../../../../tests/real-app";
 
 import MaliciousPackageAdvisories from "./MaliciousPackageAdvisories.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const ADVISORIES_PATH = `${analysisPath}/vulnerabilities/malicious-packages`;
 
 const advisory = {

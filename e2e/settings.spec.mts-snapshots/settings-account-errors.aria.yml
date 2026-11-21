@@ -1,0 +1,29 @@
+- main:
+  - heading "Account settings" [level=1]
+  - paragraph: Your name, your password and your account.
+  - region "Personal information":
+    - heading "Personal information" [level=2]
+    - paragraph: The name other members see.
+    - text: First name
+    - textbox "First name": John
+    - text: Last name
+    - textbox "Last name": Doe
+    - button "Save changes"
+  - region "Password":
+    - heading "Password" [level=2]
+    - paragraph: /Use at least \d+ characters\. You stay signed in after the change\./
+    - text: Current password
+    - textbox "Current password" [invalid]
+    - alert: Enter your current password
+    - text: New password
+    - textbox "New password" [invalid]
+    - paragraph: /Between \d+ and \d+ characters\./
+    - alert: /At least \d+ characters/
+    - text: Confirm new password
+    - textbox "Confirm new password" [invalid]
+    - alert: Confirm the new password
+    - button "Change password"
+  - region "Delete account":
+    - heading "Delete account" [level=2]
+    - paragraph: Removes your account with its projects, analysis results, organisations and license policies. This cannot be undone.
+    - button "Delete account"

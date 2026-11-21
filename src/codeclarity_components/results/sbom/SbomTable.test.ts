@@ -1,17 +1,12 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createTestApp } from "../../../../tests/real-app";
 
 import { sbomDependency } from "./sbom.fixture";
 import SbomTable from "./SbomTable.vue";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const dependencies = [
   sbomDependency("lodash", "4.17.20", { newest_release: "4.17.21" }),

@@ -6,11 +6,6 @@ import UserAuthForm from "@/codeclarity_components/authentication/signin/UserAut
 
 import { createTestApp, org, type TestApp, user } from "../../../../real-app";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const tokens = {
   token: "access-token",
   token_expiry: "2099-01-01T00:00:00.000Z",

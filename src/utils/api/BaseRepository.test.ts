@@ -10,11 +10,6 @@ import {
 
 import { BaseRepository, BusinessLogicError } from "./BaseRepository";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 class ProbeRepository extends BaseRepository {
   send(): Promise<unknown> {
     return this.postRequest({

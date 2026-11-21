@@ -1,14 +1,9 @@
 import { render, screen } from "@testing-library/vue";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createTestApp, org } from "../../../tests/real-app";
 
 import ProjectsView from "./ProjectsView.vue";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const emptyPage = {
   data: [],

@@ -40,7 +40,12 @@ test.describe("Theme follows the OS", () => {
     await shell.signIn();
   });
 
-  for (const path of ["/datasets", "/login"]) {
+  for (const path of [
+    "/datasets",
+    "/login",
+    "/signup",
+    "/email_action/confirm_registration?token=t1&userid=u1",
+  ]) {
     test(`a dark OS gets dark before the app bundle loads on ${path}`, async ({
       page,
     }) => {

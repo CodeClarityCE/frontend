@@ -2,7 +2,7 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
-import { onAPhone } from "./helpers/phone.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   analysis,
@@ -934,9 +934,7 @@ function repoWithStars(name: string, stars: number): Record<string, unknown> {
   return repo(name, { stargazers_count: stars, language: "JavaScript" });
 }
 
-test.describe("On a phone", () => {
-  onAPhone();
-
+describeOnAPhone("On a phone", () => {
   test("the projects list does not scroll sideways", async ({ page }) => {
     const projects = new ProjectsPage(page);
     await projects.signIn();
@@ -945,6 +943,7 @@ test.describe("On a phone", () => {
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "projects-list");
   });
 
   test("Add a Project does not scroll sideways", async ({ page }) => {
@@ -955,6 +954,7 @@ test.describe("On a phone", () => {
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "add-a-project");
   });
 
   test("the GitHub import fits without scrolling sideways", async ({
@@ -966,5 +966,6 @@ test.describe("On a phone", () => {
     await page.getByTestId("github-card").click();
     await expect(projects.rows()).toHaveCount(3);
     await expectPageSweep(page);
+    await expectScreenshots(page, "github-import");
   });
 });

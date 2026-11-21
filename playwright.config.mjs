@@ -17,7 +17,8 @@ import { defineConfig, devices } from "@playwright/test";
  *   Playwright-downloaded one.
  *
  * Browsers: chromium desktop and Pixel 5 run by default. E2E_ALL_BROWSERS=1
- * adds desktop firefox and webkit, for nightly or manual runs.
+ * adds desktop firefox and webkit, for nightly or manual runs. Phone tests
+ * (tagged @phone) run on Pixel 5, all others on the desktop projects.
  */
 const liveBaseURL = process.env.E2E_BASE_URL;
 const hostResolverRules = process.env.E2E_HOST_RESOLVER_RULES;
@@ -32,20 +33,39 @@ const chromiumLaunch = {
   args: hostResolverRules ? [`--host-resolver-rules=${hostResolverRules}`] : [],
 };
 
+// Tests tagged @phone (describeOnAPhone in e2e/helpers/phone.mts) run on
+// Pixel 5 only; every other test runs on the desktop projects.
+const PHONE = /@phone/;
+
 const defaultProjects = [
   {
     name: "chromium",
+    grepInvert: PHONE,
     use: { ...devices["Desktop Chrome"], launchOptions: chromiumLaunch },
   },
   {
     name: "pixel-5",
-    use: { ...devices["Pixel 5"], launchOptions: chromiumLaunch },
+    grep: PHONE,
+    use: {
+      ...devices["Pixel 5"],
+      // The 390px phone screenshot width.
+      viewport: { width: 390, height: 844 },
+      launchOptions: chromiumLaunch,
+    },
   },
 ];
 
 const extraBrowsers = [
-  { name: "firefox", use: { ...devices["Desktop Firefox"] } },
-  { name: "webkit", use: { ...devices["Desktop Safari"] } },
+  {
+    name: "firefox",
+    grepInvert: PHONE,
+    use: { ...devices["Desktop Firefox"] },
+  },
+  {
+    name: "webkit",
+    grepInvert: PHONE,
+    use: { ...devices["Desktop Safari"] },
+  },
 ];
 
 /**

@@ -2,7 +2,7 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
-import { onAPhone } from "./helpers/phone.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
 import { AuthPage } from "./pages/auth.page.mjs";
@@ -422,14 +422,13 @@ test.describe("Sign up", () => {
   });
 });
 
-test.describe("On a phone", () => {
-  onAPhone();
-
+describeOnAPhone("On a phone", () => {
   test("the sign up page does not scroll sideways", async ({ page }) => {
     await page.goto("/signup");
     await expect(page.getByRole("heading").first()).toBeVisible();
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "sign-up-page");
   });
 });

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
-import { onAPhone } from "./helpers/phone.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
 import { DashboardPage, week } from "./pages/dashboard.page.mjs";
@@ -624,9 +624,7 @@ test.describe("Whole page", () => {
   });
 });
 
-test.describe("On a phone", () => {
-  onAPhone();
-
+describeOnAPhone("On a phone", () => {
   test("the dashboard does not scroll sideways", async ({ page }) => {
     const dashboard = new DashboardPage(page);
     await dashboard.signIn();
@@ -635,5 +633,6 @@ test.describe("On a phone", () => {
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "dashboard");
   });
 });

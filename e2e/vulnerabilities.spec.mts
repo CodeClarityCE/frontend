@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
-import { expectPageSweep, PHONE_WIDTH } from "./helpers/page-sweep.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
 import {
@@ -521,11 +522,7 @@ test.describe("Vulnerability details references", () => {
   });
 });
 
-test.describe("On a phone", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.setViewportSize({ width: PHONE_WIDTH, height: 844 });
-  });
-
+describeOnAPhone("On a phone", () => {
   test("the list and the table fit without scrolling sideways", async ({
     page,
   }) => {
@@ -534,9 +531,11 @@ test.describe("On a phone", () => {
     await vulns.gotoResults();
     await expect(vulns.cards).toHaveCount(4);
     await expectPageSweep(page);
+    await expectScreenshots(page, "vulnerabilities-list");
 
     await page.getByRole("tab", { name: "Table" }).click();
     await expect(vulns.rows()).toHaveCount(4);
     await expectPageSweep(page);
+    await expectScreenshots(page, "vulnerabilities-table");
   });
 });

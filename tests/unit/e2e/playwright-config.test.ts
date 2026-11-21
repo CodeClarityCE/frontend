@@ -1,4 +1,5 @@
 import type { PlaywrightTestConfig } from "@playwright/test";
+import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -33,5 +34,29 @@ describe("Playwright projects", () => {
       "firefox",
       "webkit",
     ]);
+  });
+
+  // Lists the harness tests as "<project> › <describe> › <title>" lines.
+  function listed(): string[] {
+    const out = execFileSync(
+      resolve("node_modules/.bin/playwright"),
+      ["test", "--list", "e2e/harness.spec.mts"],
+      { encoding: "utf8", env: { ...process.env, E2E_ALL_BROWSERS: "" } },
+    );
+    return out
+      .split("\n")
+      .filter((line) => line.includes("›"))
+      .map((line) => line.trim().replace(/ › harness\.spec\.mts:\d+:\d+/, ""));
+  }
+
+  it("runs phone tests on Pixel 5 only, and the rest on chromium only", () => {
+    const lines = listed();
+    const phone =
+      "Page sweep harness on a Pixel 5 › passes a page that fits the phone";
+    const desktop = "E2E harness › axe check passes on a clean page";
+    expect(lines).toContain(`[pixel-5] › ${phone}`);
+    expect(lines).not.toContain(`[chromium] › ${phone}`);
+    expect(lines).toContain(`[chromium] › ${desktop}`);
+    expect(lines).not.toContain(`[pixel-5] › ${desktop}`);
   });
 });

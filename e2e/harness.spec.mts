@@ -3,7 +3,7 @@ import fs from "node:fs";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectPageSweep, PHONE_WIDTH } from "./helpers/page-sweep.mjs";
-import { onAPhone } from "./helpers/phone.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { BACKGROUND, expectTheme, storeTheme } from "./helpers/theme.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
@@ -156,22 +156,30 @@ test.describe("E2E harness", () => {
       }),
     ).rejects.toThrow();
   });
+});
 
-  test("screenshots are compared on chromium desktop only", async ({
-    page,
-  }, testInfo) => {
-    test.skip(
-      testInfo.project.name === "chromium",
-      "Chromium desktop compares screenshots, so this name would need a baseline",
+// Reads a PNG's width from its header.
+function pngWidth(path: string): number {
+  return fs.readFileSync(path).readUInt32BE(16);
+}
+
+const helloPage = `<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>t</title></head><body><main><h1>Hello</h1></main></body></html>`;
+
+test.describe("Screenshot harness", () => {
+  test("desktop captures are 1280px wide", async ({ page }, testInfo) => {
+    await page.setContent(helloPage);
+    await expectScreenshots(page, "harness-hello");
+    expect(pngWidth(testInfo.snapshotPath("harness-hello-1280.png"))).toBe(
+      1280,
     );
-    await page.setContent(
-      `<html lang="en"><head><title>t</title></head><body><main><h1>Hello</h1></main></body></html>`,
-    );
-    // No baseline exists under this name, so a comparison would fail.
-    await expectScreenshots(page, "harness-never-compared");
-    expect(
-      fs.existsSync(testInfo.snapshotPath("harness-never-compared-1280.png")),
-    ).toBe(false);
+  });
+});
+
+describeOnAPhone("Screenshot harness on a phone", () => {
+  test("phone captures are 390 CSS pixels wide", async ({ page }, testInfo) => {
+    await page.setContent(helloPage);
+    await expectScreenshots(page, "harness-hello");
+    expect(pngWidth(testInfo.snapshotPath("harness-hello-390.png"))).toBe(390);
   });
 });
 
@@ -232,9 +240,7 @@ test.describe("Page sweep harness", () => {
   });
 });
 
-test.describe("Page sweep harness on a Pixel 5", () => {
-  onAPhone();
-
+describeOnAPhone("Page sweep harness on a Pixel 5", () => {
   // A mobile browser zooms out to fit wide content instead of scrolling.
   test("fails when the page is wider than the phone", async ({ page }) => {
     await page.setContent(

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
-import { onAPhone } from "./helpers/phone.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { OrgIntegrationsPage } from "./pages/org-integrations.page.mjs";
 
@@ -362,9 +362,7 @@ test.describe("Integrations accessibility and looks", () => {
   });
 });
 
-test.describe("On a phone", () => {
-  onAPhone();
-
+describeOnAPhone("On a phone", () => {
   test("the integrations list does not scroll sideways", async ({ page }) => {
     const integrations = new OrgIntegrationsPage(page);
     await integrations.signIn();
@@ -373,6 +371,7 @@ test.describe("On a phone", () => {
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "integrations-list");
   });
 
   test("the GitHub integration form does not scroll sideways", async ({
@@ -385,5 +384,6 @@ test.describe("On a phone", () => {
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "github-integration-form");
   });
 });

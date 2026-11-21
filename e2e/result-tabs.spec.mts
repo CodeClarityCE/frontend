@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
-import { onAPhone } from "./helpers/phone.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   ANALYSIS,
@@ -660,9 +660,7 @@ test.describe("Selected results tab", () => {
   });
 });
 
-test.describe("On a phone", () => {
-  onAPhone();
-
+describeOnAPhone("On a phone", () => {
   test("the analysis results does not scroll sideways", async ({ page }) => {
     const tabs = new ResultTabsPage(page);
     await tabs.signIn({ vulnFinder: true });
@@ -671,5 +669,6 @@ test.describe("On a phone", () => {
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "analysis-results");
   });
 });

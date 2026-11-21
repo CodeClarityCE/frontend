@@ -255,7 +255,8 @@
     --accent: #1dce79;
     --accent-foreground: #111111;
 
-    --destructive: #dc3545;
+    /* Dark enough for 4.5:1 text on every light surface, white to muted. */
+    --destructive: #c82333;
     --destructive-foreground: #ffffff;
 
     --ring: #111111;
@@ -274,7 +275,7 @@
     --success-subtle: #d2f5e4;
     --warning: #854d0e;
     --warning-subtle: #fef3c7;
-    --danger: #dc3545;
+    --danger: #c82333;
     --danger-foreground: #ffffff;
     --neutral: #374151;
     --neutral-subtle: #f3f4f6;

@@ -99,20 +99,22 @@ the server when the run ends. Set `E2E_PORT` to use another port, for example to
 two worktrees at once. A server already listening on that port fails the run instead of
 being tested. `E2E_BASE_URL` targets a running stack instead and skips the build.
 
-A plain run uses two projects: `chromium` (desktop) and `pixel-5`. Set
-`E2E_ALL_BROWSERS=1` to add desktop `firefox` and `webkit`, for nightly or manual runs.
+A plain run uses two projects: `chromium` (desktop) and `pixel-5`. Phone tests are the
+blocks written with `describeOnAPhone` (`e2e/helpers/phone.mts`), tagged `@phone`: they run
+on `pixel-5` at 390 px, and every other test runs on `chromium`. Set `E2E_ALL_BROWSERS=1`
+to add desktop `firefox` and `webkit`, for nightly or manual runs.
 
 ### Screenshot baselines
 
-Screenshots are compared in the `chromium` project only, at 1280 px wide and, for phone
-layouts, 390 px (`e2e/helpers/screenshots.mts`). The baselines in `e2e/*-snapshots/` are
+`expectScreenshots` (`e2e/helpers/screenshots.mts`) captures at 1280 px in `chromium` and
+at 390 px in `pixel-5`; firefox and webkit take no screenshots. The baselines in `e2e/*-snapshots/` are
 generated in the digest-pinned Playwright image, so every machine renders the same pixels.
 A run on your machine may show small pixel diffs; the run in the image is the one that counts.
 
 With Docker, regenerate the baselines that changed, or check the suite as CI would:
 
 ```sh
-.cloud/scripts/e2e-baselines.sh          # update changed baselines
+.cloud/scripts/e2e-baselines.sh          # update changed baselines and aria snapshots
 .cloud/scripts/e2e-baselines.sh --check  # default projects, fail on any diff
 ```
 

@@ -243,6 +243,26 @@ test.describe("The Theme control in the user menu", () => {
     });
   }
 
+  test("a choice made in another tab applies here at once", async ({
+    page,
+    context,
+  }) => {
+    await page.emulateMedia({ colorScheme: "light" });
+    await shell.goto();
+    const other = await context.newPage();
+    await other.emulateMedia({ colorScheme: "light" });
+    await new ShellPage(other).signIn();
+    await new ShellPage(other).goto();
+
+    const menu = await openUserMenu(other);
+    await themeOption(menu, "Dark").click();
+    await expectTheme(page, "dark");
+    await themeOption(menu, "System").click();
+    await expectTheme(page, "light");
+    await page.emulateMedia({ colorScheme: "dark" });
+    await expectTheme(page, "dark");
+  });
+
   test("choosing System again follows the OS, including a live switch", async ({
     page,
   }) => {

@@ -63,7 +63,7 @@ function applyAndFollow(): void {
   else osQuery?.removeEventListener("change", apply);
 }
 
-/** Reads the stored choice, applies it and follows the OS while on System. */
+/** Reads the stored choice, applies it, and follows the OS while on System and other tabs always. */
 export function installTheme(): void {
   osQuery =
     typeof window.matchMedia === "function"
@@ -71,6 +71,12 @@ export function installTheme(): void {
       : undefined;
   choice.value = readChoice();
   applyAndFollow();
+  // Takes up a choice made in another tab.
+  window.addEventListener("storage", (event) => {
+    if (event.key !== THEME_STORAGE_KEY && event.key !== null) return;
+    choice.value = readChoice();
+    applyAndFollow();
+  });
 }
 
 /** The Theme choice, the theme it applies, and a way to change the choice. */

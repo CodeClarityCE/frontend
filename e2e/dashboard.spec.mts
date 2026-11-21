@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
-import { onAPhone } from "./helpers/phone.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
 import { DashboardPage, week } from "./pages/dashboard.page.mjs";
@@ -237,10 +237,10 @@ test.describe("Project overview", () => {
         .getByRole("list", { name: "Vulnerabilities in your projects" })
         .getByRole("listitem"),
     ).toHaveText([
-      /Critical\s*9.8\s*CVE-2026-0001\s*2 projects\s*2 instances/,
-      /High\s*7.5\s*CVE-2026-0002\s*3 projects\s*5 instances/,
-      /Medium\s*5.3\s*CVE-2026-0003\s*1 project\s*9 instances/,
-      /Low\s*2.1\s*CVE-2026-0004\s*1 project\s*4 instances/,
+      /Critical\s*9.8\s*CVE-2026-0001\s*No EPSS\s*2 projects\s*2 instances/,
+      /High\s*7.5\s*CVE-2026-0002\s*No EPSS\s*3 projects\s*5 instances/,
+      /Medium\s*5.3\s*CVE-2026-0003\s*No EPSS\s*1 project\s*9 instances/,
+      /Low\s*2.1\s*CVE-2026-0004\s*No EPSS\s*1 project\s*4 instances/,
     ]);
   });
 
@@ -265,7 +265,7 @@ test.describe("Project overview", () => {
     await dashboard.projects
       .getByRole("link", { name: /lodash prototype pollution/ })
       .click();
-    await expect(page).toHaveURL(/\/tickets\?ticket_id=t-1$/);
+    await expect(page).toHaveURL(/\/tickets\/t-1$/);
   });
 
   test("narrows the numbers and the trend to one project", async ({ page }) => {
@@ -596,7 +596,7 @@ test.describe("Whole page", () => {
     await expect(dashboard.list("Recent Published results")).toBeVisible();
     await expect(dashboard.chart("Dependencies by license")).toBeVisible();
     await expect(
-      dashboard.chart("Summed severity of vulnerabilities by week"),
+      dashboard.chart("Open vulnerability instances by severity, per week"),
     ).toBeVisible();
     await expect(
       dashboard.projects.getByRole("list", { name: "Tickets by state" }),
@@ -627,9 +627,7 @@ test.describe("Whole page", () => {
   });
 });
 
-test.describe("On a phone", () => {
-  onAPhone();
-
+describeOnAPhone("On a phone", () => {
   test("the dashboard does not scroll sideways", async ({ page }) => {
     const dashboard = new DashboardPage(page);
     await dashboard.signIn();
@@ -638,5 +636,6 @@ test.describe("On a phone", () => {
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "dashboard");
   });
 });

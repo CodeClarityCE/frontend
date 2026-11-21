@@ -1,14 +1,9 @@
 import { flushPromises, mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import LicenseDist from "@/codeclarity_components/dashboard/charts/LicenseDist.vue";
 
 import { createTestApp, org } from "../../../../real-app";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 // The chart on the dashboard, with the license counts the API answers.
 async function mountChart(counts: Record<string, number>) {

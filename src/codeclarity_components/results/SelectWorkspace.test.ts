@@ -1,336 +1,96 @@
-import { flushPromises, mount } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/vue";
+import { flushPromises } from "@vue/test-utils";
+import { describe, expect, it } from "vitest";
+
+import { analysisPath } from "../../../tests/fixtures/results";
+import { createTestApp, type TestApp } from "../../../tests/real-app";
 
 import SelectWorkspace from "./SelectWorkspace.vue";
 
-// Mock stores - these need to be mutable for per-test overrides
-let mockUserStore = {
-  getDefaultOrg: { id: "org-1", name: "Test Org" } as {
-    id: string;
-    name: string;
-  } | null,
-  getUser: {
-    default_org: { id: "org-1", name: "Test Org" },
-  } as { default_org: { id: string; name: string } } | null,
-};
-
-let mockAuthStore = {
-  getToken: "test-token" as string | null,
-  getAuthenticated: true,
-};
-
-vi.mock("@/stores/user", () => ({
-  useUserStore: vi.fn(() => mockUserStore),
-}));
-
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: vi.fn(() => mockAuthStore),
-}));
-
-// Mock results repository - shared mock function for per-test control
-const mockWorkspacesResponse = {
-  data: {
-    workspaces: ["workspace1", "workspace2", "workspace3"],
-    package_manager: "npm",
-  },
-};
-
-const mockGetSbomWorkspaces = vi.fn().mockResolvedValue(mockWorkspacesResponse);
-const mockGetResultByType = vi
-  .fn()
-  .mockImplementation(({ type }: { type: string }) => {
-    if (type === "js-sbom") return Promise.resolve({ data: {} });
-    if (type === "php-sbom") return Promise.reject(new Error("No results"));
-    return Promise.reject(new Error("Unknown type"));
+async function signedIn(workspaces: string[]): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  await app.visit("/projects");
+  app.http.on("GET", `${analysisPath}/sbom/workspaces`, {
+    data: { workspaces, package_manager: "npm" },
   });
+  return app;
+}
 
-vi.mock("./results.repository", () => ({
-  ResultsRepository: class {
-    getSbomWorkspaces = mockGetSbomWorkspaces;
-    getResultByType = mockGetResultByType;
-  },
-}));
+// Opens the workspace select from the keyboard (jsdom has no pointer capture).
+async function openWorkspaces(): Promise<void> {
+  screen.getByRole("combobox", { name: "Workspace" }).focus();
+  await userEvent.keyboard("{Enter}");
+}
 
-// Mock Shadcn select components
-vi.mock("@/shadcn/ui/select", () => ({
-  Select: {
-    name: "Select",
-    template: '<div data-testid="select"><slot></slot></div>',
-    emits: ["update:modelValue"],
-  },
-  SelectContent: {
-    name: "SelectContent",
-    template: '<div data-testid="select-content"><slot></slot></div>',
-  },
-  SelectGroup: {
-    name: "SelectGroup",
-    template: '<div data-testid="select-group"><slot></slot></div>',
-  },
-  SelectItem: {
-    name: "SelectItem",
-    template:
-      '<div data-testid="select-item" :data-value="value"><slot></slot></div>',
-    props: ["value"],
-  },
-  SelectLabel: {
-    name: "SelectLabel",
-    template: '<div data-testid="select-label"><slot></slot></div>',
-  },
-  SelectTrigger: {
-    name: "SelectTrigger",
-    template:
-      '<button data-testid="select-trigger" class="w-[180px]"><slot></slot></button>',
-    props: ["class"],
-  },
-  SelectValue: {
-    name: "SelectValue",
-    template: '<span data-testid="select-value">Select a workspace</span>',
-    props: ["placeholder"],
-  },
-}));
+function show(app: TestApp): ReturnType<typeof render> {
+  return render(SelectWorkspace, {
+    props: { projectID: "p-1", analysisID: "a-1" },
+    global: app.global,
+  });
+}
 
 describe("SelectWorkspace", () => {
-  let wrapper: any;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    // Reset mock stores to default values
-    mockUserStore = {
-      getDefaultOrg: { id: "org-1", name: "Test Org" },
-      getUser: { default_org: { id: "org-1", name: "Test Org" } },
-    };
-    mockAuthStore = {
-      getToken: "test-token",
-      getAuthenticated: true,
-    };
-    // Reset mock functions to default behavior
-    mockGetSbomWorkspaces.mockResolvedValue(mockWorkspacesResponse);
-  });
-
-  afterEach(() => {
-    if (wrapper) {
-      wrapper.unmount();
-    }
-  });
-
-  it("renders correctly with default props", async () => {
-    wrapper = mount(SelectWorkspace, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
+  it("offers the workspaces of the analysis", async () => {
+    show(await signedIn([".", "workspace1", "workspace2"]));
     await flushPromises();
 
-    expect(wrapper.exists()).toBe(true);
-    expect(wrapper.find('[data-testid="select"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="select-trigger"]').exists()).toBe(true);
+    await openWorkspaces();
+
+    expect(
+      screen.getAllByRole("option").map((option) => option.textContent?.trim()),
+    ).toEqual(["Root", "workspace1", "workspace2"]);
   });
 
-  it("displays workspace options after loading", async () => {
-    wrapper = mount(SelectWorkspace, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
+  it("selects the workspace the user picks", async () => {
+    const view = show(await signedIn([".", "workspace1", "workspace2"]));
     await flushPromises();
 
-    const selectItems = wrapper.findAll('[data-testid="select-item"]');
-    expect(selectItems.length).toBe(3);
-    expect(selectItems[0].text()).toBe("workspace1");
-    expect(selectItems[1].text()).toBe("workspace2");
-    expect(selectItems[2].text()).toBe("workspace3");
-  });
+    await openWorkspaces();
+    await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}");
 
-  it("shows select label correctly", async () => {
-    wrapper = mount(SelectWorkspace, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    await flushPromises();
-
-    const selectLabel = wrapper.find('[data-testid="select-label"]');
-    expect(selectLabel.exists()).toBe(true);
-    expect(selectLabel.text()).toBe("Available Workspaces");
-  });
-
-  it("displays placeholder text", async () => {
-    wrapper = mount(SelectWorkspace, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    await flushPromises();
-
-    const selectValue = wrapper.find('[data-testid="select-value"]');
-    expect(selectValue.exists()).toBe(true);
-    expect(selectValue.text()).toBe("Select a workspace");
-  });
-
-  it("handles repository error gracefully", async () => {
-    // Configure mock to reject
-    mockGetSbomWorkspaces.mockRejectedValue(new Error("API Error"));
-
-    wrapper = mount(SelectWorkspace, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    await flushPromises();
-
-    expect(wrapper.emitted("update:error")).toEqual([[true]]);
-  });
-
-  it("does not call repository when no default org", async () => {
-    // Configure mock stores for this test
-    mockUserStore.getDefaultOrg = null;
-    mockUserStore.getUser = null;
-
-    wrapper = mount(SelectWorkspace, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    await flushPromises();
-
-    expect(mockGetSbomWorkspaces).not.toHaveBeenCalled();
-  });
-
-  it("does not call repository when not authenticated", async () => {
-    // Configure mock stores for this test
-    mockAuthStore.getToken = null;
-    mockAuthStore.getAuthenticated = false;
-
-    wrapper = mount(SelectWorkspace, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    await flushPromises();
-
-    expect(mockGetSbomWorkspaces).not.toHaveBeenCalled();
-  });
-
-  it("calls repository with correct parameters", async () => {
-    wrapper = mount(SelectWorkspace, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    await flushPromises();
-
-    expect(mockGetSbomWorkspaces).toHaveBeenCalledWith({
-      orgId: "org-1",
-      projectId: "project-123",
-      analysisId: "analysis-456",
-      bearerToken: "test-token",
-      handleBusinessErrors: true,
-    });
-  });
-
-  it("updates selected workspace model on selection", async () => {
-    wrapper = mount(SelectWorkspace, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
-    await flushPromises();
-
-    const select = wrapper.findComponent({ name: "Select" });
-    await select.vm.$emit("update:modelValue", "workspace2");
-
-    expect(wrapper.emitted("update:selected_workspace")?.at(-1)).toEqual([
+    expect(view.emitted("update:selected_workspace")?.at(-1)).toEqual([
       "workspace2",
     ]);
   });
 
-  it("handles null/undefined selection gracefully", async () => {
-    wrapper = mount(SelectWorkspace, {
-      props: {
-        projectID: "project-123",
-        analysisID: "analysis-456",
-      },
-      global: {
-        plugins: [],
-      },
-    });
-
+  it("names the only workspace instead of offering a choice", async () => {
+    show(await signedIn(["."]));
     await flushPromises();
 
-    const select = wrapper.findComponent({ name: "Select" });
-    await select.vm.$emit("update:modelValue", null);
+    expect(screen.queryByRole("combobox")).toBeNull();
+    expect(screen.getByText("Root")).toBeTruthy();
+  });
 
-    expect(wrapper.emitted("update:selected_workspace")?.at(-1)).toEqual([""]);
+  it("reports an error when the workspaces cannot be loaded", async () => {
+    const app = createTestApp({ signedIn: true });
+    await app.visit("/projects");
+    app.http.on("GET", `${analysisPath}/sbom/workspaces`, {}, 500);
+    const view = show(app);
+    await flushPromises();
+
+    expect(view.emitted("update:error")).toEqual([[true]]);
+  });
+
+  it("asks for nothing while signed out", async () => {
+    const app = createTestApp();
+    show(app);
+    await flushPromises();
+
+    expect(app.http.requests).toEqual([]);
   });
 
   it("selects the first workspace when the analysis has no root workspace", async () => {
-    mockGetSbomWorkspaces.mockResolvedValue({
-      data: { workspaces: ["api", "frontend"], package_manager: "pnpm" },
-    });
-    wrapper = mount(SelectWorkspace, {
-      props: { projectID: "project-123", analysisID: "analysis-456" },
-    });
-
+    const view = show(await signedIn(["api", "frontend"]));
     await flushPromises();
 
-    expect(wrapper.emitted("update:selected_workspace")).toEqual([["api"]]);
+    expect(view.emitted("update:selected_workspace")).toEqual([["api"]]);
   });
 
   it("keeps the root workspace when the analysis has one", async () => {
-    mockGetSbomWorkspaces.mockResolvedValue({
-      data: { workspaces: [".", "packages/a"], package_manager: "npm" },
-    });
-    wrapper = mount(SelectWorkspace, {
-      props: { projectID: "project-123", analysisID: "analysis-456" },
-    });
-
+    const view = show(await signedIn([".", "packages/a"]));
     await flushPromises();
 
-    expect(wrapper.emitted("update:selected_workspace")).toBeUndefined();
+    expect(view.emitted("update:selected_workspace")).toBeUndefined();
   });
 });

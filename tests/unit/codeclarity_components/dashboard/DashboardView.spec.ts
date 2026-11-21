@@ -1,15 +1,10 @@
 import { flushPromises, mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import DashboardView from "@/codeclarity_components/dashboard/DashboardView.vue";
 import { TrendPeriod } from "@/codeclarity_components/vulnerabilities/vulnerability_trend.entity";
 
 import { createTestApp, org, type TestApp } from "../../../real-app";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 // The trend the overview reads, with this many analysed projects now.
 const trend = (projectCount: number) => ({

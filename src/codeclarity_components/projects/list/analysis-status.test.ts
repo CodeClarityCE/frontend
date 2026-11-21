@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   Analysis,
@@ -15,11 +15,6 @@ import {
   stepDuration,
   stepStatus,
 } from "./analysis-status";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 // A step that started at 09:00 and ran for the given milliseconds.
 function stageTaking(ms: number): AnalysisStage {

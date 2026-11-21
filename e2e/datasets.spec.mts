@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
 import {
@@ -177,6 +179,7 @@ test.describe("Datasets list", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "datasets-list");
     await expectScreenshots(page, "datasets-list");
   });
 
@@ -202,6 +205,7 @@ test.describe("Datasets list", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "datasets-empty");
     await expectScreenshots(page, "datasets-empty");
   });
 
@@ -217,6 +221,7 @@ test.describe("Datasets list", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "datasets-loading");
     await expectScreenshots(page, "datasets-loading");
   });
 });
@@ -280,6 +285,7 @@ test.describe("New Dataset", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "datasets-create");
     await expectScreenshots(page, "datasets-create");
 
     await page.getByRole("button", { name: "Build Dataset" }).click();
@@ -287,6 +293,7 @@ test.describe("New Dataset", () => {
     await expect(page.getByText("A name is required")).toBeVisible();
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "datasets-create-errors");
     await expectScreenshots(page, "datasets-create-errors");
   });
 
@@ -412,6 +419,7 @@ test.describe("Dataset detail", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "dataset-detail");
     await expectScreenshots(page, "dataset-detail");
 
     await page.getByRole("button", { name: "Delete" }).click();
@@ -431,6 +439,7 @@ test.describe("Dataset detail", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "dataset-detail-building");
     await expectScreenshots(page, "dataset-detail-building");
   });
 
@@ -442,6 +451,7 @@ test.describe("Dataset detail", () => {
     await expect(page.getByRole("alert")).toContainText("Bad credentials");
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "dataset-detail-failed");
     await expectScreenshots(page, "dataset-detail-failed");
   });
 
@@ -497,5 +507,16 @@ test.describe("Dataset detail", () => {
     expect(datasets.writes).toEqual(
       Array.from({ length: 5 }, () => "POST /org/org-123/projects"),
     );
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("a failed Dataset fits without scrolling sideways", async ({ page }) => {
+    const datasets = new DatasetsPage(page);
+    await datasets.signIn({ detail: sampleDatasets[2] });
+    await datasets.gotoDetail("ds-3");
+    await expect(page.getByRole("alert")).toContainText("Bad credentials");
+    await expectPageSweep(page);
+    await expectScreenshots(page, "failed-dataset");
   });
 });

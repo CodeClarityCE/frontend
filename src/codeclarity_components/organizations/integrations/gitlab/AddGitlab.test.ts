@@ -10,11 +10,6 @@ import {
 
 import AddGitlab from "./AddGitlab.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const BASE = "https://gitlab.example.com";
 const TOKEN = "glpat-xxxxxxxxxxxxxxxxxxxx";
 const ok = { status_code: 200, status: "success" };

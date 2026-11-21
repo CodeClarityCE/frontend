@@ -1,0 +1,48 @@
+- main:
+  - heading "Organisations" [level=1]
+  - paragraph: The organisations you belong to. Each one has its own projects, members and settings.
+  - link "New organisation":
+    - /url: /orgs/add/
+  - searchbox "Filter organisations"
+  - table "Organisations":
+    - caption: Organisations
+    - rowgroup:
+      - row "Name Your role Members Joined Actions":
+        - columnheader "Name":
+          - button "Name"
+        - columnheader "Your role":
+          - button "Your role"
+        - columnheader "Members":
+          - button "Members"
+        - columnheader "Joined":
+          - button "Joined"
+        - columnheader "Actions"
+    - rowgroup:
+      - row /Test Organization Owner 3 Jan \d+, \d+ Leave Test Organization Delete Test Organization/:
+        - cell "Test Organization":
+          - link "Test Organization":
+            - /url: /orgs/manage/main/org-123/
+        - cell "Owner"
+        - cell "3"
+        - cell /Jan \d+, \d+/
+        - cell "Leave Test Organization Delete Test Organization":
+          - button "Leave Test Organization"
+          - button "Delete Test Organization"
+      - row /Research Lab Member \d+ Mar \d+, \d+ Leave Research Lab/:
+        - cell "Research Lab":
+          - link "Research Lab":
+            - /url: /orgs/manage/main/org-456/
+        - cell "Member"
+        - cell /\d+/
+        - cell /Mar \d+, \d+/
+        - cell "Leave Research Lab":
+          - button "Leave Research Lab"
+      - row /Personal space Personal Owner 1 Jun \d+, \d+/:
+        - cell "Personal space Personal":
+          - link "Personal space":
+            - /url: /orgs/manage/main/org-789/
+          - text: ""
+        - cell "Owner"
+        - cell "1"
+        - cell /Jun \d+, \d+/
+        - cell

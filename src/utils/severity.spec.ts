@@ -1,4 +1,4 @@
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 
 import {
   isCriticalSeverity,
@@ -7,11 +7,6 @@ import {
   isMediumSeverity,
   isNoneSeverity,
 } from "./severity";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 // TEST NONE
 test("0 is none", () => {

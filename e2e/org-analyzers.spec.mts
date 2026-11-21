@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { analyzer, OrgAnalyzersPage } from "./pages/org-analyzers.page.mjs";
@@ -118,6 +119,7 @@ test.describe("Organisation analyzers list", () => {
       page.getByRole("heading", { name: "No analyzers yet" }),
     ).toBeVisible();
     await expect(analyzers.table).toHaveCount(0);
+    await expectMainSnapshot(page, "org-analyzers-empty");
 
     await page.getByRole("link", { name: "Create an analyzer" }).click();
 
@@ -548,6 +550,7 @@ test.describe("Analyzers accessibility and look", () => {
     await analyzers.gotoList();
     await expect(analyzers.rows()).toHaveCount(2);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-analyzers");
     await expectScreenshots(page, "org-analyzers");
 
     // The canvas fits itself to the width it opens at.
@@ -556,6 +559,7 @@ test.describe("Analyzers accessibility and look", () => {
     await expect(page.getByRole("radio")).toHaveCount(2);
     await expect(page.getByText("js-sbom")).toBeVisible();
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-analyzer-create");
     await expectScreenshots(page, "org-analyzer-create");
   });
 });

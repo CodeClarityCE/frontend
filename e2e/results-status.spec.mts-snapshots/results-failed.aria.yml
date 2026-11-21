@@ -2,5 +2,5 @@
   - heading "Results" [level=1]
   - paragraph: web-frontend
   - status "Analysis status":
-    - heading "Analysis failed" [level=5]
+    - heading "Analysis failed" [level=2]
     - text: "Clone failed: repository not found"

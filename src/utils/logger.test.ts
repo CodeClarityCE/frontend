@@ -9,11 +9,6 @@ import { createTestApp, type TestApp, withToaster } from "../../tests/real-app";
 
 import { installLogger, logger } from "./logger";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 interface SentReport {
   url: string;
   authorization: string | null;

@@ -6,11 +6,6 @@ import { createTestApp, org, type TestApp } from "../../../../tests/real-app";
 
 import ExperimentsList from "./ExperimentsList.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const listPath = `/org/${org.id}/experiments`;
 
 function experiment(id: string, status: string, done = 0): object {

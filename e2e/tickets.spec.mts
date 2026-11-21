@@ -3,7 +3,7 @@ import { expect, type Page, test } from "@playwright/test";
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
-import { onAPhone } from "./helpers/phone.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   remediationDetail,
@@ -587,9 +587,7 @@ test.describe("Tickets read the same everywhere", () => {
   });
 });
 
-test.describe("On a phone", () => {
-  onAPhone();
-
+describeOnAPhone("On a phone", () => {
   test("the tickets list does not scroll sideways", async ({ page }) => {
     const tickets = new TicketsPage(page);
     await tickets.signIn();
@@ -598,5 +596,6 @@ test.describe("On a phone", () => {
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "tickets-list");
   });
 });

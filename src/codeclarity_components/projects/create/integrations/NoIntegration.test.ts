@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/vue";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { createMemoryHistory, createRouter } from "vue-router";
 
 import {
@@ -8,11 +8,6 @@ import {
 } from "@/codeclarity_components/organizations/organization.entity";
 
 import NoIntegration from "./NoIntegration.vue";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const organization: Organization = {
   id: "org-1",

@@ -1,0 +1,27 @@
+- main:
+  - link "Experiments":
+    - /url: /experiments
+  - heading "New Experiment" [level=1]
+  - paragraph: Run one analyzer over every repository of a Dataset at each date of a snapshot grid and at HEAD, each pinned to a default branch commit.
+  - text: Name
+  - textbox "Name":
+    - /placeholder: top100-head-2026-11
+  - text: Dataset
+  - combobox "Dataset": /Top npm packages \(\d+ repositories\)/
+  - text: Analyzer
+  - combobox "Analyzer": JavaScript analyzer
+  - paragraph: Only analyzers that run js-sbom and vuln-finder are listed.
+  - text: Retries per failed run
+  - spinbutton "Retries per failed run": "2"
+  - paragraph: A failed analysis is retried on the same commit.
+  - group "Snapshot grid":
+    - text: Snapshot grid Grid interval
+    - combobox "Grid interval": Monthly
+    - text: Grid dates before HEAD
+    - spinbutton "Grid dates before HEAD": /\d+/
+    - paragraph: Grid dates are stepped back from today. 0 analyses HEAD only. The grid is frozen once the Experiment is created.
+  - text: Analysis budget (optional)
+  - spinbutton "Analysis budget (optional)"
+  - paragraph: Caps the analyses the Experiment submits, snapshots and fix probes alike. Once spent, no further fix probe runs; snapshots are never cut. Fixes are probed before introductions. Frozen at creation.
+  - paragraph: "/Estimated \\d+,\\d+ analyses: \\d+,\\d+ snapshots \\(\\d+ grid dates including HEAD\\) and about \\d+,\\d+ fix probes\\./"
+  - button "Start Experiment"

@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
 import {
@@ -236,6 +238,7 @@ test.describe("Keyboard and accessibility", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "experiment-detail-results");
     await expectScreenshots(page, "experiment-detail-results");
   });
 
@@ -262,6 +265,7 @@ test.describe("Keyboard and accessibility", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "experiment-detail-published");
     await expectScreenshots(page, "experiment-detail-published");
   });
 
@@ -278,6 +282,7 @@ test.describe("Keyboard and accessibility", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "experiment-detail-figures");
     await expectScreenshots(page, "experiment-detail-figures");
   });
 
@@ -297,6 +302,7 @@ test.describe("Keyboard and accessibility", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "experiment-detail-running");
     await expectScreenshots(page, "experiment-detail-running");
   });
 
@@ -315,6 +321,18 @@ test.describe("Keyboard and accessibility", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "experiment-detail-failed");
     await expectScreenshots(page, "experiment-detail-failed");
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("the results fit without scrolling sideways", async ({ page }) => {
+    const detail = new ExperimentDetailPage(page);
+    await detail.signIn();
+    await detail.goto();
+    await expect(detail.runRows()).toHaveCount(4);
+    await expectPageSweep(page);
+    await expectScreenshots(page, "experiment-results");
   });
 });

@@ -1,14 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { switchDefaultOrg } from "@/codeclarity_components/organizations/switch-org";
 import { useUserStore } from "@/stores/user";
 
 import { createTestApp, org } from "../../tests/real-app";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const lab = { ...org, id: "org-456", name: "Research Lab" };
 

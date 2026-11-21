@@ -1,470 +1,164 @@
-import { flushPromises, mount } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen, within } from "@testing-library/vue";
+import { flushPromises } from "@vue/test-utils";
+import { beforeAll, describe, expect, it } from "vitest";
+import { RouterView } from "vue-router";
 
-import { AnalysisStatus } from "@/codeclarity_components/analyses/analysis.entity";
+import {
+  ANALYSIS_ID,
+  analysisPath,
+  paginated,
+  PROJECT_ID,
+} from "../../../tests/fixtures/results";
+import { createTestApp, org, type TestApp } from "../../../tests/real-app";
 
-import ResultsView from "./ResultsView.vue";
-
-// Mock vue router
-vi.mock("vue-router", () => ({
-  useRoute: () => ({
-    params: {},
-    query: {},
-  }),
-  useRouter: () => ({
-    push: vi.fn(),
-    back: vi.fn(),
-  }),
-}));
-
-// Mock stores
-const mockStateStore = {
-  $reset: vi.fn(),
-  page: "results",
+const project = {
+  id: PROJECT_ID,
+  name: "Test Project",
+  description: "Test Description",
+  integration_id: "int-1",
+  type: "GITHUB",
+  url: "https://github.com/test/repo",
+  upload_id: "upload-1",
+  added_on: "2025-01-05T10:00:00Z",
+  organization_id: org.id,
 };
 
-const mockUserStore = {
-  getDefaultOrg: { id: "org-1", name: "Test Org" },
-  getUser: {
-    default_org: { id: "org-1", name: "Test Org" },
-  },
-};
+function step(Name: string, Status = "success", Result: unknown = null) {
+  return { Name, Version: "1", Status, Result, config: {} };
+}
 
-const mockAuthStore = {
-  getToken: "test-token",
-  getAuthenticated: true,
-};
+// Opens the results page of analysis a-1 with these plugin steps.
+async function open(steps: unknown[], page = ""): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  app.http.on("GET", `/org/${org.id}/projects/${PROJECT_ID}`, {
+    data: project,
+  });
+  app.http.on(
+    "GET",
+    `/org/${org.id}/projects/${PROJECT_ID}/analyses/${ANALYSIS_ID}`,
+    {
+      data: {
+        id: ANALYSIS_ID,
+        created_on: "2025-01-06T10:00:00Z",
+        analyzer: { id: "analyzer-1", name: "Test Analyzer" },
+        status: "completed",
+        steps: [steps],
+        branch: "main",
+      },
+    },
+  );
+  app.http.on("GET", `${analysisPath}/sbom/workspaces`, {
+    data: { workspaces: ["."], package_manager: "NPM" },
+  });
+  app.http.on("GET", `${analysisPath}/sbom/stats`, {
+    data: { number_of_dependencies: 0 },
+  });
+  app.http.on("GET", `${analysisPath}/sbom`, paginated([]));
+  const address = `/results${page ? `/${page}` : ""}?project_id=${PROJECT_ID}&analysis_id=${ANALYSIS_ID}`;
+  // The page reads its ids from the window address.
+  window.history.replaceState({}, "", address);
+  await app.visit(address);
+  render(RouterView, { global: app.global });
+  await flushPromises();
+  return app;
+}
 
-vi.mock("@/stores/state", () => ({
-  useStateStore: vi.fn(() => mockStateStore),
-}));
-
-vi.mock("@/stores/user", () => ({
-  useUserStore: vi.fn(() => mockUserStore),
-}));
-
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: vi.fn(() => mockAuthStore),
-}));
-
-// Mock repositories with proper responses
-const mockProjectResponse = {
-  data: {
-    id: "proj-1",
-    name: "Test Project",
-    description: "Test Description",
-    integration_id: "int-1",
-    type: "GITHUB",
-    url: "https://github.com/test/repo",
-    upload_id: "upload-1",
-    added_on: new Date(),
-    organization_id: "org-1",
-  },
-};
-
-const mockAnalysisResponse = {
-  data: {
-    id: "analysis-1",
-    created_on: new Date(),
-    analyzer: { id: "analyzer-1", name: "Test Analyzer" },
-    status: AnalysisStatus.SUCCESS,
-    steps: [
-      [
-        { Name: "js-sbom", Status: "success", Result: "result-1" },
-        { Name: "vuln-finder", Status: "success", Result: "result-2" },
-      ],
-    ],
-    branch: "main",
-  },
-};
-
-vi.mock("@/codeclarity_components/projects/project.repository", () => ({
-  ProjectRepository: class {
-    getProjectById = vi.fn().mockResolvedValue(mockProjectResponse);
-  },
-}));
-
-// Shared mock function for per-test control
-const mockAnalysisGetProjectById = vi
-  .fn()
-  .mockResolvedValue(mockAnalysisResponse);
-
-vi.mock("@/codeclarity_components/analyses/analysis.repository", () => ({
-  AnalysisRepository: class {
-    getProjectById = mockAnalysisGetProjectById;
-  },
-}));
-
-// Mock child components
-// Mock the lazily loaded result views.
-//
-// ResultsView declares these with defineAsyncComponent, and the loader's
-// import() fires on first render. Test Utils only swaps in the `stubs` entry
-// once that import has resolved, so without these mocks each mount pulls in the
-// real component graph behind every tab. Those imports keep resolving after the
-// test finishes, and the late ones land after the environment is torn down,
-// which Vitest reports as an unhandled EnvironmentTeardownError.
-//
-// Each mock keeps the component's name so the per-test `stubs` entries still
-// match. The factories are inlined because vi.mock is hoisted above any
-// helper defined in this file.
-vi.mock("./sbom/ResultsSBOM.vue", () => ({
-  default: {
-    name: "ResultsSBOM",
-    template: '<div data-testid="ResultsSBOM"></div>',
-  },
-}));
-vi.mock("./sbom/ResultsSBOMDetails.vue", () => ({
-  default: {
-    name: "ResultsSBOMDetails",
-    template: '<div data-testid="ResultsSBOMDetails"></div>',
-  },
-}));
-vi.mock("./licenses/ResultsLicenses.vue", () => ({
-  default: {
-    name: "ResultsLicenses",
-    template: '<div data-testid="ResultsLicenses"></div>',
-  },
-}));
-vi.mock("./vulnerabilities/ResultsVulnerabilities.vue", () => ({
-  default: {
-    name: "ResultsVulnerabilities",
-    template: '<div data-testid="ResultsVulnerabilities"></div>',
-  },
-}));
-vi.mock("./vulnerabilities/ResultsVulnerabilitiesDetails.vue", () => ({
-  default: {
-    name: "ResultsVulnerabilitiesDetails",
-    template: '<div data-testid="ResultsVulnerabilitiesDetails"></div>',
-  },
-}));
-vi.mock("./patching/ResultsPatching.vue", () => ({
-  default: {
-    name: "ResultsPatching",
-    template: '<div data-testid="ResultsPatching"></div>',
-  },
-}));
-vi.mock("./codeql/ResultsCodeQL.vue", () => ({
-  default: {
-    name: "ResultsCodeQL",
-    template: '<div data-testid="ResultsCodeQL"></div>',
-  },
-}));
-
-// Mock Shadcn tabs components
-vi.mock("@/shadcn/ui/tabs", () => ({
-  Tabs: {
-    name: "Tabs",
-    template: '<div data-testid="tabs"><slot></slot></div>',
-    props: ["defaultValue"],
-  },
-  TabsList: {
-    name: "TabsList",
-    template: '<div data-testid="tabs-list"><slot></slot></div>',
-  },
-  TabsTrigger: {
-    name: "TabsTrigger",
-    template: '<button data-testid="tabs-trigger"><slot></slot></button>',
-    props: ["value"],
-  },
-  TabsContent: {
-    name: "TabsContent",
-    template: '<div data-testid="tabs-content"><slot></slot></div>',
-    props: ["value"],
-  },
-}));
-
-const allResultStubs = {
-  ResultsSBOM: true,
-  ResultsSBOMDetails: true,
-  ResultsVulnerabilities: true,
-  ResultsVulnerabilitiesDetails: true,
-  ResultsPatching: true,
-  ResultsLicenses: true,
-  ResultsCodeQL: true,
-};
+function tabNames(): string[] {
+  return within(screen.getByRole("tablist", { name: "Results" }))
+    .getAllByRole("tab")
+    .map((tab) => tab.textContent?.trim() ?? "");
+}
 
 describe("ResultsView", () => {
-  let wrapper: any;
-  let windowLocation: Location;
+  // Loads the lazy tabs up front: transforming them on first render can outlast findBy's 1s wait.
+  beforeAll(async () => {
+    await Promise.all([
+      import("./sbom/ResultsSBOM.vue"),
+      import("./sbom/ResultsSBOMDetails.vue"),
+      import("./licenses/ResultsLicenses.vue"),
+      import("./vulnerabilities/ResultsVulnerabilities.vue"),
+      import("./vulnerabilities/ResultsVulnerabilitiesDetails.vue"),
+      import("./patching/ResultsPatching.vue"),
+      import("./codeql/ResultsCodeQL.vue"),
+    ]);
+  }, 30000);
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    // Reset mock to default behavior
-    mockAnalysisGetProjectById.mockResolvedValue(mockAnalysisResponse);
-
-    // Save original window.location
-    windowLocation = window.location;
-
-    // Mock window.location
-    delete (window as any).location;
-    window.location = {
-      ...windowLocation,
-      href: "http://localhost:3000/results?project_id=proj-1&analysis_id=analysis-1",
-      search: "?project_id=proj-1&analysis_id=analysis-1",
-    } as any;
-  });
-
-  afterEach(() => {
-    if (wrapper) {
-      wrapper.unmount();
-    }
-    // Restore window.location
-    Object.defineProperty(window, "location", {
-      value: windowLocation,
-      writable: true,
-      configurable: true,
-    });
-  });
-
-  it("renders correctly", async () => {
-    wrapper = mount(ResultsView, {
-      global: {
-        plugins: [],
-        stubs: {
-          ResultsSBOM: true,
-          ResultsSBOMDetails: true,
-          ResultsVulnerabilities: true,
-          ResultsVulnerabilitiesDetails: true,
-          ResultsPatching: true,
-          ResultsLicenses: true,
-          ResultsCodeQL: true,
-        },
-      },
-    });
-
-    await flushPromises();
-    expect(wrapper.exists()).toBe(true);
-    expect(wrapper.text()).toContain("Results");
-  });
-
-  it("displays project name after loading", async () => {
-    wrapper = mount(ResultsView, {
-      global: {
-        plugins: [],
-        stubs: {
-          ResultsSBOM: true,
-          ResultsSBOMDetails: true,
-          ResultsVulnerabilities: true,
-          ResultsVulnerabilitiesDetails: true,
-          ResultsPatching: true,
-          ResultsLicenses: true,
-          ResultsCodeQL: true,
-        },
-      },
-    });
-
-    await flushPromises();
-    expect(wrapper.text()).toContain("Test Project");
-  });
-
-  it("shows tabs based on successful analysis steps", async () => {
-    wrapper = mount(ResultsView, {
-      global: {
-        plugins: [],
-        stubs: {
-          ResultsSBOM: true,
-          ResultsSBOMDetails: true,
-          ResultsVulnerabilities: true,
-          ResultsVulnerabilitiesDetails: true,
-          ResultsPatching: true,
-          ResultsLicenses: true,
-          ResultsCodeQL: true,
-        },
-      },
-    });
-
-    await flushPromises();
-
-    const tabsTriggers = wrapper.findAll('[data-testid="tabs-trigger"]');
-    expect(tabsTriggers.length).toBe(2); // SBOM and Vulnerabilities
-    expect(tabsTriggers[0].text()).toContain("SBOM");
-    expect(tabsTriggers[1].text()).toContain("Vulnerabilities");
-  });
-
-  it("shows vulnerabilities details page when page prop is set", async () => {
-    wrapper = mount(ResultsView, {
-      props: {
-        page: "vulnerabilities_details",
-      },
-      global: {
-        plugins: [],
-        stubs: {
-          ResultsSBOM: true,
-          ResultsSBOMDetails: true,
-          ResultsVulnerabilities: true,
-          ResultsVulnerabilitiesDetails: {
-            template:
-              '<div data-testid="vuln-details">Vulnerabilities Details</div>',
-          },
-          ResultsPatching: true,
-          ResultsLicenses: true,
-          ResultsCodeQL: true,
-        },
-      },
-    });
-
-    await flushPromises();
-
-    expect(wrapper.find('[data-testid="vuln-details"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="tabs"]').exists()).toBe(false);
-  });
-
-  it("shows SBOM details page when page prop is set", async () => {
-    wrapper = mount(ResultsView, {
-      props: {
-        page: "sbom_details",
-      },
-      global: {
-        plugins: [],
-        stubs: {
-          ResultsSBOM: true,
-          ResultsSBOMDetails: {
-            template: '<div data-testid="sbom-details">SBOM Details</div>',
-          },
-          ResultsVulnerabilities: true,
-          ResultsVulnerabilitiesDetails: true,
-          ResultsPatching: true,
-          ResultsLicenses: true,
-          ResultsCodeQL: true,
-        },
-      },
-    });
-
-    await flushPromises();
-
-    expect(wrapper.find('[data-testid="sbom-details"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="tabs"]').exists()).toBe(false);
-  });
-
-  it("shows only tabs for successful analysis steps", async () => {
-    // Configure mock with mixed results
-    mockAnalysisGetProjectById.mockResolvedValue({
-      data: {
-        ...mockAnalysisResponse.data,
-        steps: [
-          [
-            { Name: "js-sbom", Status: "success", Result: "result-1" },
-            { Name: "vuln-finder", Status: "failed", Result: null },
-            { Name: "js-patching", Status: "success", Result: "result-3" },
-          ],
-        ],
-      },
-    });
-
-    wrapper = mount(ResultsView, {
-      global: {
-        plugins: [],
-        stubs: {
-          ResultsSBOM: true,
-          ResultsSBOMDetails: true,
-          ResultsVulnerabilities: true,
-          ResultsVulnerabilitiesDetails: true,
-          ResultsPatching: true,
-          ResultsLicenses: true,
-          ResultsCodeQL: true,
-        },
-      },
-    });
-
-    await flushPromises();
-
-    const tabsTriggers = wrapper.findAll('[data-testid="tabs-trigger"]');
-    expect(tabsTriggers.length).toBe(2); // Only SBOM and Patches
-    expect(tabsTriggers[0].text()).toContain("SBOM");
-    expect(tabsTriggers[1].text()).toContain("Patches");
+  it("names the project and opens on the SBOM", async () => {
+    await open([step("js-sbom")]);
     expect(
-      tabsTriggers.some((t: any) => t.text().includes("Vulnerabilities")),
-    ).toBe(false);
+      screen.getByRole("heading", { level: 1, name: "Results" }),
+    ).toBeTruthy();
+    expect(screen.getByText("Test Project")).toBeTruthy();
+    expect(
+      await screen.findByRole("heading", {
+        name: "Software bill of materials",
+      }),
+    ).toBeTruthy();
   });
 
-  it("displays all tab types when all analyses succeed", async () => {
-    // Configure mock with all successful steps
-    mockAnalysisGetProjectById.mockResolvedValue({
-      data: {
-        ...mockAnalysisResponse.data,
-        steps: [
-          [
-            { Name: "js-sbom", Status: "success", Result: "result-1" },
-            { Name: "vuln-finder", Status: "success", Result: "result-2" },
-            { Name: "js-patching", Status: "success", Result: "result-3" },
-            { Name: "license-finder", Status: "success", Result: "result-4" },
-            { Name: "codeql", Status: "success", Result: "result-5" },
-          ],
-        ],
-      },
-    });
+  it("shows a tab for each plugin that succeeded", async () => {
+    await open([
+      step("js-sbom"),
+      step("vuln-finder", "failure"),
+      step("js-patching"),
+    ]);
+    expect(tabNames()).toEqual(["SBOM", "Patches"]);
+  });
 
-    wrapper = mount(ResultsView, {
-      global: {
-        plugins: [],
-        stubs: {
-          ResultsSBOM: true,
-          ResultsSBOMDetails: true,
-          ResultsVulnerabilities: true,
-          ResultsVulnerabilitiesDetails: true,
-          ResultsPatching: true,
-          ResultsLicenses: true,
-          ResultsCodeQL: true,
-        },
-      },
-    });
+  it("shows every result tab when all plugins succeed", async () => {
+    await open([
+      step("js-sbom"),
+      step("vuln-finder"),
+      step("js-patching"),
+      step("license-finder"),
+      step("codeql"),
+    ]);
+    expect(tabNames()).toEqual([
+      "SBOM",
+      "Vulnerabilities",
+      "Patches",
+      "Licenses",
+      "CodeQL",
+    ]);
+  });
 
-    await flushPromises();
+  it("shows a vulnerability's details instead of the tabs on its page", async () => {
+    await open([step("js-sbom")], "vulnerabilities_details");
+    // Nothing answers the finding, so the details page says it is missing.
+    expect(
+      await screen.findByRole("heading", { name: "Vulnerability not found" }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("tablist")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Results" })).toBeNull();
+  });
 
-    const tabsTriggers = wrapper.findAll('[data-testid="tabs-trigger"]');
-    expect(tabsTriggers.length).toBe(5);
-    expect(tabsTriggers[0].text()).toContain("SBOM");
-    expect(tabsTriggers[1].text()).toContain("Vulnerabilities");
-    expect(tabsTriggers[2].text()).toContain("Patches");
-    expect(tabsTriggers[3].text()).toContain("Licenses");
-    expect(tabsTriggers[4].text()).toContain("CodeQL");
+  it("shows a dependency's details instead of the tabs on its page", async () => {
+    await open([step("js-sbom")], "sbom_details");
+    expect(
+      await screen.findByRole("heading", { name: "Dependency not found" }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("tablist")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Results" })).toBeNull();
   });
 
   it("lists the folders an SBOM step skipped, with the reason", async () => {
-    mockAnalysisGetProjectById.mockResolvedValue({
-      data: {
-        ...mockAnalysisResponse.data,
-        steps: [
-          [
-            {
-              Name: "js-sbom",
-              Status: "success",
-              Result: {
-                workspaces: ["api", "frontend"],
-                skipped_folders: [
-                  {
-                    path: "docs",
-                    reason: "package.json has no lockfile",
-                  },
-                ],
-              },
-            },
-            { Name: "vuln-finder", Status: "success", Result: "result-2" },
-          ],
+    await open([
+      step("js-sbom", "success", {
+        workspaces: ["api", "frontend"],
+        skipped_folders: [
+          { path: "docs", reason: "package.json has no lockfile" },
         ],
-      },
-    });
-
-    wrapper = mount(ResultsView, {
-      global: { stubs: allResultStubs },
-    });
-    await flushPromises();
-
-    const notice = wrapper.find('[aria-label="Skipped folders"]');
-    expect(notice.exists()).toBe(true);
-    expect(notice.text()).toContain("docs");
-    expect(notice.text()).toContain("package.json has no lockfile");
+      }),
+    ]);
+    const notice = screen.getByRole("status", { name: "Skipped folders" });
+    expect(notice.textContent).toContain("docs");
+    expect(notice.textContent).toContain("package.json has no lockfile");
   });
 
   it("shows no skipped folders notice when every folder was analysed", async () => {
-    mockAnalysisGetProjectById.mockResolvedValue(mockAnalysisResponse);
-
-    wrapper = mount(ResultsView, {
-      global: { stubs: allResultStubs },
-    });
-    await flushPromises();
-
-    expect(wrapper.find('[aria-label="Skipped folders"]').exists()).toBe(false);
+    await open([step("js-sbom")]);
+    expect(
+      screen.queryByRole("status", { name: "Skipped folders" }),
+    ).toBeNull();
   });
 });

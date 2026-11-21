@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen, waitFor } from "@testing-library/vue";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { defineComponent, h } from "vue";
 
 import UserAuthForm from "@/codeclarity_components/authentication/signin/UserAuthForm.vue";
@@ -10,11 +10,6 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 
 import { createTestApp, org, type TestApp, user } from "../../tests/real-app";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const tokens = {
   token: "access-token",

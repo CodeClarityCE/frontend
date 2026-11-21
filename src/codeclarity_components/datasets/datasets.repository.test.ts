@@ -1,14 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createTestApp } from "../../../tests/real-app";
 
 import { DatasetStatus } from "./dataset.entity";
 import { DatasetsRepository } from "./datasets.repository";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const dataset = {
   id: "ds-1",

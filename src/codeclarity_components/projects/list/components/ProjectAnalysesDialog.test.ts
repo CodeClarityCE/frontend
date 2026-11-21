@@ -11,11 +11,6 @@ import {
 
 import ProjectAnalysesDialog from "./ProjectAnalysesDialog.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const project = {
   id: "p-1",
   name: "example/web-frontend",

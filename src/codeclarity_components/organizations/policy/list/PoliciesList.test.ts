@@ -11,11 +11,6 @@ import {
 
 import PoliciesList from "./PoliciesList.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const listPath = `/org/${org.id}/policies/license_policy`;
 
 const sample = [

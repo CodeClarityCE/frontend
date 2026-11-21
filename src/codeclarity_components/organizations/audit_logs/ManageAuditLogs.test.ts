@@ -8,11 +8,6 @@ import { createTestApp, org, type TestApp } from "../../../../tests/real-app";
 
 import ManageAuditLogs from "./ManageAuditLogs.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const logsPath = `/org/${org.id}/audit_logs`;
 
 function entry(id: string, description: string): object {

@@ -3,11 +3,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import CopyCommand from "./CopyCommand.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 describe("CopyCommand", () => {
   const writeText = vi.fn<(text: string) => Promise<void>>();
 

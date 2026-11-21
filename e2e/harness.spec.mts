@@ -1,9 +1,15 @@
 import { expect, test } from "@playwright/test";
+import fs from "node:fs";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep, PHONE_WIDTH } from "./helpers/page-sweep.mjs";
-import { onAPhone } from "./helpers/phone.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
+import {
+  discoverRoutes,
+  routeCoverageProblems,
+} from "./helpers/route-coverage.mjs";
+import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { BACKGROUND, expectTheme, storeTheme } from "./helpers/theme.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 
@@ -157,6 +163,31 @@ test.describe("E2E harness", () => {
   });
 });
 
+// Reads a PNG's width from its header.
+function pngWidth(path: string): number {
+  return fs.readFileSync(path).readUInt32BE(16);
+}
+
+const helloPage = `<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>t</title></head><body><main><h1>Hello</h1></main></body></html>`;
+
+test.describe("Screenshot harness", () => {
+  test("desktop captures are 1280px wide", async ({ page }, testInfo) => {
+    await page.setContent(helloPage);
+    await expectScreenshots(page, "harness-hello");
+    expect(pngWidth(testInfo.snapshotPath("harness-hello-1280.png"))).toBe(
+      1280,
+    );
+  });
+});
+
+describeOnAPhone("Screenshot harness on a phone", () => {
+  test("phone captures are 390 CSS pixels wide", async ({ page }, testInfo) => {
+    await page.setContent(helloPage);
+    await expectScreenshots(page, "harness-hello");
+    expect(pngWidth(testInfo.snapshotPath("harness-hello-390.png"))).toBe(390);
+  });
+});
+
 test.describe("Page sweep harness", () => {
   const tabs = (style: string): string =>
     `<style>${style}</style><div role="tablist"><button role="tab" style="cursor:pointer">One</button><div role="tab" tabindex="0">Two</div></div>`;
@@ -198,13 +229,18 @@ test.describe("Page sweep harness", () => {
 
   test("fails when the page scrolls sideways on a phone", async ({ page }) => {
     await page.setViewportSize({ width: PHONE_WIDTH, height: 800 });
-    await page.setContent(`<div style="width:600px">Wide</div>`);
+    // Like the app, so a phone lays it out at device width, not 980px.
+    await page.setContent(
+      `<meta name="viewport" content="width=device-width, initial-scale=1"><div style="width:600px">Wide</div>`,
+    );
     await expect(expectPageSweep(page)).rejects.toThrow(/scrolls sideways/);
   });
 
   test("passes a page that fits a phone", async ({ page }) => {
     await page.setViewportSize({ width: PHONE_WIDTH, height: 800 });
-    await page.setContent(`<div style="max-width:600px">Narrow</div>`);
+    await page.setContent(
+      `<meta name="viewport" content="width=device-width, initial-scale=1"><div style="max-width:600px">Narrow</div>`,
+    );
     await expectPageSweep(page);
   });
 });
@@ -254,9 +290,7 @@ test.describe("Aria snapshot harness", () => {
   });
 });
 
-test.describe("Page sweep harness on a Pixel 5", () => {
-  onAPhone();
-
+describeOnAPhone("Page sweep harness on a Pixel 5", () => {
   // A mobile browser zooms out to fit wide content instead of scrolling.
   test("fails when the page is wider than the phone", async ({ page }) => {
     await page.setContent(
@@ -324,4 +358,115 @@ test.describe("E2E harness in the app", () => {
       );
     });
   }
+});
+
+// Feeds the route-coverage check made-up routes, registries and spec files.
+test.describe("Route coverage harness", () => {
+  const routes = [
+    { key: "projects", path: "/projects/:page?" },
+    { key: "projects/add", path: "/projects/:page?" },
+  ];
+  const specFiles = ["projects.spec.mts"];
+
+  test("passes when every route has a registered spec", () => {
+    expect(
+      routeCoverageProblems({
+        routes,
+        registry: {
+          projects: "projects.spec.mts",
+          "projects/add": "projects.spec.mts",
+        },
+        specFiles,
+      }),
+    ).toEqual([]);
+  });
+
+  test("fails on a route with no registry entry, naming the route", () => {
+    expect(
+      routeCoverageProblems({
+        routes,
+        registry: { projects: "projects.spec.mts" },
+        specFiles,
+      }),
+    ).toEqual([
+      expect.stringMatching(/projects\/add .*\/projects\/:page\?.*no spec/),
+    ]);
+  });
+
+  test("fails on an entry whose spec file does not exist", () => {
+    expect(
+      routeCoverageProblems({
+        routes,
+        registry: {
+          projects: "projects.spec.mts",
+          "projects/add": "project-create.spec.mts",
+        },
+        specFiles,
+      }),
+    ).toEqual([
+      expect.stringMatching(
+        /projects\/add .*project-create\.spec\.mts.*does not exist/,
+      ),
+    ]);
+  });
+
+  test("fails on an entry for a route the router no longer has", () => {
+    expect(
+      routeCoverageProblems({
+        routes,
+        registry: {
+          projects: "projects.spec.mts",
+          "projects/add": "projects.spec.mts",
+          "projects/import": "projects.spec.mts",
+        },
+        specFiles,
+      }),
+    ).toEqual([expect.stringMatching(/projects\/import .*no such route/)]);
+  });
+
+  test("finds the router's routes, their subpages and results tabs", () => {
+    const router = `
+      import HomeView from "@/home/HomeView.vue";
+      import ResultsView from "@/results/ResultsView.vue";
+      const router = createRouter({
+        routes: [
+          { path: "/", name: "home", component: HomeView as Component },
+          { path: "/results/:page?", name: "results", component: ResultsView },
+          { path: "/:catchAll(.*)", redirect: "/404" },
+        ],
+      });`;
+    const views: Record<string, string> = {
+      "@/home/HomeView.vue": `<template><p>Home</p></template>`,
+      "@/results/ResultsView.vue": `<script setup>
+        const tab = ref({ sbom: false, "vuln-finder": false });
+        if (props.page !== "details") load();
+        </script>
+        <template>
+          <Details v-if="props.page === 'details'" />
+          <Other v-else-if="page === 'other'" />
+        </template>`,
+    };
+    expect(discoverRoutes(router, (from) => views[from] ?? "")).toEqual([
+      { key: "home", path: "/" },
+      { key: "results", path: "/results/:page?" },
+      { key: "results/details", path: "/results/:page?" },
+      { key: "results/other", path: "/results/:page?" },
+      { key: "results?tab=sbom", path: "/results/:page?" },
+      { key: "results?tab=vuln-finder", path: "/results/:page?" },
+    ]);
+  });
+
+  test("reads subpages only for a route with a :page param", () => {
+    const router = `
+      import TermsView from "@/TermsView.vue";
+      const router = createRouter({
+        routes: [
+          { path: "/privacy", name: "privacy", component: TermsView, props: { page: "privacy" } },
+        ],
+      });`;
+    const view = `<template><Privacy v-if="page === 'privacy'" /></template>`;
+    expect(discoverRoutes(router, () => view)).toEqual([
+      { key: "privacy", path: "/privacy" },
+    ]);
+  });
 });

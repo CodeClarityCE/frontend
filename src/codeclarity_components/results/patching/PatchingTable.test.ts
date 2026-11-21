@@ -1,21 +1,11 @@
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+
+import { analysisPath } from "../../../../tests/fixtures/results";
+import { createTestApp } from "../../../../tests/real-app";
 
 import PatchingTable from "./PatchingTable.vue";
-
-const repo = vi.hoisted(() => ({ getPatches: vi.fn() }));
-vi.mock("@/codeclarity_components/results/results.repository", () => ({
-  ResultsRepository: class {
-    getPatches = repo.getPatches;
-  },
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token" }),
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
 
 const semver = (Major: number, Minor: number, Patch: number) => ({
   Major,
@@ -60,9 +50,21 @@ const workspace = {
   },
 };
 
-async function show(): Promise<HTMLElement[]> {
-  render(PatchingTable, { props: { analysisID: "a-1", projectID: "p-1" } });
+// Opens the patch table, with the patches answer or a server error when none is given.
+async function open(answer?: unknown): Promise<void> {
+  const app = createTestApp({ signedIn: true });
+  await app.visit("/projects");
+  if (answer) app.http.on("GET", `${analysisPath}/patching`, { data: answer });
+  else app.http.on("GET", `${analysisPath}/patching`, {}, 500);
+  render(PatchingTable, {
+    props: { analysisID: "a-1", projectID: "p-1" },
+    global: app.global,
+  });
   await flushPromises();
+}
+
+async function show(): Promise<HTMLElement[]> {
+  await open(workspace);
   const table = screen.getByRole("table", { name: "Patches" });
   return within(table).getAllByRole("row").slice(1);
 }
@@ -74,10 +76,6 @@ function cells(row: HTMLElement): string[] {
 }
 
 describe("PatchingTable", () => {
-  beforeEach(() => {
-    repo.getPatches.mockResolvedValue({ data: workspace });
-  });
-
   it("lists every vulnerable direct dependency with its patch status", async () => {
     const rows = await show();
     expect(rows.map((row) => cells(row).slice(0, 6))).toEqual([
@@ -102,9 +100,7 @@ describe("PatchingTable", () => {
   });
 
   it("says so when the patches cannot be loaded", async () => {
-    repo.getPatches.mockRejectedValue(new Error("down"));
-    render(PatchingTable, { props: { analysisID: "a-1", projectID: "p-1" } });
-    await flushPromises();
+    await open();
     expect(screen.getByText("Could not load the patches")).toBeTruthy();
   });
 });

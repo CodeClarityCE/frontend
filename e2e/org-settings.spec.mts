@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
-import { onAPhone } from "./helpers/phone.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   membership,
@@ -127,6 +128,7 @@ test.describe("Organisations list", () => {
     await expect(
       page.getByRole("heading", { name: "No organisations yet" }),
     ).toBeVisible();
+    await expectMainSnapshot(page, "orgs-empty");
     await page.getByRole("link", { name: "Create an organisation" }).click();
 
     await expect(page).toHaveURL(/\/orgs\/add\/?$/);
@@ -176,6 +178,7 @@ test.describe("Organisations list", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "orgs-list");
     await expectScreenshots(page, "orgs-list");
   });
 });
@@ -204,6 +207,7 @@ test.describe("Create an organisation", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "orgs-create-errors");
     await expectScreenshots(page, "orgs-create-errors");
   });
 
@@ -237,6 +241,7 @@ test.describe("Create an organisation", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "orgs-create");
     await expectScreenshots(page, "orgs-create");
   });
 });
@@ -379,13 +384,19 @@ test.describe("Organisation overview", () => {
     await page.keyboard.press("Tab");
     await expectVisibleFocus(main.getByRole("link", { name: /^Invites/ }));
 
-    const toggle = page.getByRole("switch");
+    const toggle = page.getByRole("switch", {
+      name: "Resolve tickets automatically",
+    });
     await toggle.focus();
     await expectVisibleFocus(toggle);
     await page.keyboard.press("Tab");
     await expectVisibleFocus(
-      page.getByRole("button", { name: "Leave organisation" }),
+      page.getByRole("switch", { name: "Use service level targets" }),
     );
+
+    const leave = page.getByRole("button", { name: "Leave organisation" });
+    await leave.focus();
+    await expectVisibleFocus(leave);
   });
 
   test("passes axe and matches the screenshots", async ({ page }) => {
@@ -396,6 +407,7 @@ test.describe("Organisation overview", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-overview");
     await expectScreenshots(page, "org-overview");
 
     await page.getByRole("button", { name: "Delete organisation" }).click();
@@ -505,9 +517,7 @@ test.describe("Organisation settings in the sidebar", () => {
   });
 });
 
-test.describe("On a phone", () => {
-  onAPhone();
-
+describeOnAPhone("On a phone", () => {
   test("the organisations list does not scroll sideways", async ({ page }) => {
     const orgs = new OrgSettingsPage(page);
     await orgs.signIn();
@@ -516,6 +526,7 @@ test.describe("On a phone", () => {
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "organisations-list");
   });
 
   test("the organisation form does not scroll sideways", async ({ page }) => {
@@ -526,5 +537,6 @@ test.describe("On a phone", () => {
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "organisation-form");
   });
 });

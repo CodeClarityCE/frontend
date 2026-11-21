@@ -1,0 +1,20 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - heading "Invitations" [level=1]
+  - paragraph: Invitations that have not been accepted yet.
+  - link "Members":
+    - /url: /orgs/manage/members/org-123/
+  - button "Invite a member"
+  - img "The CodeClarity owl"
+  - heading "No open invitations" [level=2]
+  - paragraph: Everyone you invited has joined, or nobody has been invited yet.
+  - button "Invite a member"

@@ -12,11 +12,6 @@ import {
 
 import ExperimentCreate from "./ExperimentCreate.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 // jsdom lacks the pointer capture calls the Select makes.
 beforeAll(() => {
   Element.prototype.hasPointerCapture = () => false;

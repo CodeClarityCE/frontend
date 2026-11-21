@@ -44,7 +44,7 @@ const questions = [
           <dd class="mt-1 text-sm text-muted-foreground">{{ item.answer }}</dd>
         </div>
       </dl>
-      <div class="flex gap-3">
+      <div class="flex flex-wrap gap-3">
         <Button as="a" href="mailto:support@codeclarity.io" variant="outline">
           <Mail aria-hidden="true" />
           Contact support

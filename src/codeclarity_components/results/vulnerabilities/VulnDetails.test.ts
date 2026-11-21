@@ -1,30 +1,57 @@
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { createTestApp, org, type TestApp } from "../../../../tests/real-app";
 
 import VulnDetails from "./VulnDetails.vue";
 
-const repo = vi.hoisted(() => ({ getFinding: vi.fn() }));
-vi.mock("@/codeclarity_components/results/results.repository", () => ({
-  ResultsRepository: class {
-    getFinding = repo.getFinding;
-  },
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token" }),
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
+let app: TestApp;
+let queries: URLSearchParams[] = [];
+
+// Answers the finding request of this analysis from its query, and keeps each query sent.
+function serveFinding(
+  analysis: string,
+  project: string,
+  respond: (query: URLSearchParams) => Response,
+): void {
+  queries = [];
+  const prefix = `/org/${org.id}/projects/${project}/analysis/${analysis}/vulnerabilities/vulnerability/`;
+  const answerOther = globalThis.fetch;
+  vi.stubGlobal(
+    "fetch",
+    async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      const url = new URL(String(input));
+      if (!url.pathname.includes(prefix)) return answerOther(input, init);
+      queries.push(url.searchParams);
+      return respond(url.searchParams);
+    },
+  );
+}
+
+function json(body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+beforeEach(async () => {
+  app = createTestApp({ signedIn: true });
+  await app.visit("/projects");
+});
+
+afterEach(() => {
+  window.history.replaceState({}, "", "/");
+});
 
 // OSV says only 1.0.0 to 1.2.0 is affected, NVD says every version is.
 const OSV_AFFECTED = ["1.1.0"];
 
 // Answers like the API: the detail of the chosen version, else the first one stored.
-function answer({ version }: { version?: string | null }) {
-  const installed = version ?? "0.5.0";
+function answer(query: URLSearchParams) {
+  const installed = query.get("version") ?? "0.5.0";
   const osvAffected = OSV_AFFECTED.includes(installed);
-  return Promise.resolve({
+  return {
     data: {
       vulnerability_info: {
         vulnerability_id: "CVE-2099-0001",
@@ -56,42 +83,25 @@ function answer({ version }: { version?: string | null }) {
       common_consequences: {},
       references: [],
     },
-  });
+  };
 }
 
 async function open(search: string): Promise<void> {
   window.history.replaceState({}, "", `/results${search}`);
-  repo.getFinding.mockImplementation(answer);
+  serveFinding("a-1", "p-1", (query) => json(answer(query)));
   render(VulnDetails, {
     props: { analysisID: "a-1", projectID: "p-1" },
-    global: {
-      stubs: {
-        RouterLink: { template: "<a><slot /></a>" },
-        AddToPolicyButton: true,
-        VulnSummaryContent: true,
-        VulnerabilitySeverities: true,
-        VulnReferences: true,
-      },
-    },
+    global: app.global,
   });
   await flushPromises();
 }
 
 describe("VulnDetails per affected version", () => {
-  afterEach(() => {
-    repo.getFinding.mockReset();
-  });
-
   it("shows the source comparison of the version that was clicked", async () => {
     await open("?finding_id=CVE-2099-0001&dependency=lodash&version=1.5.0");
 
-    expect(repo.getFinding).toHaveBeenCalledWith(
-      expect.objectContaining({
-        vulnerability_id: "CVE-2099-0001",
-        dependency: "lodash",
-        version: "1.5.0",
-      }),
-    );
+    expect(queries[0]?.get("dependency")).toBe("lodash");
+    expect(queries[0]?.get("version")).toBe("1.5.0");
     expect(
       screen.getByText("Vulnerability sources disagree on your version"),
     ).toBeTruthy();
@@ -112,9 +122,8 @@ describe("VulnDetails per affected version", () => {
   it("asks for the first occurrence when the link names no version", async () => {
     await open("?finding_id=CVE-2099-0001");
 
-    expect(repo.getFinding).toHaveBeenCalledWith(
-      expect.objectContaining({ dependency: null, version: null }),
-    );
+    expect(queries[0]?.has("dependency")).toBe(false);
+    expect(queries[0]?.has("version")).toBe(false);
     expect(screen.getAllByText("lodash@0.5.0").length).toBeGreaterThan(0);
   });
 });
@@ -128,38 +137,25 @@ async function showAt(search: string): Promise<void> {
     "",
     `/results/vulnerabilities_details?${search}`,
   );
-  repo.getFinding.mockRejectedValue(new Error("down"));
+  serveFinding(ANALYSIS, PROJECT, () => new Response(null, { status: 500 }));
   render(VulnDetails, {
     props: { analysisID: ANALYSIS, projectID: PROJECT },
-    global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
+    global: app.global,
   });
   await flushPromises();
 }
 
 describe("VulnDetails", () => {
-  afterEach(() => {
-    repo.getFinding.mockReset();
-    window.history.replaceState({}, "", "/");
-  });
-
   it("loads the finding from the root workspace by default", async () => {
     await showAt("finding_id=CVE-2021-23337");
-    expect(repo.getFinding).toHaveBeenCalledWith(
-      expect.objectContaining({
-        vulnerability_id: "CVE-2021-23337",
-        workspace: ".",
-      }),
-    );
+    expect(queries.map((query) => query.get("workspace"))).toEqual(["."]);
   });
 
   it("loads the finding from the workspace in the address", async () => {
     await showAt("finding_id=CVE-2021-23337&workspace=packages%2Fapp");
-    expect(repo.getFinding).toHaveBeenCalledWith(
-      expect.objectContaining({
-        vulnerability_id: "CVE-2021-23337",
-        workspace: "packages/app",
-      }),
-    );
+    expect(queries.map((query) => query.get("workspace"))).toEqual([
+      "packages/app",
+    ]);
   });
 });
 
@@ -173,34 +169,22 @@ async function openWithVerdicts(
     "",
     "/results?finding_id=CVE-2099-0001&dependency=lodash&version=1.1.0",
   );
-  repo.getFinding.mockImplementation(async (request) => {
-    const detail = await answer(request);
+  serveFinding("a-1", "p-1", (query) => {
+    const detail = answer(query);
     Object.assign(detail.data, {
       source_verdicts: verdicts ?? [],
       source_verdicts_available: available,
     });
-    return detail;
+    return json(detail);
   });
   render(VulnDetails, {
     props: { analysisID: "a-1", projectID: "p-1" },
-    global: {
-      stubs: {
-        RouterLink: { template: "<a><slot /></a>" },
-        AddToPolicyButton: true,
-        VulnSummaryContent: true,
-        VulnerabilitySeverities: true,
-        VulnReferences: true,
-      },
-    },
+    global: app.global,
   });
   await flushPromises();
 }
 
 describe("VulnDetails source verdicts", () => {
-  afterEach(() => {
-    repo.getFinding.mockReset();
-  });
-
   it("shows each source's verdict for the chosen version", async () => {
     await openWithVerdicts([
       {

@@ -1,0 +1,27 @@
+- main:
+  - heading "Join Open Source Lab?" [level=1]
+  - paragraph: Accept the invitation to work with this organisation's members.
+  - heading "Open Source Lab" [level=2]
+  - paragraph: Research on package ecosystems
+  - term: Invited by
+  - definition: Grace Hopper (grace@example.com)
+  - term: Your role
+  - definition: Moderator
+  - term: Owner
+  - definition: Ada Lovelace (ada@example.com)
+  - term: Members
+  - definition: "4"
+  - term: Invited on
+  - definition: /November \d+, \d+/
+  - button "Join organisation"
+  - button "Cancel"
+  - region "Questions":
+    - heading "Questions" [level=2]
+    - heading "What happens when I join an organisation?" [level=3]:
+      - button "What happens when I join an organisation?"
+    - heading "Can I leave an organisation I did not mean to join?" [level=3]:
+      - button "Can I leave an organisation I did not mean to join?"
+    - heading "What can each role do?" [level=3]:
+      - button "What can each role do?"
+    - heading "The inviter or owner shows as Deleted user. What now?" [level=3]:
+      - button "The inviter or owner shows as Deleted user. What now?"

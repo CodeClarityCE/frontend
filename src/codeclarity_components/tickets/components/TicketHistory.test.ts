@@ -1,16 +1,11 @@
 import { render, screen } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createTestApp, org, type TestApp } from "../../../../tests/real-app";
 import type { TicketDetails } from "../tickets.entity";
 
 import TicketHistory from "./TicketHistory.vue";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const eventsPath = `/org/${org.id}/tickets/t-1/events`;
 

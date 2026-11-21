@@ -10,11 +10,6 @@ import {
 
 import PopularGithubImportComponent from "./PopularGithubImportComponent.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const popularPath = `/org/${org.id}/integrations/github/gh-1/repositories/popular`;
 
 const popular = {

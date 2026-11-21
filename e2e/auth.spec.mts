@@ -1,8 +1,9 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
-import { onAPhone } from "./helpers/phone.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
 import { AuthPage } from "./pages/auth.page.mjs";
@@ -231,6 +232,7 @@ test.describe("Authentication E2E Tests", () => {
       await authPage.goto();
       await authPage.expectFormVisible();
       await expectPageSweep(page);
+      await expectMainSnapshot(page, "login");
       await expectScreenshots(page, "login");
     });
 
@@ -418,18 +420,18 @@ test.describe("Sign up", () => {
     await page.goto("/signup");
     await expect(field(page, "Email")).toBeVisible();
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "signup");
     await expectScreenshots(page, "signup");
   });
 });
 
-test.describe("On a phone", () => {
-  onAPhone();
-
+describeOnAPhone("On a phone", () => {
   test("the sign up page does not scroll sideways", async ({ page }) => {
     await page.goto("/signup");
     await expect(page.getByRole("heading").first()).toBeVisible();
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "sign-up-page");
   });
 });

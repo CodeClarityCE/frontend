@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
-import { onAPhone } from "./helpers/phone.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   license,
@@ -146,9 +147,24 @@ test.describe("Organisation policies list", () => {
     await expect(
       page.getByRole("heading", { name: "No license policies yet" }),
     ).toBeVisible();
+    await expectMainSnapshot(page, "org-policies-license-empty");
     await page.getByRole("link", { name: "Create a license policy" }).click();
 
     await expect(page).toHaveURL(/\/orgs\/add\/policy\/org-123\/?$/);
+  });
+
+  test("an organisation with no vulnerability policies sees the owl", async ({
+    page,
+  }) => {
+    const policies = new OrgPoliciesPage(page);
+    await policies.signIn({ vulnerabilityPolicies: [] });
+    await policies.gotoList();
+    await policies.tab("Vulnerability policies").click();
+
+    await expect(
+      page.getByRole("heading", { name: "No vulnerability policies yet" }),
+    ).toBeVisible();
+    await expectMainSnapshot(page, "org-policies-vulnerability-empty");
   });
 
   test("deleting a vulnerability policy asks first, in red, and keeps focus in the dialog", async ({
@@ -230,12 +246,14 @@ test.describe("Organisation policies list", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-policies-license");
     await expectScreenshots(page, "org-policies-license");
 
     await policies.tab("Vulnerability policies").click();
     await expect(policies.rows("Vulnerability policies")).toHaveCount(2);
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-policies-vulnerability");
     await expectScreenshots(page, "org-policies-vulnerability");
   });
 });
@@ -261,6 +279,7 @@ test.describe("License policy form", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-policies-create-errors");
     await expectScreenshots(page, "org-policies-create-errors");
   });
 
@@ -412,6 +431,7 @@ test.describe("License policy form", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-policies-create");
     await expectScreenshots(page, "org-policies-create");
   });
 });
@@ -438,13 +458,12 @@ test.describe("Vulnerability policy form", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-policies-vulnerability-create-errors");
     await expectScreenshots(page, "org-policies-vulnerability-create-errors");
   });
 });
 
-test.describe("On a phone", () => {
-  onAPhone();
-
+describeOnAPhone("On a phone", () => {
   test("the policies list does not scroll sideways", async ({ page }) => {
     const policies = new OrgPoliciesPage(page);
     await policies.signIn();
@@ -453,6 +472,7 @@ test.describe("On a phone", () => {
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "policies-list");
   });
 
   test("the license policy form does not scroll sideways", async ({ page }) => {
@@ -463,5 +483,6 @@ test.describe("On a phone", () => {
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "license-policy-form");
   });
 });

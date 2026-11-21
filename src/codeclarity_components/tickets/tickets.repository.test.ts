@@ -2,11 +2,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import { TicketsRepository } from "./tickets.repository";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 describe("TicketsRepository.getTicketEvents", () => {
   it("reads the plain event list the API returns", async () => {
     const repository = new TicketsRepository();

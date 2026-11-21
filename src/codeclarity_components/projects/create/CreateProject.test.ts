@@ -1,16 +1,11 @@
 import { fireEvent, render, screen, within } from "@testing-library/vue";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { useUserStore } from "@/stores/user";
 
 import { createTestApp, org, type TestApp } from "../../../../tests/real-app";
 
 import CreateProject from "./CreateProject.vue";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 function vcs(provider: string, invalid = false) {
   return {

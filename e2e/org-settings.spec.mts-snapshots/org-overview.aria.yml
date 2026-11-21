@@ -1,0 +1,75 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 3 members
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: "@johndoe"
+  - heading "Organisation overview" [level=1]
+  - paragraph: "Everything this organisation shares: people, connections and the rules its analyses follow."
+  - region "Settings":
+    - heading "Settings" [level=2]
+    - list:
+      - listitem:
+        - link "Members See who belongs and change their roles":
+          - /url: /orgs/manage/members/org-123/
+      - listitem:
+        - link "Invites Invite people and follow pending invitations":
+          - /url: /orgs/manage/invites/org-123/
+      - listitem:
+        - link "Integrations Connect GitHub, GitLab and ClickUp":
+          - /url: /orgs/manage/integrations/org-123/
+      - listitem:
+        - link "Analyzers Choose which plugins an analysis runs":
+          - /url: /orgs/manage/analyzers/org-123/
+      - listitem:
+        - link "Policies License and vulnerability rules for analyses":
+          - /url: /orgs/manage/policies/org-123/
+      - listitem:
+        - link "Audit logs Review what happened and who did it":
+          - /url: /orgs/manage/logs/org-123/
+  - heading "Tickets" [level=2]
+  - text: Resolve tickets automatically
+  - paragraph: Close a ticket once a later analysis no longer finds its vulnerability.
+  - switch "Resolve tickets automatically"
+  - heading "Service level targets" [level=2]
+  - text: Use service level targets
+  - paragraph: A new ticket's due date defaults to the days allowed for the worst severity it resolves. Anyone can still change it on the ticket.
+  - switch "Use service level targets"
+  - group "Days allowed per severity. Leave a field blank for no target.":
+    - text: Days allowed per severity. Leave a field blank for no target. Critical
+    - spinbutton "Critical"
+    - text: High
+    - spinbutton "High"
+    - text: Medium
+    - spinbutton "Medium"
+    - text: Low
+    - spinbutton "Low"
+    - button "Save"
+  - heading "Freshness" [level=2]
+  - text: Stale after (days)
+  - paragraph: A project whose current analysis is older than this is flagged on the dashboard, since newer vulnerabilities are not checked in it yet.
+  - spinbutton "Stale after (days)": /\d+/
+  - button "Save"
+  - heading "Leave or delete" [level=2]
+  - paragraph: These actions affect your access, and deleting cannot be undone.
+  - paragraph: Leave this organisation. You lose access to its projects.
+  - button "Leave organisation"
+  - paragraph: Delete this organisation for every member.
+  - button "Delete organisation"
+  - region "Questions":
+    - heading "Questions" [level=2]
+    - heading "What is a personal organisation?" [level=3]:
+      - button "What is a personal organisation?"
+    - heading "What are integrations?" [level=3]:
+      - button "What are integrations?"
+    - heading "What are policies?" [level=3]:
+      - button "What are policies?"
+    - heading "How do I add people?" [level=3]:
+      - button "How do I add people?"
+    - heading "How long does an invitation last?" [level=3]:
+      - button "How long does an invitation last?"

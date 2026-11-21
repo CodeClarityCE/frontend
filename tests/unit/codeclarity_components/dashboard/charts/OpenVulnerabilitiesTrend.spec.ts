@@ -1,5 +1,5 @@
 import { flushPromises, mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import OpenVulnerabilitiesTrend from "@/codeclarity_components/dashboard/charts/OpenVulnerabilitiesTrend.vue";
 import { useFilteredDashboardRequest } from "@/codeclarity_components/dashboard/composables/useDashboardRequest";
@@ -9,11 +9,6 @@ import {
   type VulnerabilityTrendFilters,
   type VulnerabilityTrendPoint,
 } from "@/codeclarity_components/vulnerabilities/vulnerability_trend.entity";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 function point(
   start: string,

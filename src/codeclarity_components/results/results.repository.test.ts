@@ -1,148 +1,99 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+import { createTestApp, org } from "../../../tests/real-app";
 
 import { ResultsRepository } from "./results.repository";
 
-// Runs the real repository so only the network is faked.
-vi.unmock("@/utils/api/BaseRepository");
-vi.unmock("@/codeclarity_components/results/results.repository");
-vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
-vi.mock("vue-sonner", () => ({ toast: { error: vi.fn() } }));
+const analysisPath = `/org/${org.id}/projects/project-1/analysis/analysis-1`;
+const ids = {
+  orgId: org.id,
+  projectId: "project-1",
+  analysisId: "analysis-1",
+  bearerToken: "token",
+  handleBusinessErrors: true,
+};
 
 describe("ResultsRepository.getMaliciousPackageAdvisories", () => {
-  beforeEach(() => {
-    vi.stubGlobal("fetch", vi.fn());
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   it("asks for one workspace and returns the advisories unchanged", async () => {
+    const app = createTestApp();
     const advisory = {
       AdvisoryId: "MAL-2025-1234",
       AffectedDependency: "evil-package",
       AffectedVersion: "1.2.3",
       DirectDependency: false,
     };
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ data: [advisory] }), { status: 200 }),
-    );
+    app.http.on("GET", `${analysisPath}/vulnerabilities/malicious-packages`, {
+      data: [advisory],
+    });
 
     const response =
       await new ResultsRepository().getMaliciousPackageAdvisories({
-        orgId: "org-1",
-        projectId: "project-1",
-        analysisId: "analysis-1",
+        ...ids,
         workspace: "packages/app",
-        bearerToken: "token",
-        handleBusinessErrors: true,
       });
 
-    const url = vi.mocked(fetch).mock.calls[0]?.[0] as string;
-    expect(url).toContain(
-      "/org/org-1/projects/project-1/analysis/analysis-1/vulnerabilities/malicious-packages",
-    );
-    expect(new URL(url, "http://localhost").searchParams.get("workspace")).toBe(
-      "packages/app",
-    );
+    expect(app.http.requests[0]?.query.get("workspace")).toBe("packages/app");
     expect(response.data).toEqual([advisory]);
   });
 });
 
 describe("ResultsRepository.getFinding", () => {
-  beforeEach(() => {
-    vi.stubGlobal("fetch", vi.fn());
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   it("keeps a vulnerability ID with slashes in one path segment", async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ data: {} }), { status: 200 }),
+    const app = createTestApp();
+    app.http.on(
+      "GET",
+      `${analysisPath}/vulnerabilities/vulnerability/FRIENDSOFPHP-symfony%2Fhttp-foundation%2F2019-11-13-1`,
+      { data: { vulnerability_info: { vulnerability_id: "FRIENDSOFPHP" } } },
     );
 
-    await new ResultsRepository().getFinding({
-      orgId: "org-1",
-      projectId: "project-1",
-      analysisId: "analysis-1",
+    const response = await new ResultsRepository().getFinding({
+      ...ids,
       vulnerability_id: "FRIENDSOFPHP-symfony/http-foundation/2019-11-13-1",
       workspace: ".",
-      bearerToken: "token",
-      handleBusinessErrors: true,
     });
 
-    const url = vi.mocked(fetch).mock.calls[0]?.[0] as string;
-    expect(new URL(url, "http://localhost").pathname).toMatch(
-      /\/vulnerabilities\/vulnerability\/FRIENDSOFPHP-symfony%2Fhttp-foundation%2F2019-11-13-1$/,
-    );
+    expect(response.data).toEqual({
+      vulnerability_info: { vulnerability_id: "FRIENDSOFPHP" },
+    });
   });
 });
 
 describe("ResultsRepository.getVulnerabilitiesStat", () => {
-  beforeEach(() => {
-    vi.stubGlobal("fetch", vi.fn());
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   it("sends the policy toggle", async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ data: {} }), { status: 200 }),
-    );
+    const app = createTestApp();
+    app.http.on("GET", `${analysisPath}/vulnerabilities/stats`, { data: {} });
 
     await new ResultsRepository().getVulnerabilitiesStat({
-      orgId: "org-1",
-      projectId: "project-1",
-      analysisId: "analysis-1",
+      ...ids,
       workspace: ".",
       show_blacklisted: true,
-      bearerToken: "token",
-      handleBusinessErrors: true,
     });
 
-    const url = vi.mocked(fetch).mock.calls[0]?.[0] as string;
-    expect(
-      new URL(url, "http://localhost").searchParams.get("show_blacklisted"),
-    ).toBe("true");
+    expect(app.http.requests[0]?.query.get("show_blacklisted")).toBe("true");
   });
 });
 
 describe("ResultsRepository.downloadSourceVerdicts", () => {
-  beforeEach(() => {
-    vi.stubGlobal("fetch", vi.fn());
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   it.each(["csv", "json"] as const)(
     "downloads the %s export of every workspace as a blob",
     async (format) => {
-      vi.mocked(fetch).mockResolvedValue(
-        new Response("workspace,source\r\n", { status: 200 }),
+      // The export is a file, not JSON, so fetch answers it directly.
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => new Response("workspace,source\r\n")),
       );
 
       const blob = await new ResultsRepository().downloadSourceVerdicts({
-        orgId: "org-1",
-        projectId: "project-1",
-        analysisId: "analysis-1",
+        ...ids,
         format,
-        bearerToken: "token",
-        handleBusinessErrors: true,
       });
 
-      const url = new URL(
-        vi.mocked(fetch).mock.calls[0]?.[0] as string,
-        "http://localhost",
-      );
-      expect(url.pathname).toMatch(
-        /\/org\/org-1\/projects\/project-1\/analysis\/analysis-1\/vulnerabilities\/source-verdicts$/,
-      );
+      const url = new URL(vi.mocked(fetch).mock.calls[0]?.[0] as string);
+      expect(
+        url.pathname.endsWith(
+          `${analysisPath}/vulnerabilities/source-verdicts`,
+        ),
+      ).toBe(true);
       expect(url.searchParams.get("format")).toBe(format);
       expect(url.searchParams.has("workspace")).toBe(false);
       expect(await blob.text()).toBe("workspace,source\r\n");
@@ -150,26 +101,20 @@ describe("ResultsRepository.downloadSourceVerdicts", () => {
   );
 
   it("rejects with the API's error code when the analysis has no verdicts", async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          error_code: "SourceVerdictsNotAvailable",
-          error_message: "This analysis predates source verdicts.",
-          status_code: 409,
-        }),
-        { status: 409 },
-      ),
+    const app = createTestApp();
+    app.http.on(
+      "GET",
+      `${analysisPath}/vulnerabilities/source-verdicts`,
+      {
+        error_code: "SourceVerdictsNotAvailable",
+        error_message: "This analysis predates source verdicts.",
+        status_code: 409,
+      },
+      409,
     );
 
     await expect(
-      new ResultsRepository().downloadSourceVerdicts({
-        orgId: "org-1",
-        projectId: "project-1",
-        analysisId: "analysis-1",
-        format: "csv",
-        bearerToken: "token",
-        handleBusinessErrors: true,
-      }),
+      new ResultsRepository().downloadSourceVerdicts({ ...ids, format: "csv" }),
     ).rejects.toMatchObject({ error_code: "SourceVerdictsNotAvailable" });
   });
 });

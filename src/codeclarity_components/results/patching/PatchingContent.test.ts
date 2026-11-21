@@ -1,27 +1,11 @@
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+
+import { analysisPath } from "../../../../tests/fixtures/results";
+import { createTestApp } from "../../../../tests/real-app";
 
 import PatchingContent from "./PatchingContent.vue";
-
-const repo = vi.hoisted(() => ({
-  getPatchesStat: vi.fn(),
-  getPatches: vi.fn(),
-  getPatchesManifest: vi.fn(),
-}));
-vi.mock("@/codeclarity_components/results/results.repository", () => ({
-  ResultsRepository: class {
-    getPatchesStat = repo.getPatchesStat;
-    getPatches = repo.getPatches;
-    getPatchesManifest = repo.getPatchesManifest;
-  },
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token" }),
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
 
 const stats = {
   before_patch_number_of_issues: 4,
@@ -44,20 +28,29 @@ function texts(element: HTMLElement): string[] {
     .filter(Boolean);
 }
 
-async function show(): Promise<void> {
-  repo.getPatches.mockResolvedValue({ data: { patches: {}, dev_patches: {} } });
-  repo.getPatchesManifest.mockRejectedValue(new Error("none"));
+// Opens the patch summary, with the stats answer or a server error when none is given.
+async function show(statsAnswer?: unknown): Promise<void> {
+  const app = createTestApp({ signedIn: true });
+  await app.visit("/projects");
+  app.http.on("GET", `${analysisPath}/sbom/workspaces`, {
+    data: { workspaces: ["."], package_manager: "NPM" },
+  });
+  if (statsAnswer)
+    app.http.on("GET", `${analysisPath}/patching/stats`, { data: statsAnswer });
+  else app.http.on("GET", `${analysisPath}/patching/stats`, {}, 500);
+  app.http.on("GET", `${analysisPath}/patching`, {
+    data: { patches: {}, dev_patches: {} },
+  });
   render(PatchingContent, {
     props: { analysisID: "a-1", projectID: "p-1" },
-    global: { stubs: { SelectWorkspace: true } },
+    global: app.global,
   });
   await flushPromises();
 }
 
 describe("PatchingContent", () => {
   it("shows the numbers after patching next to the numbers before", async () => {
-    repo.getPatchesStat.mockResolvedValue({ data: stats });
-    await show();
+    await show(stats);
     const tiles = within(screen.getByRole("list", { name: "Patch numbers" }))
       .getAllByRole("listitem")
       .map((tile) => texts(tile));
@@ -69,8 +62,7 @@ describe("PatchingContent", () => {
   });
 
   it("describes the severity chart and the impact change in words", async () => {
-    repo.getPatchesStat.mockResolvedValue({ data: stats });
-    await show();
+    await show(stats);
     expect(
       screen.getByLabelText("Critical: 1 before patching, 0 after"),
     ).toBeTruthy();
@@ -79,7 +71,6 @@ describe("PatchingContent", () => {
   });
 
   it("says so when the summary cannot be loaded", async () => {
-    repo.getPatchesStat.mockRejectedValue(new Error("down"));
     await show();
     expect(screen.getByText("Could not load the patch summary")).toBeTruthy();
   });

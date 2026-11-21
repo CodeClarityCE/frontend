@@ -10,11 +10,6 @@ import {
 
 import LicensePolicyForm from "./LicensePolicyForm.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const policyPath = `/org/${org.id}/policies/license_policy/p-1`;
 
 const policy = {

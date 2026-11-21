@@ -16,15 +16,62 @@ import { defineConfig, devices } from "@playwright/test";
  * - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: use a system Chromium instead of a
  *   Playwright-downloaded one.
  *
+ * Browsers: chromium desktop and Pixel 5 run by default. E2E_ALL_BROWSERS=1
+ * adds desktop firefox and webkit, for nightly or manual runs. Phone tests
+ * (tagged @phone) run on Pixel 5, all others on the desktop projects.
+ *
  * The real-stack journey (e2e/real-stack/*.journey.mts) mocks nothing. Its
- * `real-stack` project exists only when E2E_BASE_URL is set; run it with
- * `--project=real-stack` (umbrella CI does, against its trimmed stack).
+ * `real-stack` project exists only when E2E_BASE_URL is set, so a default run
+ * never has it; run it with `--project=real-stack` (umbrella CI does, through
+ * .cloud/scripts/e2e-real-stack.sh, against its trimmed stack).
  */
 const liveBaseURL = process.env.E2E_BASE_URL;
 const hostResolverRules = process.env.E2E_HOST_RESOLVER_RULES;
 const chromiumPath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
 const port = Number(process.env.E2E_PORT ?? 4173);
 const localURL = `http://127.0.0.1:${port}`;
+const allBrowsers = !!process.env.E2E_ALL_BROWSERS;
+
+// Chromium options shared by the desktop and Pixel 5 projects.
+const chromiumLaunch = {
+  ...(chromiumPath ? { executablePath: chromiumPath } : {}),
+  args: hostResolverRules ? [`--host-resolver-rules=${hostResolverRules}`] : [],
+};
+
+// Tests tagged @phone (describeOnAPhone in e2e/helpers/phone.mts) run on
+// Pixel 5 only; every other test runs on the desktop projects.
+const PHONE = /@phone/;
+
+const defaultProjects = [
+  {
+    name: "chromium",
+    grepInvert: PHONE,
+    use: { ...devices["Desktop Chrome"], launchOptions: chromiumLaunch },
+  },
+  {
+    name: "pixel-5",
+    grep: PHONE,
+    use: {
+      ...devices["Pixel 5"],
+      // The 390px phone screenshot width.
+      viewport: { width: 390, height: 844 },
+      launchOptions: chromiumLaunch,
+    },
+  },
+];
+
+const extraBrowsers = [
+  {
+    name: "firefox",
+    grepInvert: PHONE,
+    use: { ...devices["Desktop Firefox"] },
+  },
+  {
+    name: "webkit",
+    grepInvert: PHONE,
+    use: { ...devices["Desktop Safari"] },
+  },
+];
 
 // Only against a real stack: one journey, no retries, a trace kept on failure.
 const realStackProjects = liveBaseURL
@@ -39,12 +86,7 @@ const realStackProjects = liveBaseURL
           ...devices["Desktop Chrome"],
           viewport: { width: 1280, height: 1024 },
           trace: "retain-on-failure",
-          launchOptions: {
-            ...(chromiumPath ? { executablePath: chromiumPath } : {}),
-            args: hostResolverRules
-              ? [`--host-resolver-rules=${hostResolverRules}`]
-              : [],
-          },
+          launchOptions: chromiumLaunch,
         },
       },
     ]
@@ -89,41 +131,9 @@ export default defineConfig({
     video: "retain-on-failure",
   },
 
-  /* Configure projects for major browsers */
   projects: [
-    {
-      name: "chromium",
-      use: {
-        ...devices["Desktop Chrome"],
-        launchOptions: {
-          ...(chromiumPath ? { executablePath: chromiumPath } : {}),
-          args: hostResolverRules
-            ? [`--host-resolver-rules=${hostResolverRules}`]
-            : [],
-        },
-      },
-    },
-
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
-
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    },
-
-    /* Test against mobile viewports */
-    {
-      name: "Mobile Chrome",
-      use: { ...devices["Pixel 5"] },
-    },
-    {
-      name: "Mobile Safari",
-      use: { ...devices["iPhone 12"] },
-    },
-
+    ...defaultProjects,
+    ...(allBrowsers ? extraBrowsers : []),
     ...realStackProjects,
   ],
 

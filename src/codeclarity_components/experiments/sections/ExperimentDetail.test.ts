@@ -12,11 +12,6 @@ import type { GridCoverageRow, PublishedVersion } from "../experiment.entity";
 
 import ExperimentDetail from "./ExperimentDetail.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 // The API endpoints the page calls: each answers one request with a response body.
 type Endpoint = (request: FakeRequest) => unknown;
 const endpoint = (): ReturnType<typeof vi.fn<Endpoint>> => vi.fn<Endpoint>();

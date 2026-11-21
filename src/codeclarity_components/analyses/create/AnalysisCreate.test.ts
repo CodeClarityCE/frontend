@@ -5,11 +5,6 @@ import { createTestApp, org, type TestApp } from "../../../../tests/real-app";
 
 import AnalysisCreate from "./AnalysisCreate.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const analyzersPath = `/org/${org.id}/analyzers`;
 const analysesPath = `/org/${org.id}/projects/project-1/analyses`;
 

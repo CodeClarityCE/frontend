@@ -1,5 +1,5 @@
 // Real Pinia, real stores and the app's router on memory history; only fetch is faked.
-// The test file must opt out of the global mocks first, see tests/TESTING_CONVENTIONS.md.
+// See tests/TESTING_CONVENTIONS.md.
 import { createPinia, type Pinia, setActivePinia } from "pinia";
 import { vi } from "vitest";
 import { type Component, defineComponent, h } from "vue";
@@ -30,6 +30,7 @@ export { user };
 export interface FakeRequest {
   method: string;
   path: string;
+  // The URL's query parameters.
   query: URLSearchParams;
   headers: Headers;
   body: unknown;

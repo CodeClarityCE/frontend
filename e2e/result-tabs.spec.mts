@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
-import { onAPhone } from "./helpers/phone.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   ANALYSIS,
@@ -553,7 +553,7 @@ test.describe("Patch results", () => {
     await tabs.goto("Patches");
 
     const copy = page.getByRole("button", {
-      name: "Copy the patched manifest",
+      name: "Copy the dependency entries",
     });
     await copy.focus();
     await expectVisibleFocus(copy);
@@ -577,6 +577,19 @@ test.describe("Patch results", () => {
     await expectPageSweep(page);
     await expectMainSnapshot(page, "patches");
     await expectScreenshots(page, "patches");
+  });
+
+  test("nothing to patch says so and passes axe", async ({ page }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn({ noPatches: true });
+    await tabs.goto("Patches");
+
+    await expect(
+      page.getByText("No vulnerable direct dependencies."),
+    ).toBeVisible();
+    await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "patches-empty");
   });
 });
 
@@ -677,9 +690,7 @@ test.describe("Selected results tab", () => {
   });
 });
 
-test.describe("On a phone", () => {
-  onAPhone();
-
+describeOnAPhone("On a phone", () => {
   test("the analysis results does not scroll sideways", async ({ page }) => {
     const tabs = new ResultTabsPage(page);
     await tabs.signIn({ vulnFinder: true });
@@ -688,5 +699,6 @@ test.describe("On a phone", () => {
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "analysis-results");
   });
 });

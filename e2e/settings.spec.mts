@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { businessError, SettingsPage } from "./pages/settings.page.mjs";
@@ -275,6 +276,7 @@ test.describe("Account settings", () => {
 
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "settings-account");
     await expectScreenshots(page, "settings-account");
 
     await settings
@@ -284,6 +286,7 @@ test.describe("Account settings", () => {
     await expect(page.getByText("Enter your current password")).toBeVisible();
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "settings-account-errors");
     await expectScreenshots(page, "settings-account-errors");
   });
 

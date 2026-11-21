@@ -3,7 +3,7 @@ import { expect, type Page, test } from "@playwright/test";
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
-import { onAPhone } from "./helpers/phone.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   analysis,
@@ -506,9 +506,56 @@ test.describe("Projects list", () => {
     await page.getByRole("button", { name: "Delete Local archive" }).click();
     const confirm = page.getByRole("dialog", { name: "Delete Local archive?" });
     await expect(confirm).toContainText(
-      "The project is deleted. It has no analyses. This cannot be undone.",
+      "The project and its tickets are deleted. It has no analyses.",
     );
     await expect(confirm).not.toContainText("0 analyses");
+  });
+});
+
+// The analyses route without a page opens the same project list.
+test.describe("Analyses without a page", () => {
+  test("lists the projects, passes axe and starts a new analysis", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.shell.goto("/analyses");
+
+    await expect(projects.heading).toHaveText("Projects");
+    await expect(projects.rows()).toHaveCount(3);
+    await expect(projects.row("web-frontend")).toContainText("JavaScript");
+    await axe(page);
+    await expectPageSweep(page);
+    // The same tree as /projects, so it shares that snapshot.
+    await expectMainSnapshot(page, "projects-list");
+
+    await page
+      .getByRole("link", { name: "New analysis of example/web-frontend" })
+      .click();
+    await expect(page).toHaveURL(/\/analyses\/add\?id=p-1$/);
+  });
+
+  test("with no projects offers Add a Project", async ({ page }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn({ projects: [] });
+    await projects.shell.goto("/analyses");
+
+    await expect(
+      page.getByRole("heading", { name: "No Projects yet" }),
+    ).toBeVisible();
+    await axe(page);
+    await expectPageSweep(page);
+  });
+
+  test("a failed load says so", async ({ page }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn({ failList: true });
+    await projects.shell.goto("/analyses");
+
+    await expect(page.getByRole("alert")).toContainText(
+      "The projects could not be loaded.",
+    );
+    await expectPageSweep(page);
   });
 });
 
@@ -941,9 +988,7 @@ function repoWithStars(name: string, stars: number): Record<string, unknown> {
   return repo(name, { stargazers_count: stars, language: "JavaScript" });
 }
 
-test.describe("On a phone", () => {
-  onAPhone();
-
+describeOnAPhone("On a phone", () => {
   test("the projects list does not scroll sideways", async ({ page }) => {
     const projects = new ProjectsPage(page);
     await projects.signIn();
@@ -952,6 +997,7 @@ test.describe("On a phone", () => {
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "projects-list");
   });
 
   test("Add a Project does not scroll sideways", async ({ page }) => {
@@ -962,5 +1008,18 @@ test.describe("On a phone", () => {
     await page.waitForLoadState("networkidle");
 
     await expectPageSweep(page);
+    await expectScreenshots(page, "add-a-project");
+  });
+
+  test("the GitHub import fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.gotoCreate();
+    await page.getByTestId("github-card").click();
+    await expect(projects.rows()).toHaveCount(3);
+    await expectPageSweep(page);
+    await expectScreenshots(page, "github-import");
   });
 });

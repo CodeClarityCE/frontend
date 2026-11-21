@@ -1,0 +1,32 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - heading "Audit logs" [level=1]
+  - paragraph: Who changed what in the organisation, and when.
+  - searchbox "Filter audit logs"
+  - table "Audit logs":
+    - caption: Audit logs
+    - rowgroup:
+      - row "Severity Area Action Description By Date":
+        - columnheader "Severity":
+          - button "Severity"
+        - columnheader "Area":
+          - button "Area"
+        - columnheader "Action":
+          - button "Action"
+        - columnheader "Description"
+        - columnheader "By":
+          - button "By"
+        - columnheader "Date":
+          - button "Date"
+    - rowgroup:
+      - row "No audit log entries yet.":
+        - cell "No audit log entries yet."

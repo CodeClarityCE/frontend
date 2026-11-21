@@ -1,5 +1,5 @@
 import { type DOMWrapper, flushPromises, mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { TicketStatus } from "@/codeclarity_components/tickets/tickets.entity";
 import type { FixNextEntry } from "@/codeclarity_components/vulnerabilities/fix_next.entity";
@@ -8,11 +8,6 @@ import { RemediationKind } from "@/codeclarity_components/vulnerabilities/organi
 import { createTestApp, org } from "../../../../tests/real-app";
 
 import FixNext from "./FixNext.vue";
-
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
 
 const entry = (extra: Partial<FixNextEntry>): FixNextEntry => ({
   kind: RemediationKind.UpgradeDirect,

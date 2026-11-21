@@ -8,11 +8,6 @@ import { takeClickUpOAuthToken } from "./clickup-oauth-handoff";
 import ClickUpConfigModal from "./ClickUpConfigModal.vue";
 import ClickUpOAuthCallback from "./ClickUpOAuthCallback.vue";
 
-// Runs against real stores and the real router; only HTTP is faked.
-vi.hoisted(() => {
-  globalThis.optOutOfGlobalMocks = true;
-});
-
 const ACCESS_TOKEN = "clickup-access-token-123";
 const callbackPath = `/org/${org.id}/tickets/integrations/clickup/oauth/callback`;
 const workspacesPath = `/org/${org.id}/tickets/integrations/CLICKUP/workspaces`;

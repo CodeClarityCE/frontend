@@ -1,0 +1,77 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - list "Integration health":
+    - listitem: Healthy 1
+    - listitem: Expiring soon 1
+    - listitem: Invalid or expired 1
+    - listitem: Total 4
+  - region "Connected services":
+    - heading "Connected services" [level=2]
+    - table "Integrations":
+      - caption: Integrations
+      - rowgroup:
+        - row "Service Host Type Status Added Actions":
+          - columnheader "Service":
+            - button "Service"
+          - columnheader "Host":
+            - button "Host"
+          - columnheader "Type":
+            - button "Type"
+          - columnheader "Status":
+            - button "Status"
+          - columnheader "Added":
+            - button "Added"
+          - columnheader "Actions"
+      - rowgroup:
+        - row /GitHub github\.com Version control Healthy Jan \d+, \d+ Manage the GitHub integration Delete the GitHub integration on github\.com/:
+          - cell "GitHub"
+          - cell "github.com"
+          - cell "Version control"
+          - cell "Healthy"
+          - cell /Jan \d+, \d+/
+          - cell "Manage the GitHub integration Delete the GitHub integration on github.com":
+            - link "Manage the GitHub integration":
+              - /url: /orgs/edit/integrations/org-123/?provider=GITHUB&integrationId=gh-1
+            - button "Delete the GitHub integration on github.com"
+        - row /GitLab gitlab\.example\.com Version control Expiring soon Jan \d+, \d+ Manage the GitLab integration Delete the GitLab integration on gitlab\.example\.com/:
+          - cell "GitLab"
+          - cell "gitlab.example.com"
+          - cell "Version control"
+          - cell "Expiring soon"
+          - cell /Jan \d+, \d+/
+          - cell "Manage the GitLab integration Delete the GitLab integration on gitlab.example.com":
+            - link "Manage the GitLab integration":
+              - /url: /orgs/edit/integrations/org-123/?provider=GITLAB&integrationId=gl-1
+            - button "Delete the GitLab integration on gitlab.example.com"
+        - row /GitLab gitlab\.com Version control Invalid Jan \d+, \d+ Manage the GitLab integration Delete the GitLab integration on gitlab\.com/:
+          - cell "GitLab"
+          - cell "gitlab.com"
+          - cell "Version control"
+          - cell "Invalid"
+          - cell /Jan \d+, \d+/
+          - cell "Manage the GitLab integration Delete the GitLab integration on gitlab.com":
+            - link "Manage the GitLab integration":
+              - /url: /orgs/edit/integrations/org-123/?provider=GITLAB&integrationId=gl-2
+            - button "Delete the GitLab integration on gitlab.com"
+        - row /ClickUp ClickUp workspace Ticketing Connected Feb \d+, \d+ Manage the ClickUp integration Delete the ClickUp integration on ClickUp workspace/:
+          - cell "ClickUp"
+          - cell "ClickUp workspace"
+          - cell "Ticketing"
+          - cell "Connected"
+          - cell /Feb \d+, \d+/
+          - cell "Manage the ClickUp integration Delete the ClickUp integration on ClickUp workspace":
+            - link "Manage the ClickUp integration":
+              - /url: /orgs/edit/integrations/org-123/?provider=CLICKUP
+            - button "Delete the ClickUp integration on ClickUp workspace"
+  - heading "Add an integration" [level=2]
+  - paragraph: Import repositories from version control, or sync tickets to your tracker.
+  - paragraph: Every supported service is connected.

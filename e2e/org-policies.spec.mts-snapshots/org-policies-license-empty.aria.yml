@@ -1,0 +1,27 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - heading "Policies" [level=1]
+  - paragraph: License and vulnerability rules applied to the analyses of this organisation.
+  - tablist:
+    - tab "License policies" [selected]
+    - tab "Vulnerability policies"
+  - tabpanel "License policies":
+    - region "License policies":
+      - heading "License policies" [level=2]
+      - paragraph: Name the licenses projects in this organisation should not use. Analyses flag them.
+      - link "New license policy":
+        - /url: /orgs/add/policy/org-123/
+      - img "The CodeClarity owl"
+      - heading "No license policies yet" [level=2]
+      - paragraph: A license policy flags dependencies whose license your organisation does not accept.
+      - link "Create a license policy":
+        - /url: /orgs/add/policy/org-123/

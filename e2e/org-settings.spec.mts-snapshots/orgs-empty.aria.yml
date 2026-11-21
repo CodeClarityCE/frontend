@@ -1,0 +1,10 @@
+- main:
+  - heading "Organisations" [level=1]
+  - paragraph: The organisations you belong to. Each one has its own projects, members and settings.
+  - link "New organisation":
+    - /url: /orgs/add/
+  - img "The CodeClarity owl"
+  - heading "No organisations yet" [level=2]
+  - paragraph: An organisation groups projects, members, integrations and policies.
+  - link "Create an organisation":
+    - /url: /orgs/add/

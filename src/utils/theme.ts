@@ -56,15 +56,11 @@ function apply(): void {
   }
 }
 
-function onOsChange(): void {
+// Applies the choice, and listens for OS scheme changes only while it is System.
+function applyAndFollow(): void {
   apply();
-}
-
-// Listens for OS scheme changes only while the choice is System.
-function syncOsListener(): void {
-  if (choice.value === "system")
-    osQuery?.addEventListener("change", onOsChange);
-  else osQuery?.removeEventListener("change", onOsChange);
+  if (choice.value === "system") osQuery?.addEventListener("change", apply);
+  else osQuery?.removeEventListener("change", apply);
 }
 
 /** Reads the stored choice, applies it and follows the OS while on System. */
@@ -74,8 +70,7 @@ export function installTheme(): void {
       ? window.matchMedia("(prefers-color-scheme: dark)")
       : undefined;
   choice.value = readChoice();
-  apply();
-  syncOsListener();
+  applyAndFollow();
 }
 
 /** The Theme choice, the theme it applies, and a way to change the choice. */
@@ -90,8 +85,7 @@ export function useTheme(): {
     setChoice(value: ThemeChoice): void {
       choice.value = value;
       writeChoice(value);
-      apply();
-      syncOsListener();
+      applyAndFollow();
     },
   };
 }

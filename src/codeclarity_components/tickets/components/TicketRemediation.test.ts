@@ -46,6 +46,7 @@ const instance = (extra: Partial<TicketInstance>): TicketInstance => ({
   is_active: true,
   detected_on: "2099-01-01T00:00:00.000Z",
   resolved_on: null,
+  diff_links: { fix_commits: [], compare: null, registry_diff: null },
   ...extra,
 });
 
@@ -114,5 +115,49 @@ describe("The remediation on the ticket page", () => {
 
     expect(wrapper.text()).toContain("pnpm-workspace.yaml");
     expect(wrapper.find("pre").text()).toBe('overrides:\n  "qs": "6.5.3"');
+  });
+
+  it("links the fix commit, compare view and registry diff of each vulnerability", () => {
+    const wrapper = mountWith([
+      instance({
+        diff_links: {
+          fix_commits: [
+            {
+              url: "https://github.com/ljharb/qs/commit/8b4cc14cda94a5c8",
+              sha: "8b4cc14cda94a5c8",
+            },
+          ],
+          compare: {
+            url: "https://github.com/ljharb/qs/compare/v6.5.0...v6.5.3",
+            host: "github",
+            repository: "https://github.com/ljharb/qs",
+            from_tag: "v6.5.0",
+            to_tag: "v6.5.3",
+            guessed: true,
+          },
+          registry_diff: {
+            tool: "npm",
+            command: "npm diff --diff=qs@6.5.0 --diff=qs@6.5.3",
+          },
+        },
+      }),
+      instance({ id: "o-2", vulnerability_id: "CVE-2099-7102" }),
+    ]);
+
+    const changes = wrapper.findAll(
+      '[aria-label="Changes to the fixed versions"] > li',
+    );
+    expect(changes).toHaveLength(1);
+    expect(changes[0]!.text()).toContain("CVE-2099-7101");
+    const hrefs = changes[0]!.findAll("a").map((a) => a.attributes("href"));
+    expect(hrefs).toEqual([
+      "https://github.com/ljharb/qs/commit/8b4cc14cda94a5c8",
+      "https://github.com/ljharb/qs/compare/v6.5.0...v6.5.3",
+    ]);
+    expect(
+      changes[0]!
+        .find('button[aria-label="Copy registry diff command"]')
+        .exists(),
+    ).toBe(true);
   });
 });

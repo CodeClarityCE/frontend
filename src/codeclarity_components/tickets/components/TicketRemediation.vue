@@ -9,6 +9,7 @@ import {
   type TopLevelDependency,
 } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
 import { levelOfClass } from "@/codeclarity_components/vulnerabilities/severity-class";
+import InstanceDiffLinks from "@/codeclarity_components/vulnerabilities/shared/InstanceDiffLinks.vue";
 import { Badge } from "@/shadcn/ui/badge";
 import {
   Table,
@@ -39,6 +40,29 @@ const installed = computed(() =>
 
 const pathText = (top: TopLevelDependency): string =>
   top.path.map((pkg) => `${pkg.name}@${pkg.version}`).join(" > ");
+
+// One entry per vulnerability and version change that has a link or command.
+const changes = computed(() => {
+  const found = new Map<string, TicketInstance>();
+  for (const instance of props.instances) {
+    const links = instance.diff_links;
+    if (
+      links.fix_commits.length === 0 &&
+      !links.compare &&
+      !links.registry_diff
+    ) {
+      continue;
+    }
+    const key = [
+      instance.vulnerability_id,
+      instance.package,
+      instance.installed_version,
+      instance.fixed_version,
+    ].join("\u0000");
+    if (!found.has(key)) found.set(key, instance);
+  }
+  return [...found.values()];
+});
 
 const vulnerabilityRoute = (instance: TicketInstance): RouteLocationRaw => ({
   name: "orgVulnerability",
@@ -167,5 +191,26 @@ const vulnerabilityRoute = (instance: TicketInstance): RouteLocationRaw => ({
         </TableBody>
       </Table>
     </div>
+
+    <ul
+      v-if="changes.length > 0"
+      aria-label="Changes to the fixed versions"
+      class="space-y-3"
+    >
+      <li v-for="change in changes" :key="change.id" class="space-y-1">
+        <p class="text-sm">
+          <span class="font-mono">{{ change.vulnerability_id }}</span
+          >:
+          <span class="font-medium">{{ change.package }}</span>
+          {{ " " }}
+          <span class="tabular-nums">{{ change.installed_version }}</span>
+          <template v-if="change.fixed_version">
+            to
+            <span class="tabular-nums">{{ change.fixed_version }}</span>
+          </template>
+        </p>
+        <InstanceDiffLinks :links="change.diff_links" />
+      </li>
+    </ul>
   </section>
 </template>

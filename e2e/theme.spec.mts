@@ -1,16 +1,35 @@
-import { expect, type Locator, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
+import { expectVisibleFocus } from "./helpers/a11y.mjs";
 import {
   BACKGROUND,
   blockAppBundle,
   blockStorage,
   expectTheme,
   imageLuminance,
+  POPOVER,
   storeTheme,
 } from "./helpers/theme.mjs";
 import { AuthPage } from "./pages/auth.page.mjs";
+import { ExperimentDetailPage } from "./pages/experiment-detail.page.mjs";
+import { ResultTabsPage } from "./pages/result-tabs.page.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 import { VulnerabilitiesPage } from "./pages/vulnerabilities.page.mjs";
+
+// Opens the sidebar user menu and returns it.
+async function openUserMenu(page: Page): Promise<Locator> {
+  await page.getByRole("button", { name: /account menu/ }).click();
+  const menu = page.getByRole("menu");
+  await expect(menu).toBeVisible();
+  return menu;
+}
+
+function themeOption(menu: Locator, name: string): Locator {
+  return menu
+    .getByRole("group", { name: "Theme" })
+    .getByRole("menuitemradio", { name });
+}
 
 test.describe("Theme follows the OS", () => {
   let shell: ShellPage;
@@ -176,6 +195,253 @@ test.describe("The auth pages logo", () => {
   }
 });
 
+test.describe("The Theme control in the user menu", () => {
+  let shell: ShellPage;
+
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 1024 });
+    shell = new ShellPage(page);
+    await shell.signIn();
+  });
+
+  for (const [os, picked] of [
+    ["light", "Dark"],
+    ["dark", "Light"],
+  ] as const) {
+    test(`${picked} under a ${os} OS applies at once and survives a reload and a new page`, async ({
+      page,
+      context,
+    }) => {
+      const theme = picked === "Dark" ? "dark" : "light";
+      await page.emulateMedia({ colorScheme: os });
+      await shell.goto();
+      await expectTheme(page, os);
+
+      const menu = await openUserMenu(page);
+      await expect(themeOption(menu, "System")).toBeChecked();
+      await themeOption(menu, picked).click();
+
+      await expectTheme(page, theme);
+      await expect(themeOption(menu, picked)).toBeChecked();
+      await expect(menu).toHaveCSS("background-color", POPOVER[theme]);
+
+      await page.reload();
+      await expectTheme(page, theme);
+      const other = await context.newPage();
+      await other.emulateMedia({ colorScheme: os });
+      await new ShellPage(other).signIn();
+      await other.goto("/datasets");
+      await expectTheme(other, theme);
+      await expect(
+        themeOption(await openUserMenu(other), picked),
+      ).toBeChecked();
+    });
+  }
+
+  test("choosing System again follows the OS, including a live switch", async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: "light" });
+    await shell.goto();
+    await themeOption(await openUserMenu(page), "Dark").click();
+    await page.reload();
+    await expectTheme(page, "dark");
+
+    const menu = await openUserMenu(page);
+    await expect(themeOption(menu, "Dark")).toBeChecked();
+    await themeOption(menu, "System").click();
+    await expectTheme(page, "light");
+
+    await page.emulateMedia({ colorScheme: "dark" });
+    await expectTheme(page, "dark");
+    await page.emulateMedia({ colorScheme: "light" });
+    await expectTheme(page, "light");
+
+    await page.reload();
+    await expectTheme(page, "light");
+  });
+
+  test("is keyboard operable with visible focus and announces the choice", async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: "light" });
+    await shell.goto();
+    const account = page.getByRole("button", { name: /account menu/ });
+    await account.focus();
+    await page.keyboard.press("Enter");
+    const menu = page.getByRole("menu");
+    await expect(menu.getByRole("group", { name: "Theme" })).toBeVisible();
+
+    const dark = themeOption(menu, "Dark");
+    while (!(await dark.evaluate((el) => el === document.activeElement))) {
+      await page.keyboard.press("ArrowDown");
+    }
+    await expectVisibleFocus(dark);
+    await expect(dark).toHaveAttribute("aria-checked", "false");
+    await page.keyboard.press("Enter");
+
+    await expectTheme(page, "dark");
+    await expect(dark).toHaveAttribute("aria-checked", "true");
+    await expect(themeOption(menu, "System")).toHaveAttribute(
+      "aria-checked",
+      "false",
+    );
+    await page.keyboard.press("ArrowUp");
+    await expectVisibleFocus(themeOption(menu, "Light"));
+    await page.keyboard.press("Space");
+    await expectTheme(page, "light");
+
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+    await expect(account).toBeFocused();
+  });
+});
+
+test.describe("The Theme commands in the palette", () => {
+  let shell: ShellPage;
+
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 1024 });
+    shell = new ShellPage(page);
+    await shell.signIn();
+  });
+
+  // Opens the palette, runs the named command and waits for the palette to close.
+  async function runCommand(page: Page, name: string): Promise<void> {
+    await page.keyboard.press("ControlOrMeta+k");
+    await expect(shell.palette).toBeVisible();
+    await page.keyboard.type(name);
+    await expect(
+      shell.palette.getByRole("option", { name, exact: true }),
+    ).toBeVisible();
+    await page.keyboard.press("Enter");
+    await expect(shell.palette).toBeHidden();
+  }
+
+  test("each command changes the choice, and it survives a reload", async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: "light" });
+    await shell.goto();
+    await expect(page).toHaveURL(/\/datasets$/);
+
+    await runCommand(page, "Theme: Dark");
+    await expectTheme(page, "dark");
+    await expect(page).toHaveURL(/\/datasets$/);
+    await page.reload();
+    await expectTheme(page, "dark");
+
+    await page.emulateMedia({ colorScheme: "dark" });
+    await runCommand(page, "Theme: Light");
+    await expectTheme(page, "light");
+    await page.reload();
+    await expectTheme(page, "light");
+
+    await runCommand(page, "Theme: System");
+    await expectTheme(page, "dark");
+    await page.emulateMedia({ colorScheme: "light" });
+    await expectTheme(page, "light");
+    await expect(themeOption(await openUserMenu(page), "System")).toBeChecked();
+  });
+});
+
+test.describe("Open overlays", () => {
+  let shell: ShellPage;
+
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 1024 });
+    shell = new ShellPage(page);
+    await shell.signIn();
+    await page.emulateMedia({ colorScheme: "light" });
+    await shell.goto();
+  });
+
+  test("the command palette follows an OS switch at once", async ({ page }) => {
+    await page.keyboard.press("ControlOrMeta+k");
+    const panel = shell.palette.locator('[data-slot="command"]');
+    await expect(panel).toHaveCSS("background-color", POPOVER.light);
+
+    await page.emulateMedia({ colorScheme: "dark" });
+
+    await expect(panel).toHaveCSS("background-color", POPOVER.dark);
+  });
+
+  test("a toast and the user menu follow a Theme choice at once", async ({
+    page,
+  }) => {
+    await page.getByRole("button", { name: /switch organisation/ }).click();
+    await page.getByRole("menuitem", { name: "Research Lab" }).click();
+    const toast = page.locator("[data-sonner-toast]");
+    await expect(toast).toContainText("Switched to Research Lab");
+    await expect(toast).toHaveCSS("background-color", POPOVER.light);
+
+    const menu = await openUserMenu(page);
+    await themeOption(menu, "Dark").click();
+
+    await expect(toast).toHaveCSS("background-color", POPOVER.dark);
+    await expect(toast).toHaveCSS("color", "rgb(248, 249, 250)");
+    await expect(menu).toHaveCSS("background-color", POPOVER.dark);
+  });
+});
+
+// Puts the page in the theme, then returns the bytes of the file `save` downloads.
+async function exportIn(
+  page: Page,
+  theme: "light" | "dark",
+  save: () => Promise<void>,
+): Promise<Buffer> {
+  await page.emulateMedia({ colorScheme: theme });
+  await expectTheme(page, theme);
+  const download = page.waitForEvent("download");
+  await save();
+  return readFile(await (await download).path());
+}
+
+test.describe("Exports stay light", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 1024 });
+  });
+
+  test("an SBOM HTML report made in dark matches one made in light", async ({
+    page,
+  }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn();
+    await tabs.goto();
+    const save = async (): Promise<void> => {
+      await page.getByRole("button", { name: "Export SBOM" }).click();
+      await page.getByRole("menuitem", { name: /HTML report/ }).click();
+    };
+
+    const light = await exportIn(page, "light", save);
+    const dark = await exportIn(page, "dark", save);
+
+    expect(light.toString("utf8")).toMatch(/--background: #fff(fff)?;/);
+    expect(dark.toString("utf8")).toBe(light.toString("utf8"));
+  });
+
+  for (const format of ["PDF", "SVG"]) {
+    test(`a Figure ${format} made in dark matches one made in light`, async ({
+      page,
+    }) => {
+      const detail = new ExperimentDetailPage(page);
+      await detail.signIn();
+      await detail.goto();
+      await detail.tab("Figures").click();
+      const save = (): Promise<void> =>
+        page
+          .getByRole("region", { name: "Preview" })
+          .getByRole("button", { name: `Download ${format}` })
+          .click();
+
+      const light = await exportIn(page, "light", save);
+      const dark = await exportIn(page, "dark", save);
+
+      expect(light.length).toBeGreaterThan(0);
+      expect(dark.equals(light)).toBe(true);
+    });
+  }
+});
 test.describe("Severity in dark", () => {
   test("keeps its labels and its red-to-yellow order", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 1024 });

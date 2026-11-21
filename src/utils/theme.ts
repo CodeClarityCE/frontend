@@ -12,7 +12,8 @@ const choice = ref<ThemeChoice>("system");
 const applied = ref<AppliedTheme>("light");
 let osQuery: MediaQueryList | undefined;
 
-function isChoice(value: unknown): value is ThemeChoice {
+/** True for one of the three Theme choices. */
+export function isThemeChoice(value: unknown): value is ThemeChoice {
   return value === "system" || value === "light" || value === "dark";
 }
 
@@ -20,7 +21,7 @@ function isChoice(value: unknown): value is ThemeChoice {
 function readChoice(): ThemeChoice {
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
-    return isChoice(stored) ? stored : "system";
+    return isThemeChoice(stored) ? stored : "system";
   } catch {
     return "system";
   }

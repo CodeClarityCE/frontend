@@ -5,6 +5,7 @@ import { RouterView, useRoute } from "vue-router";
 import { usesLoggedOutLayout, viewKey } from "@/router";
 import { Toaster } from "@/shadcn/ui/sonner";
 import { useAuthStore } from "@/stores/auth";
+import { useTheme } from "@/utils/theme";
 
 import "vue-sonner/style.css";
 
@@ -15,6 +16,7 @@ const AppShell = defineAsyncComponent(
 
 const authStore = useAuthStore();
 const route = useRoute();
+const { applied } = useTheme();
 </script>
 
 <template>
@@ -22,5 +24,6 @@ const route = useRoute();
     <RouterView :key="viewKey(route)" />
   </AppShell>
   <RouterView v-else :key="viewKey(route)" />
-  <Toaster />
+  <!-- Sonner styles its icons and buttons per theme, so it gets the applied one. -->
+  <Toaster :theme="applied" />
 </template>

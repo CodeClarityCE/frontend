@@ -2,25 +2,42 @@ import userEvent from "@testing-library/user-event";
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createMemoryHistory, createRouter } from "vue-router";
+
+import { analysisPath, paginated } from "../../../../tests/fixtures/results";
+import { createTestApp, type TestApp } from "../../../../tests/real-app";
 
 import { patchStatus } from "./vuln-format";
 import VulnFindings from "./VulnFindings.vue";
 
-vi.mock("@vueuse/core", async () => await vi.importActual("@vueuse/core"));
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
-const repo = vi.hoisted(() => ({ getVulnerabilities: vi.fn() }));
-vi.mock("@/codeclarity_components/results/results.repository", () => ({
-  ResultsRepository: class {
-    getVulnerabilities = repo.getVulnerabilities;
-  },
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token" }),
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
+const FINDINGS_PATH = `${analysisPath}/vulnerabilities`;
+
+let app: TestApp;
+
+// Answers the findings list from its query, as the API filters it, and keeps each query sent.
+function serveFindings(
+  answer: (query: URLSearchParams) => unknown,
+): URLSearchParams[] {
+  const queries: URLSearchParams[] = [];
+  const answerOther = globalThis.fetch;
+  vi.stubGlobal(
+    "fetch",
+    async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      const url = new URL(String(input));
+      if (!url.pathname.endsWith(FINDINGS_PATH))
+        return answerOther(input, init);
+      queries.push(url.searchParams);
+      return new Response(JSON.stringify(answer(url.searchParams)), {
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+  );
+  return queries;
+}
 
 const finding = (id: string, PatchType: string | undefined) => ({
   Id: id,
@@ -50,8 +67,8 @@ let all = [
 ];
 
 // Answers like the API: the patch filters keep rows of their type.
-function answer({ active_filters }: { active_filters: string }) {
-  const wanted = active_filters
+function answer(query: URLSearchParams) {
+  const wanted = (query.get("active_filters") ?? "")
     .split(",")
     .filter((filter) => filter.startsWith("patch_"))
     .map((filter) => filter.replace("patch_", "").toUpperCase());
@@ -60,27 +77,32 @@ function answer({ active_filters }: { active_filters: string }) {
       wanted.length === 0 ||
       row.Affected.some((a) => wanted.includes(a.PatchType ?? "")),
   );
-  return Promise.resolve({
-    data,
-    total_entries: data.length,
-    matching_count: data.length,
+  return paginated(data, {
     filter_count: { patch_full: 1, patch_partial: 1, patch_none: 1 },
   });
+}
+
+let queries: URLSearchParams[] = [];
+
+// Signs in and answers the findings list like the API.
+async function start(): Promise<void> {
+  app = createTestApp({ signedIn: true });
+  await app.visit("/projects");
+  queries = serveFindings(answer);
 }
 
 async function show(hasPatching: boolean): Promise<void> {
   render(VulnFindings, {
     props: { analysisID: "a-1", projectID: "p-1", hasPatching },
-    global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
+    global: app.global,
   });
   await flushPromises();
 }
 
 describe("VulnFindings patch status filters", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    repo.getVulnerabilities.mockReset();
-    repo.getVulnerabilities.mockImplementation(answer);
+    await start();
   });
 
   it("sends patch_full and shows only patchable findings", async () => {
@@ -94,9 +116,7 @@ describe("VulnFindings patch status filters", () => {
     );
     await flushPromises();
 
-    expect(repo.getVulnerabilities).toHaveBeenLastCalledWith(
-      expect.objectContaining({ active_filters: "patch_full" }),
-    );
+    expect(queries.at(-1)?.get("active_filters")).toBe("patch_full");
     expect(screen.getByText("CVE-2024-0001")).toBeTruthy();
     expect(screen.queryByText("CVE-2024-0002")).toBeNull();
     expect(screen.queryByText("CVE-2024-0003")).toBeNull();
@@ -138,7 +158,7 @@ describe("VulnFindings patch status filters", () => {
   it("drops the filter counts when the request fails", async () => {
     await show(true);
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    repo.getVulnerabilities.mockRejectedValue(new Error("offline"));
+    vi.stubGlobal("fetch", () => Promise.reject(new TypeError("offline")));
     await user.click(screen.getByRole("button", { name: /Filters/ }));
     const menu = await screen.findByRole("menu");
     await user.click(
@@ -162,32 +182,19 @@ describe("VulnFindings patch status filters", () => {
 });
 
 describe("VulnFindings links", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     all = [finding("CVE-2024-0001", "FULL")];
-    repo.getVulnerabilities.mockReset();
-    repo.getVulnerabilities.mockImplementation(answer);
+    await start();
   });
 
   it("keeps the selected workspace in each details link", async () => {
-    const router = createRouter({
-      history: createMemoryHistory(),
-      routes: [
-        {
-          path: "/results/:page?",
-          name: "results",
-          component: { render: () => null },
-        },
-      ],
-    });
     render(VulnFindings, {
       props: { analysisID: "a-1", projectID: "p-1", workspace: "packages/app" },
-      global: { plugins: [router], stubs: { RouterLink: false } },
+      global: app.global,
     });
     await flushPromises();
 
-    expect(repo.getVulnerabilities).toHaveBeenLastCalledWith(
-      expect.objectContaining({ workspace: "packages/app" }),
-    );
+    expect(queries.at(-1)?.get("workspace")).toBe("packages/app");
     const links = screen
       .getAllByRole("link")
       .map((link) => link.getAttribute("href") ?? "")

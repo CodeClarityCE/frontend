@@ -52,13 +52,13 @@ process.on("unhandledRejection", (reason: unknown) => {
   throw reason;
 });
 
-// Mock Icon component globally for tests
+// Mock Icon component globally for tests; lucide's inner Icon (an object icon) renders no text
 config.global.stubs = {
   Icon: {
     name: "Icon",
     props: ["icon", "class", "width", "height", "style"],
     template:
-      '<span data-testid="icon" class="mock-icon" :class="$props.class" :data-icon="icon">{{ icon ?? "mock-icon" }}</span>',
+      '<span data-testid="icon" class="mock-icon" :class="$props.class" :data-icon="icon">{{ typeof icon === "object" && icon !== null ? "" : (icon ?? "mock-icon") }}</span>',
   },
   RouterLink: {
     name: "RouterLink",

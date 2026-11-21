@@ -1,7 +1,12 @@
 import { mount } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { SeverityBadge } from "@/base_components/page";
+
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 describe("SeverityBadge", () => {
   it("shows a CVSS 4.0 score with its version", () => {

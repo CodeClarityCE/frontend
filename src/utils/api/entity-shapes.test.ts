@@ -1,10 +1,15 @@
 import { plainToInstance } from "class-transformer";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Analyzer } from "@/codeclarity_components/organizations/analyzers/Analyzer";
 import { VulnerabilityPolicy } from "@/codeclarity_components/organizations/policy/vulnerability_policy.entity";
 
 import { Entity } from "./BaseEntity";
+
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 // Response items shaped as the API sends them.
 describe("entities accept what the API sends", () => {

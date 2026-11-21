@@ -1,0 +1,5 @@
+- main:
+  - heading "Analysis not found" [level=1]
+  - paragraph: This analysis does not exist, or you do not have access to it.
+  - link "Back to projects":
+    - /url: /projects

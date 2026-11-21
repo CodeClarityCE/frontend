@@ -1,0 +1,19 @@
+- main:
+  - heading "Add a Project" [level=1]
+  - paragraph: Import a repository through an integration, or upload an archive.
+  - region "Upload an archive":
+    - button "Back to import methods"
+    - heading "Upload an archive" [level=2]
+    - heading "Project archive" [level=3]
+    - paragraph: A ZIP (.zip) or TAR.GZ (.tar.gz, .tgz) archive of the project, with its package.json or composer.json.
+    - text: Name
+    - textbox "Name" [invalid]
+    - paragraph: A name of at least 2 characters is required
+    - text: Description (optional)
+    - textbox "Description (optional)"
+    - text: Archive
+    - paragraph: shop.zip
+    - paragraph: 2 Bytes
+    - button "Remove shop.zip"
+    - button "Create project and upload"
+    - button "Cancel"

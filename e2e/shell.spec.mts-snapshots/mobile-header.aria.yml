@@ -1,0 +1,4 @@
+- banner:
+  - button "Open navigation"
+  - link "CodeClarity , go to the Dashboard":
+    - /url: /

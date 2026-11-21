@@ -1,23 +1,33 @@
 import { flushPromises, mount } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import LicenseDist from "@/codeclarity_components/dashboard/charts/LicenseDist.vue";
 
-const { getLicenseDist } = vi.hoisted(() => ({ getLicenseDist: vi.fn() }));
+import { createTestApp, org } from "../../../../real-app";
 
-vi.mock("@/codeclarity_components/dashboard/dashboard.repository", () => ({
-  DashboardRepository: class {
-    getLicenseDist = getLicenseDist;
-  },
-}));
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
+
+// The chart on the dashboard, with the license counts the API answers.
+async function mountChart(counts: Record<string, number>) {
+  const app = createTestApp({ signedIn: true });
+  app.http.on("GET", `/org/${org.id}/dashboard/overall_license_dist`, {
+    data: counts,
+  });
+  await app.visit("/");
+  const wrapper = mount(LicenseDist, {
+    props: { integrationIds: [] },
+    global: app.global,
+  });
+  await flushPromises();
+  return wrapper;
+}
 
 describe("LicenseDist", () => {
-  beforeEach(() => getLicenseDist.mockReset());
-
   it("charts licenses from the most used, with counts and shares", async () => {
-    getLicenseDist.mockResolvedValue({ data: { ISC: 1, MIT: 3 } });
-    const wrapper = mount(LicenseDist, { props: { integrationIds: [] } });
-    await flushPromises();
+    const wrapper = await mountChart({ ISC: 1, MIT: 3 });
 
     const chart = wrapper.find('[aria-label="Dependencies by license"]');
     expect(
@@ -26,9 +36,7 @@ describe("LicenseDist", () => {
   });
 
   it("says when no license is known", async () => {
-    getLicenseDist.mockResolvedValue({ data: {} });
-    const wrapper = mount(LicenseDist, { props: { integrationIds: [] } });
-    await flushPromises();
+    const wrapper = await mountChart({});
 
     expect(wrapper.text()).toContain("No data yet.");
   });

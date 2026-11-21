@@ -1,89 +1,24 @@
-import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { defineComponent, h, onMounted } from "vue";
+import userEvent from "@testing-library/user-event";
+import { render, screen, within } from "@testing-library/vue";
+import { describe, expect, it, vi } from "vitest";
 
 import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
-import router from "@/router";
-import { errorToast, successToast } from "@/utils/toasts";
+
+import {
+  createTestApp,
+  org,
+  type TestApp,
+  withToaster,
+} from "../../../../tests/real-app";
 
 import AnalyzersList from "./AnalyzersList.vue";
 
-const { getAnalyzers, deleteAnalyzer, orgInfo } = vi.hoisted(() => ({
-  getAnalyzers: vi.fn(),
-  deleteAnalyzer: vi.fn(),
-  orgInfo: { current: {} },
-}));
-
-vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
-
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getAuthenticated: true, getToken: "test-token" }),
-}));
-
-vi.mock("@/utils/toasts", () => ({
-  successToast: vi.fn(),
-  errorToast: vi.fn(),
-}));
-
-// The global @vueuse/core mock leaves shadcn Input inert, so use a plain input.
-vi.mock("@/shadcn/ui/input", () => ({
-  Input: defineComponent({
-    props: { modelValue: { type: String, default: "" } },
-    emits: ["update:modelValue"],
-    setup(props, { emit, attrs }) {
-      return () =>
-        h("input", {
-          ...attrs,
-          value: props.modelValue,
-          onInput: (e: Event) =>
-            emit("update:modelValue", (e.target as HTMLInputElement).value),
-        });
-    },
-  }),
-}));
-
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class {},
-  BusinessLogicError: class BusinessLogicError extends Error {},
-}));
-
-vi.mock(
-  "@/codeclarity_components/organizations/analyzers/AnalyzerRepository",
-  () => ({
-    AnalyzerRepository: class {
-      getAnalyzers = getAnalyzers;
-      deleteAnalyzer = deleteAnalyzer;
-    },
-  }),
-);
-
-// The header reports the organisation, as the real one does once loaded.
-vi.mock(
-  "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue",
-  () => ({
-    default: defineComponent({
-      emits: ["onOrgInfo"],
-      setup(_, { emit }) {
-        onMounted(() => emit("onOrgInfo", orgInfo.current));
-        return () => h("div", "Organisation header");
-      },
-    }),
-  }),
-);
-
-vi.mock("vue-router", async () => {
-  const actual =
-    await vi.importActual<typeof import("vue-router")>("vue-router");
-  return {
-    ...actual,
-    RouterLink: defineComponent({
-      props: { to: { type: Object, required: true } },
-      setup(_, { slots, attrs }) {
-        return () => h("a", { ...attrs, href: "#" }, slots.default?.());
-      },
-    }),
-  };
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
 });
+
+const listPath = `/org/${org.id}/analyzers`;
 
 const sample = [
   {
@@ -102,153 +37,158 @@ const sample = [
   },
 ];
 
-let wrapper: VueWrapper | undefined;
+const page = (data: unknown[]) => ({
+  data,
+  entry_count: data.length,
+  page: 0,
+  entries_per_page: 0,
+  total_entries: data.length,
+  total_pages: 1,
+  matching_count: data.length,
+  filter_count: {},
+  status: "success",
+});
 
-async function render(): Promise<void> {
-  wrapper = mount(AnalyzersList, {
-    props: { orgId: "org-1" },
-    attachTo: document.body,
+// Opens the analyzers page of the signed-in user's org; null leaves the list unanswered.
+async function openList(
+  analyzers: unknown[] | null = sample,
+  role?: MemberRole,
+): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  if (analyzers) app.http.on("GET", listPath, page(analyzers));
+  if (role !== undefined) {
+    app.http.on("GET", `/org/${org.id}`, { data: { ...org, role } });
+  }
+  await app.visit(`/orgs/manage/analyzers/${org.id}`);
+  render(withToaster(AnalyzersList, { orgId: org.id }), {
+    global: app.global,
   });
-  await flushPromises();
+  return app;
 }
 
-function button(name: string): HTMLElement | undefined {
-  return [...document.querySelectorAll<HTMLElement>("button, a")].find(
-    (el) =>
-      el.getAttribute("aria-label") === name || el.textContent?.trim() === name,
+const row = async (name: string): Promise<HTMLElement> =>
+  (await screen.findByText(name)).closest("tr")!;
+
+async function deleteLicensesOnly(): Promise<void> {
+  await userEvent.click(
+    await screen.findByRole("button", { name: "Delete Licenses only" }),
+  );
+  expect(await screen.findByText("Delete Licenses only?")).toBeInTheDocument();
+  await userEvent.click(
+    screen.getByRole("button", { name: "Delete analyzer" }),
   );
 }
 
 describe("AnalyzersList", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    orgInfo.current = { id: "org-1", role: MemberRole.ADMIN };
-    getAnalyzers.mockResolvedValue({ data: sample });
-    deleteAnalyzer.mockResolvedValue({});
-  });
-
-  afterEach(() => {
-    wrapper?.unmount();
-    wrapper = undefined;
-    document.body.innerHTML = "";
-  });
-
   it("lists each analyzer with its stage count", async () => {
-    await render();
+    await openList();
 
-    const text = document.querySelector("table")?.textContent ?? "";
-    expect(text).toContain("Default analyzer");
-    expect(text).toContain("2 stages");
-    expect(text).toContain("Licenses only");
-    expect(text).toContain("1 stage");
+    expect(await row("Default analyzer")).toHaveTextContent("2 stages");
+    expect(await row("Licenses only")).toHaveTextContent("1 stage");
   });
 
   it("marks an analyzer whose component is off on this instance", async () => {
     const off = "Needs CodeQL, which is off on this instance.";
-    getAnalyzers.mockResolvedValue({
-      data: [
-        { ...sample[0], availability: { state: "available" } },
-        {
-          ...sample[1],
-          availability: { state: "off", components: ["CodeQL"], message: off },
-        },
-      ],
-    });
-    await render();
+    await openList([
+      { ...sample[0], availability: { state: "available" } },
+      {
+        ...sample[1],
+        availability: { state: "off", components: ["CodeQL"], message: off },
+      },
+    ]);
 
-    const rows = [...document.querySelectorAll("tbody tr")].map(
-      (row) => row.textContent ?? "",
-    );
-    expect(rows.find((row) => row.includes("Licenses only"))).toContain(off);
-    expect(rows.find((row) => row.includes("Default analyzer"))).not.toContain(
-      "Unavailable",
-    );
+    expect(await row("Licenses only")).toHaveTextContent(off);
+    expect(await row("Default analyzer")).not.toHaveTextContent("Unavailable");
   });
 
   it("warns that an analyzer's plugin is down, naming it", async () => {
     const down = "vuln-finder is temporarily down. Try again shortly.";
-    getAnalyzers.mockResolvedValue({
-      data: [
-        {
-          ...sample[0],
-          availability: {
-            state: "down",
-            plugins: ["vuln-finder"],
-            message: down,
-          },
+    await openList([
+      {
+        ...sample[0],
+        availability: {
+          state: "down",
+          plugins: ["vuln-finder"],
+          message: down,
         },
-      ],
-    });
-    await render();
+      },
+    ]);
 
-    const row = document.querySelector("tbody tr")?.textContent ?? "";
-    expect(row).toContain(`Temporarily unavailable: ${down}`);
+    expect(await row("Default analyzer")).toHaveTextContent(
+      `Temporarily unavailable: ${down}`,
+    );
   });
 
   it("offers a New analyzer link", async () => {
-    await render();
+    await openList();
 
-    expect(button("New analyzer")).toBeDefined();
+    expect(
+      await screen.findByRole("link", { name: /New analyzer/ }),
+    ).toBeVisible();
   });
 
   it("shows an empty state when there are no analyzers", async () => {
-    getAnalyzers.mockResolvedValue({ data: [] });
-    await render();
+    await openList([]);
 
-    expect(document.body.textContent).toContain("No analyzers yet");
-    expect(button("Create an analyzer")).toBeDefined();
+    expect(await screen.findByText("No analyzers yet")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Create an analyzer/ }),
+    ).toBeVisible();
   });
 
   it("says the analyzers could not be loaded and offers a retry", async () => {
-    getAnalyzers.mockRejectedValueOnce(new Error("boom"));
-    await render();
+    const app = await openList(null);
 
-    expect(document.body.textContent).toContain(
-      "The analyzers could not be loaded.",
-    );
+    expect(
+      await screen.findByText("The analyzers could not be loaded."),
+    ).toBeInTheDocument();
 
-    button("Try again")?.click();
-    await flushPromises();
+    app.http.on("GET", listPath, page(sample));
+    await userEvent.click(screen.getByRole("button", { name: /Try again/ }));
 
-    expect(document.querySelector("table")?.textContent).toContain(
-      "Licenses only",
-    );
+    expect(
+      within(await screen.findByRole("table")).getByText("Licenses only"),
+    ).toBeInTheDocument();
   });
 
   it("deletes an analyzer after confirmation", async () => {
-    await render();
+    const app = await openList();
+    app.http.on("DELETE", `${listPath}/a-2`, {
+      status_code: 200,
+      status: "success",
+    });
 
-    button("Delete Licenses only")?.click();
-    await flushPromises();
-    expect(document.body.textContent).toContain("Delete Licenses only?");
+    await deleteLicensesOnly();
 
-    button("Delete analyzer")?.click();
-    await flushPromises();
-
-    expect(deleteAnalyzer).toHaveBeenCalledWith(
-      expect.objectContaining({ orgId: "org-1", analyzer_id: "a-2" }),
-    );
-    expect(successToast).toHaveBeenCalledWith("Deleted Licenses only");
+    expect(
+      await screen.findByText("Deleted Licenses only"),
+    ).toBeInTheDocument();
+    expect(
+      app.http.requests.some(
+        (r) => r.method === "DELETE" && r.path === `${listPath}/a-2`,
+      ),
+    ).toBe(true);
   });
 
   it("tells the user when a delete fails", async () => {
-    deleteAnalyzer.mockRejectedValueOnce(new Error("boom"));
-    await render();
+    await openList();
 
-    button("Delete Licenses only")?.click();
-    await flushPromises();
-    button("Delete analyzer")?.click();
-    await flushPromises();
+    await deleteLicensesOnly();
 
-    expect(errorToast).toHaveBeenCalledWith("Failed to delete Licenses only");
+    expect(
+      await screen.findByText("Failed to delete Licenses only"),
+    ).toBeInTheDocument();
   });
 
   it("sends members who are not admins back to the overview", async () => {
-    orgInfo.current = { id: "org-1", role: MemberRole.USER };
-    await render();
+    const app = await openList(sample, MemberRole.USER);
 
-    expect(router.push).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "orgs" }),
+    await vi.waitFor(() =>
+      expect(app.router.currentRoute.value.params).toMatchObject({
+        action: "manage",
+        page: "main",
+        orgId: org.id,
+      }),
     );
   });
 });

@@ -1,9 +1,14 @@
 import { mount } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { ECOSYSTEMS, PackageEcosystem } from "@/utils/packageEcosystem";
 
 import EcosystemBadge from "./EcosystemBadge.vue";
+
+// Runs against real stores and the real router; only HTTP is faked.
+vi.hoisted(() => {
+  globalThis.optOutOfGlobalMocks = true;
+});
 
 describe("EcosystemBadge", () => {
   it("shows the ecosystem name and names the language on hover", () => {

@@ -31,7 +31,7 @@ onBeforeUnmount(() => clearTimeout(timer));
 <template>
   <div class="flex items-start gap-2">
     <code
-      class="min-w-0 flex-1 rounded-control bg-muted px-2 py-1 font-mono text-xs break-all"
+      class="flex min-h-8 min-w-0 flex-1 items-center rounded-control bg-muted px-2 py-1 font-mono text-xs break-all"
       >{{ command }}</code
     >
     <Button
@@ -45,8 +45,10 @@ onBeforeUnmount(() => clearTimeout(timer));
       <Check v-if="status === 'Copied'" class="size-4" aria-hidden="true" />
       <Copy v-else class="size-4" aria-hidden="true" />
     </Button>
-    <span role="status" class="shrink-0 py-1 text-xs text-muted-foreground">{{
-      status
-    }}</span>
+    <span
+      role="status"
+      class="shrink-0 text-xs leading-8 text-muted-foreground"
+      >{{ status }}</span
+    >
   </div>
 </template>

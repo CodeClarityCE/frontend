@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 import { expectVisibleFocus } from "./helpers/a11y.mjs";
 import {
@@ -11,6 +12,8 @@ import {
   storeTheme,
 } from "./helpers/theme.mjs";
 import { AuthPage } from "./pages/auth.page.mjs";
+import { ExperimentDetailPage } from "./pages/experiment-detail.page.mjs";
+import { ResultTabsPage } from "./pages/result-tabs.page.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 
 // Opens the sidebar user menu and returns it.
@@ -378,4 +381,63 @@ test.describe("Open overlays", () => {
     await expect(toast).toHaveCSS("color", "rgb(248, 249, 250)");
     await expect(menu).toHaveCSS("background-color", POPOVER.dark);
   });
+});
+
+// Puts the page in the theme, then returns the bytes of the file `save` downloads.
+async function exportIn(
+  page: Page,
+  theme: "light" | "dark",
+  save: () => Promise<void>,
+): Promise<Buffer> {
+  await page.emulateMedia({ colorScheme: theme });
+  await expectTheme(page, theme);
+  const download = page.waitForEvent("download");
+  await save();
+  return readFile(await (await download).path());
+}
+
+test.describe("Exports stay light", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 1024 });
+  });
+
+  test("an SBOM HTML report made in dark matches one made in light", async ({
+    page,
+  }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn();
+    await tabs.goto();
+    const save = async (): Promise<void> => {
+      await page.getByRole("button", { name: "Export SBOM" }).click();
+      await page.getByRole("menuitem", { name: /HTML report/ }).click();
+    };
+
+    const light = await exportIn(page, "light", save);
+    const dark = await exportIn(page, "dark", save);
+
+    expect(light.toString("utf8")).toMatch(/--background: #fff(fff)?;/);
+    expect(dark.toString("utf8")).toBe(light.toString("utf8"));
+  });
+
+  for (const format of ["PDF", "SVG"]) {
+    test(`a Figure ${format} made in dark matches one made in light`, async ({
+      page,
+    }) => {
+      const detail = new ExperimentDetailPage(page);
+      await detail.signIn();
+      await detail.goto();
+      await detail.tab("Figures").click();
+      const save = (): Promise<void> =>
+        page
+          .getByRole("region", { name: "Preview" })
+          .getByRole("button", { name: `Download ${format}` })
+          .click();
+
+      const light = await exportIn(page, "light", save);
+      const dark = await exportIn(page, "dark", save);
+
+      expect(light.length).toBeGreaterThan(0);
+      expect(dark.equals(light)).toBe(true);
+    });
+  }
 });

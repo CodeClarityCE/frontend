@@ -32,7 +32,7 @@ test.describe("Tickets list", () => {
     await tickets.signIn();
     await tickets.goto();
 
-    await expect(tickets.heading).toHaveText("Tickets");
+    await expect(tickets.heading).toHaveText("Tickets (deliberately broken)");
     await expect(tickets.rows()).toHaveCount(3);
     await expect(tickets.rows().first()).toContainText(
       "CVE-2026-0002: axios SSRF",

@@ -6,7 +6,7 @@ export type ThemeChoice = "system" | "light" | "dark";
 export type AppliedTheme = "light" | "dark";
 
 // The inline script in index.html reads the same key before first paint.
-export const THEME_STORAGE_KEY = "theme";
+const THEME_STORAGE_KEY = "theme";
 
 const choice = ref<ThemeChoice>("system");
 const applied = ref<AppliedTheme>("light");

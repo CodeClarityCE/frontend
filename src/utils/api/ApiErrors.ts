@@ -58,8 +58,6 @@ export const APIErrors = {
   FigureVersionNotCurrent: "FigureVersionNotCurrent",
 } as const;
 
-export type APIErrorType = (typeof APIErrors)[keyof typeof APIErrors];
-
 export class MalformedResponse extends Error {
   constructor() {
     // Call parent constructor with error message

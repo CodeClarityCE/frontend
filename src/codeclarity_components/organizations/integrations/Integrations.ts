@@ -16,7 +16,6 @@ import { GithubTokenType, GitlabTokenType } from "./integration_add.http";
 
 export enum IntegrationType {
   VCS = "VCS",
-  TICKETING = "TICKETING",
 }
 
 export enum SocialProvider {

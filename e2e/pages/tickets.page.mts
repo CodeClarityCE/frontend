@@ -60,7 +60,7 @@ export const sampleTickets: [Ticket, ...Ticket[]] = [
 ];
 
 /** The detail of the first sample ticket. */
-export const sampleDetail = {
+const sampleDetail = {
   ...sampleTickets[0],
   description: "Prototype pollution in lodash before 4.17.21.",
   affected_version: "4.17.15",
@@ -204,7 +204,7 @@ export const remediationDetail = {
   ],
 };
 
-export const sampleVulnerability = {
+const sampleVulnerability = {
   vulnerability_info: {
     vulnerability_id: "CVE-2026-0001",
     description: "Prototype pollution",

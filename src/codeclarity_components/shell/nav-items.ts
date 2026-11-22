@@ -29,7 +29,7 @@ export interface NavGroup {
   items: NavItem[];
 }
 
-export const dashboardItem: NavItem = {
+const dashboardItem: NavItem = {
   label: "Dashboard",
   icon: LayoutDashboard,
   routes: ["home"],

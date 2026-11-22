@@ -1,70 +1,5 @@
 import type { SourceVerdict } from "./VulnDetails/VulnDetails.types";
 
-export interface ErrorInfo {
-  message?: string;
-  code?: string;
-  [key: string]: unknown;
-}
-
-export interface Output {
-  workspaces: Record<string, WorkSpaceData>;
-  analysis_info: AnalysisInfo;
-}
-
-export enum Status {
-  Success = "success",
-  Failure = "failure",
-}
-
-export interface AnalysisInfo {
-  status: Status;
-  private_errors: ErrorInfo[];
-  public_errors: ErrorInfo[];
-  analysis_start_time: string;
-  analysis_end_time: string;
-  analysis_delta_time: number;
-  version_seperator: string;
-  import_path_seperator: string;
-  default_workspace_name: string;
-  self_managed_workspace_name: string;
-  stats: Stats;
-}
-
-export interface Stats {
-  number_of_vulnerable_dependencies: number;
-  number_of_vulnerabilities: number;
-  number_of_transitive_vulnerabilites: number;
-  number_of_direct_vulnerabilities: number;
-  mean_severity: number;
-  max_severity: number;
-  severity_dist: SeverityDist;
-}
-
-export interface SeverityDist {
-  critical: number;
-  high: number;
-  medium: number;
-  low: number;
-  none: number;
-}
-
-export interface WorkSpaceData {
-  Vulnerabilities: Vulnerability[];
-  DependencyInfo: Record<string, DependencyInfo>;
-}
-
-export interface DependencyInfo {
-  SeverityDist: SeverityDist | null;
-  Vulnerable: boolean;
-  Vulnerabilities: DependencyInfoVulnerability[];
-}
-
-export interface DependencyInfoVulnerability {
-  Vulnerability: string;
-  Severity: Severity;
-  Weaknesses: WeaknessInfo[];
-}
-
 export interface WeaknessInfo {
   WeaknessId: string;
   WeaknessName: string;
@@ -88,6 +23,7 @@ export interface Severity {
   Vectors?: { score: number; type: string; vector: string; class: string }[];
 }
 
+/** @public type-sync copy of an API enum: every API value stays */
 export enum SeverityType {
   CvssV2 = "CVSS_V2",
   CvssV3 = "CVSS_V3",
@@ -97,7 +33,7 @@ export enum SeverityType {
   Ghsa = "GHSA",
 }
 
-export enum PatchType {
+enum PatchType {
   Full = "FULL",
   Partial = "PARTIAL",
   None = "NONE",
@@ -108,27 +44,10 @@ interface Conflict {
   ConflictFlag: string;
 }
 
-export interface DependencyObject {
+interface DependencyObject {
   name?: string;
   version?: string;
   [key: string]: unknown;
-}
-
-export interface Vulnerability {
-  Id: string;
-  Sources: Source[];
-  Affected: Record<string, AffectedInfo>;
-  AffectedDependencyName: string;
-  AffectedDependencyVersion: string;
-  AffectedDependency: string;
-  AffectedDependencyFilePath: string;
-  AffectedDependencyObject?: DependencyObject;
-  Vulnerability: string;
-  Severity: Severity;
-  Weaknesses?: WeaknessInfo[];
-  PatchType?: PatchType;
-  Description: string;
-  Conflict: Conflict;
 }
 
 export interface VulnerabilityMerged {
@@ -155,12 +74,12 @@ export interface VLAI {
   Confidence: number;
 }
 
-export interface EPSS {
+interface EPSS {
   Score: number;
   Percentile: number;
 }
 
-export interface AffectedDeps {
+interface AffectedDeps {
   Affected: Record<string, AffectedInfo>;
   AffectedDependencyName: string;
   AffectedVersion: string;
@@ -180,6 +99,7 @@ export interface AffectedDeps {
 }
 
 // Why the API hides an instance by default; copy of the API's HiddenReason.
+/** @public type-sync copy of an API enum: every API value stays */
 export enum HiddenReason {
   Contradicted = "contradicted",
   RetiredAll = "retired_all",
@@ -188,18 +108,18 @@ export enum HiddenReason {
 /** Instances of each hidden reason, whether or not a filter shows them. */
 export type HiddenCounts = Record<HiddenReason, number>;
 
-export declare interface AffectedRange {
+declare interface AffectedRange {
   IntroducedString: string;
   FixedString: string;
 }
 
-export declare interface AffectedInfo {
+declare interface AffectedInfo {
   Exact: string[];
   Ranges: AffectedRange[];
   Universal: boolean;
 }
 
-export enum Source {
+enum Source {
   Nvd = "NVD",
   Osv = "OSV",
   FriendsOfPHP = "FriendsOfPHP",

@@ -112,7 +112,7 @@ export function finding(
   };
 }
 
-export const sampleFindings = [
+const sampleFindings = [
   finding("CVE-2024-0001", "critical", "lodash", {
     EPSS: { Score: 0.42, Percentile: 0.97 },
   }),

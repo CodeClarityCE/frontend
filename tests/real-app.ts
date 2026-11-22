@@ -36,7 +36,7 @@ export interface FakeRequest {
   body: unknown;
 }
 
-export interface FakeHttp {
+interface FakeHttp {
   // Answers every later METHOD request to the API path (no /api prefix) with this body;
   // a string body is sent as raw text.
   on(method: string, path: string, body: unknown, status?: number): void;

@@ -3,7 +3,7 @@ import { type Locator, type Page, type Request } from "@playwright/test";
 import { ShellPage } from "./shell.page.mjs";
 
 const ORG = "org-123";
-export const PROJECT_ID = "proj-1";
+const PROJECT_ID = "proj-1";
 
 /** One page of `all`, sized like the API: 10 by default, at most 100. */
 function paginated(all: unknown[], url: string): Record<string, unknown> {
@@ -77,7 +77,7 @@ export function analyzer(
   };
 }
 
-export const sampleAnalyzers = [
+const sampleAnalyzers = [
   analyzer("an-js", "JS", "SBOM, vulnerabilities and licenses for npm"),
   analyzer("an-php", "PHP", "SBOM, vulnerabilities and licenses for Composer"),
 ];

@@ -38,7 +38,7 @@ export function analyzer(
   };
 }
 
-export const sampleAnalyzers = [
+const sampleAnalyzers = [
   analyzer("an-1", "Default analyzer"),
   analyzer("an-2", "License audit", {
     created_on: "2026-11-02T09:00:00Z",
@@ -55,7 +55,7 @@ export const sampleAnalyzers = [
 ];
 
 // Dependencies as the plugins declare them: any SBOM producer will do.
-export const samplePlugins = [
+const samplePlugins = [
   {
     name: "js-sbom",
     description: "Builds the SBOM of a JavaScript project",
@@ -93,7 +93,7 @@ export const samplePlugins = [
   },
 ];
 
-export const sampleTemplates = [
+const sampleTemplates = [
   {
     name: "JavaScript security",
     description: "SBOM and vulnerability scan for JavaScript projects",

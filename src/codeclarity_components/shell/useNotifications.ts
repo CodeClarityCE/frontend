@@ -14,10 +14,10 @@ import {
 } from "./notification.entity";
 import { NotificationRepository } from "./notification.repository";
 
-export type NotificationCategory =
+type NotificationCategory =
   "vulnerabilities" | "production" | "development" | "other";
 
-export type NotificationFilter = "all" | NotificationCategory;
+type NotificationFilter = "all" | NotificationCategory;
 
 export type UpgradeType =
   "major" | "minor" | "patch" | "prerelease" | "downgrade" | "same";
@@ -38,7 +38,7 @@ const CATEGORY_ORDER: NotificationCategory[] = [
   "other",
 ];
 
-export function notificationCategory(
+function notificationCategory(
   notification: Notification,
 ): NotificationCategory {
   const type = notification.content_type;

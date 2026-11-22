@@ -3,7 +3,7 @@ import { devices, test } from "@playwright/test";
 import { PHONE_WIDTH } from "./page-sweep.mjs";
 
 /** The phone viewport: Pixel 5 emulation at the 390px screenshot width. */
-export const PHONE_VIEWPORT = { width: PHONE_WIDTH, height: 844 };
+const PHONE_VIEWPORT = { width: PHONE_WIDTH, height: 844 };
 
 // Pixel 5 without its browser choice, which only a project can set.
 const { defaultBrowserType: _browser, ...PIXEL_5 } = devices["Pixel 5"];

@@ -49,7 +49,7 @@ export interface Figure {
 }
 
 /** One line of a Figure; a null value leaves a gap. */
-export interface FigureSeries {
+interface FigureSeries {
   key: string;
   label: string;
   values: (number | null)[];

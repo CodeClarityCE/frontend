@@ -23,7 +23,7 @@ import {
   IMPORT_CONCURRENCY,
 } from "./projectImport";
 
-export { getImportErrorMessage, IMPORT_CONCURRENCY } from "./projectImport";
+export { IMPORT_CONCURRENCY } from "./projectImport";
 
 /**
  * Drop a trailing ".git" from a repository url. Only the suffix: a name such
@@ -37,8 +37,6 @@ export interface GetReposOptions extends GetRepositoriesRequestOptions {
   forceRefresh: boolean;
   activeFilters: string[];
 }
-
-export type { FailedProjectImport } from "./projectImport";
 </script>
 <script lang="ts" setup>
 import { Plus, RefreshCw } from "@lucide/vue";

@@ -72,7 +72,7 @@ export function project(
   };
 }
 
-export const sampleProjects = [
+const sampleProjects = [
   project("p-1", "example/web-frontend", {
     added_on: "2026-10-03T09:00:00Z",
     analyses: [
@@ -99,7 +99,7 @@ export const sampleProjects = [
   }),
 ];
 
-export const sampleIntegrations = [
+const sampleIntegrations = [
   {
     id: "int-gh",
     added_on: "2026-01-01T00:00:00Z",
@@ -139,7 +139,7 @@ export function repo(
   };
 }
 
-export const sampleRepos = [
+const sampleRepos = [
   repo("example/web-frontend", { imported_already: true }),
   repo("example/billing"),
   repo("example/docs-site", { language: "TypeScript" }),

@@ -26,7 +26,7 @@ export const dataTableFeatures = tableFeatures({
   sortFns,
 });
 
-export type DataTableFeatures = typeof dataTableFeatures;
+type DataTableFeatures = typeof dataTableFeatures;
 
 // A column of a DataTable showing rows of type TData.
 export type DataTableColumn<TData extends RowData> = ColumnDef<

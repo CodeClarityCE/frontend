@@ -667,7 +667,7 @@ interface ErrorHandlerOptions {
   defaultBusinessLogicErrorHandlerTextPrefix?: string;
 }
 
-export interface RepoMethodOptions {
+interface RepoMethodOptions {
   headers?: Headers;
   queryParams?: QueryParams;
   handleBusinessErrors?: boolean | undefined;
@@ -676,20 +676,11 @@ export interface RepoMethodOptions {
   defaultBusinessLogicErrorHandlerTextPrefix?: string;
 }
 
-export interface AuthenticatedRepoMethodOptions extends RepoMethodOptions {
+interface AuthenticatedRepoMethodOptions extends RepoMethodOptions {
   bearerToken: string;
 }
 
-export interface RepoMethodGetRequestOptions extends RepoMethodOptions {}
 export interface RepoMethodPostRequestOptions<P> extends RepoMethodOptions {
-  data: P;
-}
-export interface RepoMethodEmptyPostRequestOptions extends RepoMethodOptions {}
-export interface RepoMethodDeleteRequestOptions extends RepoMethodOptions {}
-export interface RepoMethodPutRequestOptions<P> extends RepoMethodOptions {
-  data: P;
-}
-export interface RepoMethodPatchRequestOptions<P> extends RepoMethodOptions {
   data: P;
 }
 

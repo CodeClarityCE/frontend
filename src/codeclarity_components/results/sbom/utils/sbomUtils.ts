@@ -25,7 +25,7 @@ export type { PackageUpdate } from "./packageManagerUtils";
 /**
  * Check if a dependency is direct
  */
-export function isDependencyDirect(dependency: Dependency): boolean {
+function isDependencyDirect(dependency: Dependency): boolean {
   return dependency.is_direct_count > 0 || !!dependency.is_direct;
 }
 

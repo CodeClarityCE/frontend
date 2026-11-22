@@ -1,19 +1,3 @@
-export interface ImportPathsRep {
-  data: string;
-  dependencies: ImportPathsRep[];
-}
-
-export enum LinkType {
-  GITHUB = "GITHUB",
-  GITLAB = "GITLAB",
-  UNKOWN_GIT_SERVER = "UNKOWN_GIT_SERVER",
-  REMOTE_TARBALL = "REMOTE_TARBALL",
-  LOCAL_FILE = "LOCAL_FILE",
-  PACKAGE_MANAGED = "PACKAGE_MANAGED",
-  UNKNOWN_LINK_TYPE = "UNKNOWN_LINK_TYPE",
-  SELF_MANAGED = "SELF_MANAGED",
-}
-
 export interface Source {
   Type: string;
   Url: string;

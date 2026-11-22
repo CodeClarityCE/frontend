@@ -4,7 +4,7 @@ import user from "../fixtures/user.json" with { type: "json" };
 
 import { ShellPage } from "./shell.page.mjs";
 
-export const USER_ID = user.id;
+const USER_ID = user.id;
 
 /** A business error as the API returns it. */
 export function businessError(code: string): Record<string, unknown> {

@@ -5,7 +5,7 @@ import {
 } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 
 /** A server-side filter choice: its option key and its label. */
-export interface RepoFilterOption {
+interface RepoFilterOption {
   key: string;
   label: string;
 }
@@ -21,10 +21,8 @@ export interface RepoTableConfig {
 }
 
 /** Option keys of the import state filter, as the API expects them. */
-export const ONLY_NOT_IMPORTED = "only_non_imported";
-export const ALL_REPOSITORIES = "imported_and_non_imported";
-
-export type { GetRepositoriesRequestOptions };
+const ONLY_NOT_IMPORTED = "only_non_imported";
+const ALL_REPOSITORIES = "imported_and_non_imported";
 </script>
 <script lang="ts" setup>
 import { Star } from "@lucide/vue";

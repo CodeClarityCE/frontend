@@ -67,7 +67,7 @@ export function dependency(
   };
 }
 
-export const sampleDependencies = [
+const sampleDependencies = [
   dependency("express", "4.18.2", {
     newest_release: "5.0.1",
     is_direct: true,
@@ -320,7 +320,7 @@ const emptyManifest = {
   other_info: { package_manager: "NPM", relative_package_file: "package.json" },
 };
 
-export const sampleCodeql = [
+const sampleCodeql = [
   {
     ruleId: "js/sql-injection",
     ruleIndex: 0,
@@ -349,7 +349,7 @@ export const sampleCodeql = [
   },
 ];
 
-export const sampleDetails = {
+const sampleDetails = {
   name: "lodash",
   version: "4.17.20",
   latest_version: "4.17.21",

@@ -232,7 +232,7 @@ describe("ExperimentsRepository", () => {
         file,
       });
 
-      expect(await blob.text()).toBe('"contents"');
+      expect(await blob.text()).toBe("contents");
       const request = app.http.requests[0]!;
       expect(request.query.has("metric_version")).toBe(false);
       expect(request.headers.get("Authorization")).toBe("Bearer token");

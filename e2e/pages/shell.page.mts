@@ -33,7 +33,7 @@ function paginated(data: unknown[]): Record<string, unknown> {
   };
 }
 
-export const datasets = [
+const datasets = [
   {
     id: "ds-1",
     name: "Top npm packages",
@@ -55,7 +55,7 @@ export const datasets = [
   },
 ];
 
-export const experiments = [
+const experiments = [
   {
     id: "exp-1",
     name: "Fix lag study",
@@ -80,7 +80,7 @@ export const experiments = [
   },
 ];
 
-export const projects = [
+const projects = [
   {
     id: "proj-1",
     name: "web-frontend",

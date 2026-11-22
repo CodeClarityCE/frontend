@@ -118,7 +118,7 @@ describe("ResultsView", () => {
       "Vulnerabilities",
       "Patches",
       "Licenses",
-      "CodeQL",
+      "CodeQL Preview",
     ]);
   });
 

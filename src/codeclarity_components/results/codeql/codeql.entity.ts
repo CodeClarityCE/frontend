@@ -5,11 +5,11 @@ export interface CodeQLResult {
   locations: Location[];
 }
 
-export interface Message {
+interface Message {
   text: string;
 }
 
-export interface Location {
+interface Location {
   physicalLocation: PhysicalLocation;
 }
 

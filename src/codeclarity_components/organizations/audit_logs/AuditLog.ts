@@ -5,6 +5,7 @@ import { TeamMember } from "../organization.entity";
 
 // Copy of the API's ActionSeverity in api/src/base_modules/organizations/log/orgAuditLog.types.ts.
 // The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
+/** @public type-sync copy of an API enum: every API value stays */
 export enum ActionSeverity {
   Critical = 3,
   High = 2,
@@ -14,6 +15,7 @@ export enum ActionSeverity {
 
 // Copy of the API's ActionClassType in api/src/base_modules/organizations/log/orgAuditLog.types.ts.
 // The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
+/** @public type-sync copy of an API enum: every API value stays */
 export enum ActionClassType {
   Project = "Project",
   Analyzer = "Analyzer",
@@ -25,6 +27,7 @@ export enum ActionClassType {
 
 // Copy of the API's ActionType in api/src/base_modules/organizations/log/orgAuditLog.types.ts.
 // The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
+/** @public type-sync copy of an API enum: every API value stays */
 export enum ActionType {
   ProjectCreate = "ProjectCreate",
   ProjectUpdate = "ProjectUpdate",

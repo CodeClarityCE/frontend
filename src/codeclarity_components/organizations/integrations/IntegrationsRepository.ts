@@ -38,8 +38,6 @@ export interface GetGitlabIntegrationRequestOption extends AuthRepoMethodGetRequ
   integrationId: string;
 }
 
-export interface GetGithubIntegrationRequestOption extends GetGitlabIntegrationRequestOption {}
-
 export interface AddGitlabIntegrationRequestOptions extends AuthRepoMethodPostRequestOptions<GilabIntegrationAdd> {
   orgId: string;
 }

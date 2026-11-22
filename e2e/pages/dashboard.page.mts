@@ -7,7 +7,7 @@ import { ShellPage } from "./shell.page.mjs";
 const ORG = "org-123";
 
 /** A Published results version as the API lists it. */
-export function published(
+function published(
   metricVersion: number,
   publishedOn: string,
   by: string | null = "John Doe",
@@ -20,9 +20,9 @@ export function published(
   };
 }
 
-export const sampleDatasets = [dataset("ds-1", "Top npm packages")];
+const sampleDatasets = [dataset("ds-1", "Top npm packages")];
 
-export const sampleExperiments = [
+const sampleExperiments = [
   experiment("exp-2", "Residence time 2026", "RUNNING", {
     created_on: "2026-11-02T09:00:00Z",
   }),
@@ -43,7 +43,7 @@ export const sampleExperiments = [
 ];
 
 /** Published results versions per Experiment, newest first as the API sends them. */
-export const samplePublished: Record<string, unknown[]> = {
+const samplePublished: Record<string, unknown[]> = {
   "exp-1": [
     published(2, "2026-10-20T10:00:00Z"),
     published(1, "2026-10-07T10:00:00Z", null),

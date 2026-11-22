@@ -8,6 +8,7 @@ import {
   BrandEmphasis,
   FrozenBadge,
   PageHeading,
+  PreviewBadge,
   StatusBadge,
 } from "@/base_components/page";
 import router from "@/router";
@@ -484,6 +485,7 @@ onUnmounted(() => clearTimeout(pollTimer));
             :status="experiment.status"
             data-testid="experiment-status"
           />
+          <PreviewBadge />
         </template>
         <template #description>
           Analyzer

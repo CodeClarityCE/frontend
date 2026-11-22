@@ -1,12 +1,12 @@
 import { expect, type Locator, type Page } from "@playwright/test";
-import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 
 import { THEME_KEY } from "./theme.mjs";
 
-const axePath = createRequire(import.meta.url).resolve("axe-core/axe.min.js");
+const axePath = fileURLToPath(import.meta.resolve("axe-core/axe.min.js"));
 
 // WCAG 2.2 AA means every A and AA rule from 2.0 through 2.2.
-export const WCAG_22_AA_TAGS = [
+const WCAG_22_AA_TAGS = [
   "wcag2a",
   "wcag2aa",
   "wcag21a",
@@ -81,7 +81,7 @@ export async function waitForAnimations(page: Page): Promise<void> {
 
 // Axe rules after which Playwright's Firefox crashes the page (SIGSEGV) on the
 // next DOM walk; no upstream report found. Chromium and WebKit still run them.
-export const FIREFOX_CRASHING_RULES = [
+const FIREFOX_CRASHING_RULES = [
   "aria-allowed-attr",
   "aria-conditional-attr",
   "aria-progressbar-name",

@@ -1,15 +1,3 @@
-import * as z from "zod";
-
-export const analyzerValidationSchema = z.object({
-  name: z
-    .string()
-    .min(5, "Please enter a name (minimum 5 characters)")
-    .max(25, "Please enter a name of at most 25 characters"),
-  description: z
-    .string()
-    .min(10, "Please enter a description (minimum 10 characters)"),
-});
-
 export const analyzerValidationRules = {
   name: {
     minLength: 5,

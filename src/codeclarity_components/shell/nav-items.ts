@@ -22,6 +22,8 @@ export interface NavItem {
   routes: string[];
   /** Where the item goes; null when it needs context the user has not opened yet. */
   to: (orgId: string | undefined) => RouteLocationRaw | null;
+  /** True for a Preview feature, marked as such wherever it is listed. */
+  preview?: boolean;
 }
 
 export interface NavGroup {
@@ -29,7 +31,7 @@ export interface NavGroup {
   items: NavItem[];
 }
 
-export const dashboardItem: NavItem = {
+const dashboardItem: NavItem = {
   label: "Dashboard",
   icon: LayoutDashboard,
   routes: ["home"],
@@ -52,6 +54,7 @@ export const navGroups: NavGroup[] = [
         icon: FlaskConical,
         routes: ["experiments"],
         to: () => ({ name: "experiments" }),
+        preview: true,
       },
     ],
   },
@@ -139,6 +142,11 @@ export function orgSettingsSubItemTarget(
     name: "orgs",
     params: { action: "manage", page: item.pages[0], orgId },
   };
+}
+
+/** The item's tooltip, which names it as Preview where it is one. */
+export function navTooltip(item: NavItem): string {
+  return item.preview ? `${item.label} (Preview)` : item.label;
 }
 
 /** True when the route belongs to the item. */

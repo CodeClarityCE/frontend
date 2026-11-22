@@ -6,7 +6,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { analysisPath, paginated } from "../../../../tests/fixtures/results";
 import { createTestApp, type TestApp } from "../../../../tests/real-app";
 
-import { patchStatus } from "./vuln-format";
 import VulnFindings from "./VulnFindings.vue";
 
 const FINDINGS_PATH = `${analysisPath}/vulnerabilities`;
@@ -55,27 +54,7 @@ const finding = (id: string, PatchType: string | undefined) => ({
   ],
 });
 
-let all = [
-  finding("CVE-2024-0001", "FULL"),
-  finding("CVE-2024-0002", "PARTIAL"),
-  finding("CVE-2024-0003", "NONE"),
-];
-
-// Answers like the API: the patch filters keep rows of their type.
-function answer(query: URLSearchParams) {
-  const wanted = (query.get("active_filters") ?? "")
-    .split(",")
-    .filter((filter) => filter.startsWith("patch_"))
-    .map((filter) => filter.replace("patch_", "").toUpperCase());
-  const data = all.filter(
-    (row) =>
-      wanted.length === 0 ||
-      row.Affected.some((a) => wanted.includes(a.PatchType ?? "")),
-  );
-  return paginated(data, {
-    filter_count: { patch_full: 1, patch_partial: 1, patch_none: 1 },
-  });
-}
+const all = [finding("CVE-2024-0001", "FULL")];
 
 let queries: URLSearchParams[] = [];
 
@@ -83,102 +62,38 @@ let queries: URLSearchParams[] = [];
 async function start(): Promise<void> {
   app = createTestApp({ signedIn: true });
   await app.visit("/projects");
-  queries = serveFindings(answer);
+  queries = serveFindings(() => paginated(all));
 }
 
-async function show(hasPatching: boolean): Promise<void> {
-  render(VulnFindings, {
-    props: { analysisID: "a-1", projectID: "p-1", hasPatching },
-    global: app.global,
-  });
-  await flushPromises();
-}
-
-describe("VulnFindings patch status filters", () => {
+describe("VulnFindings without patch status", () => {
   beforeEach(async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     await start();
   });
 
-  it("sends patch_full and shows only patchable findings", async () => {
-    await show(true);
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    await user.click(screen.getByRole("button", { name: /Filters/ }));
-    const menu = await screen.findByRole("menu");
-    expect(within(menu).getByText("Patch status")).toBeTruthy();
-    await user.click(
-      within(menu).getByRole("menuitemcheckbox", { name: "Patchable (1)" }),
-    );
+  // An API from before js-patching was removed still sent a patch type.
+  it("offers no patch status filter or badge, even for a finding with a patch type", async () => {
+    render(VulnFindings, {
+      props: { analysisID: "a-1", projectID: "p-1" },
+      global: app.global,
+    });
     await flushPromises();
-
-    expect(queries.at(-1)?.get("active_filters")).toBe("patch_full");
-    expect(screen.getByText("CVE-2024-0001")).toBeTruthy();
-    expect(screen.queryByText("CVE-2024-0002")).toBeNull();
-    expect(screen.queryByText("CVE-2024-0003")).toBeNull();
-  });
-
-  it("titles the patch filters like the badges", async () => {
-    await show(true);
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    await user.click(screen.getByRole("button", { name: /Filters/ }));
-    const menu = await screen.findByRole("menu");
-
-    for (const type of ["FULL", "PARTIAL", "NONE"]) {
-      expect(
-        within(menu).getByRole("menuitemcheckbox", {
-          name: `${patchStatus(type).label} (1)`,
-        }),
-      ).toBeTruthy();
-    }
-  });
-
-  it("shows a finding without a patch type as not checked, not as not patchable", async () => {
-    all = [finding("CVE-2024-0004", undefined)];
-    try {
-      await show(true);
-      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-      await user.click(screen.getByRole("tab", { name: "Table" }));
-
-      expect(screen.getByText("Not checked")).toBeTruthy();
-      expect(screen.queryByText("Not patchable")).toBeNull();
-    } finally {
-      all = [
-        finding("CVE-2024-0001", "FULL"),
-        finding("CVE-2024-0002", "PARTIAL"),
-        finding("CVE-2024-0003", "NONE"),
-      ];
-    }
-  });
-
-  it("drops the filter counts when the request fails", async () => {
-    await show(true);
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    vi.stubGlobal("fetch", () => Promise.reject(new TypeError("offline")));
-    await user.click(screen.getByRole("button", { name: /Filters/ }));
-    const menu = await screen.findByRole("menu");
-    await user.click(
-      within(menu).getByRole("menuitemcheckbox", { name: "Patchable (1)" }),
-    );
-    await flushPromises();
-
-    expect(
-      within(menu).getByRole("menuitemcheckbox", { name: "Patchable" }),
-    ).toBeTruthy();
-  });
-
-  it("offers no patch status group without a patching result", async () => {
-    await show(false);
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     await user.click(screen.getByRole("button", { name: /Filters/ }));
     const menu = await screen.findByRole("menu");
     expect(within(menu).queryByText("Patch status")).toBeNull();
     expect(within(menu).getByText("Matching")).toBeTruthy();
+    await user.keyboard("{Escape}");
+
+    await user.click(screen.getByRole("tab", { name: "Table" }));
+    expect(screen.getByText("CVE-2024-0001")).toBeTruthy();
+    expect(screen.queryByText("Patchable")).toBeNull();
+    expect(screen.queryByText("Not checked")).toBeNull();
   });
 });
 
 describe("VulnFindings links", () => {
   beforeEach(async () => {
-    all = [finding("CVE-2024-0001", "FULL")];
     await start();
   });
 

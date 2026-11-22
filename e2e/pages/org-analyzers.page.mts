@@ -85,8 +85,8 @@ const samplePlugins = [
     config: {},
   },
   {
-    name: "js-patching",
-    description: "Suggests upgrades that fix the vulnerabilities",
+    name: "js-checker",
+    description: "Checks the vulnerabilities found",
     version: "1.0.0",
     depends_on: ["js-sbom", "php-sbom", "vuln-finder"],
     config: {},

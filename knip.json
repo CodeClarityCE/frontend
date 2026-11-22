@@ -4,12 +4,5 @@
     "e2e/real-stack/*.journey.mts",
     "e2e/contracts/capture.mts",
     "eslint-rules/*.d.ts"
-  ],
-  "ignoreIssues": {
-    "src/codeclarity_components/results/patching/Patching.ts": [
-      "exports",
-      "types",
-      "enumMembers"
-    ]
-  }
+  ]
 }

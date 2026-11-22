@@ -1,0 +1,53 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - heading "Organization tokens" [level=1]
+  - paragraph: Secrets a pipeline uses to act in this organisation without a member's password.
+  - heading "Create a token" [level=2]
+  - text: Name
+  - textbox "Name":
+    - /placeholder: ci-pipeline
+  - text: Scope
+  - combobox "Scope":
+    - option "Read" [selected]
+    - option "Analyze (includes read)"
+  - text: Expires after
+  - combobox "Expires after":
+    - option /\d+ days/ [selected]
+    - option /\d+ days/
+    - option /\d+ days/
+  - button "Create token"
+  - region "Tokens":
+    - heading "Tokens" [level=2]
+    - table "Tokens":
+      - caption: Tokens
+      - rowgroup:
+        - row "Name Scope Created by Expires Actions":
+          - columnheader "Name"
+          - columnheader "Scope"
+          - columnheader "Created by"
+          - columnheader "Expires"
+          - columnheader "Actions"
+      - rowgroup:
+        - row /ci-pipeline Analyze john\.doe@codeclarity\.io Dec \d+, \d+ Revoke ci-pipeline/:
+          - cell "ci-pipeline"
+          - cell "Analyze"
+          - cell "john.doe@codeclarity.io"
+          - cell /Dec \d+, \d+/
+          - cell "Revoke ci-pipeline":
+            - button "Revoke ci-pipeline"
+        - row "old-scan Read Deleted account Expired Revoke old-scan":
+          - cell "old-scan"
+          - cell "Read"
+          - cell "Deleted account"
+          - cell "Expired"
+          - cell "Revoke old-scan":
+            - button "Revoke old-scan"

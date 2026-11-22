@@ -1,7 +1,11 @@
 <script lang="ts" setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 
-import { BrandEmphasis, PageHeading } from "@/base_components/page";
+import {
+  BrandEmphasis,
+  PageHeading,
+  StatusBadge,
+} from "@/base_components/page";
 import CopyCommand from "@/base_components/ui/CopyCommand.vue";
 import {
   MemberRole,
@@ -10,14 +14,35 @@ import {
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
 import router from "@/router";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shadcn/ui/alert-dialog";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/shadcn/ui/native-select";
+import { Spinner } from "@/shadcn/ui/spinner";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shadcn/ui/table";
 import { useAuthStore } from "@/stores/auth";
+import { formatShortDate } from "@/utils/dateUtils";
 
 import {
   type CreatedOrganizationToken,
   OrganizationTokenScope,
+  type OrganizationTokenSummary,
 } from "./organization_token.entity";
 import { OrganizationTokenRepository } from "./organization_token.repository";
 
@@ -37,6 +62,68 @@ const failed = ref(false);
 const creating = ref(false);
 // Held only until the admin clicks Done; the API never sends it again.
 const created = ref<CreatedOrganizationToken>();
+
+const tokens = ref<OrganizationTokenSummary[]>();
+const listFailed = ref(false);
+// The token the revoke dialog asks about.
+const toRevoke = ref<OrganizationTokenSummary>();
+const revokeOpen = ref(false);
+const revoking = ref(false);
+const revokeFailed = ref(false);
+
+const SCOPE_LABEL: Record<OrganizationTokenScope, string> = {
+  [OrganizationTokenScope.READ]: "Read",
+  [OrganizationTokenScope.ANALYZE]: "Analyze",
+};
+
+function isExpired(token: OrganizationTokenSummary): boolean {
+  return token.expires_on.getTime() <= Date.now();
+}
+
+async function loadTokens(): Promise<void> {
+  const bearerToken = authStore.getToken;
+  if (!bearerToken) return;
+  try {
+    tokens.value = await tokenRepo.list({
+      orgId: props.orgId,
+      bearerToken,
+      handleBusinessErrors: true,
+    });
+    listFailed.value = false;
+  } catch {
+    listFailed.value = true;
+  }
+}
+
+function askRevoke(token: OrganizationTokenSummary): void {
+  toRevoke.value = token;
+  revokeFailed.value = false;
+  revokeOpen.value = true;
+}
+
+async function revoke(): Promise<void> {
+  const bearerToken = authStore.getToken;
+  const token = toRevoke.value;
+  if (!bearerToken || !token || revoking.value) return;
+  revoking.value = true;
+  revokeFailed.value = false;
+  try {
+    await tokenRepo.revoke({
+      orgId: props.orgId,
+      tokenId: token.id,
+      bearerToken,
+      handleBusinessErrors: true,
+    });
+    revokeOpen.value = false;
+    await loadTokens();
+  } catch {
+    revokeFailed.value = true;
+  } finally {
+    revoking.value = false;
+  }
+}
+
+onMounted(() => void loadTokens());
 
 async function create(): Promise<void> {
   nameMissing.value = name.value.trim() === "";
@@ -58,6 +145,7 @@ async function create(): Promise<void> {
       handleBusinessErrors: true,
     });
     name.value = "";
+    await loadTokens();
   } catch {
     failed.value = true;
   } finally {
@@ -156,5 +244,89 @@ function setOrgInfo(info: Organization): void {
         <AlertDescription>The token could not be created.</AlertDescription>
       </Alert>
     </form>
+
+    <section
+      aria-labelledby="tokens-title"
+      class="flex flex-col gap-3 rounded-lg border p-4"
+    >
+      <h2 id="tokens-title" class="font-semibold text-foreground-strong">
+        Tokens
+      </h2>
+      <Alert v-if="listFailed" variant="destructive">
+        <AlertDescription>The tokens could not be loaded.</AlertDescription>
+      </Alert>
+      <p
+        v-else-if="tokens && tokens.length === 0"
+        class="text-sm text-muted-foreground"
+      >
+        No tokens yet.
+      </p>
+      <Table v-else-if="tokens">
+        <TableCaption class="sr-only">Tokens</TableCaption>
+        <TableHeader>
+          <TableRow class="hover:bg-transparent">
+            <TableHead>Name</TableHead>
+            <TableHead>Scope</TableHead>
+            <TableHead>Created by</TableHead>
+            <TableHead>Expires</TableHead>
+            <TableHead><span class="sr-only">Actions</span></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow v-for="token in tokens" :key="token.id">
+            <TableCell class="font-medium">{{ token.name }}</TableCell>
+            <TableCell>{{ SCOPE_LABEL[token.scope] }}</TableCell>
+            <TableCell>
+              {{ token.created_by_email ?? "Deleted account" }}
+            </TableCell>
+            <TableCell>
+              <StatusBadge
+                v-if="isExpired(token)"
+                tone="neutral"
+                label="Expired"
+              />
+              <span v-else>{{ formatShortDate(token.expires_on) }}</span>
+            </TableCell>
+            <TableCell class="text-right">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                :aria-label="`Revoke ${token.name}`"
+                @click="askRevoke(token)"
+              >
+                Revoke
+              </Button>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </section>
+
+    <AlertDialog v-model:open="revokeOpen">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Revoke {{ toRevoke?.name }}?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Pipelines using this token are refused from their next request. This
+            cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <Alert v-if="revokeFailed" variant="destructive">
+          <AlertDescription>The token could not be revoked.</AlertDescription>
+        </Alert>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <Button
+            variant="destructive"
+            :disabled="revoking"
+            @click="() => void revoke()"
+          >
+            <Spinner v-if="revoking" />
+            Revoke token
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>

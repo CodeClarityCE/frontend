@@ -84,7 +84,7 @@ async function renderFindings(fixed?: Record<string, unknown>): Promise<void> {
   await app.visit("/projects");
   queries = serveFindings((query) => fixed ?? answer(query));
   render(VulnFindings, {
-    props: { analysisID: "a-1", projectID: "p-1", hasPatching: false },
+    props: { analysisID: "a-1", projectID: "p-1" },
     global: app.global,
   });
   await flushPromises();

@@ -15,10 +15,9 @@ import { PaginatedResponse } from "../../utils/api/responses/PaginatedResponse";
 
 import type { Dependency, GraphDependency } from "./graph.entity";
 import type { License } from "./licenses/License";
-import type { PatchedManifestData, Workspace } from "./patching/Patching";
 import type { Result } from "./result.entity";
 import { type DependencyDetails } from "./sbom/SbomDetails/SbomDetails";
-import type { AnalysisStats, PatchingStats, SbomStats } from "./stats.entity";
+import type { AnalysisStats, SbomStats } from "./stats.entity";
 import type { VulnerabilityDetails } from "./vulnerabilities/VulnDetails/VulnDetails";
 import type { WorkspacesOutput } from "./workspace.entity";
 
@@ -43,13 +42,6 @@ export interface DownloadSourceVerdictsRequestOptions extends AuthRepoMethodGetR
   projectId: string;
   analysisId: string;
   format: SourceVerdictExportFormat;
-}
-
-export interface GetPatchesRequestOptions extends AuthRepoMethodGetRequestOptions {
-  orgId: string;
-  projectId: string;
-  analysisId: string;
-  workspace: string;
 }
 
 export interface GetSbomWorkspacesRequestOptions extends AuthRepoMethodGetRequestOptions {
@@ -467,79 +459,6 @@ export class ResultsRepository extends BaseRepository {
     return Entity.unMarshal<DataResponse<VulnerabilityDetails>>(
       response,
       DataResponse<VulnerabilityDetails>,
-    );
-  }
-
-  async getPatchesStat(
-    options: GetSbomStatsRequestOptions,
-  ): Promise<DataResponse<PatchingStats>> {
-    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching/stats`;
-
-    const queryParams: Record<string, string | number> = {
-      workspace: options.workspace,
-    };
-
-    if (options.runIndex !== null && options.runIndex !== undefined) {
-      queryParams.run_index = options.runIndex;
-    }
-
-    const response = await this.getRequest<DataResponse<PatchingStats>>({
-      queryParams,
-      bearerToken: options.bearerToken,
-      url: this.buildUrl(RELATIVE_URL),
-      handleBusinessErrors: options.handleBusinessErrors,
-      handleHTTPErrors: options.handleHTTPErrors,
-      handleOtherErrors: options.handleOtherErrors,
-    });
-
-    return Entity.unMarshal<DataResponse<PatchingStats>>(
-      response,
-      DataResponse<PatchingStats>,
-    );
-  }
-
-  /** Every patch of the workspace; the API takes no other parameter. */
-  async getPatches(
-    options: GetPatchesRequestOptions,
-  ): Promise<DataResponse<Workspace>> {
-    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching`;
-
-    const queryParams = { workspace: options.workspace };
-
-    const response = await this.getRequest<DataResponse<Workspace>>({
-      queryParams,
-      bearerToken: options.bearerToken,
-      url: this.buildUrl(RELATIVE_URL),
-      handleBusinessErrors: options.handleBusinessErrors,
-      handleHTTPErrors: options.handleHTTPErrors,
-      handleOtherErrors: options.handleOtherErrors,
-    });
-
-    return Entity.unMarshal<DataResponse<Workspace>>(
-      response,
-      DataResponse<Workspace>,
-    );
-  }
-
-  async getPatchesManifest(
-    options: GetSbomStatsRequestOptions,
-  ): Promise<DataResponse<PatchedManifestData>> {
-    const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/patching/manifest`;
-
-    const response = await this.getRequest<DataResponse<PatchedManifestData>>({
-      queryParams: {
-        workspace: options.workspace,
-      },
-      bearerToken: options.bearerToken,
-      url: this.buildUrl(RELATIVE_URL),
-      handleBusinessErrors: options.handleBusinessErrors,
-      handleHTTPErrors: options.handleHTTPErrors,
-      handleOtherErrors: options.handleOtherErrors,
-    });
-
-    return Entity.unMarshal<DataResponse<PatchedManifestData>>(
-      response,
-      DataResponse<PatchedManifestData>,
     );
   }
 

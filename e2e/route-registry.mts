@@ -7,7 +7,6 @@ export const routeSpecs: Record<string, string> = {
   "results/sbom_details": "result-tabs.spec.mts",
   "results?tab=sbom": "result-tabs.spec.mts",
   "results?tab=vuln-finder": "vulnerabilities.spec.mts",
-  "results?tab=js-patching": "result-tabs.spec.mts",
   "results?tab=license-finder": "result-tabs.spec.mts",
   "results?tab=codeql": "result-tabs.spec.mts",
   projects: "projects.spec.mts",

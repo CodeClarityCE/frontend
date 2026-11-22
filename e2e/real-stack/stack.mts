@@ -14,7 +14,7 @@ export const DEV_ACCOUNT = {
 
 // Real responses take longer than mocks, and analyses run in the background.
 export const LOADED = { timeout: 30_000 };
-export const ANALYSED = { timeout: 4 * 60_000 };
+const ANALYSED = { timeout: 4 * 60_000 };
 
 /** A name no earlier run on the same stack used, so a rerun finds its own data. */
 export function unique(prefix: string): string {

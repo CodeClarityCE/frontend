@@ -79,15 +79,34 @@ export async function waitForAnimations(page: Page): Promise<void> {
   );
 }
 
+// Axe rules after which Playwright's Firefox crashes the page (SIGSEGV) on the
+// next DOM walk; no upstream report found. Chromium and WebKit still run them.
+export const FIREFOX_CRASHING_RULES = [
+  "aria-allowed-attr",
+  "aria-conditional-attr",
+  "aria-prohibited-attr",
+  "label-content-name-mismatch",
+  "nested-interactive",
+  "target-size",
+];
+
 async function runAxe(page: Page): Promise<AxeViolation[]> {
   await waitForAnimations(page);
   if (!(await page.evaluate(() => "axe" in window))) {
     await page.addScriptTag({ path: axePath });
   }
+  const isFirefox =
+    page.context().browser()?.browserType().name() === "firefox";
+  const off = isFirefox ? FIREFOX_CRASHING_RULES : [];
   const { violations } = await page.evaluate(
-    (tags) =>
-      window.axe.run(document, { runOnly: { type: "tag", values: tags } }),
-    WCAG_22_AA_TAGS,
+    ([tags, skipped]) =>
+      window.axe.run(document, {
+        runOnly: { type: "tag", values: tags },
+        rules: Object.fromEntries(
+          skipped.map((id) => [id, { enabled: false }]),
+        ),
+      }),
+    [WCAG_22_AA_TAGS, off] as const,
   );
   return violations;
 }

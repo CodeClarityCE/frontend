@@ -27,8 +27,8 @@ export async function logIn(
   account: { email: string; password: string } = DEV_ACCOUNT,
 ): Promise<void> {
   await page.goto("/login");
-  await page.getByPlaceholder("Enter your email").fill(account.email);
-  await page.getByPlaceholder("Enter your password").fill(account.password);
+  await page.getByLabel("Email").fill(account.email);
+  await page.getByLabel("Password", { exact: true }).fill(account.password);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).not.toHaveURL(/\/login/, LOADED);
 }
@@ -54,7 +54,10 @@ export async function uploadProject(
 /** Starts the Default Analyzer on project `name` and opens its results once it is done. */
 export async function analyse(page: Page, name: string): Promise<void> {
   await page.goto("/projects");
-  const row = page.getByTestId("project-row").filter({ hasText: name });
+  const row = page
+    .getByRole("table", { name: "Projects" })
+    .getByRole("row")
+    .filter({ hasText: name });
   const analyses = row.getByRole("button", { name: new RegExp(`of ${name}$`) });
   await expect(row).toBeVisible(LOADED);
   const before = (await analyses.count())

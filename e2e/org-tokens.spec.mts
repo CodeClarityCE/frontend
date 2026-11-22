@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 1024 });
 });
 
-test.describe("Organisation tokens", () => {
+test.describe("Organization tokens", () => {
   test("an admin creates a token and sees its secret once", async ({
     page,
   }) => {

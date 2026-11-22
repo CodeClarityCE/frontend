@@ -237,8 +237,7 @@ async function monkeyTest(
   steps: number,
   page: Page,
 ): Promise<void> {
-  // Printed first, so even a run that times out can be replayed.
-  console.log(`monkey ${target.name}: seed ${seed}, ${steps} steps`);
+  // Recorded first, so even a run that times out can be replayed.
   test.info().annotations.push({ type: "seed", description: String(seed) });
   if (target.signedIn) await logIn(page);
   const run = await runMonkey(page, {

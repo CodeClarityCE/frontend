@@ -86,6 +86,7 @@ export const FIREFOX_CRASHING_RULES = [
   "aria-conditional-attr",
   "aria-progressbar-name",
   "aria-prohibited-attr",
+  "aria-toggle-field-name",
   "label-content-name-mismatch",
   "nested-interactive",
   "target-size",
@@ -235,20 +236,17 @@ export async function expectNoAxeViolations(
   const second: Theme = first === "light" ? "dark" : "light";
   const problems = problemsIn(first, await runAxe(page), known);
 
-  // Reduced motion makes the theme change instant: headless WebKit can leave
-  // colour transitions at their old value.
-  const reduced = await page.evaluate(
-    () => matchMedia("(prefers-reduced-motion: reduce)").matches,
-  );
-  await page.emulateMedia({ reducedMotion: "reduce" });
+  // No transitions while the theme flips: headless WebKit can leave colour
+  // transitions at the old theme's value.
+  const noTransitions = await page.addStyleTag({
+    content: "*, *::before, *::after { transition: none !important; }",
+  });
   const restore = await switchTo(page, second);
   try {
     problems.push(...problemsIn(second, await runAxe(page), known));
   } finally {
     await restore();
-    await page.emulateMedia({
-      reducedMotion: reduced ? "reduce" : "no-preference",
-    });
+    await noTransitions.evaluate((el) => el.remove());
   }
 
   if (problems.length > 0) {

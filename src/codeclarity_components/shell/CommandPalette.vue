@@ -12,6 +12,7 @@ import { useEventListener } from "@vueuse/core";
 import { ref, watch } from "vue";
 import { type RouteLocationRaw, useRouter } from "vue-router";
 
+import { PreviewBadge } from "@/base_components/page";
 import { DatasetsRepository } from "@/codeclarity_components/datasets/datasets.repository";
 import { ExperimentsRepository } from "@/codeclarity_components/experiments/experiments.repository";
 import {
@@ -40,6 +41,8 @@ interface Entry {
   id: string;
   label: string;
   to: RouteLocationRaw;
+  /** True for a Preview feature. */
+  preview?: boolean;
 }
 
 interface Action extends Entry {
@@ -71,7 +74,13 @@ function pages(): Action[] {
   for (const item of items) {
     const to = item.to(orgId);
     if (to)
-      result.push({ id: item.label, label: item.label, icon: item.icon, to });
+      result.push({
+        id: item.label,
+        label: item.label,
+        icon: item.icon,
+        to,
+        preview: item.preview,
+      });
   }
   result.push({
     id: "account",
@@ -100,6 +109,7 @@ function actions(): Action[] {
       label: "Create an Experiment",
       icon: Plus,
       to: { name: "experiments", params: { page: "add" } },
+      preview: true,
     },
     {
       id: "import-project",
@@ -210,10 +220,19 @@ function go(to: RouteLocationRaw): void {
           v-for="item in pages()"
           :key="item.id"
           :value="`page-${item.id}`"
+          :aria-describedby="
+            item.preview ? `palette-preview-page-${item.id}` : undefined
+          "
           @select="go(item.to)"
         >
           <component :is="item.icon" aria-hidden="true" />
           {{ item.label }}
+          <PreviewBadge
+            v-if="item.preview"
+            :id="`palette-preview-page-${item.id}`"
+            aria-hidden="true"
+            class="ml-auto"
+          />
         </CommandItem>
       </CommandGroup>
       <CommandGroup v-if="datasets.length" heading="Datasets">
@@ -254,10 +273,19 @@ function go(to: RouteLocationRaw): void {
           v-for="item in actions()"
           :key="item.id"
           :value="`action-${item.id}`"
+          :aria-describedby="
+            item.preview ? `palette-preview-action-${item.id}` : undefined
+          "
           @select="go(item.to)"
         >
           <component :is="item.icon" aria-hidden="true" />
           {{ item.label }}
+          <PreviewBadge
+            v-if="item.preview"
+            :id="`palette-preview-action-${item.id}`"
+            aria-hidden="true"
+            class="ml-auto"
+          />
         </CommandItem>
       </CommandGroup>
       <CommandGroup heading="Theme">

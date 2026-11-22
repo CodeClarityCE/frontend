@@ -21,7 +21,7 @@ test.describe("App shell", () => {
     await expect(shell.nav.getByRole("listitem")).toHaveText([
       "Dashboard",
       "Datasets",
-      "Experiments",
+      "Experiments Preview",
       "Projects",
       "Results",
       "Tickets",
@@ -29,7 +29,7 @@ test.describe("App shell", () => {
     ]);
     await expect(
       shell.nav.getByRole("group", { name: "Research" }).getByRole("listitem"),
-    ).toHaveText(["Datasets", "Experiments"]);
+    ).toHaveText(["Datasets", "Experiments Preview"]);
     await expect(
       shell.nav.getByRole("group", { name: "Projects" }).getByRole("listitem"),
     ).toHaveText(["Projects", "Results", "Tickets"]);

@@ -5,6 +5,7 @@ import { RouterLink } from "vue-router";
 import {
   FrozenBadge,
   OwlEmptyState,
+  PreviewBadge,
   StatusBadge,
 } from "@/base_components/page";
 import {
@@ -119,10 +120,11 @@ const linkClass =
 
     <div v-else class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <Card class="rounded-card shadow-card lg:col-span-2">
-        <CardHeader>
+        <CardHeader class="flex-row flex-wrap items-center gap-x-3">
           <CardTitle id="dashboard-in-progress" class="text-base">
             Experiments in progress
           </CardTitle>
+          <PreviewBadge />
         </CardHeader>
         <CardContent>
           <p
@@ -191,10 +193,11 @@ const linkClass =
       </Card>
 
       <Card class="rounded-card shadow-card">
-        <CardHeader>
+        <CardHeader class="flex-row flex-wrap items-center gap-x-3">
           <CardTitle id="dashboard-recently-finished" class="text-base">
             Recently finished
           </CardTitle>
+          <PreviewBadge />
         </CardHeader>
         <CardContent>
           <p
@@ -234,10 +237,11 @@ const linkClass =
       </Card>
 
       <Card class="rounded-card shadow-card">
-        <CardHeader>
+        <CardHeader class="flex-row flex-wrap items-center gap-x-3">
           <CardTitle id="dashboard-recent-published" class="text-base">
             Recent Published results
           </CardTitle>
+          <PreviewBadge />
         </CardHeader>
         <CardContent>
           <p

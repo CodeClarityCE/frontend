@@ -47,6 +47,8 @@ export enum ActionType {
   OrganizationIntegrationAdded = "OrganizationIntegrationAdded",
   OrganizationIntegrationUpdated = "OrganizationIntegrationUpdated",
   OrganizationIntegrationDeleted = "OrganizationIntegrationDeleted",
+  OrganizationTokenCreated = "OrganizationTokenCreated",
+  OrganizationTokenUsed = "OrganizationTokenUsed",
 }
 
 export class AuditLog {
@@ -69,8 +71,15 @@ export class AuditLog {
   @Type(() => TeamMember)
   blame_on?: TeamMember;
 
-  @IsNotEmpty()
-  blame_on_email!: string;
+  // Null when an Organization token is the actor.
+  @IsOptional()
+  blame_on_email?: string | null;
+
+  @IsOptional()
+  blame_on_token_id?: string | null;
+
+  @IsOptional()
+  blame_on_token_name?: string | null;
 
   @IsDate()
   @Type(() => Date)

@@ -3,6 +3,7 @@ import {
   Blocks,
   ChevronRight,
   FileText,
+  KeyRound,
   LogOut,
   type LucideIcon,
   Mail,
@@ -76,6 +77,10 @@ const descriptions: Record<string, { text: string; icon: LucideIcon }> = {
   Policies: {
     text: "License and vulnerability rules for analyses",
     icon: FileText,
+  },
+  "Organization tokens": {
+    text: "Issue secrets for pipelines that run analyses",
+    icon: KeyRound,
   },
   "Audit logs": {
     text: "Review what happened and who did it",

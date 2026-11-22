@@ -116,6 +116,10 @@ const policies: OrgSettingsSubItem = {
   pages: ["policies", "policy", "vulnerability-policy"],
 };
 const logs: OrgSettingsSubItem = { label: "Audit logs", pages: ["logs"] };
+const tokens: OrgSettingsSubItem = {
+  label: "Organization tokens",
+  pages: ["tokens"],
+};
 
 /** The organisation settings pages this member can open, as on the overview. */
 export function orgSettingsSubItems(
@@ -129,7 +133,7 @@ export function orgSettingsSubItems(
     ...(team ? [members, invites] : []),
     ...(admin ? [integrations, analyzers] : []),
     policies,
-    ...(admin ? [logs] : []),
+    ...(admin ? [tokens, logs] : []),
   ];
 }
 

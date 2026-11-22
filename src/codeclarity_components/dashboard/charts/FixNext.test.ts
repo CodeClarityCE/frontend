@@ -1,29 +1,13 @@
 import { type DOMWrapper, flushPromises, mount } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createMemoryHistory, createRouter, type Router } from "vue-router";
+import { describe, expect, it } from "vitest";
 
 import { TicketStatus } from "@/codeclarity_components/tickets/tickets.entity";
 import type { FixNextEntry } from "@/codeclarity_components/vulnerabilities/fix_next.entity";
 import { RemediationKind } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
 
+import { createTestApp, org } from "../../../../tests/real-app";
+
 import FixNext from "./FixNext.vue";
-
-const getFixNext = vi.fn<(options: object) => Promise<FixNextEntry[]>>();
-
-vi.mock(
-  "@/codeclarity_components/vulnerabilities/organization_vulnerabilities.repository",
-  () => ({
-    OrganizationVulnerabilitiesRepository: class {
-      getFixNext = getFixNext;
-    },
-  }),
-);
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token" }),
-}));
 
 const entry = (extra: Partial<FixNextEntry>): FixNextEntry => ({
   kind: RemediationKind.UpgradeDirect,
@@ -53,29 +37,12 @@ const entry = (extra: Partial<FixNextEntry>): FixNextEntry => ({
   ...extra,
 });
 
-function makeRouter(): Router {
-  const page = { template: "<div />" };
-  return createRouter({
-    history: createMemoryHistory(),
-    routes: [
-      { path: "/", component: page },
-      {
-        path: "/org/:orgId/vulnerabilities/:vulnerabilityId",
-        name: "orgVulnerability",
-        component: page,
-      },
-      { path: "/tickets", name: "tickets", component: page },
-      { path: "/tickets/:ticketId", name: "ticket", component: page },
-    ],
-  });
-}
-
+// The card on the dashboard, with the entries the API answers.
 async function mountFixNext(entries: FixNextEntry[]) {
-  getFixNext.mockResolvedValue(entries);
-  const router = makeRouter();
-  const wrapper = mount(FixNext, {
-    global: { plugins: [router], stubs: { RouterLink: false } },
-  });
+  const app = createTestApp({ signedIn: true });
+  app.http.on("GET", `/org/${org.id}/remediations/fix-next`, { data: entries });
+  await app.visit("/");
+  const wrapper = mount(FixNext, { global: app.global });
   await flushPromises();
   return wrapper;
 }
@@ -84,8 +51,6 @@ const chips = (item: DOMWrapper<Element>): string[] =>
   item.findAll("[data-testid='fix-next-reason']").map((c) => c.text());
 
 describe("FixNext", () => {
-  beforeEach(() => getFixNext.mockReset());
-
   it("shows each entry's reasons as chips, in the API's order", async () => {
     const wrapper = await mountFixNext([
       entry({}),
@@ -155,7 +120,7 @@ describe("FixNext", () => {
     ]);
     const [first, second] = wrapper.findAll("[data-testid='fix-next-entry']");
     expect(first!.find("h3 a").attributes("href")).toBe(
-      "/org/org-1/vulnerabilities/CVE-2099-7501",
+      "/org/org-123/vulnerabilities/CVE-2099-7501",
     );
     expect(first!.find("[data-testid='fix-next-ticket']").text()).toBe(
       "No ticket",

@@ -282,8 +282,15 @@ export class ProjectsPage {
   }
 
   /** The table's body rows, without the header row. */
+  // A card of Add a Project's import methods, by the name it starts with.
+  importMethod(name: string): Locator {
+    return this.page
+      .getByRole("list", { name: "Import methods" })
+      .getByRole("button", { name: new RegExp(`^${name}`) });
+  }
+
   rows(table: Locator = this.table): Locator {
-    return table.locator("tbody tr");
+    return table.getByRole("row").filter({ has: this.page.getByRole("cell") });
   }
 
   row(name: string): Locator {

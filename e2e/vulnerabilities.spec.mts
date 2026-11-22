@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { expectTheme } from "./helpers/theme.mjs";
 import {
@@ -37,7 +40,7 @@ test.describe("Vulnerability results", () => {
     await expect(vulns.cards.nth(2)).toContainText("Medium 5.3");
     await expect(vulns.cards.nth(3)).toContainText("Low 2.1");
     await expect(vulns.cards.nth(0)).toContainText("Exploit risk 42.0%");
-    await expect(vulns.cards.nth(1)).toContainText("Match uncertain");
+    await expect(vulns.cards.nth(1)).toContainText("Uncorroborated");
 
     const numbers = page.getByRole("list", { name: "Vulnerability numbers" });
     await expect(numbers.getByRole("listitem").first()).toHaveText(
@@ -282,6 +285,8 @@ test.describe("Vulnerability results", () => {
     await expect(vulns.cards).toHaveCount(4);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "vulnerabilities-list");
     await expectScreenshots(page, "vulnerabilities-list");
   });
 
@@ -293,6 +298,7 @@ test.describe("Vulnerability results", () => {
     await expect(vulns.cards).toHaveCount(4);
 
     await expectTheme(page, "dark");
+    await expectPageSweep(page);
     await expectScreenshots(page, "vulnerabilities-list-dark");
   });
 
@@ -304,6 +310,8 @@ test.describe("Vulnerability results", () => {
     await expect(vulns.rows()).toHaveCount(4);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "vulnerabilities-table");
     await expectScreenshots(page, "vulnerabilities-table");
   });
 
@@ -315,10 +323,13 @@ test.describe("Vulnerability results", () => {
       page.getByRole("status", { name: "Loading vulnerabilities" }),
     ).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     release();
     await expect(page.getByText("No vulnerabilities found.")).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "vulnerabilities-empty");
     await expectScreenshots(page, "vulnerabilities-empty");
   });
 });
@@ -366,6 +377,7 @@ test.describe("Vulnerability details", () => {
       await expect(dialog.locator(":focus")).toHaveCount(1);
     }
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
@@ -417,6 +429,7 @@ test.describe("Vulnerability details", () => {
       page.getByRole("status", { name: "Loading the vulnerability" }),
     ).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     release();
     await expect(vulns.heading).toContainText("CVE-2024-0001");
@@ -429,6 +442,8 @@ test.describe("Vulnerability details", () => {
     await expect(vulns.heading).toContainText("CVE-2024-0001");
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "vulnerability-details");
     await expectScreenshots(page, "vulnerability-details");
   });
 });
@@ -512,5 +527,34 @@ test.describe("Vulnerability details references", () => {
     await expect(
       page.getByRole("link", { name: /example\.com\/other/ }),
     ).toHaveCount(1);
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("the list and the table fit without scrolling sideways", async ({
+    page,
+  }) => {
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn();
+    await vulns.gotoResults();
+    await expect(vulns.cards).toHaveCount(4);
+    await expectPageSweep(page);
+    await expectScreenshots(page, "vulnerabilities-list");
+
+    await page.getByRole("tab", { name: "Table" }).click();
+    await expect(vulns.rows()).toHaveCount(4);
+    await expectPageSweep(page);
+    await expectScreenshots(page, "vulnerabilities-table");
+  });
+
+  test("a vulnerability's details fit without scrolling sideways", async ({
+    page,
+  }) => {
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn();
+    await vulns.gotoDetails();
+    await expect(vulns.heading).toContainText("CVE-2024-0001");
+    await expectPageSweep(page);
+    await expectScreenshots(page, "vulnerability-details");
   });
 });

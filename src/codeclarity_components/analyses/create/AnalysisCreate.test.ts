@@ -1,62 +1,25 @@
 import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createTestApp, org, type TestApp } from "../../../../tests/real-app";
+
 import AnalysisCreate from "./AnalysisCreate.vue";
 
-const { getAnalyzers, getAnalyzer, getProjectById, createAnalysis } =
-  vi.hoisted(() => ({
-    getAnalyzers: vi.fn(),
-    getAnalyzer: vi.fn(),
-    getProjectById: vi.fn(),
-    createAnalysis: vi.fn(),
-  }));
+const analyzersPath = `/org/${org.id}/analyzers`;
+const analysesPath = `/org/${org.id}/projects/project-1/analyses`;
 
-vi.mock(
-  "@/codeclarity_components/organizations/analyzers/AnalyzerRepository",
-  () => ({
-    AnalyzerRepository: class {
-      getAnalyzers = getAnalyzers;
-      getAnalyzer = getAnalyzer;
-    },
-  }),
-);
-
-vi.mock("@/codeclarity_components/projects/project.repository", () => ({
-  ProjectRepository: class {
-    getProjectById = getProjectById;
-  },
-}));
-
-vi.mock("@/codeclarity_components/analyses/analysis.repository", () => ({
-  AnalysisRepository: class {
-    createAnalysis = createAnalysis;
-  },
-}));
-
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class {},
-  BusinessLogicError: class BusinessLogicError extends Error {
-    error_code: string;
-    error_message: string;
-    constructor(error_code: string, error_message: string) {
-      super(error_code);
-      this.error_code = error_code;
-      this.error_message = error_message;
-    }
-  },
-}));
-
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ defaultOrg: { id: "org-1", role: 1 } }),
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token" }),
-}));
-vi.mock("@/stores/state", () => ({
-  useStateStore: () => ({ $reset: vi.fn(), page: "" }),
-}));
-vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
-vi.mock("vue-sonner", () => ({ toast: { success: vi.fn() } }));
+// One page of analyzers as the API lists them.
+const analyzerPage = (data: object[]) => ({
+  data,
+  entry_count: data.length,
+  page: 0,
+  entries_per_page: 100,
+  total_entries: data.length,
+  total_pages: 1,
+  status: "success",
+  matching_count: data.length,
+  filter_count: {},
+});
 
 const OFF = "Needs CodeQL, which is off on this instance.";
 const DOWN = "vuln-finder is temporarily down. Try again shortly.";
@@ -87,26 +50,27 @@ const downAnalyzer = analyzer("an-down", ["js-sbom", "vuln-finder"], {
   message: DOWN,
 });
 
-async function mountForm(): Promise<VueWrapper> {
-  const wrapper = mount(AnalysisCreate, {
-    global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
-  });
+let app: TestApp;
+
+// The new analysis page of project-1, with these analyzers listed.
+async function mountForm(
+  listed: object[] = [defaultAnalyzer, codeqlAnalyzer],
+): Promise<VueWrapper> {
+  app.http.on("GET", analyzersPath, analyzerPage(listed));
+  await app.visit("/analyses/add?id=project-1");
+  const wrapper = mount(AnalysisCreate, { global: app.global });
   await flushPromises();
   return wrapper;
 }
 
 describe("AnalysisCreate", () => {
   beforeEach(() => {
+    // The page reads the project id from the address bar.
     window.history.replaceState({}, "", "/?id=project-1");
-    getProjectById.mockReset().mockResolvedValue({
+    app = createTestApp({ signedIn: true });
+    app.http.on("GET", `/org/${org.id}/projects/project-1`, {
       data: { id: "project-1", name: "app", type: "FILE", url: "" },
     });
-    getAnalyzers.mockReset().mockResolvedValue({
-      data: [defaultAnalyzer, codeqlAnalyzer],
-      total_pages: 1,
-    });
-    getAnalyzer.mockReset();
-    createAnalysis.mockReset();
   });
 
   it("shows an analyzer whose component is off as unavailable, naming it", async () => {
@@ -131,8 +95,7 @@ describe("AnalysisCreate", () => {
     });
 
     it("shows the analyzer as temporarily unavailable, not off", async () => {
-      getAnalyzers.mockResolvedValue({ data: [downAnalyzer], total_pages: 1 });
-      const wrapper = await mountForm();
+      const wrapper = await mountForm([downAnalyzer]);
 
       const down = wrapper.find('[data-analyzer="an-down"]');
       expect(down.text()).toContain(`Temporarily unavailable: ${DOWN}`);
@@ -142,13 +105,15 @@ describe("AnalysisCreate", () => {
 
     it("makes the analyzer selectable again once the plugin is back", async () => {
       vi.useFakeTimers();
-      getAnalyzers.mockResolvedValue({ data: [downAnalyzer], total_pages: 1 });
-      const wrapper = await mountForm();
+      const wrapper = await mountForm([downAnalyzer]);
 
-      getAnalyzers.mockResolvedValue({
-        data: [{ ...downAnalyzer, availability: { state: "available" } }],
-        total_pages: 1,
-      });
+      app.http.on(
+        "GET",
+        analyzersPath,
+        analyzerPage([
+          { ...downAnalyzer, availability: { state: "available" } },
+        ]),
+      );
       await vi.advanceTimersByTimeAsync(30_000);
       await flushPromises();
 
@@ -160,15 +125,19 @@ describe("AnalysisCreate", () => {
   });
 
   it("shows the API's reason when it refuses the analyzer", async () => {
-    getAnalyzer.mockResolvedValue({ data: defaultAnalyzer });
-    const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
-    createAnalysis.mockRejectedValue(
-      new (
-        BusinessLogicError as unknown as new (
-          code: string,
-          message: string,
-        ) => Error
-      )("AnalyzerUnavailable", OFF),
+    app.http.on("GET", `${analyzersPath}/an-default`, {
+      data: defaultAnalyzer,
+    });
+    app.http.on(
+      "POST",
+      analysesPath,
+      {
+        status_code: 409,
+        status: "error",
+        error_code: "AnalyzerUnavailable",
+        error_message: OFF,
+      },
+      409,
     );
     const wrapper = await mountForm();
 
@@ -177,7 +146,14 @@ describe("AnalysisCreate", () => {
     await wrapper.find("form").trigger("submit");
     await flushPromises();
 
-    expect(createAnalysis).toHaveBeenCalledTimes(1);
+    const started = app.http.requests.filter(
+      (r) => r.method === "POST" && r.path === analysesPath,
+    );
+    expect(started).toHaveLength(1);
+    expect(started[0]!.body).toMatchObject({
+      analyzer_id: "an-default",
+      branch: "main",
+    });
     const alert = wrapper.find('[role="alert"]');
     expect(alert.text()).toContain("The analysis was not started");
     expect(alert.text()).toContain(OFF);

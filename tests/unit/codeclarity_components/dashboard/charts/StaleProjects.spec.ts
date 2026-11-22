@@ -1,27 +1,10 @@
 import { flushPromises, mount } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import StaleProjects from "@/codeclarity_components/dashboard/charts/StaleProjects.vue";
 import type { OrganizationFreshness } from "@/codeclarity_components/vulnerabilities/project_freshness.entity";
 
-const { getFreshness, reanalyse } = vi.hoisted(() => ({
-  getFreshness: vi.fn(),
-  reanalyse: vi.fn(),
-}));
-
-vi.mock(
-  "@/codeclarity_components/vulnerabilities/organization_vulnerabilities.repository",
-  () => ({
-    OrganizationVulnerabilitiesRepository: class {
-      getFreshness = getFreshness;
-    },
-  }),
-);
-vi.mock("@/codeclarity_components/analyses/analysis.repository", () => ({
-  AnalysisRepository: class {
-    reanalyse = reanalyse;
-  },
-}));
+import { createTestApp, org, type TestApp } from "../../../../real-app";
 
 const daysAgo = (days: number): string =>
   new Date(Date.now() - days * 86_400_000).toISOString();
@@ -46,16 +29,27 @@ const freshness: OrganizationFreshness = {
   ],
 };
 
-describe("StaleProjects", () => {
-  beforeEach(() => {
-    getFreshness.mockReset();
-    reanalyse.mockReset();
-  });
+const reanalysePath = `/org/${org.id}/projects/p-old/analyses/reanalyse`;
 
+// The card on the dashboard, with the freshness the API answers.
+async function mountCard(answer: OrganizationFreshness) {
+  const app = createTestApp({ signedIn: true });
+  app.http.on("GET", `/org/${org.id}/freshness`, { data: answer });
+  app.http.on("POST", reanalysePath, { id: "a-new" }, 201);
+  await app.visit("/");
+  const wrapper = mount(StaleProjects, { global: app.global });
+  await flushPromises();
+  return { app, wrapper };
+}
+
+const reanalyses = (app: TestApp) =>
+  app.http.requests.filter(
+    (r) => r.method === "POST" && r.path === reanalysePath,
+  );
+
+describe("StaleProjects", () => {
   it("lists only the stale projects with the age of their current analysis", async () => {
-    getFreshness.mockResolvedValue(freshness);
-    const wrapper = mount(StaleProjects);
-    await flushPromises();
+    const { wrapper } = await mountCard(freshness);
 
     const rows = wrapper.findAll('[data-testid="stale-project"]');
     expect(rows).toHaveLength(1);
@@ -65,31 +59,24 @@ describe("StaleProjects", () => {
   });
 
   it("re-analyses a stale project and says the analysis started", async () => {
-    getFreshness.mockResolvedValue(freshness);
-    reanalyse.mockResolvedValue({ id: "a-new" });
-    const wrapper = mount(StaleProjects);
-    await flushPromises();
+    const { app, wrapper } = await mountCard(freshness);
 
     await wrapper
       .get('button[aria-label="Re-analyse old-api"]')
       .trigger("click");
     await flushPromises();
 
-    expect(reanalyse).toHaveBeenCalledWith(
-      expect.objectContaining({ orgId: "test-org-id", projectId: "p-old" }),
-    );
+    expect(reanalyses(app)).toHaveLength(1);
     expect(wrapper.find('[data-testid="stale-project"]').text()).toContain(
       "Analysis started",
     );
   });
 
   it("says when every project is fresh", async () => {
-    getFreshness.mockResolvedValue({
+    const { wrapper } = await mountCard({
       ...freshness,
       projects: [freshness.projects[1]!],
     });
-    const wrapper = mount(StaleProjects);
-    await flushPromises();
 
     expect(wrapper.text()).toContain(
       "Every project was analysed in the last 14 days.",

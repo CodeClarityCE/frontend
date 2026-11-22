@@ -1,96 +1,14 @@
-import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { defineComponent, h, onMounted } from "vue";
+import userEvent from "@testing-library/user-event";
+import { render, screen, within } from "@testing-library/vue";
+import { describe, expect, it, vi } from "vitest";
 
 import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
-import router from "@/router";
+
+import { createTestApp, org, type TestApp } from "../../../../tests/real-app";
 
 import ManageAuditLogs from "./ManageAuditLogs.vue";
 
-const { getOrgAuditLogs, orgInfo, BusinessLogicError } = vi.hoisted(() => ({
-  getOrgAuditLogs: vi.fn(),
-  orgInfo: { current: {} },
-  BusinessLogicError: class BusinessLogicError extends Error {
-    error_code: string;
-    constructor(error_code: string) {
-      super(error_code);
-      this.error_code = error_code;
-    }
-  },
-}));
-
-// Searches apply at once, so tests need not wait for the debounce.
-vi.mock("@vueuse/core", async () => {
-  const { reactive, toRef } = await import("vue");
-  return {
-    refDebounced: <T>(source: T): T => source,
-    reactiveOmit: (obj: Record<string, unknown>, ...keys: string[]) =>
-      reactive(
-        Object.fromEntries(
-          Object.keys(obj)
-            .filter((key) => !keys.includes(key))
-            .map((key) => [key, toRef(obj, key)]),
-        ),
-      ),
-  };
-});
-
-vi.mock("@/router", () => ({ default: { back: vi.fn(), push: vi.fn() } }));
-
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getAuthenticated: true, getToken: "test-token" }),
-}));
-
-// The global @vueuse/core mock leaves shadcn Input inert, so use a plain input.
-vi.mock("@/shadcn/ui/input", () => ({
-  Input: defineComponent({
-    props: { modelValue: { type: String, default: "" } },
-    emits: ["update:modelValue"],
-    setup(props, { emit, attrs }) {
-      return () =>
-        h("input", {
-          ...attrs,
-          value: props.modelValue,
-          onInput: (e: Event) =>
-            emit("update:modelValue", (e.target as HTMLInputElement).value),
-        });
-    },
-  }),
-}));
-
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class {},
-  BusinessLogicError,
-}));
-
-vi.mock(
-  "@/codeclarity_components/organizations/organization.repository",
-  () => ({
-    OrgRepository: class {
-      getOrgAuditLogs = getOrgAuditLogs;
-    },
-  }),
-);
-
-// The header reports the organisation, as the real one does once loaded.
-vi.mock(
-  "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue",
-  () => ({
-    default: defineComponent({
-      emits: ["onOrgInfo"],
-      setup(_, { emit }) {
-        onMounted(() => emit("onOrgInfo", orgInfo.current));
-        return () => h("div", "Organisation header");
-      },
-    }),
-  }),
-);
-
-vi.mock("vue-router", async () => {
-  const actual =
-    await vi.importActual<typeof import("vue-router")>("vue-router");
-  return { ...actual, useRoute: () => ({ params: { orgId: "org-1" } }) };
-});
+const logsPath = `/org/${org.id}/audit_logs`;
 
 function entry(id: string, description: string): object {
   return {
@@ -100,149 +18,149 @@ function entry(id: string, description: string): object {
     action: "OrganizationMemberInvited",
     description,
     blame_on_email: "jane@example.com",
-    created_on: new Date("2026-11-17T10:00:00Z"),
+    created_on: "2026-11-17T10:00:00Z",
   };
 }
 
 function page(data: object[], total = data.length): object {
   return {
     data,
+    entry_count: data.length,
+    page: 0,
+    entries_per_page: 20,
     total_entries: total,
     matching_count: total,
     total_pages: Math.ceil(total / 20),
+    filter_count: {},
+    status: "success",
   };
 }
 
-let wrapper: VueWrapper | undefined;
+const invited = page([entry("log-1", "The User invited bob@example.com")]);
 
-async function render(): Promise<VueWrapper> {
-  wrapper = mount(ManageAuditLogs, {
-    props: { orgId: "org-1" },
-    attachTo: document.body,
-  });
-  await flushPromises();
-  return wrapper;
+// Opens the audit log page; null leaves the logs unanswered.
+async function openLogs(
+  logs: object | null = invited,
+  options: { status?: number; role?: MemberRole } = {},
+): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  if (logs) app.http.on("GET", logsPath, logs, options.status);
+  if (options.role !== undefined) {
+    app.http.on("GET", `/org/${org.id}`, {
+      data: { ...org, role: options.role },
+    });
+  }
+  await app.visit(`/orgs/manage/logs/${org.id}`);
+  render(ManageAuditLogs, { props: { orgId: org.id }, global: app.global });
+  return app;
 }
 
-function lastRequest(): Record<string, unknown> {
-  return getOrgAuditLogs.mock.calls.at(-1)![0] as Record<string, unknown>;
-}
+// The query of the latest audit log request.
+const lastQuery = (app: TestApp): Record<string, string> =>
+  Object.fromEntries(
+    app.http.requests.filter((r) => r.path === logsPath).at(-1)?.query ?? [],
+  );
 
 describe("ManageAuditLogs", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    orgInfo.current = { id: "org-1", role: MemberRole.ADMIN, personal: false };
-    getOrgAuditLogs.mockResolvedValue(
-      page([entry("log-1", "The User invited bob@example.com")]),
-    );
-  });
-
-  afterEach(() => {
-    wrapper?.unmount();
-    wrapper = undefined;
-    document.body.innerHTML = "";
-  });
-
   it("lists the entries the API returns, newest first", async () => {
-    await render();
+    const app = await openLogs();
 
-    expect(document.querySelector("table")?.textContent).toContain(
-      "The User invited bob@example.com",
-    );
-    expect(lastRequest()).toEqual(
-      expect.objectContaining({
-        orgId: "org-1",
-        pagination: { page: 0, entries_per_page: 20 },
-        search: { searchKey: "" },
-        sort: { sortKey: "created_on", sortDirection: "DESC" },
-      }),
-    );
+    expect(
+      await screen.findByText("The User invited bob@example.com"),
+    ).toBeInTheDocument();
+    expect(lastQuery(app)).toEqual({
+      page: "0",
+      entries_per_page: "20",
+      search_key: "",
+      sort_key: "created_on",
+      sort_direction: "DESC",
+    });
   });
 
   it("searches on the API", async () => {
-    const view = await render();
+    const app = await openLogs();
+    await screen.findByText("The User invited bob@example.com");
 
-    await view.find('input[type="search"]').setValue("bob");
-    await flushPromises();
+    await userEvent.type(screen.getByRole("searchbox"), "bob");
 
-    expect(lastRequest()).toEqual(
-      expect.objectContaining({ search: { searchKey: "bob" } }),
-    );
+    await vi.waitFor(() => expect(lastQuery(app).search_key).toBe("bob"));
   });
 
   it("sorts on the API", async () => {
-    await render();
+    const app = await openLogs();
+    const table = await screen.findByRole("table");
 
-    const header = [...document.querySelectorAll("th")].find((th) =>
-      th.textContent?.includes("Action"),
+    await userEvent.click(
+      within(table).getByRole("button", { name: /Action/ }),
     );
-    header?.querySelector("button")?.click();
-    await flushPromises();
 
-    expect(lastRequest()).toEqual(
-      expect.objectContaining({
-        sort: { sortKey: "action", sortDirection: "ASC" },
+    await vi.waitFor(() =>
+      expect(lastQuery(app)).toMatchObject({
+        sort_key: "action",
+        sort_direction: "ASC",
       }),
     );
   });
 
   it("pages on the API", async () => {
-    getOrgAuditLogs.mockResolvedValue(page([entry("log-1", "First")], 25));
-    await render();
+    const app = await openLogs(page([entry("log-1", "First")], 25));
+    await screen.findByText("First");
 
-    const next = [...document.querySelectorAll("button")].find((b) =>
-      b.textContent?.includes("Next"),
-    );
-    next?.click();
-    await flushPromises();
+    await userEvent.click(screen.getByRole("button", { name: /Next/ }));
 
-    expect(lastRequest()).toEqual(
-      expect.objectContaining({
-        pagination: { page: 1, entries_per_page: 20 },
-      }),
-    );
+    await vi.waitFor(() => expect(lastQuery(app).page).toBe("1"));
   });
 
   it("says plainly when there are no entries", async () => {
-    getOrgAuditLogs.mockResolvedValue(page([]));
-    await render();
+    await openLogs(page([]));
 
-    expect(document.body.textContent).toContain("No audit log entries yet.");
+    expect(
+      await screen.findByText("No audit log entries yet."),
+    ).toBeInTheDocument();
   });
 
   it("says plainly when the role does not allow reading them", async () => {
-    getOrgAuditLogs.mockRejectedValue(new BusinessLogicError("NotAuthorized"));
-    await render();
-
-    expect(document.body.textContent).toContain(
-      "You do not have permission to see this organisation's audit logs.",
+    await openLogs(
+      {
+        status_code: 403,
+        status: "failure",
+        error_code: "NotAuthorized",
+        error_message: "Not authorized",
+      },
+      { status: 403 },
     );
+
+    expect(
+      await screen.findByText(
+        "You do not have permission to see this organisation's audit logs.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("says the entries could not be loaded and offers a retry", async () => {
-    getOrgAuditLogs.mockRejectedValueOnce(new Error("boom"));
-    await render();
+    const app = await openLogs(null);
 
-    expect(document.body.textContent).toContain(
-      "The audit logs could not be loaded.",
-    );
-    [...document.querySelectorAll("button")]
-      .find((b) => b.textContent?.trim() === "Try again")
-      ?.click();
-    await flushPromises();
+    expect(
+      await screen.findByText("The audit logs could not be loaded."),
+    ).toBeInTheDocument();
 
-    expect(document.querySelector("table")?.textContent).toContain(
-      "The User invited bob@example.com",
-    );
+    app.http.on("GET", logsPath, invited);
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+
+    expect(
+      await screen.findByText("The User invited bob@example.com"),
+    ).toBeInTheDocument();
   });
 
   it("sends members below admin back to the organisation overview", async () => {
-    orgInfo.current = { ...orgInfo.current, role: MemberRole.MODERATOR };
-    await render();
+    const app = await openLogs(invited, { role: MemberRole.MODERATOR });
 
-    expect(router.push).toHaveBeenCalledWith({
-      name: "orgs",
-      params: { action: "manage", page: "main", orgId: "org-1" },
-    });
+    await vi.waitFor(() =>
+      expect(app.router.currentRoute.value.params).toMatchObject({
+        action: "manage",
+        page: "main",
+        orgId: org.id,
+      }),
+    );
   });
 });

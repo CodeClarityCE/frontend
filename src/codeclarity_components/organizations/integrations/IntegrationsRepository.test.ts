@@ -1,55 +1,53 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+
+import { createTestApp } from "../../../../tests/real-app";
 
 import { IntegrationsRepository } from "./IntegrationsRepository";
 
-vi.mock("@/utils/api/BaseEntity", () => ({
-  Entity: { unMarshal: vi.fn((plain: unknown) => plain) },
-}));
+const popularPath = "/org/org-1/integrations/github/gh-1/repositories/popular";
 
 describe("IntegrationsRepository.getPopularGithubRepositories", () => {
-  it("calls the popular endpoint with the language selection and the usual list parameters", async () => {
-    // BaseRepository is mocked globally; its request helpers are vi.fn instances.
-    const repository = new IntegrationsRepository() as unknown as {
-      buildUrl: ReturnType<typeof vi.fn>;
-      getRequest: ReturnType<typeof vi.fn>;
-      getPopularGithubRepositories: IntegrationsRepository["getPopularGithubRepositories"];
+  it("asks for popular repositories with the language selection and the usual list parameters", async () => {
+    const app = createTestApp();
+    const page = {
+      data: [],
+      entry_count: 0,
+      page: 0,
+      entries_per_page: 100,
+      total_entries: 0,
+      total_pages: 0,
+      matching_count: 0,
+      filter_count: {},
+      status: "success",
     };
-    repository.buildUrl.mockImplementation(
-      (url: string) => `https://api${url}`,
-    );
-    const page = { data: [], total_entries: 0, total_pages: 0 };
-    repository.getRequest.mockResolvedValue(page);
+    app.http.on("GET", popularPath, page);
 
-    const result = await repository.getPopularGithubRepositories({
-      orgId: "org-1",
-      integrationId: "gh-1",
-      forceRefresh: true,
-      activeFilters: ["only_non_imported"],
-      languages: ["TypeScript", "PHP"],
-      pagination: { page: 0, entries_per_page: 100 },
-      search: { searchKey: "vue" },
-      bearerToken: "token",
-      handleBusinessErrors: true,
-      sort: { sortKey: "stars", sortDirection: "DESC" },
-    });
-
-    expect(result).toBe(page);
-    expect(repository.getRequest).toHaveBeenCalledWith(
-      expect.objectContaining({
-        url: "https://api/org/org-1/integrations/github/gh-1/repositories/popular",
+    const result =
+      await new IntegrationsRepository().getPopularGithubRepositories({
+        orgId: "org-1",
+        integrationId: "gh-1",
+        forceRefresh: true,
+        activeFilters: ["only_non_imported"],
+        languages: ["TypeScript", "PHP"],
+        pagination: { page: 0, entries_per_page: 100 },
+        search: { searchKey: "vue" },
         bearerToken: "token",
         handleBusinessErrors: true,
-        queryParams: {
-          page: 0,
-          entries_per_page: 100,
-          search_key: "vue",
-          force_refresh: "true",
-          active_filters: "[only_non_imported]",
-          languages: "TypeScript,PHP",
-          sort_key: "stars",
-          sort_direction: "DESC",
-        },
-      }),
-    );
+        sort: { sortKey: "stars", sortDirection: "DESC" },
+      });
+
+    expect(result.total_entries).toBe(0);
+    const request = app.http.requests.find((r) => r.path === popularPath);
+    expect(request?.headers.get("Authorization")).toBe("Bearer token");
+    expect(Object.fromEntries(request!.query)).toEqual({
+      page: "0",
+      entries_per_page: "100",
+      search_key: "vue",
+      force_refresh: "true",
+      active_filters: "[only_non_imported]",
+      languages: "TypeScript,PHP",
+      sort_key: "stars",
+      sort_direction: "DESC",
+    });
   });
 });

@@ -2,7 +2,10 @@ import { expect, test } from "@playwright/test";
 
 import user from "./fixtures/user.json" with { type: "json" };
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { seedAuthStore } from "./helpers/auth-store.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { org } from "./pages/shell.page.mjs";
 
@@ -35,11 +38,14 @@ test.describe("Not found page", () => {
     await page.goto("/404");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("matches the approved screenshots", async ({ page }) => {
     await page.goto("/404");
     await expect(page.getByRole("img", { name: /owl/i })).toBeVisible();
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "not-found");
     await expectScreenshots(page, "not-found");
   });
 });
@@ -79,10 +85,20 @@ for (const doc of [
 
     test("has no WCAG 2.2 AA violations", async ({ page }) => {
       await expectNoAxeViolations(page);
+      await expectPageSweep(page);
     });
 
     test("matches the approved screenshots", async ({ page }) => {
+      await expectPageSweep(page);
+      await expectMainSnapshot(page, doc.name);
       await expectScreenshots(page, doc.name);
+    });
+
+    describeOnAPhone("On a phone", () => {
+      test("fits without scrolling sideways", async ({ page }) => {
+        await expectPageSweep(page);
+        await expectScreenshots(page, doc.name);
+      });
     });
   });
 }
@@ -136,6 +152,7 @@ test.describe("Help page signed out", () => {
       page.getByRole("link", { name: "contact@codeclarity.io" }),
     ).toHaveAttribute("href", "mailto:contact@codeclarity.io");
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 });
 
@@ -186,9 +203,30 @@ test.describe("Help page", () => {
     page,
   }) => {
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("matches the approved screenshots", async ({ page }) => {
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "help");
     await expectScreenshots(page, "help");
+  });
+
+  describeOnAPhone("On a phone", () => {
+    test("the help page fits without scrolling sideways", async ({ page }) => {
+      await expectPageSweep(page);
+      await expectScreenshots(page, "help");
+    });
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("the not found page does not scroll sideways", async ({ page }) => {
+    await page.goto("/this/does/not/exist");
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
+    await expectScreenshots(page, "not-found-page");
   });
 });

@@ -1,16 +1,25 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/vue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  type GetRepositoriesRequestOptions,
+  IntegrationsRepository,
+} from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
 import type { Repository } from "@/codeclarity_components/projects/project.entity";
+
+import {
+  createTestApp,
+  org,
+  type TestApp,
+} from "../../../../../../tests/real-app";
 
 import RepoTable, { type RepoTableConfig } from "./RepoTable.vue";
 
-// The real helpers, so the shadcn controls follow prop changes.
-vi.mock("@vueuse/core", async () => await vi.importActual("@vueuse/core"));
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class {},
-  BusinessLogicError: class extends Error {},
-}));
+const reposPath = `/org/${org.id}/integrations/github/gh-1/repositories`;
+
+// The GitHub importer's own request for the repositories.
+const getRepos = (options: GetRepositoriesRequestOptions) =>
+  new IntegrationsRepository().getGithubRepositories(options);
 
 const popularConfig: RepoTableConfig = {
   languages: [
@@ -19,7 +28,7 @@ const popularConfig: RepoTableConfig = {
   ],
 };
 
-function repository(index: number, imported = false): Repository {
+function repository(index: number, imported = false) {
   return {
     id: `repo-${index}`,
     url: `https://github.com/org/repo-${index}`,
@@ -27,28 +36,46 @@ function repository(index: number, imported = false): Repository {
     visibility: "public",
     fully_qualified_name: `org/repo-${index}`,
     description: "",
-    created_at: new Date("2026-01-01"),
+    created_at: "2026-01-01T00:00:00.000Z",
     imported_already: imported,
     integration_id: "gh-1",
   };
 }
 
-describe("RepoTable", () => {
-  const getRepos = vi.fn();
+// Page `page` of three, two repositories each; the very first is imported already.
+function reposPage(page: number) {
+  return {
+    data: [repository(page * 2 + 1, page === 0), repository(page * 2 + 2)],
+    entry_count: 2,
+    page,
+    entries_per_page: 100,
+    total_entries: 6,
+    total_pages: 3,
+    status: "success",
+    matching_count: 6,
+    filter_count: {},
+  };
+}
 
-  beforeEach(() => {
-    getRepos.mockReset();
-    getRepos.mockImplementation(
-      ({ pagination }: { pagination: { page: number } }) =>
-        Promise.resolve({
-          data: [
-            repository(pagination.page * 2 + 1, pagination.page === 0),
-            repository(pagination.page * 2 + 2),
-          ],
-          total_entries: 6,
-          total_pages: 3,
-        }),
-    );
+describe("RepoTable", () => {
+  let app: TestApp;
+
+  beforeEach(async () => {
+    app = createTestApp({ signedIn: true });
+    // Answers each request with the page it asks for.
+    const fake = globalThis.fetch;
+    vi.stubGlobal("fetch", (input: string, init?: RequestInit) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith(reposPath)) {
+        app.http.on(
+          "GET",
+          reposPath,
+          reposPage(Number(url.searchParams.get("page"))),
+        );
+      }
+      return fake(input, init);
+    });
+    await app.visit("/projects/add");
   });
 
   function renderTable(
@@ -56,20 +83,17 @@ describe("RepoTable", () => {
   ): ReturnType<typeof render> {
     return render(RepoTable, {
       props: { integration: "gh-1", getRepos, ...props },
+      global: app.global,
     });
   }
 
-  function requests(): { activeFilters: string[]; page: number }[] {
-    return getRepos.mock.calls.map((call) => {
-      const options = call[0] as {
-        activeFilters: string[];
-        pagination: { page: number };
-      };
-      return {
-        activeFilters: options.activeFilters,
-        page: options.pagination.page,
-      };
-    });
+  function requests(): { activeFilters: string | null; page: number }[] {
+    return app.http.requests
+      .filter((r) => r.path === reposPath)
+      .map((r) => ({
+        activeFilters: r.query.get("active_filters"),
+        page: Number(r.query.get("page")),
+      }));
   }
 
   describe("loading", () => {
@@ -78,9 +102,9 @@ describe("RepoTable", () => {
 
       expect(await screen.findByText("org/repo-6")).toBeTruthy();
       expect(requests()).toEqual([
-        { activeFilters: ["only_non_imported", "language_all"], page: 0 },
-        { activeFilters: ["only_non_imported", "language_all"], page: 1 },
-        { activeFilters: ["only_non_imported", "language_all"], page: 2 },
+        { activeFilters: "[only_non_imported,language_all]", page: 0 },
+        { activeFilters: "[only_non_imported,language_all]", page: 1 },
+        { activeFilters: "[only_non_imported,language_all]", page: 2 },
       ]);
     });
 
@@ -88,11 +112,11 @@ describe("RepoTable", () => {
       renderTable();
 
       await screen.findByText("org/repo-6");
-      expect(requests()[0]!.activeFilters).toEqual(["only_non_imported"]);
+      expect(requests()[0]!.activeFilters).toBe("[only_non_imported]");
     });
 
     it("says when the repositories cannot be loaded and offers a retry", async () => {
-      getRepos.mockRejectedValue(new Error("boom"));
+      vi.stubGlobal("fetch", async () => new Response(null, { status: 500 }));
       renderTable();
 
       expect(

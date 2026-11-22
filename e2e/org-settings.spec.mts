@@ -1,6 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import {
+  expectNoAxeViolations,
+  expectVisibleFocus,
+  waitForAnimations,
+} from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   membership,
@@ -125,6 +132,8 @@ test.describe("Organisations list", () => {
     await expect(
       page.getByRole("heading", { name: "No organisations yet" }),
     ).toBeVisible();
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "orgs-empty");
     await page.getByRole("link", { name: "Create an organisation" }).click();
 
     await expect(page).toHaveURL(/\/orgs\/add\/?$/);
@@ -173,6 +182,8 @@ test.describe("Organisations list", () => {
     await expect(orgs.rows()).toHaveCount(3);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "orgs-list");
     await expectScreenshots(page, "orgs-list");
   });
 });
@@ -200,6 +211,8 @@ test.describe("Create an organisation", () => {
     expect(orgs.created).toEqual([]);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "orgs-create-errors");
     await expectScreenshots(page, "orgs-create-errors");
   });
 
@@ -232,6 +245,8 @@ test.describe("Create an organisation", () => {
     await expect(orgs.heading).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "orgs-create");
     await expectScreenshots(page, "orgs-create");
   });
 });
@@ -374,13 +389,19 @@ test.describe("Organisation overview", () => {
     await page.keyboard.press("Tab");
     await expectVisibleFocus(main.getByRole("link", { name: /^Invites/ }));
 
-    const toggle = page.getByRole("switch");
+    const toggle = page.getByRole("switch", {
+      name: "Resolve tickets automatically",
+    });
     await toggle.focus();
     await expectVisibleFocus(toggle);
     await page.keyboard.press("Tab");
     await expectVisibleFocus(
-      page.getByRole("button", { name: "Leave organisation" }),
+      page.getByRole("switch", { name: "Use service level targets" }),
     );
+
+    const leave = page.getByRole("button", { name: "Leave organisation" });
+    await leave.focus();
+    await expectVisibleFocus(leave);
   });
 
   test("passes axe and matches the screenshots", async ({ page }) => {
@@ -390,15 +411,16 @@ test.describe("Organisation overview", () => {
     await expect(orgs.heading).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-overview");
     await expectScreenshots(page, "org-overview");
 
     await page.getByRole("button", { name: "Delete organisation" }).click();
     await expect(page.getByRole("alertdialog")).toBeVisible();
     // Measure contrast once the dialog has finished fading in.
-    await page.evaluate(() =>
-      Promise.all(document.getAnimations().map((a) => a.finished)),
-    );
+    await waitForAnimations(page);
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 });
 
@@ -496,5 +518,40 @@ test.describe("Organisation settings in the sidebar", () => {
       "Policies",
       "Audit logs",
     ]);
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("the organisations list does not scroll sideways", async ({ page }) => {
+    const orgs = new OrgSettingsPage(page);
+    await orgs.signIn();
+    await orgs.gotoList();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
+    await expectScreenshots(page, "organisations-list");
+  });
+
+  test("the organisation form does not scroll sideways", async ({ page }) => {
+    const orgs = new OrgSettingsPage(page);
+    await orgs.signIn();
+    await orgs.gotoCreate();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
+    await expectScreenshots(page, "organisation-form");
+  });
+
+  test("the organisation overview fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const orgs = new OrgSettingsPage(page);
+    await orgs.signIn();
+    await orgs.gotoOverview();
+    await expect(orgs.heading).toBeVisible();
+    await expectPageSweep(page);
+    await expectScreenshots(page, "org-overview");
   });
 });

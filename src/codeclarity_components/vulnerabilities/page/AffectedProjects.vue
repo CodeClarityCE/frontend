@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -168,6 +169,9 @@ const instanceKey = (instance: AffectedInstance): string =>
             class="overflow-x-auto px-3 pb-3"
           >
             <Table>
+              <TableCaption class="sr-only"
+                >Instances in {{ project.project_name }}</TableCaption
+              >
               <TableHeader>
                 <TableRow>
                   <TableHead>Package</TableHead>
@@ -238,7 +242,7 @@ const instanceKey = (instance: AffectedInstance): string =>
                   <TableCell class="text-right">
                     <RouterLink
                       :to="instanceRoute(project, instance)"
-                      class="text-primary underline-offset-4 hover:underline"
+                      class="text-brand-subtle-foreground underline-offset-4 hover:underline"
                       >Details</RouterLink
                     >
                   </TableCell>
@@ -253,7 +257,7 @@ const instanceKey = (instance: AffectedInstance): string =>
               <li v-for="ticket in ticketsOf(project)" :key="ticket.id">
                 <RouterLink
                   :to="ticketRoute(ticket.id)"
-                  class="text-primary underline-offset-4 hover:underline"
+                  class="text-brand-subtle-foreground underline-offset-4 hover:underline"
                   >View ticket</RouterLink
                 >
               </li>

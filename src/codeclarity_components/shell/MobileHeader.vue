@@ -24,11 +24,11 @@ const { openMobile, setOpenMobile } = useSidebar();
     </button>
     <RouterLink
       :to="{ name: 'home' }"
+      aria-label="CodeClarity, go to the Dashboard"
       class="flex min-w-0 items-center gap-2 rounded-md px-1 text-foreground outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
     >
       <img :src="logo" alt="" class="h-7 w-auto" />
       <span class="truncate text-lg font-bold">CodeClarity</span>
-      <span class="sr-only">, go to the Dashboard</span>
     </RouterLink>
   </header>
 </template>

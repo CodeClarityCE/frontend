@@ -1,0 +1,18 @@
+- main:
+  - heading "Dashboard" [level=1]
+  - paragraph: Your Experiments first, then the security of your projects.
+  - region "Research":
+    - heading "Research" [level=2]
+    - img "The CodeClarity owl"
+    - heading "No Datasets yet" [level=2]
+    - paragraph: "Research starts with a Dataset: a cohort of GitHub repositories ranked by stars. Build one, then run Experiments on it."
+    - link "Create a Dataset":
+      - /url: /datasets/add
+  - region "Projects":
+    - heading "Projects" [level=2]
+    - heading "Get started" [level=3]
+    - paragraph: Import a project from GitHub or GitLab, or upload a local archive, to start a security analysis.
+    - link "Connect a VCS":
+      - /url: /orgs/manage/integrations/org-123/
+    - link "Upload a project":
+      - /url: /projects/add

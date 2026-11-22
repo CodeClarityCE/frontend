@@ -225,10 +225,11 @@ test.describe("The auth pages logo", () => {
 });
 
 test.describe("The Theme control in the user menu", () => {
+  // The user menu sits in the desktop sidebar, also in tabs opened later.
+  test.use({ viewport: { width: 1280, height: 1024 } });
   let shell: ShellPage;
 
   test.beforeEach(async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 1024 });
     shell = new ShellPage(page);
     await shell.signIn();
   });

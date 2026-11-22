@@ -1,5 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { AnalysesPage } from "./pages/analyses.page.mjs";
 import { DashboardPage } from "./pages/dashboard.page.mjs";
 import { DatasetsPage } from "./pages/datasets.page.mjs";
@@ -71,6 +72,7 @@ test.describe("One plain error per failure", () => {
     ).toBeVisible();
     await expect(page.getByText(/Not authorized to do this/)).toHaveCount(0);
     expect(await shown()).toEqual([]);
+    await expectPageSweep(page);
   });
 
   test("a failed policy delete shows one plain toast", async ({ page }) => {
@@ -296,6 +298,7 @@ test.describe("One plain error per failure", () => {
         page.getByText("The Datasets could not be loaded."),
       ).toBeVisible();
       expect(await shown()).toEqual([]);
+      await expectPageSweep(page);
     });
 
     test(`an Experiments list that fails with ${kind} says so once, inline`, async ({
@@ -429,6 +432,7 @@ test.describe("One plain error per failure", () => {
     await expect(dashboard.research.getByRole("alert")).toBeVisible();
     await page.waitForTimeout(500);
     expect(await shown()).toEqual([]);
+    await expectPageSweep(page);
   });
 
   test("an analysis the server fails to start says so in plain words", async ({

@@ -1,14 +1,12 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
-import { createMemoryHistory, createRouter } from "vue-router";
+import { describe, expect, it } from "vitest";
+
+import { createTestApp } from "../../../../tests/real-app";
 
 import { sbomDependency } from "./sbom.fixture";
 import SbomTable from "./SbomTable.vue";
-
-// The real useVModel, so typing in the search box filters the table.
-vi.unmock("@vueuse/core");
 
 const dependencies = [
   sbomDependency("lodash", "4.17.20", { newest_release: "4.17.21" }),
@@ -30,14 +28,10 @@ const dependencies = [
   }),
 ];
 
-function show(): void {
+function show(workspace = "."): void {
   render(SbomTable, {
-    props: {
-      dependencies,
-      analysisID: "a-1",
-      projectID: "p-1",
-      workspace: ".",
-    },
+    props: { dependencies, analysisID: "a-1", projectID: "p-1", workspace },
+    global: createTestApp().global,
   });
 }
 
@@ -91,25 +85,7 @@ describe("SbomTable", () => {
   });
 
   it("keeps the selected workspace in the details link", () => {
-    const router = createRouter({
-      history: createMemoryHistory(),
-      routes: [
-        {
-          path: "/results/:page?",
-          name: "results",
-          component: { render: () => null },
-        },
-      ],
-    });
-    render(SbomTable, {
-      props: {
-        dependencies,
-        analysisID: "a-1",
-        projectID: "p-1",
-        workspace: "packages/app",
-      },
-      global: { plugins: [router], stubs: { RouterLink: false } },
-    });
+    show("packages/app");
     const href =
       screen.getByRole("link", { name: "lodash" }).getAttribute("href") ?? "";
     expect(

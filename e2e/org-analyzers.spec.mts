@@ -1,6 +1,13 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import {
+  expectNoAxeViolations,
+  expectVisibleFocus,
+  waitForAnimations,
+} from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { analyzer, OrgAnalyzersPage } from "./pages/org-analyzers.page.mjs";
 
@@ -117,6 +124,8 @@ test.describe("Organisation analyzers list", () => {
       page.getByRole("heading", { name: "No analyzers yet" }),
     ).toBeVisible();
     await expect(analyzers.table).toHaveCount(0);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-analyzers-empty");
 
     await page.getByRole("link", { name: "Create an analyzer" }).click();
 
@@ -132,6 +141,7 @@ test.describe("Organisation analyzers list", () => {
       page.getByText("The analyzers could not be loaded."),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
+    await expectPageSweep(page);
   });
 });
 
@@ -496,6 +506,7 @@ test.describe("Analyzers accessibility and look", () => {
     await expect(analyzers.rows()).toHaveCount(2);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     const newAnalyzer = page.getByRole("link", { name: "New analyzer" });
     await newAnalyzer.focus();
@@ -516,10 +527,9 @@ test.describe("Analyzers accessibility and look", () => {
     await page.keyboard.press("Enter");
     await expect(page.getByRole("dialog")).toBeVisible();
     // Measure contrast once the dialog has finished fading in.
-    await page.evaluate(() =>
-      Promise.all(document.getAnimations().map((a) => a.finished)),
-    );
+    await waitForAnimations(page);
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
   });
@@ -533,8 +543,10 @@ test.describe("Analyzers accessibility and look", () => {
     await expect(page.getByRole("radio")).toHaveCount(2);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await page.getByRole("button", { name: "Create analyzer" }).click();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     const name = page.getByLabel("Name");
     await name.focus();
@@ -546,6 +558,8 @@ test.describe("Analyzers accessibility and look", () => {
     await analyzers.signIn();
     await analyzers.gotoList();
     await expect(analyzers.rows()).toHaveCount(2);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-analyzers");
     await expectScreenshots(page, "org-analyzers");
 
     // The canvas fits itself to the width it opens at.
@@ -553,6 +567,30 @@ test.describe("Analyzers accessibility and look", () => {
     await analyzers.gotoCreate();
     await expect(page.getByRole("radio")).toHaveCount(2);
     await expect(page.getByText("js-sbom")).toBeVisible();
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-analyzer-create");
+    await expectScreenshots(page, "org-analyzer-create");
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("the analyzers list fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    await analyzers.signIn();
+    await analyzers.gotoList();
+    await expect(analyzers.rows()).toHaveCount(2);
+    await expectPageSweep(page);
+    await expectScreenshots(page, "org-analyzers");
+  });
+
+  test("New analyzer fits without scrolling sideways", async ({ page }) => {
+    const analyzers = new OrgAnalyzersPage(page);
+    await analyzers.signIn();
+    await analyzers.gotoCreate();
+    await expect(page.getByRole("radio")).toHaveCount(2);
+    await expectPageSweep(page);
     await expectScreenshots(page, "org-analyzer-create");
   });
 });

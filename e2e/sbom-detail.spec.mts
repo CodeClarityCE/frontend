@@ -1,6 +1,7 @@
 import { expect, type Locator, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { dependency, ResultTabsPage } from "./pages/result-tabs.page.mjs";
 
 test.beforeEach(async ({ page }) => {
@@ -136,6 +137,7 @@ test.describe("SBOM table", () => {
 
     await expect(tabs.rows("Dependencies")).toHaveCount(1);
     await expect(tabs.rows("Dependencies")).toContainText("lodash");
+    await expectPageSweep(page);
   });
 });
 
@@ -155,6 +157,7 @@ test.describe("SBOM counts", () => {
     await expect(numbers.getByRole("listitem").nth(3)).toHaveText(
       /^\s*Vulnerabilities\s*3(?!\d)/,
     );
+    await expectPageSweep(page);
   });
 });
 
@@ -190,6 +193,7 @@ test.describe("SBOM dependency details", () => {
       .filter({ hasText: "Release age" })
       .locator("xpath=following-sibling::dd");
     await expect(age).toHaveText("5 years old");
+    await expectPageSweep(page);
   });
 
   test("the graph's minimap covers no node", async ({ page }) => {

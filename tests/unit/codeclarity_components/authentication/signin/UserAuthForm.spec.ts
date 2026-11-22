@@ -1,469 +1,170 @@
-import "reflect-metadata";
-
-import { flushPromises, mount } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { nextTick } from "vue";
+import userEvent from "@testing-library/user-event";
+import { render, screen, waitFor } from "@testing-library/vue";
+import { describe, expect, it, vi } from "vitest";
 
 import UserAuthForm from "@/codeclarity_components/authentication/signin/UserAuthForm.vue";
 
-// Mock stores
-const mockAuthStore = {
-  getAuthenticated: false,
-  setToken: vi.fn(),
-  setTokenExpiry: vi.fn(),
-  setRefreshToken: vi.fn(),
-  setRefreshTokenExpiry: vi.fn(),
-  setAuthenticated: vi.fn(),
+import { createTestApp, org, type TestApp, user } from "../../../../real-app";
+
+const tokens = {
+  token: "access-token",
+  token_expiry: "2099-01-01T00:00:00.000Z",
+  refresh_token: "refresh-token",
+  refresh_token_expiry: "2099-01-01T00:00:00.000Z",
 };
 
-const mockUserStore = {
-  setUser: vi.fn(),
-};
-
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: vi.fn(() => mockAuthStore),
-}));
-
-vi.mock("@/stores/user", () => ({
-  useUserStore: vi.fn(() => mockUserStore),
-}));
-
-// Mock repositories
-const mockAuthRepository = {
-  authenticate: vi.fn(),
-  getAuthenticatedUser: vi.fn(),
-};
-
-vi.mock("@/codeclarity_components/authentication/auth.repository", () => ({
-  AuthRepository: class {
-    authenticate = mockAuthRepository.authenticate;
-    getAuthenticatedUser = mockAuthRepository.getAuthenticatedUser;
-  },
-}));
-
-// Mock API errors
-vi.mock("@/utils/api/ApiErrors", () => ({
-  APIErrors: {
-    InternalError: "InternalError",
-    WrongCredentials: "WrongCredentials",
-    RegistrationNotVerified: "RegistrationNotVerified",
-    CannotPerformActionOnSocialAccount: "CannotPerformActionOnSocialAccount",
-    EntityNotFound: "EntityNotFound",
-    ValidationFailed: "ValidationFailed",
-  },
-}));
-
-// Mock BaseRepository with partial import
-vi.mock("@/utils/api/BaseRepository", async (importOriginal) => {
-  const actual = (await importOriginal()) as any;
-
-  class ValidationError extends Error {
-    error_code: string;
-    constructor(code: string) {
-      super();
-      this.error_code = code;
-    }
-    toMessage(prefix: string) {
-      return `${prefix} Validation error`;
-    }
-  }
-
-  class BusinessLogicError extends Error {
-    error_code: string;
-    constructor(code: string) {
-      super();
-      this.error_code = code;
-    }
-  }
-
-  return {
-    ...actual,
-    ValidationError,
-    BusinessLogicError,
-  };
+// The API's answer when it refuses a sign-in.
+const refusal = (error_code: string) => ({
+  status_code: 400,
+  status: "failure",
+  error_code,
+  error_message: "",
 });
 
-// Mock router
-vi.mock("@/router", () => ({
-  default: {
-    push: vi.fn(),
-    replace: vi.fn(),
-    currentRoute: { value: { query: {} } },
-  },
-}));
+// The login page for a signed-out visitor; sign-in succeeds unless a test says otherwise.
+async function openLogin(path = "/login"): Promise<TestApp> {
+  const app = createTestApp();
+  app.http.on("POST", "/auth/authenticate", { data: tokens });
+  app.http.on("GET", "/auth/user", { data: user });
+  app.http.on("GET", `/org/${org.id}`, { data: org });
+  await app.visit(path);
+  render(UserAuthForm, { global: app.global });
+  return app;
+}
 
-// Mock vue-router
-vi.mock("vue-router", async (importOriginal) => {
-  const actual = (await importOriginal()) as any;
-  return {
-    ...actual,
-    createRouter: vi.fn(),
-    createWebHistory: vi.fn(),
-  };
-});
+async function signIn(email = user.email, password = "secret"): Promise<void> {
+  const typist = userEvent.setup();
+  if (email) await typist.type(screen.getByLabelText("Email"), email);
+  if (password) await typist.type(screen.getByLabelText("Password"), password);
+  await typist.click(screen.getByRole("button", { name: "Sign in" }));
+}
 
-// Mock Icon component
-vi.mock("@iconify/vue", () => ({
-  Icon: {
-    name: "Icon",
-    template: '<span :class="icon"></span>',
-    props: ["icon"],
-  },
-}));
-
-// Mock shadcn components
-vi.mock("@/shadcn/lib/utils", () => ({
-  cn: (...classes: any[]) => classes.filter(Boolean).join(" "),
-}));
-
-vi.mock("@/shadcn/ui/button", () => ({
-  Button: {
-    name: "Button",
-    template: '<button type="submit" class="button"><slot /></button>',
-  },
-}));
-
-vi.mock("@/shadcn/ui/form", () => ({
-  FormControl: {
-    name: "FormControl",
-    template: '<div class="form-control"><slot /></div>',
-  },
-  FormField: {
-    name: "FormField",
-    template:
-      '<div class="form-field"><slot :componentField="{ name, value: \'\' }" /></div>',
-    props: ["name"],
-  },
-  FormItem: {
-    name: "FormItem",
-    template: '<div class="form-item"><slot /></div>',
-  },
-  FormLabel: {
-    name: "FormLabel",
-    template: '<label class="form-label"><slot /></label>',
-  },
-  FormMessage: {
-    name: "FormMessage",
-    template: '<div class="form-message">Error</div>',
-  },
-}));
-
-vi.mock("@/shadcn/ui/input", () => ({
-  Input: {
-    name: "Input",
-    template: '<input class="input" :type="type" :placeholder="placeholder" />',
-    props: ["type", "placeholder"],
-  },
-}));
-
-vi.mock("@/shadcn/ui/alert/Alert.vue", () => ({
-  default: {
-    name: "Alert",
-    template: '<div class="alert" :class="variant"><slot /></div>',
-    props: ["variant"],
-  },
-}));
-
-vi.mock("@/shadcn/ui/alert/AlertDescription.vue", () => ({
-  default: {
-    name: "AlertDescription",
-    template: '<div class="alert-description"><slot /></div>',
-  },
-}));
-
-// Mock vee-validate
-vi.mock("vee-validate", () => ({
-  useForm: () => ({
-    isSubmitting: { value: false },
-    values: {},
-    handleSubmit:
-      (fn: (values: { email: string; password: string }) => void) =>
-      (e: Event) => {
-        e?.preventDefault?.();
-        fn({ email: "test@example.com", password: "password123" });
-      },
-  }),
-}));
+const signInRequests = (app: TestApp) =>
+  app.http.requests.filter((r) => r.path === "/auth/authenticate");
 
 describe("UserAuthForm.vue", () => {
-  let wrapper: any;
+  it("asks for the email and password, and links to password reset", async () => {
+    await openLogin();
 
-  beforeEach(async () => {
-    // Reset mocks
-    vi.clearAllMocks();
-    mockAuthStore.getAuthenticated = false;
-
-    wrapper = mount(UserAuthForm, {
-      global: {
-        mocks: {
-          $router: {
-            push: vi.fn(),
-          },
-        },
-      },
-    });
+    expect(screen.getByLabelText("Email")).toHaveAttribute("type", "text");
+    expect(screen.getByLabelText("Password")).toHaveAttribute(
+      "type",
+      "password",
+    );
+    expect(
+      screen.getByRole("link", { name: "Forgot your password?" }),
+    ).toHaveAttribute("href", "/password_reset_request");
   });
 
-  describe("Component Structure", () => {
-    it("renders the component", () => {
-      expect(wrapper.exists()).toBe(true);
-    });
+  it("sends a visitor who is already signed in to the home page", async () => {
+    const app = createTestApp({ signedIn: true });
+    await app.visit("/login");
 
-    it("displays the form when not loading", () => {
-      const form = wrapper.find("form");
-      expect(form.exists()).toBe(true);
-    });
+    render(UserAuthForm, { global: app.global });
 
-    it("has email and password fields", () => {
-      const emailField = wrapper.find(".form-field .form-label");
-      expect(emailField.text()).toBe("Email");
-
-      const passwordField = wrapper.findAll(".form-field .form-label")[1];
-      expect(passwordField.text()).toBe("Password");
-
-      const inputs = wrapper.findAll("input");
-      expect(inputs).toHaveLength(2);
-      expect(inputs[0].attributes("type")).toBe("text");
-      expect(inputs[0].attributes("placeholder")).toBe("Enter your email");
-      expect(inputs[1].attributes("type")).toBe("password");
-      expect(inputs[1].attributes("placeholder")).toBe("Enter your password");
-    });
-
-    it("links to password reset", () => {
-      const link = wrapper.find('a[href="recoveryRequest"]');
-      expect(link.exists()).toBe(true);
-      expect(link.text()).toBe("Forgot your password?");
-    });
-
-    it("has a submit button", () => {
-      const button = wrapper.find('button[type="submit"]');
-      expect(button.exists()).toBe(true);
-      expect(button.text()).toBe("Sign in");
-    });
+    await waitFor(() => expect(app.router.currentRoute.value.path).toBe("/"));
   });
 
-  describe("Authentication Flow", () => {
-    it("redirects to home if user is already authenticated", async () => {
-      mockAuthStore.getAuthenticated = true;
+  describe("Validation", () => {
+    it("asks for both fields before sending anything", async () => {
+      const app = await openLogin();
 
-      const routerPushMock = vi.fn();
-      const { default: router } = await import("@/router");
-      router.push = routerPushMock;
+      await signIn("", "");
 
-      mount(UserAuthForm, {
-        global: {
-          mocks: {
-            $router: {
-              push: routerPushMock,
-            },
-          },
-        },
-      });
-
-      expect(routerPushMock).toHaveBeenCalledWith("/");
+      expect(await screen.findByText("Enter your email")).toBeInTheDocument();
+      expect(screen.getByText("Enter your password")).toBeInTheDocument();
+      expect(signInRequests(app)).toEqual([]);
     });
 
-    it("submits form and authenticates successfully", async () => {
-      const mockToken = {
-        token: "test-token",
-        token_expiry: "2024-12-31",
-        refresh_token: "refresh-token",
-        refresh_token_expiry: "2025-01-31",
-      };
+    it("refuses an email that is not one", async () => {
+      const app = await openLogin();
 
-      const mockUser = {
-        id: 1,
-        email: "test@example.com",
-        name: "Test User",
-      };
-
-      mockAuthRepository.authenticate.mockResolvedValue(mockToken);
-      mockAuthRepository.getAuthenticatedUser.mockResolvedValue(mockUser);
-
-      const form = wrapper.find("form");
-      await form.trigger("submit");
-      await flushPromises();
-
-      expect(mockAuthRepository.authenticate).toHaveBeenCalledWith({
-        data: { email: "test@example.com", password: "password123" },
-        handleBusinessErrors: true,
-        handleHTTPErrors: true,
-      });
-
-      expect(mockAuthRepository.getAuthenticatedUser).toHaveBeenCalledWith({
-        bearerToken: "test-token",
-        handleBusinessErrors: true,
-        handleHTTPErrors: true,
-      });
-
-      expect(mockAuthStore.setToken).toHaveBeenCalledWith("test-token");
-      expect(mockAuthStore.setTokenExpiry).toHaveBeenCalledWith("2024-12-31");
-      expect(mockAuthStore.setRefreshToken).toHaveBeenCalledWith(
-        "refresh-token",
-      );
-      expect(mockAuthStore.setRefreshTokenExpiry).toHaveBeenCalledWith(
-        "2025-01-31",
-      );
-      expect(mockAuthStore.setAuthenticated).toHaveBeenCalledWith(true);
-      expect(mockUserStore.setUser).toHaveBeenCalledWith(mockUser);
-
-      const { default: router } = await import("@/router");
-      expect(router.push).toHaveBeenCalledWith("/");
-    });
-
-    it("shows loading state during authentication", async () => {
-      mockAuthRepository.authenticate.mockImplementation(
-        () => new Promise((resolve) => setTimeout(resolve, 100)),
-      );
-
-      const form = wrapper.find("form");
-      await form.trigger("submit");
-      await nextTick();
+      await signIn("not-an-email");
 
       expect(
-        wrapper.find('button[type="submit"]').attributes("disabled"),
-      ).toBeDefined();
-      expect(wrapper.text()).toContain("Connecting");
-      expect(wrapper.find(".animate-spin").exists()).toBe(true);
+        await screen.findByText("Enter a valid email address"),
+      ).toBeInTheDocument();
+      expect(signInRequests(app)).toEqual([]);
     });
+  });
+
+  it("shows that it is connecting while the sign-in is pending", async () => {
+    await openLogin();
+    vi.stubGlobal("fetch", () => new Promise(() => undefined));
+
+    await signIn();
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Connecting");
+    expect(screen.getByRole("button", { name: "Sign in" })).toBeDisabled();
   });
 
   describe("Error Handling", () => {
-    it("handles wrong credentials error", async () => {
-      const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
-      mockAuthRepository.authenticate.mockRejectedValue(
-        new BusinessLogicError(
-          "WrongCredentials",
-          "Wrong credentials provided",
-        ),
-      );
-
-      const form = wrapper.find("form");
-      await form.trigger("submit");
-      await flushPromises();
-
-      const alert = wrapper.find(".alert");
-      expect(alert.exists()).toBe(true);
-      expect(alert.classes()).toContain("destructive");
-      expect(wrapper.text()).toContain("The email or password is incorrect.");
-    });
-
-    it("handles registration not verified error", async () => {
-      const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
-      mockAuthRepository.authenticate.mockRejectedValue(
-        new BusinessLogicError(
-          "RegistrationNotVerified",
-          "Registration not verified",
-        ),
-      );
-
-      const form = wrapper.find("form");
-      await form.trigger("submit");
-      await flushPromises();
-
-      expect(wrapper.text()).toContain(
+    it.each([
+      ["WrongCredentials", "The email or password is incorrect."],
+      [
+        "RegistrationNotVerified",
         "You have not yet verified your registration",
-      );
-    });
-
-    it("handles social account error", async () => {
-      const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
-      mockAuthRepository.authenticate.mockRejectedValue(
-        new BusinessLogicError(
-          "CannotPerformActionOnSocialAccount",
-          "Cannot perform action on social account",
-        ),
-      );
-
-      const form = wrapper.find("form");
-      await form.trigger("submit");
-      await flushPromises();
-
-      expect(wrapper.text()).toContain(
+      ],
+      [
+        "CannotPerformActionOnSocialAccount",
         "This account signs in with GitHub or GitLab, so it has no password.",
-      );
+      ],
+      [
+        "InternalError",
+        "Something went wrong while signing you in. Please try again.",
+      ],
+    ])("explains a %s refusal", async (code, message) => {
+      const app = await openLogin();
+      app.http.on("POST", "/auth/authenticate", refusal(code), 400);
+
+      await signIn();
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(message);
+      expect(app.router.currentRoute.value.name).toBe("login");
     });
 
-    it("handles validation error", async () => {
-      const { ValidationError } = await import("@/utils/api/BaseRepository");
-      mockAuthRepository.authenticate.mockRejectedValue(
-        new ValidationError("ValidationFailed", "Validation failed", []),
-      );
+    it("shows a general error when the server answers something unexpected", async () => {
+      const app = await openLogin();
+      app.http.on("POST", "/auth/authenticate", { data: { token: 42 } });
 
-      const form = wrapper.find("form");
-      await form.trigger("submit");
-      await flushPromises();
+      await signIn();
 
-      expect(wrapper.text()).toContain(
+      expect(await screen.findByRole("alert")).toHaveTextContent(
         "Something went wrong while signing you in. Please try again.",
       );
     });
 
-    it("handles account not activated and returns to login with a notice", async () => {
-      const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
-      mockAuthRepository.authenticate.mockRejectedValue(
-        new BusinessLogicError("AccountNotActivated", "Account not activated"),
+    it("returns to login with a notice when the account is not activated", async () => {
+      const app = await openLogin("/login?redirect=/projects");
+      app.http.on(
+        "POST",
+        "/auth/authenticate",
+        refusal("AccountNotActivated"),
+        400,
       );
 
-      const form = wrapper.find("form");
-      await form.trigger("submit");
-      await flushPromises();
+      await signIn();
 
-      const { default: router } = await import("@/router");
-      expect(router.replace).toHaveBeenCalledWith({
-        name: "login",
-        query: { notice: "not_activated" },
-      });
-    });
-
-    it("handles generic errors", async () => {
-      mockAuthRepository.authenticate.mockRejectedValue(
-        new Error("Network error"),
+      await waitFor(() =>
+        expect(app.router.currentRoute.value.query).toEqual({
+          notice: "not_activated",
+          redirect: "/projects",
+        }),
       );
-
-      const form = wrapper.find("form");
-      await form.trigger("submit");
-      await flushPromises();
-
-      expect(wrapper.text()).toContain(
-        "Something went wrong while signing you in. Please try again.",
-      );
+      expect(app.router.currentRoute.value.name).toBe("login");
     });
   });
 
-  describe("Form Behavior", () => {
-    it("resets error state when submitting", async () => {
-      // First submission with error
-      const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
-      mockAuthRepository.authenticate.mockRejectedValue(
-        new BusinessLogicError(
-          "WrongCredentials",
-          "Wrong credentials provided",
-        ),
-      );
+  it("clears the error once a later sign-in succeeds", async () => {
+    const app = await openLogin();
+    app.http.on("POST", "/auth/authenticate", refusal("WrongCredentials"), 400);
+    await signIn();
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
 
-      const form = wrapper.find("form");
-      await form.trigger("submit");
-      await flushPromises();
+    app.http.on("POST", "/auth/authenticate", { data: tokens });
+    await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
-      expect(wrapper.find(".alert").exists()).toBe(true);
-
-      // Second submission that succeeds
-      mockAuthRepository.authenticate.mockResolvedValue({
-        token: "test-token",
-        token_expiry: "2024-12-31",
-        refresh_token: "refresh-token",
-        refresh_token_expiry: "2025-01-31",
-      });
-      mockAuthRepository.getAuthenticatedUser.mockResolvedValue({
-        id: 1,
-        email: "test@example.com",
-      });
-
-      await form.trigger("submit");
-      await flushPromises();
-
-      expect(wrapper.find(".alert").exists()).toBe(false);
-    });
+    await waitFor(() => expect(app.router.currentRoute.value.path).toBe("/"));
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });

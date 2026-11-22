@@ -169,6 +169,8 @@ const ticketStats = {
   total_in_progress: 2,
   total_resolved_this_week: 1,
   total_closed: 3,
+  total_overdue: 0,
+  total_due_this_week: 0,
   by_priority: { critical: 1, high: 2, medium: 1, low: 0 },
   by_project: [],
   recent_tickets: [

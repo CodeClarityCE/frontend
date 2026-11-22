@@ -1,12 +1,14 @@
+import { render, screen } from "@testing-library/vue";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { toast } from "vue-sonner";
+import { defineComponent } from "vue";
+
+import {
+  createTestApp,
+  type TestApp,
+  withToaster,
+} from "../../../tests/real-app";
 
 import { BaseRepository, BusinessLogicError } from "./BaseRepository";
-
-// Runs the real repository so only the network is faked.
-vi.unmock("@/utils/api/BaseRepository");
-vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
-vi.mock("vue-sonner", () => ({ toast: { error: vi.fn() } }));
 
 class ProbeRepository extends BaseRepository {
   send(): Promise<unknown> {
@@ -34,51 +36,51 @@ class ProbeRepository extends BaseRepository {
   }
 }
 
-function failWith(code: string, message: string): void {
-  vi.mocked(fetch).mockResolvedValue(
-    new Response(
-      JSON.stringify({
-        status_code: 400,
-        status: "failure",
-        error_code: code,
-        error_message: message,
-      }),
-      { status: 400 },
-    ),
+// A page with the app's toaster, whose GET /probe fails with a business error.
+function failingPage(): TestApp {
+  const app = createTestApp();
+  app.http.on(
+    "GET",
+    "/probe",
+    {
+      status_code: 400,
+      status: "failure",
+      error_code: "EntityNotFound",
+      error_message: "The entity was not found in the db.",
+    },
+    400,
   );
+  render(withToaster(defineComponent(() => () => null)), {
+    global: app.global,
+  });
+  return app;
 }
 
 describe("BaseRepository business errors", () => {
-  beforeEach(() => {
-    vi.stubGlobal("fetch", vi.fn());
-    vi.mocked(toast.error).mockClear();
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   it("toasts in plain words, without the error code or the server's reason", async () => {
-    failWith("EntityNotFound", "The entity was not found in the db.");
+    failingPage();
 
     await expect(new ProbeRepository().load()).rejects.toBeInstanceOf(
       BusinessLogicError,
     );
 
-    expect(toast.error).toHaveBeenCalledTimes(1);
-    expect(toast.error).toHaveBeenCalledWith(
-      "The request could not be processed. Please try again.",
-    );
+    expect(
+      await screen.findByText(
+        "The request could not be processed. Please try again.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/EntityNotFound|not found in the db/)).toBeNull();
   });
 
   it("leaves the message to callers that handle business errors", async () => {
-    failWith("EntityNotFound", "The entity was not found in the db.");
+    failingPage();
 
     await expect(new ProbeRepository().load(true)).rejects.toMatchObject({
       error_code: "EntityNotFound",
     });
 
-    expect(toast.error).not.toHaveBeenCalled();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.queryByRole("listitem")).toBeNull();
   });
 });
 

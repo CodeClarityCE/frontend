@@ -1,6 +1,5 @@
 import { type DOMWrapper, flushPromises, mount } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createMemoryHistory, createRouter, type Router } from "vue-router";
+import { describe, expect, it } from "vitest";
 
 import type { MyWorkEntry } from "@/codeclarity_components/tickets/my_work.entity";
 import {
@@ -9,21 +8,9 @@ import {
 } from "@/codeclarity_components/tickets/tickets.entity";
 import { RemediationKind } from "@/codeclarity_components/vulnerabilities/organization_vulnerability.entity";
 
+import { createTestApp, org } from "../../../../tests/real-app";
+
 import MyWork from "./MyWork.vue";
-
-const getMyWork = vi.fn<(options: object) => Promise<MyWorkEntry[]>>();
-
-vi.mock("@/codeclarity_components/tickets/tickets.repository", () => ({
-  TicketsRepository: class {
-    getMyWork = getMyWork;
-  },
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token" }),
-}));
 
 const entry = (extra: Partial<MyWorkEntry>): MyWorkEntry => ({
   ticket_id: "t-1",
@@ -52,28 +39,12 @@ const entry = (extra: Partial<MyWorkEntry>): MyWorkEntry => ({
   ...extra,
 });
 
-function makeRouter(): Router {
-  const page = { template: "<div />" };
-  return createRouter({
-    history: createMemoryHistory(),
-    routes: [
-      { path: "/", component: page },
-      {
-        path: "/org/:orgId/vulnerabilities/:vulnerabilityId",
-        name: "orgVulnerability",
-        component: page,
-      },
-      { path: "/tickets", name: "tickets", component: page },
-      { path: "/tickets/:ticketId", name: "ticket", component: page },
-    ],
-  });
-}
-
+// The card on the dashboard, with the entries the API answers.
 async function mountMyWork(entries: MyWorkEntry[]) {
-  getMyWork.mockResolvedValue(entries);
-  const wrapper = mount(MyWork, {
-    global: { plugins: [makeRouter()], stubs: { RouterLink: false } },
-  });
+  const app = createTestApp({ signedIn: true });
+  app.http.on("GET", `/org/${org.id}/tickets/my-work`, { data: entries });
+  await app.visit("/");
+  const wrapper = mount(MyWork, { global: app.global });
   await flushPromises();
   return wrapper;
 }
@@ -82,8 +53,6 @@ const chips = (item: DOMWrapper<Element>): string[] =>
   item.findAll("[data-testid='fix-next-reason']").map((c) => c.text());
 
 describe("MyWork", () => {
-  beforeEach(() => getMyWork.mockReset());
-
   it("shows each ticket's remediation, due date and reason chips in the API's order", async () => {
     const wrapper = await mountMyWork([
       entry({}),
@@ -169,7 +138,7 @@ describe("MyWork", () => {
     expect(item.find("h3").text()).toBe("Fix CVE-2099-7705 in axios");
     expect(
       item.find("a[data-testid='my-work-vulnerability']").attributes("href"),
-    ).toBe("/org/org-1/vulnerabilities/CVE-2099-7705");
+    ).toBe("/org/org-123/vulnerabilities/CVE-2099-7705");
     expect(item.text()).toContain("axios");
     // Nothing tracked in the current analysis: no prod or dev only chip.
     expect(chips(item)).toEqual(["Low"]);

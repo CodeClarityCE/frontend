@@ -1,213 +1,183 @@
-import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/vue";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
-import router from "@/router";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
+import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
+
+import {
+  createTestApp,
+  type TestApp,
+  user,
+  withToaster,
+} from "../../../../tests/real-app";
 
 import OrganizationJoin from "./OrganizationJoin.vue";
 
-const { JOIN_PATH, getOrgInfo, joinOrg, authStore, userStore } = vi.hoisted(
-  () => ({
-    JOIN_PATH: "/email_action/join_org?token=tok&useremail=digest&orgId=org-1",
-    getOrgInfo: vi.fn(),
-    joinOrg: vi.fn(),
-    authStore: {
-      getAuthenticated: true,
-      getToken: "test-token",
-      $reset: vi.fn(),
-    },
-    userStore: {
-      getUser: { email: "someone.else@example.com" },
-      $reset: vi.fn(),
-    },
-  }),
-);
-
-vi.mock("@/router", () => ({
-  default: {
-    back: vi.fn(),
-    push: vi.fn(),
-    currentRoute: { value: { fullPath: JOIN_PATH } },
-  },
-}));
-
-// The shared icon mock lacks this page's icons, so render the real ones.
-vi.mock("@lucide/vue", async () => await vi.importActual("@lucide/vue"));
-
-vi.mock("@/stores/auth", () => ({ useAuthStore: () => authStore }));
-vi.mock("@/stores/user", () => ({ useUserStore: () => userStore }));
-
-vi.mock("@/utils/toasts", () => ({ successToast: vi.fn() }));
-
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class {},
-  BusinessLogicError: class BusinessLogicError extends Error {
-    error_code: string;
-    constructor(error_code: string) {
-      super(error_code);
-      this.error_code = error_code;
-    }
-  },
-}));
-
-vi.mock(
-  "@/codeclarity_components/organizations/organization.repository",
-  () => ({
-    OrgRepository: class {
-      getOrgInfoAsInvitedMember = getOrgInfo;
-      joinOrgViaInvitation = joinOrg;
-    },
-  }),
-);
+const JOIN_PATH =
+  "/email_action/join_org?token=tok&useremail=digest&orgId=org-1";
+const infoPath = "/org/org-1/org_info_invitee";
+const joinPath = "/org/org-1/join";
 
 const orgInfo = {
-  id: "inv-1",
+  id: "org-1",
   name: "Inviting Org",
-  description: "",
+  description: "Builds things",
   color_scheme: "1",
-  created_on: new Date("2026-01-01"),
-  invite_created_on: new Date("2026-11-01"),
+  created_on: "2026-01-01T00:00:00Z",
+  invite_created_on: "2026-11-01T00:00:00Z",
   role: MemberRole.ADMIN,
   number_of_members: 2,
 };
 
-// The API answers with a business error carrying this code.
-function apiError(code: string): Error {
-  return new (BusinessLogicError as unknown as new (code: string) => Error)(
-    code,
-  );
+const apiError = (error_code: string) => ({
+  status_code: 400,
+  status: "failure",
+  error_code,
+  error_message: error_code,
+});
+
+// Opens the invitation link signed in; info answers the invitation lookup.
+async function openInvitation(
+  info: { body: unknown; status?: number } = { body: { data: orgInfo } },
+): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  app.http.on("GET", infoPath, info.body, info.status);
+  await app.visit(JOIN_PATH);
+  render(withToaster(OrganizationJoin), { global: app.global });
+  return app;
 }
 
-// Button labels, without the text some icons render in jsdom.
-function buttonLabels(wrapper: VueWrapper): string[] {
-  return wrapper.findAll("button").map((b) => b.text().split("{")[0]!.trim());
-}
+const button = (name: string) => screen.queryByRole("button", { name });
 
-async function mountPage(): Promise<VueWrapper> {
-  const wrapper = mount(OrganizationJoin);
-  await flushPromises();
-  return wrapper;
-}
-
-async function clickButton(wrapper: VueWrapper, label: string): Promise<void> {
-  const button = wrapper
-    .findAll("button")
-    .find((b) => b.text().split("{")[0]!.trim() === label);
-  expect(button, `button "${label}"`).toBeDefined();
-  await button!.trigger("click");
-  await flushPromises();
-}
+const wrongAccount = `sent to a different account than the one you are signed in with (${user.email})`;
 
 describe("OrganizationJoin", () => {
   beforeEach(() => {
+    // The page reads the invitation from the address bar.
     window.history.replaceState({}, "", JOIN_PATH);
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
   });
 
   describe("when loading the invitation fails", () => {
     it("tells a user on the wrong account to switch, with no retry", async () => {
-      getOrgInfo.mockRejectedValue(apiError("NotAuthorized"));
+      await openInvitation({ body: apiError("NotAuthorized"), status: 403 });
 
-      const wrapper = await mountPage();
-
-      expect(wrapper.text()).toContain(
-        "sent to a different account than the one you are signed in with (someone.else@example.com)",
-      );
-      expect(buttonLabels(wrapper)).toContain("Sign out and switch account");
-      expect(buttonLabels(wrapper)).toContain("Go back");
-      expect(buttonLabels(wrapper)).not.toContain("Try again");
+      expect(
+        await screen.findByText(wrongAccount, { exact: false }),
+      ).toBeInTheDocument();
+      expect(button("Sign out and switch account")).toBeInTheDocument();
+      expect(button("Go back")).toBeInTheDocument();
+      expect(button("Try again")).not.toBeInTheDocument();
     });
 
     it.each(["InvitationInvalidOrExpired", "EntityNotFound"])(
       "says the invitation is gone on %s, with no retry",
       async (code) => {
-        getOrgInfo.mockRejectedValue(apiError(code));
+        await openInvitation({ body: apiError(code), status: 404 });
 
-        const wrapper = await mountPage();
-
-        expect(wrapper.text()).toContain(
-          "This invitation does not exist or has expired.",
-        );
-        expect(buttonLabels(wrapper)).not.toContain("Try again");
-        expect(buttonLabels(wrapper)).not.toContain(
-          "Sign out and switch account",
-        );
+        expect(
+          await screen.findByText(
+            "This invitation does not exist or has expired.",
+          ),
+        ).toBeInTheDocument();
+        expect(button("Try again")).not.toBeInTheDocument();
+        expect(button("Sign out and switch account")).not.toBeInTheDocument();
       },
     );
 
     it("offers a retry on any other error", async () => {
-      getOrgInfo.mockRejectedValue(apiError("InternalError"));
+      await openInvitation({ body: apiError("InternalError"), status: 500 });
 
-      const wrapper = await mountPage();
-
-      expect(wrapper.text()).toContain(
-        "Something went wrong while loading the invitation.",
-      );
-      expect(buttonLabels(wrapper)).toContain("Try again");
+      expect(
+        await screen.findByText(
+          "Something went wrong while loading the invitation.",
+        ),
+      ).toBeInTheDocument();
+      expect(button("Try again")).toBeInTheDocument();
     });
   });
 
-  describe("when joining fails", () => {
-    beforeEach(() => {
-      getOrgInfo.mockResolvedValue(orgInfo);
+  describe("when joining", () => {
+    async function join(answer: unknown, status = 200): Promise<TestApp> {
+      const app = await openInvitation();
+      app.http.on("POST", joinPath, answer, status);
+      await userEvent.click(
+        await screen.findByRole("button", { name: "Join organisation" }),
+      );
+      return app;
+    }
+
+    it("joins with the invitation token and opens the organisation", async () => {
+      const app = await join({ status_code: 200, status: "success" });
+
+      expect(
+        await screen.findByText("You joined Inviting Org"),
+      ).toBeInTheDocument();
+      expect(app.router.currentRoute.value.params).toMatchObject({
+        action: "manage",
+        page: "main",
+        orgId: "org-1",
+      });
+      expect(app.http.requests.find((r) => r.path === joinPath)?.body).toEqual({
+        token: "tok",
+        email_digest: "digest",
+      });
     });
 
     it("tells a user on the wrong account to switch, with no retry", async () => {
-      joinOrg.mockRejectedValue(apiError("NotAuthorized"));
-      const wrapper = await mountPage();
+      await join(apiError("NotAuthorized"), 403);
 
-      await clickButton(wrapper, "Join organisation");
-
-      expect(wrapper.text()).toContain(
-        "sent to a different account than the one you are signed in with (someone.else@example.com)",
-      );
-      expect(buttonLabels(wrapper)).toContain("Sign out and switch account");
-      expect(buttonLabels(wrapper)).not.toContain("Try again");
+      expect(
+        await screen.findByText(wrongAccount, { exact: false }),
+      ).toBeInTheDocument();
+      expect(button("Sign out and switch account")).toBeInTheDocument();
+      expect(button("Try again")).not.toBeInTheDocument();
     });
 
     it.each(["InvitationInvalidOrExpired", "EntityNotFound"])(
       "says the invitation is gone on %s, with no retry",
       async (code) => {
-        joinOrg.mockRejectedValue(apiError(code));
-        const wrapper = await mountPage();
+        await join(apiError(code), 404);
 
-        await clickButton(wrapper, "Join organisation");
-
-        expect(wrapper.text()).toContain(
-          "This invitation does not exist or has expired.",
-        );
-        expect(buttonLabels(wrapper)).not.toContain("Try again");
+        expect(
+          await screen.findByText(
+            "This invitation does not exist or has expired.",
+          ),
+        ).toBeInTheDocument();
+        expect(button("Try again")).not.toBeInTheDocument();
       },
     );
 
     it("offers a retry on any other error", async () => {
-      joinOrg.mockRejectedValue(apiError("InternalError"));
-      const wrapper = await mountPage();
+      await join(apiError("InternalError"), 500);
 
-      await clickButton(wrapper, "Join organisation");
-
-      expect(wrapper.text()).toContain(
-        "Something went wrong while joining the organisation.",
-      );
-      expect(buttonLabels(wrapper)).toContain("Try again");
+      expect(
+        await screen.findByText(
+          "Something went wrong while joining the organisation.",
+        ),
+      ).toBeInTheDocument();
+      expect(button("Try again")).toBeInTheDocument();
     });
   });
 
   it("signs out and goes to login with a redirect back to this invitation", async () => {
-    getOrgInfo.mockRejectedValue(apiError("NotAuthorized"));
-    const wrapper = await mountPage();
-
-    await clickButton(wrapper, "Sign out and switch account");
-
-    expect(authStore.$reset).toHaveBeenCalled();
-    expect(userStore.$reset).toHaveBeenCalled();
-    expect(router.push).toHaveBeenCalledWith({
-      name: "login",
-      query: { redirect: JOIN_PATH },
+    const app = await openInvitation({
+      body: apiError("NotAuthorized"),
+      status: 403,
     });
+
+    await userEvent.click(
+      await screen.findByRole("button", {
+        name: "Sign out and switch account",
+      }),
+    );
+
+    await vi.waitFor(() =>
+      expect(app.router.currentRoute.value.name).toBe("login"),
+    );
+    expect(app.router.currentRoute.value.query.redirect).toBe(JOIN_PATH);
+    expect(useAuthStore().getAuthenticated).toBe(false);
+    expect(useUserStore().getUser).toBeUndefined();
   });
 });

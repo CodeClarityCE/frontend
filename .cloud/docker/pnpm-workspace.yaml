@@ -33,9 +33,7 @@ allowBuilds:
 # Patched versions forced where the parent has no fixed release. Mirror these
 # in the root pnpm-workspace.yaml.
 overrides:
-  # typed-rest-client 2.3.x (via @stryker-mutator/core ~2.3.0) pins qs 6.15.1.
-  "qs@<6.16.1": ^6.16.1
-  # @stryker-mutator/core (~10.2.4), editorconfig 3 and glob 13 stay on minimatch 10.
+  # editorconfig 3 and glob 13 stay on minimatch 10.
   "minimatch@>=7.0.0 <11.0.1": ^11.0.1
   # js-beautify (via @vue/test-utils) stays on glob 13.
   "glob@>=9.0.0 <14.0.2": ^14.0.2

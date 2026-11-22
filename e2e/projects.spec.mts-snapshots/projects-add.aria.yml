@@ -1,0 +1,14 @@
+- main:
+  - heading "Add a Project" [level=1]
+  - paragraph: Import a repository through an integration, or upload an archive.
+  - region "Choose where the project comes from":
+    - heading "Choose where the project comes from" [level=2]
+    - list "Import methods":
+      - listitem:
+        - button "GitHub Import from github.com"
+      - listitem:
+        - button "GitLab Import from gitlab.com"
+      - listitem:
+        - button /Popular on GitHub Top \d+ starred JS\/TS\/PHP repos/
+      - listitem:
+        - button "Upload an archive ZIP or TAR.GZ"

@@ -1,0 +1,39 @@
+- link "CodeClarity, go to the Dashboard":
+  - /url: /
+- button "Collapse sidebar" [expanded]
+- list:
+  - listitem:
+    - button "Organisation Test Organization , switch organisation"
+- list:
+  - listitem:
+    - button /Search (Ctrl K|⌘K)/
+- navigation "Main":
+  - list:
+    - listitem:
+      - link "Dashboard":
+        - /url: /
+  - group "Research":
+    - list:
+      - listitem:
+        - link "Datasets":
+          - /url: /datasets
+      - listitem:
+        - link "Experiments":
+          - /url: /experiments
+  - group "Projects":
+    - list:
+      - listitem:
+        - link "Projects":
+          - /url: /projects
+      - listitem: Results
+      - listitem:
+        - link "Tickets":
+          - /url: /tickets
+  - list:
+    - listitem:
+      - link "Organisation settings":
+        - /url: /orgs/manage/main/org-123/
+- list:
+  - listitem:
+    - button "John Doe john.doe@codeclarity.io , open the account menu"
+- button "Toggle Sidebar"

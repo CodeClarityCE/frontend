@@ -284,6 +284,42 @@ const manifest = {
   other_info: { package_manager: "NPM", relative_package_file: "package.json" },
 };
 
+// An analysis with nothing to patch: no patches, zero counts, and a manifest
+// whose direct dependencies are all left as they are.
+const emptyPatches = { patches: {}, dev_patches: {} };
+
+const emptyPatchingStats = Object.fromEntries(
+  Object.keys(patchingStats).map((key) => [key, 0]),
+);
+
+const emptyManifest = {
+  patched_manifest_raw: JSON.stringify(
+    { dependencies: { express: "^4.18.2", ms: "^2.1.3" }, devDependencies: {} },
+    null,
+    2,
+  ),
+  patched_manifest: {
+    dependencies: {
+      express: {
+        original_constraint: "^4.18.2",
+        vulnerable: false,
+        patch_type: null,
+        upgrade_to: null,
+        potential_breaking_changes: false,
+      },
+      ms: {
+        original_constraint: "^2.1.3",
+        vulnerable: false,
+        patch_type: null,
+        upgrade_to: null,
+        potential_breaking_changes: false,
+      },
+    },
+    devDependencies: {},
+  },
+  other_info: { package_manager: "NPM", relative_package_file: "package.json" },
+};
+
 export const sampleCodeql = [
   {
     ruleId: "js/sql-injection",
@@ -378,6 +414,8 @@ export interface ResultTabsOptions {
   vulnStats?: Record<string, unknown>;
   /** Adds a successful vuln-finder step, so the SBOM asks for vulnerability stats. */
   vulnFinder?: boolean;
+  /** Answers the patch endpoints for an analysis with nothing to patch. */
+  noPatches?: boolean;
   /** Keeps the tab's main requests pending until the returned function runs. */
   hold?: boolean;
   /** Leaves the real clock: the fixed one stops menus moving focus. */
@@ -481,12 +519,18 @@ export class ResultTabsPage {
         }
         if (path === `${results}/patching`) {
           await wait();
-          return fulfil(route, { data: patches });
+          return fulfil(route, {
+            data: options.noPatches ? emptyPatches : patches,
+          });
         }
         if (path === `${results}/patching/manifest`)
-          return fulfil(route, { data: manifest });
+          return fulfil(route, {
+            data: options.noPatches ? emptyManifest : manifest,
+          });
         if (path === `${results}/patching/stats`)
-          return fulfil(route, { data: patchingStats });
+          return fulfil(route, {
+            data: options.noPatches ? emptyPatchingStats : patchingStats,
+          });
         return fulfil(route, { data: [] });
       },
     );
@@ -519,7 +563,9 @@ export class ResultTabsPage {
 
   /** A table's body rows, without the header row. */
   rows(name: string): Locator {
-    return this.table(name).locator("tbody tr");
+    return this.table(name)
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell") });
   }
 
   sortButton(table: string, column: string): Locator {

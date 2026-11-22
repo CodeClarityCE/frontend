@@ -1,0 +1,158 @@
+- main:
+  - heading "Results" [level=1]
+  - paragraph: web-frontend
+  - tablist "Results":
+    - tab "SBOM"
+    - tab "Vulnerabilities" [selected]
+  - tabpanel "Vulnerabilities":
+    - region "Summary":
+      - heading "Summary" [level=2]
+      - text: Language JavaScript Workspace Root
+      - list "Vulnerability numbers":
+        - listitem: Vulnerabilities 4 +1 since the last scan
+        - listitem: Critical and high 2 Fix these first
+        - listitem: Vulnerable dependencies 4 No change since the last scan
+        - listitem: Security grade C Needs attention
+        - listitem: /Mean severity 6\.2 CVSS, 0 to \d+/
+        - listitem: /Max severity 9\.8 CVSS, 0 to \d+/
+      - button "How the security grade is set"
+      - heading "Vulnerabilities by severity" [level=3]
+      - group "Vulnerabilities by severity":
+        - 'img "Critical: 1 vulnerability"'
+        - 'img "High: 1 vulnerability"'
+        - 'img "Medium: 1 vulnerability"'
+        - 'img "Low: 1 vulnerability"'
+        - 'img "None: 0 vulnerabilities"'
+      - group: Show table
+      - heading "Security impact" [level=3]
+      - paragraph: /Mean impact across vulnerabilities, 0 to \d+\./
+      - term: Confidentiality
+      - definition: "8.1"
+      - term: Integrity
+      - definition: "3.3"
+      - term: Availability
+      - definition: "0.0"
+      - heading /OWASP Top \d+/ [level=3]
+      - list:
+        - listitem: A03 Injection 4
+    - region "Vulnerabilities":
+      - heading "Vulnerabilities" [level=2]
+      - paragraph: Security vulnerabilities found in your project dependencies
+      - button "Export source verdicts"
+      - searchbox "Search vulnerabilities"
+      - button "Filters"
+      - tablist "View":
+        - tab "List"
+        - tab "Table" [selected]
+      - paragraph: 4 vulnerabilities
+      - tabpanel "Table":
+        - table "Vulnerabilities":
+          - caption: Vulnerabilities
+          - rowgroup:
+            - row "CVE Severity Dependency Weakness Exploitability Impact Actions":
+              - columnheader "CVE":
+                - button "CVE"
+              - columnheader "Severity":
+                - button "Severity"
+              - columnheader "Dependency":
+                - button "Dependency"
+              - columnheader "Weakness":
+                - button "Weakness"
+              - columnheader "Exploitability":
+                - button "Exploitability"
+              - columnheader "Impact"
+              - columnheader "Actions"
+          - rowgroup:
+            - 'row /CVE-\d+-\d+ Exploit risk \d+\.\d+% Critical 9\.8 CVSS 3\.1 lodash@1\.0\.0 Not checked CWE-\d+ OWASP A03 Injection 3\.9 EPSS \d+\.\d+% Confidentiality: High Integrity: Low Create Ticket Add to Policy/':
+              - cell /CVE-\d+-\d+ Exploit risk \d+\.\d+%/:
+                - link /CVE-\d+-\d+/:
+                  - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0001&workspace=.&dependency=lodash&version=1.0.0
+                - text: ""
+              - cell "Critical 9.8 CVSS 3.1"
+              - cell "lodash@1.0.0 Not checked":
+                - list:
+                  - listitem:
+                    - link "lodash@1.0.0":
+                      - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0001&workspace=.&dependency=lodash&version=1.0.0
+                    - text: Not checked
+              - cell /CWE-\d+ OWASP A03 Injection/:
+                - list:
+                  - listitem "Cross-site Scripting": /CWE-\d+/
+                  - listitem: OWASP A03 Injection
+              - cell /3\.9 EPSS \d+\.\d+%/
+              - 'cell "Confidentiality: High Integrity: Low"':
+                - list:
+                  - listitem: "Confidentiality: High"
+                  - listitem: "Integrity: Low"
+              - cell "Create Ticket Add to Policy":
+                - button "Create Ticket"
+                - button "Add to Policy"
+            - 'row /CVE-\d+-\d+ Uncorroborated High 7\.5 CVSS 3\.1 express@1\.0\.0 Not checked CWE-\d+ OWASP A03 Injection 3\.9 EPSS 2\.0% Confidentiality: High Integrity: Low Create Ticket Add to Policy/':
+              - cell /CVE-\d+-\d+ Uncorroborated/:
+                - link /CVE-\d+-\d+/:
+                  - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0002&workspace=.&dependency=express&version=1.0.0
+                - text: ""
+              - cell "High 7.5 CVSS 3.1"
+              - cell "express@1.0.0 Not checked":
+                - list:
+                  - listitem:
+                    - link "express@1.0.0":
+                      - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0002&workspace=.&dependency=express&version=1.0.0
+                    - text: Not checked
+              - cell /CWE-\d+ OWASP A03 Injection/:
+                - list:
+                  - listitem "Cross-site Scripting": /CWE-\d+/
+                  - listitem: OWASP A03 Injection
+              - cell "3.9 EPSS 2.0%"
+              - 'cell "Confidentiality: High Integrity: Low"':
+                - list:
+                  - listitem: "Confidentiality: High"
+                  - listitem: "Integrity: Low"
+              - cell "Create Ticket Add to Policy":
+                - button "Create Ticket"
+                - button "Add to Policy"
+            - 'row /CVE-\d+-\d+ Medium 5\.3 CVSS 3\.1 axios@1\.0\.0 Not checked CWE-\d+ OWASP A03 Injection 3\.9 EPSS 2\.0% Confidentiality: High Integrity: Low Create Ticket Add to Policy/':
+              - cell /CVE-\d+-\d+/:
+                - link /CVE-\d+-\d+/:
+                  - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0003&workspace=.&dependency=axios&version=1.0.0
+              - cell "Medium 5.3 CVSS 3.1"
+              - cell "axios@1.0.0 Not checked":
+                - list:
+                  - listitem:
+                    - link "axios@1.0.0":
+                      - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0003&workspace=.&dependency=axios&version=1.0.0
+                    - text: Not checked
+              - cell /CWE-\d+ OWASP A03 Injection/:
+                - list:
+                  - listitem "Cross-site Scripting": /CWE-\d+/
+                  - listitem: OWASP A03 Injection
+              - cell "3.9 EPSS 2.0%"
+              - 'cell "Confidentiality: High Integrity: Low"':
+                - list:
+                  - listitem: "Confidentiality: High"
+                  - listitem: "Integrity: Low"
+              - cell "Create Ticket Add to Policy":
+                - button "Create Ticket"
+                - button "Add to Policy"
+            - 'row /CVE-\d+-\d+ Low 2\.1 CVSS 3\.1 minimist@1\.0\.0 Not checked CWE-\d+ OWASP A03 Injection 3\.9 EPSS 2\.0% Confidentiality: High Create Ticket Add to Policy/':
+              - cell /CVE-\d+-\d+/:
+                - link /CVE-\d+-\d+/:
+                  - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0004&workspace=.&dependency=minimist&version=1.0.0
+              - cell "Low 2.1 CVSS 3.1"
+              - cell "minimist@1.0.0 Not checked":
+                - list:
+                  - listitem:
+                    - link "minimist@1.0.0":
+                      - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0004&workspace=.&dependency=minimist&version=1.0.0
+                    - text: Not checked
+              - cell /CWE-\d+ OWASP A03 Injection/:
+                - list:
+                  - listitem "Cross-site Scripting": /CWE-\d+/
+                  - listitem: OWASP A03 Injection
+              - cell "3.9 EPSS 2.0%"
+              - 'cell "Confidentiality: High"':
+                - list:
+                  - listitem: "Confidentiality: High"
+              - cell "Create Ticket Add to Policy":
+                - button "Create Ticket"
+                - button "Add to Policy"

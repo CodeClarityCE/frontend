@@ -1,12 +1,42 @@
 import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import router from "@/router";
-
+import {
+  createTestApp,
+  type FakeRequest,
+  org,
+  type TestApp,
+  withToaster,
+} from "../../../../tests/real-app";
 import type { GridCoverageRow, PublishedVersion } from "../experiment.entity";
 
 import ExperimentDetail from "./ExperimentDetail.vue";
 
+// The API endpoints the page calls: each answers one request with a response body.
+type Endpoint = (request: FakeRequest) => unknown;
+const endpoint = (): ReturnType<typeof vi.fn<Endpoint>> => vi.fn<Endpoint>();
+const api = {
+  getExperiment: endpoint(),
+  getExperimentRuns: endpoint(),
+  cancelExperiment: endpoint(),
+  deleteExperiment: endpoint(),
+  getExperimentResults: endpoint(),
+  getPublishedVersions: endpoint(),
+  getPublishedResults: endpoint(),
+  publishExperiment: endpoint(),
+  getCurrentMetricVersion: endpoint(),
+  downloadExperimentExport: endpoint(),
+  downloadPublishedPackage: endpoint(),
+  getLoadProgress: endpoint(),
+  getFigureCatalog: endpoint(),
+  getFigures: endpoint(),
+  computeFigureData: endpoint(),
+  createFigure: endpoint(),
+  updateFigure: endpoint(),
+  deleteFigure: endpoint(),
+  getFigureData: endpoint(),
+  moveFigureToVersion: endpoint(),
+};
 const {
   getExperiment,
   getExperimentRuns,
@@ -28,117 +58,173 @@ const {
   deleteFigure,
   getFigureData,
   moveFigureToVersion,
-  saveBlob,
-  successToast,
-  errorToast,
-} = vi.hoisted(() => ({
-  getExperiment: vi.fn(),
-  getExperimentRuns: vi.fn(),
-  cancelExperiment: vi.fn(),
-  deleteExperiment: vi.fn(),
-  getExperimentResults: vi.fn(),
-  getPublishedVersions: vi.fn(),
-  getPublishedResults: vi.fn(),
-  publishExperiment: vi.fn(),
-  getCurrentMetricVersion: vi.fn(),
-  downloadExperimentExport: vi.fn(),
-  downloadPublishedPackage: vi.fn(),
-  getLoadProgress: vi.fn(),
-  getFigureCatalog: vi.fn(),
-  getFigures: vi.fn(),
-  computeFigureData: vi.fn(),
-  createFigure: vi.fn(),
-  updateFigure: vi.fn(),
-  deleteFigure: vi.fn(),
-  getFigureData: vi.fn(),
-  moveFigureToVersion: vi.fn(),
-  saveBlob: vi.fn(),
-  successToast: vi.fn(),
-  errorToast: vi.fn(),
-}));
+} = api;
 
-vi.mock("../experiments.repository", () => ({
-  ExperimentsRepository: class {
-    getExperiment = getExperiment;
-    getExperimentRuns = getExperimentRuns;
-    cancelExperiment = cancelExperiment;
-    deleteExperiment = deleteExperiment;
-    getExperimentResults = getExperimentResults;
-    getPublishedVersions = getPublishedVersions;
-    getPublishedResults = getPublishedResults;
-    publishExperiment = publishExperiment;
-    getCurrentMetricVersion = getCurrentMetricVersion;
-    downloadExperimentExport = downloadExperimentExport;
-    downloadPublishedPackage = downloadPublishedPackage;
-    getLoadProgress = getLoadProgress;
-    getFigureCatalog = getFigureCatalog;
-    getFigures = getFigures;
-    computeFigureData = computeFigureData;
-    createFigure = createFigure;
-    updateFigure = updateFigure;
-    deleteFigure = deleteFigure;
-    getFigureData = getFigureData;
-    moveFigureToVersion = moveFigureToVersion;
-  },
-}));
+const EXPERIMENT = `/org/${org.id}/experiments/exp-1`;
 
+// Which endpoint answers a method and a path below the experiment.
+const ROUTES: [string, RegExp, keyof typeof api][] = [
+  ["GET", /^$/, "getExperiment"],
+  ["DELETE", /^$/, "deleteExperiment"],
+  ["GET", /^\/runs$/, "getExperimentRuns"],
+  ["POST", /^\/cancel$/, "cancelExperiment"],
+  ["GET", /^\/results$/, "getExperimentResults"],
+  ["GET", /^\/results\/progress$/, "getLoadProgress"],
+  ["POST", /^\/publish$/, "publishExperiment"],
+  ["GET", /^\/published$/, "getPublishedVersions"],
+  ["GET", /^\/published\/\d+$/, "getPublishedResults"],
+  ["GET", /^\/published\/\d+\/package\.zip$/, "downloadPublishedPackage"],
+  ["GET", /^\/metric-version$/, "getCurrentMetricVersion"],
+  ["GET", /^\/export\/[^/]+$/, "downloadExperimentExport"],
+  ["GET", /^\/figure-catalog$/, "getFigureCatalog"],
+  ["GET", /^\/figures$/, "getFigures"],
+  ["POST", /^\/figures$/, "createFigure"],
+  ["POST", /^\/figure-data$/, "computeFigureData"],
+  ["PATCH", /^\/figures\/[^/]+$/, "updateFigure"],
+  ["DELETE", /^\/figures\/[^/]+$/, "deleteFigure"],
+  ["GET", /^\/figures\/[^/]+\/data$/, "getFigureData"],
+  ["PUT", /^\/figures\/[^/]+\/published-version$/, "moveFigureToVersion"],
+];
+
+const OK = { status_code: 200, status: "success" };
+
+// The error body the API sends with a business error code.
+function apiError(error_code: string, status = 403): Response {
+  return new Response(
+    JSON.stringify({ status_code: status, error_code, error_message: "" }),
+    { status, headers: { "Content-Type": "application/json" } },
+  );
+}
+
+// A one-page list response.
+function page(data: object[]): object {
+  return {
+    data,
+    entry_count: data.length,
+    page: 0,
+    entries_per_page: 50,
+    total_entries: data.length,
+    total_pages: 1,
+    status: "success",
+    matching_count: data.length,
+    filter_count: {},
+  };
+}
+
+// Answers the experiment's endpoints from `api`, and leaves the rest to the app's fake HTTP.
+function serveExperimentApi(app: TestApp): void {
+  const appFetch = globalThis.fetch;
+  vi.stubGlobal(
+    "fetch",
+    async (input: string | URL, init: RequestInit = {}): Promise<Response> => {
+      const url = new URL(String(input));
+      const path = url.pathname.replace(`/${import.meta.env.VITE_API_URL}`, "");
+      const method = (init.method ?? "GET").toUpperCase();
+      const route = path.startsWith(EXPERIMENT)
+        ? ROUTES.find(
+            ([m, below]) =>
+              m === method && below.test(path.slice(EXPERIMENT.length)),
+          )
+        : undefined;
+      if (!route) return await appFetch(input, init);
+      const request: FakeRequest = {
+        method,
+        path,
+        query: url.searchParams,
+        headers: new Headers(init.headers),
+        body:
+          typeof init.body === "string"
+            ? (JSON.parse(init.body) as unknown)
+            : undefined,
+      };
+      app.http.requests.push(request);
+      const answer = await api[route[2]](request);
+      if (answer instanceof Response) return answer.clone();
+      if (answer instanceof Blob) {
+        return new Response(await answer.text(), {
+          headers: { "Content-Type": answer.type },
+        });
+      }
+      return new Response(JSON.stringify(answer ?? OK), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+  );
+}
+
+// The requests the page sent to one path below the experiment.
+function sent(app: TestApp, method: string, below: string): FakeRequest[] {
+  return app.http.requests.filter(
+    (r) => r.method === method && r.path === `${EXPERIMENT}${below}`,
+  );
+}
+
+// The body of the last request the page sent to one path below the experiment.
+function lastBody(app: TestApp, method: string, below: string): unknown {
+  return sent(app, method, below).at(-1)?.body;
+}
+
+// The texts of the toasts on screen.
+function toasts(): string[] {
+  return [...document.querySelectorAll("[data-sonner-toast]")].map(
+    (t) => t.textContent?.trim() ?? "",
+  );
+}
+
+// Presses a key on an element, as the keyboard does.
+async function press(element: Element, key: string): Promise<void> {
+  element.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
+  await flushPromises();
+}
+
+// The options a select lists once opened by its trigger's id; it is closed again after.
+async function optionsOf(id: string): Promise<string[]> {
+  await press(document.getElementById(id)!, "Enter");
+  const options = [...document.querySelectorAll('[role="option"]')].map(
+    (option) => option.textContent?.trim() ?? "",
+  );
+  await press(document.querySelector('[role="listbox"]')!, "Escape");
+  return options;
+}
+
+// The option a select shows as chosen, by its trigger's id.
+function shownIn(id: string): string {
+  return document.getElementById(id)?.textContent?.trim() ?? "";
+}
+
+// Whether the select with this trigger id is on the page.
+function hasSelect(id: string): boolean {
+  return document.getElementById(id) !== null;
+}
+
+// Picks an option of a select by its text, with the keyboard.
+async function choose(id: string, label: string): Promise<void> {
+  await press(document.getElementById(id)!, "Enter");
+  const option = [...document.querySelectorAll('[role="option"]')].find(
+    (o) => o.textContent?.trim() === label,
+  );
+  if (!option) throw new Error(`No option ${label} in ${id}`);
+  await press(option, "Enter");
+}
+
+const { saveBlob } = vi.hoisted(() => ({ saveBlob: vi.fn() }));
+
+// Saving a file is a browser download, which jsdom cannot do.
 vi.mock("@/utils/download", () => ({ saveBlob }));
+
+// The content of the last file the page saved, checking it was saved under this name.
+async function savedAs(name: string): Promise<string> {
+  const [blob, savedName] = saveBlob.mock.calls.at(-1) as [Blob, string];
+  expect(savedName).toBe(name);
+  return await blob.text();
+}
 
 // Fonts are fetched in the browser; here they come from disk
 vi.mock("@/utils/svg-pdf/load-fonts", async () => {
   const { testPdfFonts } = await import("@/utils/svg-pdf/test/fonts");
   return { loadPdfFonts: () => Promise.resolve(testPdfFonts()) };
 });
-
-vi.mock("@/utils/toasts", () => ({ successToast, errorToast }));
-
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class {},
-  BusinessLogicError: class BusinessLogicError extends Error {
-    error_code: string;
-    constructor(error_code: string) {
-      super(error_code);
-      this.error_code = error_code;
-    }
-  },
-}));
-
-vi.mock("vue-router", () => ({
-  useRoute: () => ({ query: { id: "exp-1" } }),
-}));
-
-vi.mock("@/shadcn/ui/progress", () => ({
-  Progress: {
-    props: ["modelValue"],
-    template: '<div data-testid="progress" :data-value="modelValue" />',
-  },
-}));
-
-vi.mock("@/shadcn/ui/input", () => ({
-  Input: {
-    props: ["modelValue"],
-    emits: ["update:modelValue"],
-    template:
-      '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
-  },
-}));
-
-vi.mock("@/shadcn/ui/select", () => ({
-  Select: {
-    props: ["modelValue"],
-    emits: ["update:modelValue"],
-    template:
-      '<select v-bind="$attrs" :value="modelValue" @change="$emit(\'update:modelValue\', $event.target.value)"><slot /></select>',
-    inheritAttrs: false,
-  },
-  SelectTrigger: { template: "<span />" },
-  SelectValue: { template: "<span />" },
-  SelectContent: { template: "<slot />" },
-  SelectItem: {
-    props: ["value"],
-    template: '<option :value="value"><slot /></option>',
-  },
-}));
 
 function experiment(status: string, overrides: object = {}): object {
   return {
@@ -289,35 +375,48 @@ function results(overrides: object = {}): object {
   };
 }
 
-function mountDetail(): VueWrapper {
-  return mount(ExperimentDetail, {
-    global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
+let app: TestApp;
+
+// Signs in and opens the experiment's page, as following its link does.
+async function openExperimentPage(): Promise<void> {
+  app = createTestApp({ signedIn: true });
+  serveExperimentApi(app);
+  await app.visit("/experiments/detail?id=exp-1");
+}
+
+// The page content next to the app's toaster.
+async function mountDetail(): Promise<VueWrapper> {
+  const wrapper = mount(withToaster(ExperimentDetail), {
+    attachTo: document.body,
+    global: app.global,
   });
+  await flushPromises();
+  return wrapper;
 }
 
 describe("ExperimentDetail", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await openExperimentPage();
     vi.useFakeTimers();
     getExperiment.mockReset();
-    getExperimentRuns
-      .mockReset()
-      .mockResolvedValue({ data: [run(0), run(1)], total_pages: 1 });
-    cancelExperiment.mockReset();
-    deleteExperiment.mockReset();
+    getExperimentRuns.mockReset().mockResolvedValue(page([run(0), run(1)]));
+    cancelExperiment.mockReset().mockResolvedValue(OK);
+    deleteExperiment.mockReset().mockResolvedValue(OK);
     getExperimentResults.mockReset().mockResolvedValue({ data: results() });
     getPublishedVersions.mockReset().mockResolvedValue({ data: [] });
     getPublishedResults.mockReset().mockResolvedValue({ data: results() });
     getFigureCatalog.mockReset().mockResolvedValue({ data: { metrics: [] } });
+    getFigures.mockReset().mockResolvedValue({ data: [] });
     publishExperiment.mockReset().mockResolvedValue({ data: {} });
     getCurrentMetricVersion
       .mockReset()
       .mockResolvedValue({ data: { metric_version: 3 } });
     downloadExperimentExport.mockReset();
     downloadPublishedPackage.mockReset();
+    getLoadProgress
+      .mockReset()
+      .mockResolvedValue({ data: { done: 0, total: 0 } });
     saveBlob.mockReset();
-    successToast.mockReset();
-    errorToast.mockReset();
-    vi.mocked(router.push).mockClear();
   });
 
   afterEach(() => {
@@ -337,7 +436,7 @@ describe("ExperimentDetail", () => {
           run_counts: { pending: 0, done: 2, failed: 1, skipped: 1 },
         }),
       });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     expect(wrapper.find('[data-testid="experiment-status"]').text()).toBe(
@@ -353,7 +452,7 @@ describe("ExperimentDetail", () => {
       "Running",
     );
     expect(
-      wrapper.find('[data-testid="progress"]').attributes("data-value"),
+      wrapper.find('[role="progressbar"]').attributes("aria-valuenow"),
     ).toBe("50");
     expect(
       wrapper.find('[data-testid="experiment-progress"]').text(),
@@ -374,7 +473,7 @@ describe("ExperimentDetail", () => {
   });
   it("stops polling when unmounted", async () => {
     getExperiment.mockResolvedValue({ data: experiment("RUNNING") });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     wrapper.unmount();
@@ -385,8 +484,8 @@ describe("ExperimentDetail", () => {
 
   it("lists each run with its state, error, pinned SHA and analysis", async () => {
     getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
-    getExperimentRuns.mockResolvedValue({
-      data: [
+    getExperimentRuns.mockResolvedValue(
+      page([
         run(0, {
           status: "done",
           attempts: 1,
@@ -404,10 +503,9 @@ describe("ExperimentDetail", () => {
           project_id: "p-1",
         }),
         run(2, { status: "skipped", error: "repository not found" }),
-      ],
-      total_pages: 1,
-    });
-    const wrapper = mountDetail();
+      ]),
+    );
+    const wrapper = await mountDetail();
     await flushPromises();
 
     const rows = wrapper.findAll('[data-testid="experiment-run"]');
@@ -428,7 +526,7 @@ describe("ExperimentDetail", () => {
     getExperiment.mockResolvedValue({
       data: experiment("FAILED", { error: "GitHub authentication failed" }),
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     expect(wrapper.find('[data-testid="experiment-error"]').text()).toContain(
@@ -440,14 +538,14 @@ describe("ExperimentDetail", () => {
     getExperiment.mockResolvedValue({
       data: experiment("RUNNING", { analysis_budget: 500 }),
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
     expect(wrapper.find('[data-testid="experiment-budget"]').text()).toBe(
       "Analysis budget: 500 analyses.",
     );
 
     getExperiment.mockResolvedValue({ data: experiment("RUNNING") });
-    const unbudgeted = mountDetail();
+    const unbudgeted = await mountDetail();
     await flushPromises();
     expect(unbudgeted.find('[data-testid="experiment-budget"]').exists()).toBe(
       false,
@@ -455,22 +553,19 @@ describe("ExperimentDetail", () => {
   });
 
   it("says when the experiment does not exist", async () => {
-    const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
-    const Err = BusinessLogicError as unknown as new (code: string) => Error;
-    getExperiment.mockRejectedValue(new Err("EntityNotFound"));
-    const wrapper = mountDetail();
+    getExperiment.mockResolvedValue(apiError("EntityNotFound", 404));
+    const wrapper = await mountDetail();
     await flushPromises();
 
     expect(wrapper.text()).toContain("Experiment not found");
     expect(getExperimentRuns).not.toHaveBeenCalled();
-    expect(errorToast).not.toHaveBeenCalled();
+    expect(toasts()).toEqual([]);
   });
   it("cancels a running experiment after confirmation and shows the new state", async () => {
     getExperiment
       .mockResolvedValueOnce({ data: experiment("RUNNING") })
       .mockResolvedValueOnce({ data: experiment("CANCELLED") });
-    cancelExperiment.mockResolvedValue({});
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     await wrapper.find('[data-testid="experiment-cancel"]').trigger("click");
@@ -480,10 +575,8 @@ describe("ExperimentDetail", () => {
       .trigger("click");
     await flushPromises();
 
-    expect(cancelExperiment).toHaveBeenCalledWith(
-      expect.objectContaining({ orgId: "test-org-id", experimentId: "exp-1" }),
-    );
-    expect(successToast).toHaveBeenCalledWith("Experiment cancelled");
+    expect(sent(app, "POST", "/cancel")).toHaveLength(1);
+    expect(toasts()).toContain("Experiment cancelled");
     expect(wrapper.find('[data-testid="experiment-status"]').text()).toBe(
       "Cancelled",
     );
@@ -494,7 +587,7 @@ describe("ExperimentDetail", () => {
 
   it("does not offer to cancel a finished experiment", async () => {
     getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     expect(wrapper.find('[data-testid="experiment-cancel"]').exists()).toBe(
@@ -506,11 +599,9 @@ describe("ExperimentDetail", () => {
   });
 
   it("explains that only admins can cancel", async () => {
-    const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
-    const Err = BusinessLogicError as unknown as new (code: string) => Error;
     getExperiment.mockResolvedValue({ data: experiment("RUNNING") });
-    cancelExperiment.mockRejectedValue(new Err("NotAuthorized"));
-    const wrapper = mountDetail();
+    cancelExperiment.mockResolvedValue(apiError("NotAuthorized"));
+    const wrapper = await mountDetail();
     await flushPromises();
 
     await wrapper.find('[data-testid="experiment-cancel"]').trigger("click");
@@ -519,15 +610,14 @@ describe("ExperimentDetail", () => {
       .trigger("click");
     await flushPromises();
 
-    expect(errorToast).toHaveBeenCalledWith(
+    expect(toasts()).toContain(
       "Only organization admins can cancel experiments",
     );
   });
 
   it("deletes after confirmation and goes back to the list", async () => {
     getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
-    deleteExperiment.mockResolvedValue({});
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     await wrapper.find('[data-testid="experiment-delete"]').trigger("click");
@@ -537,18 +627,14 @@ describe("ExperimentDetail", () => {
       .trigger("click");
     await flushPromises();
 
-    expect(deleteExperiment).toHaveBeenCalledWith(
-      expect.objectContaining({ orgId: "test-org-id", experimentId: "exp-1" }),
-    );
-    expect(router.push).toHaveBeenCalledWith({ name: "experiments" });
+    expect(sent(app, "DELETE", "")).toHaveLength(1);
+    expect(app.router.currentRoute.value.fullPath).toBe("/experiments");
   });
 
   it("explains that only admins can delete", async () => {
-    const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
-    const Err = BusinessLogicError as unknown as new (code: string) => Error;
     getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
-    deleteExperiment.mockRejectedValue(new Err("NotAuthorized"));
-    const wrapper = mountDetail();
+    deleteExperiment.mockResolvedValue(apiError("NotAuthorized"));
+    const wrapper = await mountDetail();
     await flushPromises();
 
     await wrapper.find('[data-testid="experiment-delete"]').trigger("click");
@@ -557,10 +643,10 @@ describe("ExperimentDetail", () => {
       .trigger("click");
     await flushPromises();
 
-    expect(errorToast).toHaveBeenCalledWith(
+    expect(toasts()).toContain(
       "Only organization admins can delete experiments",
     );
-    expect(router.push).not.toHaveBeenCalled();
+    expect(app.router.currentRoute.value.query.id).toBe("exp-1");
   });
   describe("Published results", () => {
     const done = { pending: 0, done: 2, failed: 0, skipped: 0 };
@@ -577,7 +663,7 @@ describe("ExperimentDetail", () => {
       getExperiment.mockResolvedValue({
         data: experiment("COMPLETED", { run_counts: done }),
       });
-      const wrapper = mountDetail();
+      const wrapper = await mountDetail();
       await flushPromises();
 
       await find(wrapper, "experiment-publish").trigger("click");
@@ -590,12 +676,7 @@ describe("ExperimentDetail", () => {
       await find(wrapper, "experiment-publish-confirm").trigger("click");
       await flushPromises();
 
-      expect(publishExperiment).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orgId: "test-org-id",
-          experimentId: "exp-1",
-        }),
-      );
+      expect(sent(app, "POST", "/publish")).toHaveLength(1);
       expect(find(wrapper, "experiment-published-version").text()).toContain(
         "metric version 3",
       );
@@ -607,7 +688,7 @@ describe("ExperimentDetail", () => {
         getExperiment.mockResolvedValue({
           data: experiment(status, { run_counts: done }),
         });
-        const wrapper = mountDetail();
+        const wrapper = await mountDetail();
         await flushPromises();
 
         expect(find(wrapper, "experiment-publish").exists()).toBe(false);
@@ -620,12 +701,10 @@ describe("ExperimentDetail", () => {
         data: experiment("COMPLETED", { run_counts: done }),
       });
       getPublishedVersions.mockResolvedValue({ data: [version] });
-      const wrapper = mountDetail();
+      const wrapper = await mountDetail();
       await flushPromises();
 
-      expect(getPublishedResults).toHaveBeenCalledWith(
-        expect.objectContaining({ metricVersion: 3 }),
-      );
+      expect(sent(app, "GET", "/published/3")).toHaveLength(1);
       expect(getExperimentResults).not.toHaveBeenCalled();
       expect(find(wrapper, "experiment-published-version").text()).toContain(
         "Jane Roe",
@@ -649,38 +728,27 @@ describe("ExperimentDetail", () => {
           data: experiment("COMPLETED", { run_counts: done }),
         });
         getPublishedVersions.mockResolvedValue({ data: versions });
-        const wrapper = mountDetail();
+        const wrapper = await mountDetail();
         await flushPromises();
         return wrapper;
       }
 
       it("lists every version, newest selected, and shows the one picked", async () => {
         const wrapper = await mountPublished([version, older]);
-        const select = find(wrapper, "experiment-version-select");
 
-        expect(select.findAll("option").map((o) => o.text())).toEqual([
+        expect(await optionsOf("experiment-version")).toEqual([
           "Metric version 3",
           "Metric version 2",
         ]);
         expect(getPublishedResults).toHaveBeenCalledTimes(1);
-        expect(getPublishedResults).toHaveBeenLastCalledWith(
-          expect.objectContaining({ metricVersion: 3 }),
-        );
+        expect(sent(app, "GET", "/published/3")).toHaveLength(1);
 
-        await select.setValue("2");
-        await flushPromises();
+        await choose("experiment-version", "Metric version 2");
 
-        expect(getPublishedResults).toHaveBeenLastCalledWith(
-          expect.objectContaining({ metricVersion: 2 }),
-        );
+        expect(sent(app, "GET", "/published/2")).toHaveLength(1);
         expect(find(wrapper, "experiment-published-version").text()).toContain(
           "metric version 2",
         );
-        expect(
-          wrapper
-            .findComponent({ name: "ExperimentResults" })
-            .props("metricVersion"),
-        ).toBe(2);
       });
 
       it("shows the checksum and downloads the package of the version picked", async () => {
@@ -690,17 +758,14 @@ describe("ExperimentDetail", () => {
           { ...older, package_checksum: "bbb" },
         ]);
 
-        await find(wrapper, "experiment-version-select").setValue("2");
-        await flushPromises();
+        await choose("experiment-version", "Metric version 2");
         expect(find(wrapper, "experiment-package-checksum").text()).toContain(
           "bbb",
         );
 
         await find(wrapper, "export-package").trigger("click");
         await flushPromises();
-        expect(downloadPublishedPackage).toHaveBeenCalledWith(
-          expect.objectContaining({ metricVersion: 2 }),
-        );
+        expect(sent(app, "GET", "/published/2/package.zip")).toHaveLength(1);
       });
 
       it("keeps the picked version when a slower earlier response arrives", async () => {
@@ -717,18 +782,16 @@ describe("ExperimentDetail", () => {
         getPublishedResults.mockImplementationOnce(
           () => new Promise((resolve) => (finishOld = resolve)),
         );
-        const select = find(wrapper, "experiment-version-select");
 
-        await select.setValue("2");
+        await choose("experiment-version", "Metric version 2");
         getPublishedResults.mockResolvedValueOnce(shown(33));
-        await select.setValue("3");
-        await flushPromises();
+        await choose("experiment-version", "Metric version 3");
         finishOld(shown(22));
         await flushPromises();
 
-        expect(
-          wrapper.findComponent({ name: "ExperimentResults" }).props("results"),
-        ).toMatchObject({ coverage: { runs: 33 } });
+        expect(find(wrapper, "experiment-coverage").text()).toContain(
+          "of 33 runs attempted",
+        );
       });
 
       it("offers Publish again once the metric version moved past the stored ones", async () => {
@@ -749,8 +812,7 @@ describe("ExperimentDetail", () => {
           data: { metric_version: 4 },
         });
         const wrapper = await mountPublished([version, older]);
-        await find(wrapper, "experiment-version-select").setValue("2");
-        await flushPromises();
+        await choose("experiment-version", "Metric version 2");
 
         getPublishedVersions.mockResolvedValue({
           data: [{ ...version, metric_version: 4 }, version, older],
@@ -767,20 +829,18 @@ describe("ExperimentDetail", () => {
     });
 
     it("explains that only admins can publish", async () => {
-      const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
-      const Err = BusinessLogicError as unknown as new (code: string) => Error;
       getExperiment.mockResolvedValue({
         data: experiment("COMPLETED", { run_counts: done }),
       });
-      publishExperiment.mockRejectedValue(new Err("NotAuthorized"));
-      const wrapper = mountDetail();
+      publishExperiment.mockResolvedValue(apiError("NotAuthorized"));
+      const wrapper = await mountDetail();
       await flushPromises();
 
       await find(wrapper, "experiment-publish").trigger("click");
       await find(wrapper, "experiment-publish-confirm").trigger("click");
       await flushPromises();
 
-      expect(errorToast).toHaveBeenCalledWith(
+      expect(toasts()).toContain(
         "Only organization admins can publish experiments",
       );
     });
@@ -788,7 +848,7 @@ describe("ExperimentDetail", () => {
 
   it("does not load results before any run is done", async () => {
     getExperiment.mockResolvedValue({ data: experiment("RUNNING") });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     expect(getExperimentResults).not.toHaveBeenCalled();
@@ -818,13 +878,13 @@ describe("ExperimentDetail", () => {
           answer = resolve;
         }),
       );
-      const wrapper = mountDetail();
+      const wrapper = await mountDetail();
       await flushPromises();
       expect(wrapper.find(LOADING).text()).toContain("2 of 4");
       expect(
         wrapper
-          .find(`${LOADING} [data-testid="progress"]`)
-          .attributes("data-value"),
+          .find(`${LOADING} [role="progressbar"]`)
+          .attributes("aria-valuenow"),
       ).toBe("50");
 
       answer({ data: results() });
@@ -838,7 +898,7 @@ describe("ExperimentDetail", () => {
 
     it("stops loading when the request fails", async () => {
       getExperimentResults.mockRejectedValue(new Error("boom"));
-      const wrapper = mountDetail();
+      const wrapper = await mountDetail();
       await flushPromises();
 
       expect(wrapper.find(LOADING).exists()).toBe(false);
@@ -851,12 +911,10 @@ describe("ExperimentDetail", () => {
         run_counts: { pending: 3, done: 1, failed: 0, skipped: 0 },
       }),
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
-    expect(getExperimentResults).toHaveBeenCalledWith(
-      expect.objectContaining({ orgId: "test-org-id", experimentId: "exp-1" }),
-    );
+    expect(sent(app, "GET", "/results")).toHaveLength(1);
     const headline = wrapper.find('[data-testid="experiment-headline"]');
     expect(headline.text()).toContain("87 / 98");
     expect(headline.text()).toContain("16,304");
@@ -885,7 +943,7 @@ describe("ExperimentDetail", () => {
         }),
       });
       getExperimentResults.mockResolvedValue({ data: results(overrides) });
-      const wrapper = mountDetail();
+      const wrapper = await mountDetail();
       await flushPromises();
       return wrapper;
     }
@@ -914,14 +972,13 @@ describe("ExperimentDetail", () => {
 
   it("names each run's snapshot, its grid date or HEAD", async () => {
     getExperiment.mockResolvedValue({ data: experiment("RUNNING") });
-    getExperimentRuns.mockResolvedValue({
-      data: [
+    getExperimentRuns.mockResolvedValue(
+      page([
         run(0, { grid_index: 0, grid_date: "2026-09-01T00:00:00.000Z" }),
         run(0, { id: "run-head", grid_index: 1, grid_date: null }),
-      ],
-      total_pages: 1,
-    });
-    const wrapper = mountDetail();
+      ]),
+    );
+    const wrapper = await mountDetail();
     await flushPromises();
 
     const snapshots = wrapper
@@ -974,7 +1031,7 @@ describe("ExperimentDetail", () => {
         ],
       }),
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     const rows = wrapper
@@ -1019,7 +1076,7 @@ describe("ExperimentDetail", () => {
         ],
       }),
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     const rows = wrapper.findAll('[data-testid="grid-coverage-row"]');
@@ -1052,7 +1109,7 @@ describe("ExperimentDetail", () => {
     getExperimentResults.mockResolvedValue({
       data: results({ grid_coverage: [row("2026-10-01"), row(null)] }),
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     expect(wrapper.find('[data-testid="grid-mixed-knowledge"]').exists()).toBe(
@@ -1069,7 +1126,7 @@ describe("ExperimentDetail", () => {
         run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
       }),
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     expect(
@@ -1133,7 +1190,7 @@ describe("ExperimentDetail", () => {
         }),
       });
       getExperimentResults.mockResolvedValue({ data: results(overrides) });
-      const wrapper = mountDetail();
+      const wrapper = await mountDetail();
       await flushPromises();
       return wrapper;
     }
@@ -1406,7 +1463,7 @@ describe("ExperimentDetail", () => {
       }),
     });
     getExperimentResults.mockResolvedValue({ data: gridResults() });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
     return wrapper;
   }
@@ -1745,7 +1802,7 @@ describe("ExperimentDetail", () => {
       }),
     });
     getExperimentResults.mockResolvedValue({ data: gridResults() });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     const block = wrapper.find('[data-testid="experiment-fix-lag"]');
@@ -1817,7 +1874,7 @@ describe("ExperimentDetail", () => {
         },
       },
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     const block = wrapper.find('[data-testid="experiment-probes"]');
@@ -1846,7 +1903,7 @@ describe("ExperimentDetail", () => {
       }),
     });
     getExperimentResults.mockResolvedValue({ data: gridResults() });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     const chart = wrapper.find('[data-testid="fix-lag-by-severity"]');
@@ -1863,7 +1920,7 @@ describe("ExperimentDetail", () => {
         run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
       }),
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     expect(wrapper.find('[data-testid="experiment-fix-lag"]').exists()).toBe(
@@ -1923,7 +1980,7 @@ describe("ExperimentDetail", () => {
       }),
     });
     getExperimentResults.mockResolvedValue({ data: loadResults() });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
     return wrapper;
   }
@@ -2014,7 +2071,7 @@ describe("ExperimentDetail", () => {
         ],
       }),
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     expect(wrapper.find('[data-testid="experiment-load"]').exists()).toBe(
@@ -2068,7 +2125,7 @@ describe("ExperimentDetail", () => {
         },
       },
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     const block = wrapper.find('[data-testid="experiment-residence"]');
@@ -2189,7 +2246,7 @@ describe("ExperimentDetail", () => {
       }),
     });
     getExperimentResults.mockResolvedValue({ data: leverageResults() });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
     return wrapper;
   }
@@ -2244,7 +2301,7 @@ describe("ExperimentDetail", () => {
         },
       },
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     const blocks = [
@@ -2358,7 +2415,7 @@ describe("ExperimentDetail", () => {
         },
       }),
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     expect(
@@ -2373,16 +2430,15 @@ describe("ExperimentDetail", () => {
       }),
     });
     getExperimentResults.mockRejectedValue(new Error("boom"));
-    mountDetail();
-    await flushPromises();
+    await mountDetail();
+    expect(toasts()).toEqual(["Failed to load the experiment results"]);
+
+    // A toast stays two seconds, so one shown by the last poll would still be up.
     await vi.advanceTimersByTimeAsync(20_000);
     await flushPromises();
 
     expect(getExperimentResults).toHaveBeenCalledTimes(3);
-    expect(errorToast).toHaveBeenCalledTimes(1);
-    expect(errorToast).toHaveBeenCalledWith(
-      "Failed to load the experiment results",
-    );
+    expect(toasts()).toEqual([]);
   });
 
   it("warns when the knowledge changed during the experiment", async () => {
@@ -2399,7 +2455,7 @@ describe("ExperimentDetail", () => {
         },
       }),
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     expect(
@@ -2453,7 +2509,7 @@ describe("ExperimentDetail", () => {
         }),
       });
       getExperimentResults.mockResolvedValue({ data: results(overrides) });
-      const wrapper = mountDetail();
+      const wrapper = await mountDetail();
       await flushPromises();
       return wrapper;
     }
@@ -2536,7 +2592,7 @@ describe("ExperimentDetail", () => {
         run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
       }),
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     expect(
@@ -2554,21 +2610,15 @@ describe("ExperimentDetail", () => {
     const blob = new Blob(["x"]);
     getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
     downloadExperimentExport.mockResolvedValue(blob);
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     await wrapper.find(`[data-testid="export-${file}"]`).trigger("click");
     await flushPromises();
 
-    expect(downloadExperimentExport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        orgId: "test-org-id",
-        experimentId: "exp-1",
-        file,
-        bearerToken: "test-token",
-      }),
-    );
-    expect(saveBlob).toHaveBeenCalledWith(blob, name);
+    const [request] = sent(app, "GET", `/export/${file}`);
+    expect(request?.headers.get("Authorization")).toMatch(/^Bearer \S+$/);
+    expect(await savedAs(name)).toBe("x");
   });
 
   describe("replication package", () => {
@@ -2584,7 +2634,7 @@ describe("ExperimentDetail", () => {
       getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
       getPublishedVersions.mockResolvedValue({ data: [version] });
       downloadPublishedPackage.mockResolvedValue(blob);
-      const wrapper = mountDetail();
+      const wrapper = await mountDetail();
       await flushPromises();
 
       expect(
@@ -2593,15 +2643,9 @@ describe("ExperimentDetail", () => {
       await wrapper.find('[data-testid="export-package"]').trigger("click");
       await flushPromises();
 
-      expect(downloadPublishedPackage).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orgId: "test-org-id",
-          experimentId: "exp-1",
-          metricVersion: 3,
-          bearerToken: "test-token",
-        }),
-      );
-      expect(saveBlob).toHaveBeenCalledWith(blob, "top4-head-v3-package.zip");
+      const [request] = sent(app, "GET", "/published/3/package.zip");
+      expect(request?.headers.get("Authorization")).toMatch(/^Bearer \S+$/);
+      expect(await savedAs("top4-head-v3-package.zip")).toBe("zip");
     });
 
     it.each(["results.json", "runs.csv"] as const)(
@@ -2616,22 +2660,21 @@ describe("ExperimentDetail", () => {
         getPublishedVersions.mockResolvedValue({ data: [version] });
         getPublishedResults.mockResolvedValue({ data: results() });
         downloadExperimentExport.mockResolvedValue(blob);
-        const wrapper = mountDetail();
+        const wrapper = await mountDetail();
         await flushPromises();
 
         await wrapper.find(`[data-testid="export-${file}"]`).trigger("click");
         await flushPromises();
 
-        expect(downloadExperimentExport).toHaveBeenCalledWith(
-          expect.objectContaining({ file, metricVersion: 3 }),
-        );
-        expect(saveBlob).toHaveBeenCalledWith(blob, `top4-head-v3-${file}`);
+        const [request] = sent(app, "GET", `/export/${file}`);
+        expect(request?.query.get("metric_version")).toBe("3");
+        expect(await savedAs(`top4-head-v3-${file}`)).toBe("x");
       },
     );
 
     it("offers no package while nothing is published", async () => {
       getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
-      const wrapper = mountDetail();
+      const wrapper = await mountDetail();
       await flushPromises();
 
       expect(wrapper.find('[data-testid="export-package"]').exists()).toBe(
@@ -2644,7 +2687,7 @@ describe("ExperimentDetail", () => {
       getPublishedVersions.mockResolvedValue({
         data: [{ ...version, package_checksum: null }],
       });
-      const wrapper = mountDetail();
+      const wrapper = await mountDetail();
       await flushPromises();
 
       expect(wrapper.find('[data-testid="export-package"]').exists()).toBe(
@@ -2656,16 +2699,14 @@ describe("ExperimentDetail", () => {
       getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
       getPublishedVersions.mockResolvedValue({ data: [version] });
       downloadPublishedPackage.mockRejectedValue(new Error("boom"));
-      const wrapper = mountDetail();
+      const wrapper = await mountDetail();
       await flushPromises();
 
       await wrapper.find('[data-testid="export-package"]').trigger("click");
       await flushPromises();
 
       expect(saveBlob).not.toHaveBeenCalled();
-      expect(errorToast).toHaveBeenCalledWith(
-        "Failed to download the replication package",
-      );
+      expect(toasts()).toContain("Failed to download the replication package");
     });
   });
 
@@ -2690,7 +2731,7 @@ describe("ExperimentDetail", () => {
         },
       }),
     });
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     const sources = wrapper
@@ -2705,14 +2746,14 @@ describe("ExperimentDetail", () => {
   it("says when an export fails", async () => {
     getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
     downloadExperimentExport.mockRejectedValue(new Error("boom"));
-    const wrapper = mountDetail();
+    const wrapper = await mountDetail();
     await flushPromises();
 
     await wrapper.find('[data-testid="export-runs.csv"]').trigger("click");
     await flushPromises();
 
     expect(saveBlob).not.toHaveBeenCalled();
-    expect(errorToast).toHaveBeenCalledWith("Failed to export runs.csv");
+    expect(toasts()).toContain("Failed to export runs.csv");
   });
 });
 
@@ -2766,28 +2807,32 @@ describe("ExperimentDetail Figures tab", () => {
 
   const NO_FILTER_DEFINITION = { ...AS_OF_DEFINITION, filters: {} };
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await openExperimentPage();
     getExperiment.mockReset().mockResolvedValue({
       data: experiment("COMPLETED", {
         run_counts: { pending: 0, done: 4, failed: 0, skipped: 0 },
       }),
     });
-    getExperimentRuns
-      .mockReset()
-      .mockResolvedValue({ data: [], total_pages: 0 });
+    getExperimentRuns.mockReset().mockResolvedValue(page([]));
     getExperimentResults.mockReset().mockResolvedValue({ data: results() });
     getFigureCatalog.mockReset().mockResolvedValue({ data: CATALOG });
     getFigures.mockReset().mockResolvedValue({ data: [] });
     computeFigureData.mockReset().mockResolvedValue(figureData("Both"));
     createFigure.mockReset().mockResolvedValue({ id: "fig-1" });
-    updateFigure.mockReset().mockResolvedValue({});
-    deleteFigure.mockReset().mockResolvedValue({});
+    updateFigure.mockReset().mockResolvedValue(OK);
+    deleteFigure.mockReset().mockResolvedValue(OK);
     getFigureData.mockReset().mockResolvedValue(figureData("Frozen"));
-    moveFigureToVersion.mockReset().mockResolvedValue({});
+    moveFigureToVersion.mockReset().mockResolvedValue(OK);
     getPublishedVersions.mockReset().mockResolvedValue({ data: [] });
     getPublishedResults.mockReset().mockResolvedValue({ data: results() });
-    successToast.mockReset();
-    errorToast.mockReset();
+    getCurrentMetricVersion
+      .mockReset()
+      .mockResolvedValue({ data: { metric_version: 3 } });
+    getLoadProgress
+      .mockReset()
+      .mockResolvedValue({ data: { done: 0, total: 0 } });
+    saveBlob.mockReset();
   });
 
   const SURVIVAL_METRIC = {
@@ -2834,21 +2879,17 @@ describe("ExperimentDetail Figures tab", () => {
     computeFigureData.mockResolvedValue(survivalData());
     const wrapper = await openFiguresTab();
 
-    await wrapper.find('[data-testid="figure-metric"]').setValue("survival");
+    await choose("figure-metric", "Survival");
     await flushPromises();
 
-    expect(computeFigureData).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        data: {
-          definition: {
-            metric: "survival",
-            chart_form: "step",
-            group_by: null,
-            filters: {},
-          },
-        },
-      }),
-    );
+    expect(lastBody(app, "POST", "/figure-data")).toEqual({
+      definition: {
+        metric: "survival",
+        chart_form: "step",
+        group_by: null,
+        filters: {},
+      },
+    });
     const preview = wrapper.find('[data-testid="figure-preview"]');
     expect(preview.findAll('[data-testid="step-curve"]')).toHaveLength(2);
     expect(preview.findAll('[data-testid="step-band"]')).toHaveLength(2);
@@ -2865,11 +2906,7 @@ describe("ExperimentDetail Figures tab", () => {
   });
 
   async function openFiguresTab(): Promise<VueWrapper> {
-    const wrapper = mount(ExperimentDetail, {
-      attachTo: document.body,
-      global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
-    });
-    await flushPromises();
+    const wrapper = await mountDetail();
     await wrapper
       .find('[data-testid="experiment-tab-figures"]')
       .trigger("mousedown", { button: 0 });
@@ -2877,50 +2914,37 @@ describe("ExperimentDetail Figures tab", () => {
     return wrapper;
   }
 
-  function optionsOf(wrapper: VueWrapper, testid: string): string[] {
-    return wrapper
-      .find(`[data-testid="${testid}"]`)
-      .findAll("option")
-      .map((option) => option.text());
-  }
-
   it("offers the options of the API catalog", async () => {
-    const wrapper = await openFiguresTab();
+    await openFiguresTab();
 
-    expect(optionsOf(wrapper, "figure-metric")).toEqual(["Load over time"]);
-    expect(optionsOf(wrapper, "figure-chart-form")).toEqual(["Line"]);
-    expect(optionsOf(wrapper, "figure-filter-view")).toEqual([
+    expect(await optionsOf("figure-metric")).toEqual(["Load over time"]);
+    expect(await optionsOf("figure-chart-form")).toEqual(["Line"]);
+    expect(await optionsOf("figure-filter-view")).toEqual([
       "No filter",
       "Hindsight",
       "As-of",
     ]);
-    expect(optionsOf(wrapper, "figure-filter-hidden")).toEqual([
+    expect(await optionsOf("figure-filter-hidden")).toEqual([
       "Left out",
       "Include contradicted and retired",
     ]);
     // The catalog offers no grouping for this metric
-    expect(wrapper.find('[data-testid="figure-group-by"]').exists()).toBe(
-      false,
-    );
+    expect(hasSelect("figure-group-by")).toBe(false);
   });
 
   it("previews live as the definition changes", async () => {
     const wrapper = await openFiguresTab();
-    expect(computeFigureData).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        orgId: expect.any(String),
-        experimentId: "exp-1",
-        data: { definition: NO_FILTER_DEFINITION },
-      }),
-    );
+    expect(lastBody(app, "POST", "/figure-data")).toEqual({
+      definition: NO_FILTER_DEFINITION,
+    });
 
     computeFigureData.mockResolvedValue(figureData("As-of only"));
-    await wrapper.find('[data-testid="figure-filter-view"]').setValue("as_of");
+    await choose("figure-filter-view", "As-of");
     await flushPromises();
 
-    expect(computeFigureData).toHaveBeenLastCalledWith(
-      expect.objectContaining({ data: { definition: AS_OF_DEFINITION } }),
-    );
+    expect(lastBody(app, "POST", "/figure-data")).toEqual({
+      definition: AS_OF_DEFINITION,
+    });
     expect(wrapper.find('[data-testid="figure-preview"]').text()).toContain(
       "As-of only",
     );
@@ -2934,11 +2958,9 @@ describe("ExperimentDetail Figures tab", () => {
         answerSlow = resolve;
       }),
     );
-    await wrapper
-      .find('[data-testid="figure-filter-view"]')
-      .setValue("hindsight");
+    await choose("figure-filter-view", "Hindsight");
     computeFigureData.mockResolvedValueOnce(figureData("Latest"));
-    await wrapper.find('[data-testid="figure-filter-view"]').setValue("as_of");
+    await choose("figure-filter-view", "As-of");
     await flushPromises();
 
     answerSlow(figureData("Stale"));
@@ -3203,12 +3225,11 @@ describe("ExperimentDetail Figures tab", () => {
 
     describe("as PDF", () => {
       async function exportedPdf(wrapper: VueWrapper): Promise<string> {
-        errorToast.mockReset();
         await wrapper
           .find('[data-testid="figure-preview"] [data-testid="export-pdf"]')
           .trigger("click");
         await vi.waitFor(() => expect(saveBlob).toHaveBeenCalled());
-        expect(errorToast).not.toHaveBeenCalled();
+        expect(toasts()).toEqual([]);
         const { blob, name } = lastSaved();
         expect(blob.type).toBe("application/pdf");
         wrapper.unmount();
@@ -3406,9 +3427,7 @@ describe("ExperimentDetail Figures tab", () => {
     it("plots a tied Figure from its stored data", async () => {
       const wrapper = await openFigure(1);
 
-      expect(getFigureData).toHaveBeenCalledWith(
-        expect.objectContaining({ figureId: "fig-1" }),
-      );
+      expect(sent(app, "GET", "/figures/fig-1/data")).toHaveLength(1);
       expect(wrapper.find('[data-testid="figure-preview"]').text()).toContain(
         "Frozen",
       );
@@ -3432,40 +3451,31 @@ describe("ExperimentDetail Figures tab", () => {
     it("moves a Figure only when the move is confirmed by the button", async () => {
       const wrapper = await openFigure(1);
 
-      await wrapper.find('[data-testid="figure-version"]').setValue("2");
-      await flushPromises();
+      await choose("figure-version", "Version 2");
       expect(moveFigureToVersion).not.toHaveBeenCalled();
 
       getFigures.mockResolvedValue({ data: [savedFigure(2)] });
       await wrapper.find('[data-testid="figure-move"]').trigger("click");
       await flushPromises();
 
-      expect(moveFigureToVersion).toHaveBeenCalledWith(
-        expect.objectContaining({
-          figureId: "fig-1",
-          data: { metric_version: 2 },
-        }),
-      );
+      expect(lastBody(app, "PUT", "/figures/fig-1/published-version")).toEqual({
+        metric_version: 2,
+      });
       expect(getFigureData).toHaveBeenCalledTimes(2);
       wrapper.unmount();
     });
 
     it("explains when older metric code cannot compute the version", async () => {
-      const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
-      moveFigureToVersion.mockRejectedValue(
-        new (BusinessLogicError as unknown as new (code: string) => Error)(
-          "FigureVersionNotCurrent",
-        ),
+      moveFigureToVersion.mockResolvedValue(
+        apiError("FigureVersionNotCurrent", 409),
       );
       const wrapper = await openFigure(null);
 
-      await wrapper.find('[data-testid="figure-version"]').setValue("1");
+      await choose("figure-version", "Version 1");
       await wrapper.find('[data-testid="figure-move"]').trigger("click");
       await flushPromises();
 
-      expect(errorToast).toHaveBeenCalledWith(
-        expect.stringContaining("older metric code"),
-      );
+      expect(toasts().join(" ")).toContain("older metric code");
       wrapper.unmount();
     });
 
@@ -3474,9 +3484,7 @@ describe("ExperimentDetail Figures tab", () => {
       getFigureData.mockClear();
       computeFigureData.mockClear();
 
-      await wrapper
-        .find('[data-testid="figure-filter-view"]')
-        .setValue("hindsight");
+      await choose("figure-filter-view", "Hindsight");
       await flushPromises();
 
       expect(computeFigureData).toHaveBeenCalled();
@@ -3518,12 +3526,7 @@ describe("ExperimentDetail Figures tab", () => {
 
     async function mountResults(): Promise<VueWrapper> {
       getExperimentResults.mockResolvedValue({ data: LOAD_RESULTS });
-      const wrapper = mount(ExperimentDetail, {
-        attachTo: document.body,
-        global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
-      });
-      await flushPromises();
-      return wrapper;
+      return await mountDetail();
     }
 
     it("appears only on blocks the catalog can represent", async () => {
@@ -3561,16 +3564,16 @@ describe("ExperimentDetail Figures tab", () => {
       expect(wrapper.find('[data-testid="figure-preview"]').exists()).toBe(
         true,
       );
-      expect(computeFigureData).toHaveBeenLastCalledWith(
-        expect.objectContaining({ data: { definition: NO_FILTER_DEFINITION } }),
-      );
+      expect(lastBody(app, "POST", "/figure-data")).toEqual({
+        definition: NO_FILTER_DEFINITION,
+      });
       wrapper.unmount();
     });
   });
 
   it("names and saves a Figure, then lists it", async () => {
     const wrapper = await openFiguresTab();
-    await wrapper.find('[data-testid="figure-filter-view"]').setValue("as_of");
+    await choose("figure-filter-view", "As-of");
     await wrapper.find('[data-testid="figure-name"]').setValue("Load as-of");
     getFigures.mockResolvedValue({
       data: [{ id: "fig-1", name: "Load as-of", definition: AS_OF_DEFINITION }],
@@ -3579,11 +3582,10 @@ describe("ExperimentDetail Figures tab", () => {
     await wrapper.find('[data-testid="figure-save"]').trigger("click");
     await flushPromises();
 
-    expect(createFigure).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: { name: "Load as-of", definition: AS_OF_DEFINITION },
-      }),
-    );
+    expect(lastBody(app, "POST", "/figures")).toEqual({
+      name: "Load as-of",
+      definition: AS_OF_DEFINITION,
+    });
     expect(wrapper.find('[data-testid="figure-item"]').text()).toContain(
       "Load as-of",
     );
@@ -3607,12 +3609,10 @@ describe("ExperimentDetail Figures tab", () => {
     await wrapper.find('[data-testid="figure-open"]').trigger("click");
     await flushPromises();
 
-    expect(computeFigureData).toHaveBeenLastCalledWith(
-      expect.objectContaining({ data: { definition: AS_OF_DEFINITION } }),
-    );
-    const view = wrapper.find('[data-testid="figure-filter-view"]')
-      .element as HTMLSelectElement;
-    expect(view.value).toBe("as_of");
+    expect(lastBody(app, "POST", "/figure-data")).toEqual({
+      definition: AS_OF_DEFINITION,
+    });
+    expect(shownIn("figure-filter-view")).toBe("As-of");
     const name = wrapper.find('[data-testid="figure-name"]')
       .element as HTMLInputElement;
     expect(name.value).toBe("Load as-of");
@@ -3631,12 +3631,10 @@ describe("ExperimentDetail Figures tab", () => {
     await flushPromises();
 
     expect(createFigure).not.toHaveBeenCalled();
-    expect(updateFigure).toHaveBeenCalledWith(
-      expect.objectContaining({
-        figureId: "fig-1",
-        data: { name: "Renamed", definition: AS_OF_DEFINITION },
-      }),
-    );
+    expect(lastBody(app, "PATCH", "/figures/fig-1")).toEqual({
+      name: "Renamed",
+      definition: AS_OF_DEFINITION,
+    });
   });
 
   it("deletes a Figure after confirmation", async () => {
@@ -3653,9 +3651,7 @@ describe("ExperimentDetail Figures tab", () => {
       .trigger("click");
     await flushPromises();
 
-    expect(deleteFigure).toHaveBeenCalledWith(
-      expect.objectContaining({ figureId: "fig-1" }),
-    );
+    expect(sent(app, "DELETE", "/figures/fig-1")).toHaveLength(1);
     expect(wrapper.find('[data-testid="figure-item"]').exists()).toBe(false);
   });
 
@@ -3702,53 +3698,39 @@ describe("ExperimentDetail Figures tab", () => {
     });
 
     it("offers only the group-bys and filters of the chart form", async () => {
-      const wrapper = await openFiguresTab();
+      await openFiguresTab();
 
-      expect(wrapper.find('[data-testid="figure-group-by"]').exists()).toBe(
-        false,
-      );
-      expect(
-        wrapper.find('[data-testid="figure-filter-dating_precision"]').exists(),
-      ).toBe(false);
+      expect(hasSelect("figure-group-by")).toBe(false);
+      expect(hasSelect("figure-filter-dating_precision")).toBe(false);
 
-      await wrapper.find('[data-testid="figure-chart-form"]').setValue("bar");
+      await choose("figure-chart-form", "Fixes per interval");
       await flushPromises();
 
-      expect(optionsOf(wrapper, "figure-group-by")).toEqual([
+      expect(await optionsOf("figure-group-by")).toEqual([
         "No grouping",
         "Fix kind",
       ]);
-      expect(
-        wrapper.find('[data-testid="figure-filter-dating_precision"]').exists(),
-      ).toBe(true);
+      expect(hasSelect("figure-filter-dating_precision")).toBe(true);
     });
 
     it("drops choices the new chart form does not allow", async () => {
-      const wrapper = await openFiguresTab();
-      await wrapper.find('[data-testid="figure-chart-form"]').setValue("bar");
-      await wrapper
-        .find('[data-testid="figure-group-by"]')
-        .setValue("fix_kind");
-      await wrapper
-        .find('[data-testid="figure-filter-dating_precision"]')
-        .setValue("commit");
+      await openFiguresTab();
+      await choose("figure-chart-form", "Fixes per interval");
+      await choose("figure-group-by", "Fix kind");
+      await choose("figure-filter-dating_precision", "Dated to a commit");
       await flushPromises();
 
-      await wrapper.find('[data-testid="figure-chart-form"]').setValue("line");
+      await choose("figure-chart-form", "Packages to clear");
       await flushPromises();
 
-      expect(computeFigureData).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          data: {
-            definition: {
-              metric: "upstream_leverage",
-              chart_form: "line",
-              group_by: null,
-              filters: {},
-            },
-          },
-        }),
-      );
+      expect(lastBody(app, "POST", "/figure-data")).toEqual({
+        definition: {
+          metric: "upstream_leverage",
+          chart_form: "line",
+          group_by: null,
+          filters: {},
+        },
+      });
     });
 
     it("sends a date range as one filter value", async () => {
@@ -3762,15 +3744,11 @@ describe("ExperimentDetail Figures tab", () => {
         .setValue("2025-06-30");
       await flushPromises();
 
-      expect(computeFigureData).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          data: {
-            definition: expect.objectContaining({
-              filters: { date_range: "2025-01-01/2025-06-30" },
-            }),
-          },
+      expect(lastBody(app, "POST", "/figure-data")).toEqual({
+        definition: expect.objectContaining({
+          filters: { date_range: "2025-01-01/2025-06-30" },
         }),
-      );
+      });
     });
 
     it("does not offer a reversed date range", async () => {
@@ -3791,9 +3769,9 @@ describe("ExperimentDetail Figures tab", () => {
       expect(
         wrapper.find('[data-testid="figure-save"]').attributes("disabled"),
       ).toBeDefined();
-      for (const [call] of computeFigureData.mock.calls) {
-        expect(call.data.definition.filters).not.toEqual({
-          date_range: "2025-06-30/2025-01-01",
+      for (const { body } of sent(app, "POST", "/figure-data")) {
+        expect(body).not.toMatchObject({
+          definition: { filters: { date_range: "2025-06-30/2025-01-01" } },
         });
       }
     });
@@ -3809,7 +3787,7 @@ describe("ExperimentDetail Figures tab", () => {
       });
       const wrapper = await openFiguresTab();
 
-      await wrapper.find('[data-testid="figure-chart-form"]').setValue("bar");
+      await choose("figure-chart-form", "Fixes per interval");
       await flushPromises();
 
       expect(wrapper.findAll('[data-testid="figure-bar"]')).toHaveLength(2);
@@ -3835,7 +3813,7 @@ describe("ExperimentDetail Figures tab", () => {
       });
       const wrapper = await openFiguresTab();
 
-      await wrapper.find('[data-testid="figure-chart-form"]').setValue("bar");
+      await choose("figure-chart-form", "Fixes per interval");
       await flushPromises();
 
       expect(wrapper.findAll('[data-testid="figure-error-bar"]')).toHaveLength(
@@ -3857,9 +3835,7 @@ describe("ExperimentDetail Figures tab", () => {
       });
       const wrapper = await openFiguresTab();
 
-      await wrapper
-        .find('[data-testid="figure-metric"]')
-        .setValue("stars_vs_load");
+      await choose("figure-metric", "Stars vs load");
       await flushPromises();
 
       expect(wrapper.find('[data-testid="line-series"]').exists()).toBe(false);

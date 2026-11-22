@@ -1,0 +1,51 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - heading "Audit logs" [level=1]
+  - paragraph: Who changed what in the organisation, and when.
+  - searchbox "Filter audit logs"
+  - table "Audit logs":
+    - caption: Audit logs
+    - rowgroup:
+      - row "Severity Area Action Description By Date":
+        - columnheader "Severity":
+          - button "Severity"
+        - columnheader "Area":
+          - button "Area"
+        - columnheader "Action":
+          - button "Action"
+        - columnheader "Description"
+        - columnheader "By":
+          - button "By"
+        - columnheader "Date":
+          - button "Date"
+    - rowgroup:
+      - row /Low Project Project create Added the project web-frontend john\.doe@codeclarity\.io Owner Nov \d+, \d+, \d+:\d+ AM/:
+        - cell "Low"
+        - cell "Project"
+        - cell "Project create"
+        - cell "Added the project web-frontend"
+        - cell "john.doe@codeclarity.io Owner"
+        - cell /Nov \d+, \d+, \d+:\d+ AM/
+      - row /High Organization Organization membership revoked Removed eve@example\.com alice@example\.com Admin Nov \d+, \d+, \d+:\d+ AM/:
+        - cell "High"
+        - cell "Organization"
+        - cell "Organization membership revoked"
+        - cell "Removed eve@example.com"
+        - cell "alice@example.com Admin"
+        - cell /Nov \d+, \d+, \d+:\d+ AM/
+      - row /Medium Analyzer Analyzer update Updated Default analyzer former@example\.com No longer a member Nov \d+, \d+, \d+:\d+ PM/:
+        - cell "Medium"
+        - cell "Analyzer"
+        - cell "Analyzer update"
+        - cell "Updated Default analyzer"
+        - cell "former@example.com No longer a member"
+        - cell /Nov \d+, \d+, \d+:\d+ PM/

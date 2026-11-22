@@ -1,31 +1,74 @@
 import { defineConfig, devices } from "@playwright/test";
 
-/*
- * By default Playwright builds the app and serves it with `vite preview` on
- * 127.0.0.1, then stops the server when the run ends:
- * - E2E_PORT (default 4173): the preview port. Give each worktree its own to
- *   run suites side by side. A server already on the port fails the run
- *   (--strictPort), so a stale build is never tested.
- *
- * Running against the live dev stack instead of a local preview server:
- * - E2E_BASE_URL (e.g. https://localhost): target that URL and skip webServer.
- *   The dev stack uses a self-signed cert, so HTTPS errors are ignored then.
- * - E2E_HOST_RESOLVER_RULES (e.g. "MAP localhost 172.17.0.1"): Chromium host
- *   mapping, for a sandbox where the stack is published on the Docker gateway
- *   but Caddy only answers for the "localhost" server name.
- * - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: use a system Chromium instead of a
- *   Playwright-downloaded one.
- */
+// The E2E_* settings are described under "Run End-to-End Tests" in the README.
 const liveBaseURL = process.env.E2E_BASE_URL;
 const hostResolverRules = process.env.E2E_HOST_RESOLVER_RULES;
 const chromiumPath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
 const port = Number(process.env.E2E_PORT ?? 4173);
 const localURL = `http://127.0.0.1:${port}`;
+// Only "1" or "true" turns the extra browsers on, so "0" leaves them off.
+const allBrowsers = /^(1|true)$/i.test(process.env.E2E_ALL_BROWSERS ?? "");
 
-/**
- * Playwright configuration for CodeClarity E2E tests
- * @see https://playwright.dev/docs/test-configuration
- */
+// Chromium options shared by the desktop and Pixel 5 projects.
+const chromiumLaunch = {
+  ...(chromiumPath ? { executablePath: chromiumPath } : {}),
+  args: hostResolverRules ? [`--host-resolver-rules=${hostResolverRules}`] : [],
+};
+
+// Tests tagged @phone (describeOnAPhone in e2e/helpers/phone.mts) run on
+// Pixel 5 only; every other test runs on the desktop projects.
+const PHONE = /@phone/;
+
+const defaultProjects = [
+  {
+    name: "chromium",
+    grepInvert: PHONE,
+    use: { ...devices["Desktop Chrome"], launchOptions: chromiumLaunch },
+  },
+  {
+    name: "pixel-5",
+    grep: PHONE,
+    use: {
+      ...devices["Pixel 5"],
+      // The 390px phone screenshot width.
+      viewport: { width: 390, height: 844 },
+      launchOptions: chromiumLaunch,
+    },
+  },
+];
+
+const extraBrowsers = [
+  {
+    name: "firefox",
+    grepInvert: PHONE,
+    use: { ...devices["Desktop Firefox"] },
+  },
+  {
+    name: "webkit",
+    grepInvert: PHONE,
+    use: { ...devices["Desktop Safari"] },
+  },
+];
+
+// Only against a real stack: one journey, no retries, a trace kept on failure.
+const realStackProjects = liveBaseURL
+  ? [
+      {
+        name: "real-stack",
+        testDir: "./e2e/real-stack",
+        testMatch: "**/*.journey.mts",
+        retries: 0,
+        timeout: 6 * 60 * 1000,
+        use: {
+          ...devices["Desktop Chrome"],
+          viewport: { width: 1280, height: 1024 },
+          trace: "retain-on-failure",
+          launchOptions: chromiumLaunch,
+        },
+      },
+    ]
+  : [];
+
 export default defineConfig({
   testDir: "./e2e",
   testMatch: "**/*.spec.mts",
@@ -61,40 +104,10 @@ export default defineConfig({
     video: "retain-on-failure",
   },
 
-  /* Configure projects for major browsers */
   projects: [
-    {
-      name: "chromium",
-      use: {
-        ...devices["Desktop Chrome"],
-        launchOptions: {
-          ...(chromiumPath ? { executablePath: chromiumPath } : {}),
-          args: hostResolverRules
-            ? [`--host-resolver-rules=${hostResolverRules}`]
-            : [],
-        },
-      },
-    },
-
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
-
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    },
-
-    /* Test against mobile viewports */
-    {
-      name: "Mobile Chrome",
-      use: { ...devices["Pixel 5"] },
-    },
-    {
-      name: "Mobile Safari",
-      use: { ...devices["iPhone 12"] },
-    },
+    ...defaultProjects,
+    ...(allBrowsers ? extraBrowsers : []),
+    ...realStackProjects,
   ],
 
   /* Run your local dev server before starting the tests */

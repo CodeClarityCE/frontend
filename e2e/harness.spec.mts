@@ -1,6 +1,15 @@
 import { expect, test } from "@playwright/test";
+import fs from "node:fs";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
+import { expectPageSweep, PHONE_WIDTH } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
+import {
+  discoverRoutes,
+  routeCoverageProblems,
+} from "./helpers/route-coverage.mjs";
+import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { BACKGROUND, expectTheme, storeTheme } from "./helpers/theme.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 
@@ -154,6 +163,159 @@ test.describe("E2E harness", () => {
   });
 });
 
+// Reads a PNG's width from its header.
+function pngWidth(path: string): number {
+  return fs.readFileSync(path).readUInt32BE(16);
+}
+
+const helloPage = `<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>t</title></head><body><main><h1>Hello</h1></main></body></html>`;
+
+test.describe("Screenshot harness", () => {
+  test("desktop captures are 1280px wide", async ({ page }, testInfo) => {
+    // Only chromium takes desktop screenshots.
+    test.skip(testInfo.project.name !== "chromium", "no screenshots here");
+    await page.setContent(helloPage);
+    await expectScreenshots(page, "harness-hello");
+    expect(pngWidth(testInfo.snapshotPath("harness-hello-1280.png"))).toBe(
+      1280,
+    );
+  });
+});
+
+describeOnAPhone("Screenshot harness on a phone", () => {
+  test("phone captures are 390 CSS pixels wide", async ({ page }, testInfo) => {
+    await page.setContent(helloPage);
+    await expectScreenshots(page, "harness-hello");
+    expect(pngWidth(testInfo.snapshotPath("harness-hello-390.png"))).toBe(390);
+  });
+});
+
+test.describe("Page sweep harness", () => {
+  const tabs = (style: string): string =>
+    `<style>${style}</style><div role="tablist"><button role="tab" style="cursor:pointer">One</button><div role="tab" tabindex="0">Two</div></div>`;
+
+  test("fails on a tab without a pointer cursor", async ({ page }) => {
+    await page.setContent(tabs(""));
+    await expect(expectPageSweep(page)).rejects.toThrow(/tab "Two"/);
+  });
+
+  test("passes when every control has a pointer cursor", async ({ page }) => {
+    await page.setContent(tabs("[role=tab]{cursor:pointer}"));
+    await expectPageSweep(page);
+  });
+
+  test("fails on a disabled control with a pointer cursor", async ({
+    page,
+  }) => {
+    await page.setContent(
+      `<button disabled style="cursor:pointer">Off</button>`,
+    );
+    await expect(expectPageSweep(page)).rejects.toThrow(/button "Off"/);
+  });
+
+  test("fails on a disabled control that ignores the pointer but has a pointer cursor", async ({
+    page,
+  }) => {
+    await page.setContent(
+      `<button disabled style="cursor:pointer;pointer-events:none">Off</button>`,
+    );
+    await expect(expectPageSweep(page)).rejects.toThrow(/button "Off"/);
+  });
+
+  test("passes disabled controls with a default cursor", async ({ page }) => {
+    await page.setContent(
+      `<button disabled style="cursor:default">Off</button><span role="switch" aria-disabled="true">Mute</span><div role="tab" data-disabled="">Later</div>`,
+    );
+    await expectPageSweep(page);
+  });
+
+  test("ignores hidden controls", async ({ page }) => {
+    await page.setContent(
+      `<div hidden><div role="tab">Hidden</div></div><div role="option" style="display:none">Gone</div>`,
+    );
+    await expectPageSweep(page);
+  });
+
+  test("fails when the page scrolls sideways on a phone", async ({ page }) => {
+    await page.setViewportSize({ width: PHONE_WIDTH, height: 800 });
+    // Like the app, so a phone lays it out at device width, not 980px.
+    await page.setContent(
+      `<meta name="viewport" content="width=device-width, initial-scale=1"><div style="width:600px">Wide</div>`,
+    );
+    await expect(expectPageSweep(page)).rejects.toThrow(/scrolls sideways/);
+  });
+
+  test("passes a page that fits a phone", async ({ page }) => {
+    await page.setViewportSize({ width: PHONE_WIDTH, height: 800 });
+    await page.setContent(
+      `<meta name="viewport" content="width=device-width, initial-scale=1"><div style="max-width:600px">Narrow</div>`,
+    );
+    await expectPageSweep(page);
+  });
+});
+
+test.describe("Aria snapshot harness", () => {
+  // Matches the committed harness-main.aria.yml; the nav sits outside main.
+  const withMain = (main: string): string =>
+    `<nav><a href="#">Elsewhere</a></nav><main><h1>Projects</h1>${main}</main>`;
+  const matching =
+    "<button>Add a Project</button><ul><li>web-frontend</li></ul>";
+
+  // A failing case would rewrite the committed snapshot in update mode.
+  test.beforeEach(() => {
+    const mode = test.info().config.updateSnapshots;
+    test.skip(
+      mode === "all" || mode === "changed",
+      "the harness snapshot is written by hand",
+    );
+  });
+
+  test("passes when main matches, whatever is outside it", async ({ page }) => {
+    await page.setContent(withMain(matching));
+    await expectMainSnapshot(page, "harness-main");
+  });
+
+  test("fails when a name changes", async ({ page }) => {
+    await page.setContent(
+      withMain(matching.replace("Add a Project", "Add a project")),
+    );
+    await expect(expectMainSnapshot(page, "harness-main")).rejects.toThrow(
+      /Add a project/,
+    );
+  });
+
+  test("fails when a role is missing", async ({ page }) => {
+    await page.setContent(withMain(matching.replace(/<\/?button>/g, "")));
+    await expect(expectMainSnapshot(page, "harness-main")).rejects.toThrow(
+      /button/,
+    );
+  });
+
+  test("fails when the page has no main", async ({ page }) => {
+    await page.setContent(`<div><h1>Projects</h1>${matching}</div>`);
+    await expect(
+      expectMainSnapshot(page, "harness-main", { timeout: 500 }),
+    ).rejects.toThrow();
+  });
+});
+
+describeOnAPhone("Page sweep harness on a Pixel 5", () => {
+  // A mobile browser zooms out to fit wide content instead of scrolling.
+  test("fails when the page is wider than the phone", async ({ page }) => {
+    await page.setContent(
+      `<meta name="viewport" content="width=device-width, initial-scale=1"><div style="width:900px">Wide</div>`,
+    );
+    await expect(expectPageSweep(page)).rejects.toThrow(/scrolls sideways/);
+  });
+
+  test("passes a page that fits the phone", async ({ page }) => {
+    await page.setContent(
+      `<meta name="viewport" content="width=device-width, initial-scale=1"><div style="max-width:900px">Narrow</div>`,
+    );
+    await expectPageSweep(page);
+  });
+});
+
 test.describe("E2E harness in the app", () => {
   for (const [stored, os] of [
     ["light", "dark"],
@@ -205,4 +367,168 @@ test.describe("E2E harness in the app", () => {
       );
     });
   }
+});
+
+// Feeds the route-coverage check made-up routes, registries and spec files.
+test.describe("Route coverage harness", () => {
+  const routes = [
+    { key: "projects", path: "/projects/:page?" },
+    { key: "projects/add", path: "/projects/:page?" },
+  ];
+  const specFiles = ["projects.spec.mts"];
+
+  test("passes when every route has a registered spec", () => {
+    expect(
+      routeCoverageProblems({
+        routes,
+        registry: {
+          projects: "projects.spec.mts",
+          "projects/add": "projects.spec.mts",
+        },
+        specFiles,
+      }),
+    ).toEqual([]);
+  });
+
+  test("fails on a route with no registry entry, naming the route", () => {
+    expect(
+      routeCoverageProblems({
+        routes,
+        registry: { projects: "projects.spec.mts" },
+        specFiles,
+      }),
+    ).toEqual([
+      expect.stringMatching(/projects\/add .*\/projects\/:page\?.*no spec/),
+    ]);
+  });
+
+  test("fails on an entry whose spec file does not exist", () => {
+    expect(
+      routeCoverageProblems({
+        routes,
+        registry: {
+          projects: "projects.spec.mts",
+          "projects/add": "project-create.spec.mts",
+        },
+        specFiles,
+      }),
+    ).toEqual([
+      expect.stringMatching(
+        /projects\/add .*project-create\.spec\.mts.*does not exist/,
+      ),
+    ]);
+  });
+
+  test("fails on an entry for a route the router no longer has", () => {
+    expect(
+      routeCoverageProblems({
+        routes,
+        registry: {
+          projects: "projects.spec.mts",
+          "projects/add": "projects.spec.mts",
+          "projects/import": "projects.spec.mts",
+        },
+        specFiles,
+      }),
+    ).toEqual([expect.stringMatching(/projects\/import .*no such route/)]);
+  });
+
+  test("fails on a registered spec with no phone test, naming its pages", () => {
+    expect(
+      routeCoverageProblems({
+        routes,
+        registry: {
+          projects: "projects.spec.mts",
+          "projects/add": "projects.spec.mts",
+        },
+        specFiles,
+        phoneSpecFiles: [],
+      }),
+    ).toEqual([
+      expect.stringMatching(
+        /projects\.spec\.mts .*projects, projects\/add.*describeOnAPhone/,
+      ),
+    ]);
+  });
+
+  test("finds the router's routes, their subpages and results tabs", () => {
+    const router = `
+      import HomeView from "@/home/HomeView.vue";
+      import ResultsView from "@/results/ResultsView.vue";
+      const router = createRouter({
+        routes: [
+          { path: "/", name: "home", component: HomeView as Component },
+          { path: "/results/:page?", name: "results", component: ResultsView },
+          { path: "/:catchAll(.*)", redirect: "/404" },
+        ],
+      });`;
+    const views: Record<string, string> = {
+      "@/home/HomeView.vue": `<template><p>Home</p></template>`,
+      "@/results/ResultsView.vue": `<script setup>
+        const tab = ref({ sbom: false, "vuln-finder": false });
+        if (props.page !== "details") load();
+        </script>
+        <template>
+          <Details v-if="props.page === 'details'" />
+          <Other v-else-if="page === 'other'" />
+        </template>`,
+    };
+    expect(discoverRoutes(router, (from) => views[from] ?? "")).toEqual([
+      { key: "home", path: "/" },
+      { key: "results", path: "/results/:page?" },
+      { key: "results/details", path: "/results/:page?" },
+      { key: "results/other", path: "/results/:page?" },
+      { key: "results?tab=sbom", path: "/results/:page?" },
+      { key: "results?tab=vuln-finder", path: "/results/:page?" },
+    ]);
+  });
+
+  test("finds the ?tab= values a subpage's own component reads", () => {
+    const router = `
+      import OrgsView from "@/orgs/OrgsView.vue";
+      const router = createRouter({
+        routes: [
+          { path: "/orgs/:action?/:page?", name: "orgs", component: OrgsView },
+        ],
+      });`;
+    const views: Record<string, string> = {
+      "@/orgs/OrgsView.vue": `<script setup>
+        const OrgPolicies = defineAsyncComponent(
+          (() => import("./policy/PoliciesView.vue")) as AsyncComponentLoader,
+        ) as Component;
+        </script>
+        <template>
+          <OrgsList v-if="view === 'list'" />
+          <OrgPolicies
+            v-else-if="view === 'policies'"
+            :page="props.page!"
+          />
+        </template>`,
+      "@/orgs/policy/PoliciesView.vue": `<script setup>
+        const tab = route.query.tab;
+        if (tab === "license" || tab === 'vulnerability') return tab;
+        </script>`,
+    };
+    expect(discoverRoutes(router, (from) => views[from] ?? "")).toEqual([
+      { key: "orgs", path: "/orgs/:action?/:page?" },
+      { key: "orgs/list", path: "/orgs/:action?/:page?" },
+      { key: "orgs/policies", path: "/orgs/:action?/:page?" },
+      { key: "orgs/policies?tab=license", path: "/orgs/:action?/:page?" },
+      { key: "orgs/policies?tab=vulnerability", path: "/orgs/:action?/:page?" },
+    ]);
+  });
+
+  test("reads subpages only for a route with a :page param", () => {
+    const router = `
+      import TermsView from "@/TermsView.vue";
+      const router = createRouter({
+        routes: [
+          { path: "/privacy", name: "privacy", component: TermsView, props: { page: "privacy" } },
+        ],
+      });`;
+    const view = `<template><Privacy v-if="page === 'privacy'" /></template>`;
+    expect(discoverRoutes(router, () => view)).toEqual([
+      { key: "privacy", path: "/privacy" },
+    ]);
+  });
 });

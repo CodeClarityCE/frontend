@@ -1,162 +1,149 @@
-import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/vue";
+import { describe, expect, it, vi } from "vitest";
+
+import {
+  createTestApp,
+  org,
+  type TestApp,
+} from "../../../../../tests/real-app";
 
 import AddGitlab from "./AddGitlab.vue";
 
-const {
-  addGitlabIntegration,
-  getGitlabIntegration,
-  updateGitlabIntegration,
-  route,
-} = vi.hoisted(() => ({
-  addGitlabIntegration: vi.fn(),
-  getGitlabIntegration: vi.fn(),
-  updateGitlabIntegration: vi.fn(),
-  route: { params: { orgId: "org-1" }, query: {} },
-}));
-
-vi.mock("vue-router", () => ({
-  RouterLink: { template: "<a><slot /></a>" },
-  useRoute: () => route,
-}));
-
-vi.mock("@/router", () => ({ default: { back: vi.fn(), push: vi.fn() } }));
-
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "test-token" }),
-}));
-
-// @vueuse/core is mocked globally, which breaks the shadcn inputs: plain stand-ins.
-vi.mock("@/shadcn/ui/input", () => ({
-  Input: {
-    props: ["modelValue"],
-    emits: ["update:modelValue"],
-    template:
-      '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
-  },
-}));
-
-vi.mock("@/utils/toasts", () => ({ successToast: vi.fn() }));
-
-vi.mock(
-  "@/codeclarity_components/organizations/integrations/IntegrationsRepository",
-  () => ({
-    IntegrationsRepository: class {
-      addGitlabIntegration = addGitlabIntegration;
-      getGitlabIntegration = getGitlabIntegration;
-      updateGitlabIntegration = updateGitlabIntegration;
-    },
-  }),
-);
-
 const BASE = "https://gitlab.example.com";
 const TOKEN = "glpat-xxxxxxxxxxxxxxxxxxxx";
+const ok = { status_code: 200, status: "success" };
+const addPath = `/org/${org.id}/integrations/gitlab/add`;
+const integrationPath = `/org/${org.id}/integrations/gitlab/int-1`;
 
 // A valid GitLab URL of exactly `length` characters.
 function urlOfLength(length: number): string {
   return `${BASE}/${"a".repeat(length - BASE.length - 1)}`;
 }
 
-async function submitSelfHosted(url: string): Promise<VueWrapper> {
-  const wrapper = mount(AddGitlab);
-  await wrapper.find("#integration-token").setValue(TOKEN);
-  await wrapper.find("#gitlab-self-hosted").trigger("click");
-  await flushPromises();
-  await wrapper.find("#gitlab-url").setValue(url);
-  await wrapper.find("form").trigger("submit");
-  await flushPromises();
-  return wrapper;
+async function openPage(query = ""): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  app.http.on("POST", addPath, { status_code: 201, status: "success" });
+  await app.visit(`/orgs/add/integrations/${org.id}?provider=GITLAB${query}`);
+  render(AddGitlab, { global: app.global });
+  return app;
 }
 
+const sent = (app: TestApp, method: string, path: string): unknown[] =>
+  app.http.requests
+    .filter((r) => r.method === method && r.path === path)
+    .map((r) => r.body);
+
+async function submitSelfHosted(url: string): Promise<TestApp> {
+  const app = await openPage();
+  const typist = userEvent.setup();
+  await typist.type(
+    screen.getByLabelText("GitLab personal access token"),
+    TOKEN,
+  );
+  await typist.click(screen.getByLabelText("Self-hosted"));
+  await typist.type(await screen.findByLabelText("Instance URL"), url);
+  await typist.click(screen.getByRole("button", { name: "Connect GitLab" }));
+  return app;
+}
+
+// The integrations list the page opens after saving.
+const openedList = (app: TestApp): Promise<void> =>
+  vi.waitFor(() =>
+    expect(app.router.currentRoute.value.params).toMatchObject({
+      action: "manage",
+      page: "integrations",
+    }),
+  );
+
 describe("AddGitlab instance URL", () => {
-  beforeEach(() => {
-    route.query = {};
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it("shows a field error for a URL over 255 characters and sends nothing", async () => {
-    const wrapper = await submitSelfHosted(urlOfLength(256));
+    const app = await submitSelfHosted(urlOfLength(256));
 
-    expect(wrapper.find("#gitlab-url-error").text()).toBe(
-      "Enter a URL of at most 255 characters",
-    );
-    expect(addGitlabIntegration).not.toHaveBeenCalled();
+    expect(
+      await screen.findByText("Enter a URL of at most 255 characters"),
+    ).toBeInTheDocument();
+    expect(sent(app, "POST", addPath)).toEqual([]);
   });
 
   it("sends a 255 character URL", async () => {
     const url = urlOfLength(255);
 
-    const wrapper = await submitSelfHosted(url);
+    const app = await submitSelfHosted(url);
 
-    expect(wrapper.find("#gitlab-url-error").exists()).toBe(false);
-    expect(addGitlabIntegration).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ gitlab_instance_url: url }),
-      }),
-    );
+    await openedList(app);
+    expect(sent(app, "POST", addPath)).toEqual([
+      expect.objectContaining({ gitlab_instance_url: url, token: TOKEN }),
+    ]);
   });
 
   it("counts the URL without its trailing slash", async () => {
     const url = urlOfLength(255);
 
-    await submitSelfHosted(`${url}/`);
+    const app = await submitSelfHosted(`${url}/`);
 
-    expect(addGitlabIntegration).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ gitlab_instance_url: url }),
-      }),
-    );
+    await openedList(app);
+    expect(sent(app, "POST", addPath)).toEqual([
+      expect.objectContaining({ gitlab_instance_url: url }),
+    ]);
   });
 });
 
 describe("AddGitlab replacing a token", () => {
   const SELF_HOSTED = "https://gitlab.acme.io";
 
-  beforeEach(() => {
-    route.query = { update: "int-1" };
-    getGitlabIntegration.mockResolvedValue({
-      id: "int-1",
-      service_domain: SELF_HOSTED,
-      service_base_url: SELF_HOSTED,
+  async function openReplace(): Promise<TestApp> {
+    const app = createTestApp({ signedIn: true });
+    app.http.on("GET", integrationPath, {
+      data: {
+        id: "int-1",
+        integration_type: "VCS",
+        integration_provider: "GITLAB",
+        invalid: false,
+        service_domain: SELF_HOSTED,
+        service_base_url: SELF_HOSTED,
+        token_type: "PERSONAL_ACCESS_TOKEN",
+        added_on: "2025-01-01T00:00:00Z",
+      },
     });
-    updateGitlabIntegration.mockResolvedValue({});
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
+    app.http.on("PATCH", integrationPath, ok);
+    await app.visit(
+      `/orgs/add/integrations/${org.id}?provider=GITLAB&update=int-1`,
+    );
+    render(AddGitlab, { global: app.global });
+    return app;
+  }
 
   it("shows the stored instance URL and offers no way to change it", async () => {
-    const wrapper = mount(AddGitlab);
-    await flushPromises();
+    await openReplace();
 
-    expect(wrapper.text()).toContain("Replace the GitLab token");
-    expect(wrapper.text()).toContain(SELF_HOSTED);
-    expect(wrapper.find("#gitlab-self-hosted").exists()).toBe(false);
-    expect(wrapper.find("#gitlab-url").exists()).toBe(false);
+    expect(
+      await screen.findByText(SELF_HOSTED, { exact: false }),
+    ).toBeInTheDocument();
+    expect(document.body).toHaveTextContent("Replace the GitLab token");
+    expect(screen.queryByLabelText("Self-hosted")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Instance URL")).not.toBeInTheDocument();
   });
 
   it("sends the new token with the stored instance URL", async () => {
-    const wrapper = mount(AddGitlab);
-    await flushPromises();
+    const app = await openReplace();
+    await screen.findByText(SELF_HOSTED, { exact: false });
 
-    await wrapper.find("#integration-token").setValue(TOKEN);
-    await wrapper.find("form").trigger("submit");
-    await flushPromises();
-
-    expect(updateGitlabIntegration).toHaveBeenCalledWith(
-      expect.objectContaining({
-        orgId: "org-1",
-        integrationId: "int-1",
-        data: expect.objectContaining({
-          token: TOKEN,
-          gitlab_instance_url: SELF_HOSTED,
-        }),
-      }),
+    await userEvent.type(
+      screen.getByLabelText("GitLab personal access token"),
+      TOKEN,
     );
-    expect(addGitlabIntegration).not.toHaveBeenCalled();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Replace token" }),
+    );
+
+    await openedList(app);
+    expect(sent(app, "PATCH", integrationPath)).toEqual([
+      expect.objectContaining({
+        token: TOKEN,
+        gitlab_instance_url: SELF_HOSTED,
+      }),
+    ]);
+    expect(sent(app, "POST", addPath)).toEqual([]);
   });
 });

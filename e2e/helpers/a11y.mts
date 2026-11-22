@@ -59,27 +59,57 @@ function describe(violation: AxeViolation): string {
   return `  ${violation.id} (${violation.impact ?? "n/a"}): ${violation.help}\n${targets}`;
 }
 
-// Waits for finite animations, such as a dialog opening, so axe sees final colours and sizes.
+// Waits for running finite animations, such as a dialog opening, so axe sees final colours and sizes.
+// Gives up after 5 seconds, since WebKit can leave an animation unfinished.
 export async function waitForAnimations(page: Page): Promise<void> {
   await page.evaluate(() =>
-    Promise.all(
-      document
-        .getAnimations()
-        .filter((a) => a.effect?.getTiming().iterations !== Infinity)
-        .map((a) => a.finished.catch(() => undefined)),
-    ),
+    Promise.race([
+      Promise.all(
+        document
+          .getAnimations()
+          .filter(
+            (a) =>
+              a.playState === "running" &&
+              a.effect?.getTiming().iterations !== Infinity,
+          )
+          .map((a) => a.finished.catch(() => undefined)),
+      ),
+      new Promise((done) => setTimeout(done, 5000)),
+    ]),
   );
 }
+
+// Axe rules after which Playwright's Firefox crashes the page (SIGSEGV) on the
+// next DOM walk; no upstream report found. Chromium and WebKit still run them.
+export const FIREFOX_CRASHING_RULES = [
+  "aria-allowed-attr",
+  "aria-conditional-attr",
+  "aria-progressbar-name",
+  "aria-prohibited-attr",
+  "aria-toggle-field-name",
+  "label-content-name-mismatch",
+  "nested-interactive",
+  "svg-img-alt",
+  "target-size",
+];
 
 async function runAxe(page: Page): Promise<AxeViolation[]> {
   await waitForAnimations(page);
   if (!(await page.evaluate(() => "axe" in window))) {
     await page.addScriptTag({ path: axePath });
   }
+  const isFirefox =
+    page.context().browser()?.browserType().name() === "firefox";
+  const off = isFirefox ? FIREFOX_CRASHING_RULES : [];
   const { violations } = await page.evaluate(
-    (tags) =>
-      window.axe.run(document, { runOnly: { type: "tag", values: tags } }),
-    WCAG_22_AA_TAGS,
+    ([tags, skipped]) =>
+      window.axe.run(document, {
+        runOnly: { type: "tag", values: tags },
+        rules: Object.fromEntries(
+          skipped.map((id) => [id, { enabled: false }]),
+        ),
+      }),
+    [WCAG_22_AA_TAGS, off] as const,
   );
   return violations;
 }
@@ -207,11 +237,17 @@ export async function expectNoAxeViolations(
   const second: Theme = first === "light" ? "dark" : "light";
   const problems = problemsIn(first, await runAxe(page), known);
 
+  // No transitions while the theme flips: headless WebKit can leave colour
+  // transitions at the old theme's value.
+  const noTransitions = await page.addStyleTag({
+    content: "*, *::before, *::after { transition: none !important; }",
+  });
   const restore = await switchTo(page, second);
   try {
     problems.push(...problemsIn(second, await runAxe(page), known));
   } finally {
     await restore();
+    await noTransitions.evaluate((el) => el.parentNode?.removeChild(el));
   }
 
   if (problems.length > 0) {
@@ -231,7 +267,8 @@ export async function expectVisibleFocus(
   const page = locator.page();
   // Measure where the element ends up, not mid-animation.
   await waitForAnimations(page);
-  await locator.scrollIntoViewIfNeeded();
+  // Not scrollIntoViewIfNeeded: in WebKit its wait for a stable box can hang.
+  await locator.evaluate((el) => el.scrollIntoView({ block: "nearest" }));
   const box = await locator.boundingBox();
   if (!box) {
     throw new Error("Element has no box, so it has no visible focus indicator");

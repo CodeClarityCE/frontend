@@ -1,0 +1,20 @@
+- main:
+  - region "Organisation":
+    - paragraph: Test Organization
+    - text: "Your role: Owner"
+    - paragraph: Test org
+    - term: Members
+    - definition: 1 member
+    - term: Joined
+    - definition: /Joined Jan \d+, \d+/
+    - term: Owner
+    - definition: Deleted user
+  - heading "Analyzers" [level=1]
+  - paragraph: An analyzer is a named set of plugins that an analysis runs in stages.
+  - link "New analyzer":
+    - /url: /orgs/add/analyzers/org-123/
+  - img "The CodeClarity owl"
+  - heading "No analyzers yet" [level=2]
+  - paragraph: An analyzer runs plugins in stages, such as an SBOM builder and then a vulnerability finder.
+  - link "Create an analyzer":
+    - /url: /orgs/add/analyzers/org-123/

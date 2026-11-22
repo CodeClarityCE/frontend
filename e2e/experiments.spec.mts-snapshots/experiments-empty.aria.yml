@@ -1,0 +1,10 @@
+- main:
+  - heading "Experiments" [level=1]
+  - paragraph: One analyzer run over every repository of a Dataset, at each date of a snapshot grid.
+  - link "New Experiment":
+    - /url: /experiments/add
+  - img "The CodeClarity owl"
+  - heading "No Experiments yet" [level=2]
+  - paragraph: An Experiment runs one analyzer over every repository of a ready Dataset and gathers the results across the whole cohort.
+  - link "Create an Experiment":
+    - /url: /experiments/add

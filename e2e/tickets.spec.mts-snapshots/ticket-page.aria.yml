@@ -1,0 +1,57 @@
+- main:
+  - link "Tickets":
+    - /url: /tickets
+  - paragraph: Vulnerability ticket
+  - 'heading /CVE-\d+-\d+: lodash prototype pollution/ [level=1]'
+  - paragraph: Open High priority
+  - complementary "Ticket details":
+    - button "Start progress"
+    - button "Won't fix"
+    - term: Project
+    - definition: web-frontend
+    - term: Assigned to
+    - definition: Unassigned
+    - term: Due date
+    - definition:
+      - text: Due date
+      - textbox "Due date"
+      - button "Save"
+    - term: Occurrences
+    - definition: 2 active of 3
+    - term: Created
+    - definition: /Oct 1, \d+ by John Doe/
+  - region "Vulnerability":
+    - heading "Vulnerability" [level=2]
+    - term: CVE/ID
+    - definition:
+      - link /CVE-\d+-\d+/:
+        - /url: /org/org-123/vulnerabilities/CVE-2026-0001
+    - term: Severity
+    - definition: High 7.5
+    - term: Package
+    - definition: lodash
+    - term: Version
+    - definition: /\d+\.\d+\.\d+ recommended \d+\.\d+\.\d+/
+    - heading "Description" [level=3]
+    - paragraph: /Prototype pollution in lodash before \d+\.\d+\.\d+\./
+  - region "Risk":
+    - heading "Risk" [level=2]
+    - link "Full vulnerability details":
+      - /url: /org/org-123/vulnerabilities/CVE-2026-0001
+    - term: CVSS v3.1
+    - definition: "7.5"
+    - definition: /Severity, 0 to \d+/
+    - term: EPSS
+    - definition: /\d+\.\d+%/
+    - definition: /Higher than \d+\.\d+% of vulnerabilities/
+    - heading "References" [level=3]
+    - list:
+      - listitem:
+        - link "https://example.com/advisory":
+          - /url: https://example.com/advisory
+  - region "Remediation notes":
+    - heading "Remediation notes" [level=2]
+    - paragraph: /Upgrade lodash to \d+\.\d+\.\d+/
+  - region "History":
+    - heading "History" [level=2]
+    - paragraph: Nothing has happened to this ticket yet.

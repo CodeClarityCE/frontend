@@ -1,0 +1,188 @@
+- main:
+  - heading "Dashboard" [level=1]
+  - paragraph: Your Experiments first, then the security of your projects.
+  - region "Research":
+    - heading "Research" [level=2]
+    - link "New Experiment":
+      - /url: /experiments/add
+    - heading "Experiments in progress" [level=3]
+    - list "Experiments in progress":
+      - listitem:
+        - link "Upstream leverage":
+          - /url: /experiments/detail?id=exp-4
+        - text: /Top npm packages Pending Finished runs 0 \/ \d+/
+        - progressbar "Finished runs"
+        - list "Runs by state":
+          - listitem: Done 0
+          - listitem: Failed 0
+          - listitem: Skipped 0
+      - listitem:
+        - link /Residence time \d+/:
+          - /url: /experiments/detail?id=exp-2
+        - text: /Top npm packages Running Finished runs \d+ \/ \d+/
+        - progressbar "Finished runs"
+        - list "Runs by state":
+          - listitem: /Done \d+/
+          - listitem: Failed 6
+          - listitem: Skipped 4
+    - heading "Recently finished" [level=3]
+    - list "Recently finished":
+      - listitem:
+        - link "License drift":
+          - /url: /experiments/detail?id=exp-5
+        - text: /Ended Nov 1, \d+ Completed/
+      - listitem:
+        - link "Fix lag study":
+          - /url: /experiments/detail?id=exp-1
+        - text: /Ended Oct 6, \d+ Completed/
+      - listitem:
+        - link "Broken cohort":
+          - /url: /experiments/detail?id=exp-3
+        - text: /Ended Sep \d+, \d+ Failed/
+    - heading "Recent Published results" [level=3]
+    - list "Recent Published results":
+      - listitem:
+        - link "License drift":
+          - /url: /experiments/detail?id=exp-5
+        - text: /Metric version 1, published Nov 2, \d+ by Jane Roe Frozen/
+      - listitem:
+        - link "Fix lag study":
+          - /url: /experiments/detail?id=exp-1
+        - text: /Metric version 2, published Oct \d+, \d+ by John Doe Frozen/
+      - listitem:
+        - link "Fix lag study":
+          - /url: /experiments/detail?id=exp-1
+        - text: /Metric version 1, published Oct 7, \d+ Frozen/
+  - region "Projects":
+    - heading "Projects" [level=2]
+    - button "Refresh"
+    - heading "Fix next" [level=3]
+    - paragraph: Remediations ranked by the worst severity they resolve, then known exploited or high EPSS, then prod over dev only, then how many instances they resolve
+    - paragraph: "Nothing to fix: no remediation resolves a vulnerability in your projects."
+    - heading "My work" [level=3]
+    - paragraph: "Open tickets assigned to you: overdue first, then due soon, then by Fix next rank"
+    - paragraph: "Nothing is assigned to you: tickets assigned to you show up here."
+    - combobox "Project":
+      - option "All projects" [selected]
+      - option "web-frontend"
+    - combobox "Period":
+      - option "Weekly" [selected]
+      - option "Monthly"
+    - list "Project numbers":
+      - listitem: Critical vulnerabilities 2 Same as last week
+      - listitem: High vulnerabilities 5 1 fewer than last week
+      - listitem: Projects scanned 3 Same as last week
+      - listitem: Security score B Same as last week
+    - button "About the security score"
+    - heading "Open vulnerabilities over time" [level=3]
+    - paragraph: Vulnerability instances in each project's current analysis at the end of each period, and how many were introduced and fixed
+    - heading "Open per week" [level=4]
+    - list:
+      - listitem: Critical
+      - listitem: High
+      - listitem: Medium
+      - listitem: Low
+      - listitem: None
+    - group "Open vulnerability instances by severity, per week":
+      - 'img /Week of Oct \d+, \d+: \d+ open \(3 critical, 6 high, \d+ medium, 4 low\)/'
+      - 'img /Week of Oct \d+, \d+: \d+ open \(2 critical, 6 high, 9 medium, 4 low\)/'
+      - 'img /Week of Oct \d+, \d+: \d+ open \(2 critical, 6 high, 9 medium, 4 low\)/'
+      - 'img /Week of Nov \d+, \d+: \d+ open \(2 critical, 5 high, 9 medium, 4 low\)/'
+    - group: Show table
+    - heading "Introduced and fixed per week" [level=4]
+    - list:
+      - listitem: Introduced
+      - listitem: Fixed
+    - group "Vulnerability instances introduced and fixed per week":
+      - 'img /Week of Oct \d+, \d+: \d+ introduced, 0 fixed/'
+      - 'img /Week of Oct \d+, \d+: 0 introduced, 2 fixed/'
+      - 'img /Week of Oct \d+, \d+: 1 introduced, 1 fixed/'
+      - 'img /Week of Nov \d+, \d+: 0 introduced, 1 fixed/'
+    - group: Show table
+    - heading "Vulnerabilities summary" [level=3]
+    - paragraph: Current threats affecting your projects
+    - combobox "Project":
+      - option "All projects" [selected]
+      - option "web-frontend"
+    - combobox "Severity":
+      - option "Any severity" [selected]
+      - option "Critical"
+      - option "High"
+      - option "Medium"
+      - option "Low"
+      - option "None"
+    - combobox "Ecosystem":
+      - option "Any ecosystem" [selected]
+      - option "npm"
+      - option "Packagist"
+    - combobox "Dependency type":
+      - option "Prod and dev" [selected]
+      - option "Prod"
+      - option "Dev only"
+    - combobox "Fix":
+      - option "With or without a fix" [selected]
+      - option "Has a fix"
+      - option "No fix"
+    - combobox "Known exploited":
+      - option "Exploited or not" [selected]
+      - option "Known exploited"
+      - option "Not known exploited"
+    - combobox "Ticket":
+      - option "Any ticket state" [selected]
+      - option "No ticket"
+      - option "Open ticket, on time"
+      - option "Overdue ticket"
+    - list "Vulnerabilities by severity":
+      - listitem: Critical 2
+      - listitem: High 5
+      - listitem: Medium 9
+    - list "Vulnerabilities in your projects":
+      - listitem:
+        - link /Critical 9\.8 CVE-\d+-\d+ No EPSS 2 projects 2 instances/:
+          - /url: /org/org-123/vulnerabilities/CVE-2026-0001
+      - listitem:
+        - link /High 7\.5 CVE-\d+-\d+ No EPSS 3 projects 5 instances/:
+          - /url: /org/org-123/vulnerabilities/CVE-2026-0002
+      - listitem:
+        - link /Medium 5\.3 CVE-\d+-\d+ No EPSS 1 project 9 instances/:
+          - /url: /org/org-123/vulnerabilities/CVE-2026-0003
+      - listitem:
+        - link /Low 2\.1 CVE-\d+-\d+ No EPSS 1 project 4 instances/:
+          - /url: /org/org-123/vulnerabilities/CVE-2026-0004
+    - heading "Tickets" [level=3]
+    - paragraph: Track vulnerability remediation progress
+    - list "Tickets by state":
+      - listitem: Open 4
+      - listitem: In progress 2
+      - listitem: Resolved this week 1
+    - list "Tickets by due date":
+      - listitem: Overdue 0
+      - listitem: Due this week 0
+    - list "Tickets by priority":
+      - listitem: Critical 1
+      - listitem: High 2
+      - listitem: Medium 1
+    - heading "Recent tickets" [level=4]
+    - list "Recent tickets":
+      - listitem:
+        - 'link /Critical CVE-\d+-\d+: lodash prototype pollution Nov 1/':
+          - /url: /tickets/t-1
+    - link "View all tickets":
+      - /url: /tickets
+    - heading "Stale projects" [level=3]
+    - paragraph: Projects not analysed lately
+    - paragraph: /Every project was analysed in the last \d+ days\./
+    - heading "Open source licenses" [level=3]
+    - paragraph: Licenses across your dependencies
+    - group "Dependencies by license":
+      - 'img /MIT: \d+ dependencies \(\d+%\)/'
+      - 'img /Apache-2\.0: \d+ dependencies \(\d+%\)/'
+      - 'img "ISC: 5 dependencies (9%)"'
+    - group: Show table
+    - heading "Impact analysis" [level=3]
+    - paragraph: Mean impact of vulnerabilities on your projects
+    - group "Mean impact on confidentiality, integrity and availability":
+      - 'img "Confidentiality: mean impact 0.5"'
+      - 'img "Integrity: mean impact 0.3"'
+      - 'img "Availability: mean impact 0.8"'
+    - group: Show table

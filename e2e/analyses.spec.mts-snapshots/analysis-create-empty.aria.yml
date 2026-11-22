@@ -1,0 +1,16 @@
+- main:
+  - link "Projects":
+    - /url: /projects
+  - heading "New Analysis" [level=1]
+  - paragraph: Choose an analyzer, set its options and how often it runs.
+  - text: example/web-frontend GitHub repository
+  - link "View repository":
+    - /url: https://github.com/example/web-frontend
+  - group:
+    - heading "Analyzer" [level=2]
+    - paragraph: The plugins that run on the project, in order.
+    - img "The CodeClarity owl"
+    - heading "No analyzers yet" [level=2]
+    - paragraph: An analyzer lists the plugins an analysis runs. Create one for the organisation first.
+    - link "Create an analyzer":
+      - /url: /orgs/add/analyzers/org-123/

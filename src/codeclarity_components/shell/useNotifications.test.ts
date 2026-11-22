@@ -1,6 +1,8 @@
 import { flushPromises } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { nextTick } from "vue";
+
+import { createTestApp, type TestApp } from "../../../tests/real-app";
 
 import {
   type Notification,
@@ -8,24 +10,20 @@ import {
 } from "./notification.entity";
 import { useNotifications } from "./useNotifications";
 
-const { getNotifications, deleteNotification, deleteAllNotifications } =
-  vi.hoisted(() => ({
-    getNotifications: vi.fn(),
-    deleteNotification: vi.fn(),
-    deleteAllNotifications: vi.fn(),
-  }));
+const ok = { status_code: 200, status: "success" };
 
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "test-token" }),
-}));
-
-vi.mock("./notification.repository", () => ({
-  NotificationRepository: class {
-    getNotifications = getNotifications;
-    deleteNotification = deleteNotification;
-    deleteAllNotifications = deleteAllNotifications;
-  },
-}));
+// The notifications page the API answers.
+const page = (data: Notification[]) => ({
+  data,
+  entry_count: data.length,
+  page: 0,
+  entries_per_page: 100,
+  total_entries: data.length,
+  total_pages: 1,
+  status: "success",
+  matching_count: data.length,
+  filter_count: {},
+});
 
 function note(
   id: string,
@@ -66,20 +64,22 @@ const notifications = [
   }),
 ];
 
-async function loaded(): Promise<ReturnType<typeof useNotifications>> {
+let app: TestApp;
+
+// Loads the signed-in user's notifications as the shell does.
+async function loaded(
+  answer: Notification[] = notifications,
+): Promise<ReturnType<typeof useNotifications>> {
+  app.http.on("GET", "/notifications", page(answer));
   const state = useNotifications();
   await flushPromises();
   return state;
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
-  getNotifications.mockResolvedValue({
-    data: notifications,
-    matching_count: 5,
-  });
-  deleteNotification.mockResolvedValue(undefined);
-  deleteAllNotifications.mockResolvedValue(undefined);
+  app = createTestApp({ signedIn: true });
+  app.http.on("DELETE", "/notifications", ok);
+  app.http.on("DELETE", "/notifications/02", ok);
 });
 
 describe("useNotifications", () => {
@@ -118,13 +118,11 @@ describe("useNotifications", () => {
   });
 
   it("pages through ten notifications at a time", async () => {
-    getNotifications.mockResolvedValue({
-      data: Array.from({ length: 12 }, (_, i) =>
+    const state = await loaded(
+      Array.from({ length: 12 }, (_, i) =>
         note(String(i).padStart(2, "0"), NotificationContentType.NewVersion),
       ),
-      matching_count: 12,
-    });
-    const state = await loaded();
+    );
 
     expect(state.pageItems.value).toHaveLength(10);
     expect(state.totalPages.value).toBe(2);
@@ -138,14 +136,15 @@ describe("useNotifications", () => {
   it("dismisses one notification or all of them", async () => {
     const state = await loaded();
 
+    const deletes = () =>
+      app.http.requests.filter((r) => r.method === "DELETE").map((r) => r.path);
+
     await state.dismiss("02");
-    expect(deleteNotification).toHaveBeenCalledWith(
-      expect.objectContaining({ notification_id: "02" }),
-    );
+    expect(deletes()).toEqual(["/notifications/02"]);
     expect(state.pageItems.value.map((n) => n.id)).not.toContain("02");
 
     await state.dismissAll();
-    expect(deleteAllNotifications).toHaveBeenCalled();
+    expect(deletes()).toEqual(["/notifications/02", "/notifications"]);
     expect(state.visibleCount.value).toBe(0);
   });
 });

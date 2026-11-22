@@ -66,11 +66,7 @@ const STATIC_IMPORT = /import (\w+) from (["'])([^"']+)\2/g;
 // A subpage component's `?tab=` values are the literals it compares `tab` with.
 const QUERY_TAB = /\btab\s*===\s*(["'])([\w-]+)\1/g;
 
-/**
- * Lists the pages of the app from the router source: each named route, the
- * subpages its view switches on, and its `?tab=` values. `readView` returns a
- * view's source from its import path, as written in the router.
- */
+// Lists the app's pages from the router source; readView reads a view by its router import path.
 export function discoverRoutes(
   routerSource: string,
   readView: (importPath: string) => string,

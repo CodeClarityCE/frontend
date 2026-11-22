@@ -4,12 +4,8 @@ import { expectMainSnapshot } from "../helpers/aria-snapshot.mjs";
 
 import { DEPENDENCY, npmProjectArchive } from "./npm-project.mjs";
 
-/*
- * One user journey against a real stack (E2E_BASE_URL), with nothing mocked:
- * the dev account uploads a tiny npm project, runs the Default Analyzer and
- * reads its SBOM, its vulnerabilities and one vulnerability's details. The
- * knowledge dump fixture gives ms@0.7.1 one advisory, GHSA-w9mr-4mfr-499f.
- */
+// Uploads a tiny npm project to a real stack, analyses it and reads its results.
+// The knowledge dump fixture gives ms@0.7.1 one advisory, GHSA-w9mr-4mfr-499f.
 
 const EMAIL = "john.doe@codeclarity.io";
 const PASSWORD = "ThisIs4Str0ngP4ssW0rd?";

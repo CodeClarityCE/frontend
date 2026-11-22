@@ -4,13 +4,7 @@ import { fileURLToPath } from "node:url";
 const DESKTOP = { width: 1280, height: 1024 };
 const stylePath = fileURLToPath(new URL("./screenshot.css", import.meta.url));
 
-/**
- * Compares a full-page capture with its committed baseline, named
- * `<name>-<width>.png`, with animations and transitions frozen.
- * - chromium: at 1280px wide.
- * - pixel-5: at the phone viewport (390px), one image pixel per CSS pixel.
- * - Other projects take no screenshots, so they have no baselines.
- */
+// Compares a full-page capture with `<name>-1280.png` in chromium or `<name>-390.png` in pixel-5.
 export async function expectScreenshots(
   page: Page,
   name: string,

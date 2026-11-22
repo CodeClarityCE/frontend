@@ -4,12 +4,7 @@ interface Options {
   timeout?: number;
 }
 
-/**
- * Compares a region's accessibility tree with `<name>.aria.yml` in the spec's
- * snapshot folder. Every node and name in the file must be on the page, in
- * order; nodes the file does not list are allowed, as Playwright's own
- * generated snapshots leave out text that repeats an element's name.
- */
+// Compares a region's accessibility tree with `<name>.aria.yml` in the spec's snapshot folder.
 export async function expectAriaSnapshot(
   region: Locator,
   name: string,

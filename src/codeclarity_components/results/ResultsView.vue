@@ -12,7 +12,7 @@ import {
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-import { PageHeading } from "@/base_components/page";
+import { PageHeading, PreviewBadge } from "@/base_components/page";
 import {
   Analysis,
   analysisSkippedFolders,
@@ -351,8 +351,13 @@ onBeforeMount(async () => {
           <TabsTrigger v-if="tab['license-finder']" value="license-finder">
             Licenses
           </TabsTrigger>
-          <TabsTrigger v-if="tab['codeql']" value="codeql">
+          <TabsTrigger
+            v-if="tab['codeql']"
+            value="codeql"
+            aria-describedby="codeql-tab-preview"
+          >
             CodeQL
+            <PreviewBadge id="codeql-tab-preview" aria-hidden="true" />
           </TabsTrigger>
         </TabsList>
         <TabsContent value="sbom" class="space-y-4">

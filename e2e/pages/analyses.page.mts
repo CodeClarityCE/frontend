@@ -77,6 +77,28 @@ export function analyzer(
   };
 }
 
+/** An analyzer whose CodeQL step needs a language. */
+export const codeqlAnalyzer = {
+  ...analyzer("an-codeql", "CodeQL", "Static analysis"),
+  steps: [
+    [
+      {
+        name: "codeql",
+        version: "1.0.0",
+        config: {
+          language: {
+            name: "language",
+            type: "string",
+            required: true,
+            description: "",
+          },
+        },
+        persistant_config: {},
+      },
+    ],
+  ],
+};
+
 export const sampleAnalyzers = [
   analyzer("an-js", "JS", "SBOM, vulnerabilities and licenses for npm"),
   analyzer("an-php", "PHP", "SBOM, vulnerabilities and licenses for Composer"),

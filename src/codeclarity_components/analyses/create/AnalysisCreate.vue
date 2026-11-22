@@ -16,6 +16,7 @@ import {
   BrandEmphasis,
   OwlEmptyState,
   PageHeading,
+  PreviewBadge,
 } from "@/base_components/page";
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
 import TextLink from "@/codeclarity_components/authentication/layout/TextLink.vue";
@@ -767,6 +768,7 @@ const choiceClass =
                 <span class="font-normal text-muted-foreground">
                   {{ plugin.version }}
                 </span>
+                <PreviewBadge v-if="plugin.name === 'codeql'" class="ml-2" />
               </legend>
               <div
                 v-for="option in optionsOf(plugin)"

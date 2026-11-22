@@ -3,7 +3,7 @@ import { CircleCheck } from "@lucide/vue";
 import { type Ref, ref, watch } from "vue";
 
 import { DataTable, type DataTableColumn } from "@/base_components/data-table";
-import { StatTile } from "@/base_components/page";
+import { PreviewBadge, StatTile } from "@/base_components/page";
 import { type Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import { type Project } from "@/codeclarity_components/projects/project.entity";
 import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
@@ -119,12 +119,15 @@ function rowKey(finding: Finding): string {
 <template>
   <section aria-labelledby="codeql-heading" class="flex flex-col gap-4">
     <div class="flex flex-col gap-1">
-      <h2
-        id="codeql-heading"
-        class="text-xl font-semibold tracking-tight text-foreground-strong"
-      >
-        CodeQL findings
-      </h2>
+      <div class="flex flex-wrap items-center gap-3">
+        <h2
+          id="codeql-heading"
+          class="text-xl font-semibold tracking-tight text-foreground-strong"
+        >
+          CodeQL findings
+        </h2>
+        <PreviewBadge />
+      </div>
       <ResultTimestamp
         :created-on="createdOn"
         :run-index="runIndex"

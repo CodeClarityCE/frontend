@@ -2,7 +2,7 @@
   - link "Experiments":
     - /url: /experiments
   - heading /Residence time \d+/ [level=1]
-  - text: Running
+  - text: Running Preview
   - paragraph:
     - text: Analyzer
     - strong: JavaScript analyzer

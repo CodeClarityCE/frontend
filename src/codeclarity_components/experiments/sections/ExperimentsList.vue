@@ -8,6 +8,7 @@ import {
   BrandEmphasis,
   OwlEmptyState,
   PageHeading,
+  PreviewBadge,
 } from "@/base_components/page";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
@@ -113,6 +114,7 @@ onUnmounted(() => clearTimeout(pollTimer));
     description="One analyzer run over every repository of a Dataset, at each date of a snapshot grid."
   >
     <BrandEmphasis>Experiments</BrandEmphasis>
+    <template #badge><PreviewBadge /></template>
     <template #actions>
       <Button :as="RouterLink" :to="createLink">
         <Plus aria-hidden="true" />

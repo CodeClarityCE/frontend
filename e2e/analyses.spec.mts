@@ -8,6 +8,7 @@ import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   AnalysesPage,
   analyzer,
+  codeqlAnalyzer,
   licensePolicies,
   vulnerabilityPolicies,
 } from "./pages/analyses.page.mjs";
@@ -20,28 +21,6 @@ function many(item: Record<string, unknown>, count: number): unknown[] {
     name: `${String(item.name)} ${i + 1}`,
   }));
 }
-
-/** An analyzer whose CodeQL step needs a language. */
-const codeqlAnalyzer = {
-  ...analyzer("an-codeql", "CodeQL", "Static analysis"),
-  steps: [
-    [
-      {
-        name: "codeql",
-        version: "1.0.0",
-        config: {
-          language: {
-            name: "language",
-            type: "string",
-            required: true,
-            description: "",
-          },
-        },
-        persistant_config: {},
-      },
-    ],
-  ],
-};
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 1024 });

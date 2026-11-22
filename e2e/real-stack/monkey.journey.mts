@@ -140,12 +140,9 @@ const MONKEY_PAGES: MonkeyPage[] = [
   {
     name: "ticket",
     signedIn: true,
-    stayOn: /\/tickets\/[0-9a-f-]{36}/,
-    open: async (page) => {
-      await page.goto("/tickets");
-      await page.getByRole("table").getByRole("row").nth(1).click(LOADED);
-      await expect(page).toHaveURL(/\/tickets\/[0-9a-f-]{36}/, LOADED);
-    },
+    stayOn: /\/tickets\/(?!integrations)[^/?#]+/,
+    open: (page) =>
+      follow(page, "/tickets", /\/tickets\/(?!integrations)[^/?#]+$/),
   },
   {
     name: "add organisation",

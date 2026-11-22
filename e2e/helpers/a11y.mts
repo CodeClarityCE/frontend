@@ -247,7 +247,7 @@ export async function expectNoAxeViolations(
     problems.push(...problemsIn(second, await runAxe(page), known));
   } finally {
     await restore();
-    await noTransitions.evaluate((el) => el.remove());
+    await noTransitions.evaluate((el) => el.parentNode?.removeChild(el));
   }
 
   if (problems.length > 0) {

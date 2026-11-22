@@ -1,6 +1,10 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import {
+  expectNoAxeViolations,
+  expectVisibleFocus,
+  waitForAnimations,
+} from "./helpers/a11y.mjs";
 import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
@@ -519,9 +523,7 @@ test.describe("Analyzers accessibility and look", () => {
     await page.keyboard.press("Enter");
     await expect(page.getByRole("dialog")).toBeVisible();
     // Measure contrast once the dialog has finished fading in.
-    await page.evaluate(() =>
-      Promise.all(document.getAnimations().map((a) => a.finished)),
-    );
+    await waitForAnimations(page);
     await expectNoAxeViolations(page);
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);

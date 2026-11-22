@@ -84,6 +84,7 @@ export async function waitForAnimations(page: Page): Promise<void> {
 export const FIREFOX_CRASHING_RULES = [
   "aria-allowed-attr",
   "aria-conditional-attr",
+  "aria-progressbar-name",
   "aria-prohibited-attr",
   "label-content-name-mismatch",
   "nested-interactive",
@@ -234,11 +235,20 @@ export async function expectNoAxeViolations(
   const second: Theme = first === "light" ? "dark" : "light";
   const problems = problemsIn(first, await runAxe(page), known);
 
+  // Reduced motion makes the theme change instant: headless WebKit can leave
+  // colour transitions at their old value.
+  const reduced = await page.evaluate(
+    () => matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+  await page.emulateMedia({ reducedMotion: "reduce" });
   const restore = await switchTo(page, second);
   try {
     problems.push(...problemsIn(second, await runAxe(page), known));
   } finally {
     await restore();
+    await page.emulateMedia({
+      reducedMotion: reduced ? "reduce" : "no-preference",
+    });
   }
 
   if (problems.length > 0) {

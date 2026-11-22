@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import {
+  expectNoAxeViolations,
+  expectVisibleFocus,
+  waitForAnimations,
+} from "./helpers/a11y.mjs";
 import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { describeOnAPhone } from "./helpers/phone.mjs";
@@ -304,9 +308,7 @@ test.describe("New Dataset", () => {
 
     await page.getByRole("combobox").click();
     await expect(page.getByRole("listbox")).toBeVisible();
-    await page.evaluate(() =>
-      Promise.all(document.getAnimations().map((a) => a.finished)),
-    );
+    await waitForAnimations(page);
 
     await expectNoAxeViolations(page);
 

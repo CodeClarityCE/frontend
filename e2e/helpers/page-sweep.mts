@@ -57,8 +57,7 @@ export async function expectPageSweep(page: Page): Promise<void> {
         el.closest('[aria-disabled="true"]') !== null ||
         el.hasAttribute("data-disabled");
       if (disabled) {
-        // A control that ignores the pointer shows the cursor beneath it.
-        if (style.pointerEvents !== "none" && clickable(style.cursor)) {
+        if (clickable(style.cursor)) {
           problems.push(`disabled ${describe(el, style.cursor)}`);
         }
       } else if (!clickable(style.cursor)) {

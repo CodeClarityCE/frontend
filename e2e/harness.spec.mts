@@ -211,11 +211,18 @@ test.describe("Page sweep harness", () => {
     await expect(expectPageSweep(page)).rejects.toThrow(/button "Off"/);
   });
 
-  test("passes a disabled control that ignores the pointer", async ({
+  test("fails on a disabled control that ignores the pointer but has a pointer cursor", async ({
     page,
   }) => {
     await page.setContent(
-      `<style>button{cursor:pointer}</style><button disabled style="pointer-events:none">Off</button><span role="switch" aria-disabled="true">Mute</span>`,
+      `<button disabled style="cursor:pointer;pointer-events:none">Off</button>`,
+    );
+    await expect(expectPageSweep(page)).rejects.toThrow(/button "Off"/);
+  });
+
+  test("passes disabled controls with a default cursor", async ({ page }) => {
+    await page.setContent(
+      `<button disabled style="cursor:default">Off</button><span role="switch" aria-disabled="true">Mute</span><div role="tab" data-disabled="">Later</div>`,
     );
     await expectPageSweep(page);
   });

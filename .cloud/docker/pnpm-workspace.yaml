@@ -33,8 +33,6 @@ allowBuilds:
 # Patched versions forced where the parent has no fixed release. Mirror these
 # in the root pnpm-workspace.yaml.
 overrides:
-  # Nothing in the frontend tree pulls qs any more; kept in step with the root copy.
-  "qs@<6.16.1": ^6.16.1
   # editorconfig 3 and glob 13 stay on minimatch 10.
   "minimatch@>=7.0.0 <11.0.1": ^11.0.1
   # js-beautify (via @vue/test-utils) stays on glob 13.

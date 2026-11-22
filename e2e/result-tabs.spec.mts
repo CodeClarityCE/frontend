@@ -502,107 +502,6 @@ test.describe("License results", () => {
   });
 });
 
-test.describe("Patch results", () => {
-  test("shows the patch summary and a status per dependency", async ({
-    page,
-  }) => {
-    const tabs = new ResultTabsPage(page);
-    await tabs.signIn();
-    await tabs.goto("Patches");
-
-    const numbers = page.getByRole("list", { name: "Patch numbers" });
-    await expect(numbers.getByRole("listitem").nth(0)).toHaveText(
-      /Issues after patching\s*2\s*4 before patching/,
-    );
-    const rows = tabs.rows("Patches");
-    await expect(rows).toHaveCount(3);
-    await expect(rows.filter({ hasText: "express" })).toContainText(
-      "Full patch",
-    );
-    await expect(rows.filter({ hasText: "request" })).toContainText("No patch");
-    await expect(rows.filter({ hasText: "vitest" })).toContainText(
-      "Partial patch",
-    );
-    await expect(
-      page.getByRole("heading", { name: "Patched manifest" }),
-    ).toBeVisible();
-
-    await page.getByText("Show table").click();
-    await expect(
-      page.getByRole("row", { name: "Critical 1 0", exact: true }),
-    ).toBeVisible();
-  });
-
-  test("the patch dialog traps focus and closes with Escape", async ({
-    page,
-  }) => {
-    const tabs = new ResultTabsPage(page);
-    await tabs.signIn();
-    await tabs.goto("Patches");
-    const open = page.getByRole("button", {
-      name: "Details of vitest@3.2.0",
-    });
-
-    await open.click();
-    const dialog = page.getByRole("dialog", { name: "vitest@3.2.0" });
-    await expect(dialog).toContainText("Not fixed (1)");
-    await page.keyboard.press("Tab");
-    await expect(dialog.locator(":focus")).toHaveCount(1);
-    await expectNoAxeViolations(page);
-    await expectPageSweep(page);
-
-    await page.keyboard.press("Escape");
-    await expect(dialog).toHaveCount(0);
-    await expect(open).toBeFocused();
-  });
-
-  test("Tab reaches the copy buttons with visible focus", async ({ page }) => {
-    const tabs = new ResultTabsPage(page);
-    await tabs.signIn();
-    await tabs.goto("Patches");
-
-    const copy = page.getByRole("button", {
-      name: "Copy the dependency entries",
-    });
-    await copy.focus();
-    await expectVisibleFocus(copy);
-    await page.keyboard.press("Tab");
-    await expectVisibleFocus(
-      page.getByRole("button", { name: "Copy the command" }),
-    );
-  });
-
-  test("passes axe while loading and matches the screenshots", async ({
-    page,
-  }) => {
-    const tabs = new ResultTabsPage(page);
-    const release = await tabs.signIn({ hold: true });
-    await tabs.goto("Patches");
-    await expectNoAxeViolations(page);
-    await expectPageSweep(page);
-
-    release();
-    await expect(tabs.rows("Patches")).toHaveCount(3);
-    await expectNoAxeViolations(page);
-    await expectPageSweep(page);
-    await expectMainSnapshot(page, "patches");
-    await expectScreenshots(page, "patches");
-  });
-
-  test("nothing to patch says so and passes axe", async ({ page }) => {
-    const tabs = new ResultTabsPage(page);
-    await tabs.signIn({ noPatches: true });
-    await tabs.goto("Patches");
-
-    await expect(
-      page.getByText("No vulnerable direct dependencies."),
-    ).toBeVisible();
-    await expectNoAxeViolations(page);
-    await expectPageSweep(page);
-    await expectMainSnapshot(page, "patches-empty");
-  });
-});
-
 test.describe("CodeQL results", () => {
   test("lists each finding with its file and lines", async ({ page }) => {
     const tabs = new ResultTabsPage(page);
@@ -698,6 +597,20 @@ test.describe("Selected results tab", () => {
       "true",
     );
   });
+  test("an old link to the removed patches tab opens the first tab", async ({
+    page,
+  }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn();
+    await tabs.shell.goto(
+      `/results?analysis_id=${ANALYSIS}&project_id=${PROJECT}&tab=js-patching`,
+    );
+    await expect(page.getByRole("tab", { name: "SBOM" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await expect(page.getByRole("tab", { name: "Patches" })).toHaveCount(0);
+  });
 });
 
 describeOnAPhone("On a phone", () => {
@@ -725,7 +638,6 @@ describeOnAPhone("On a phone", () => {
 
   for (const [tab, table, rows, name] of [
     ["Licenses", "Licenses", 3, "licenses"],
-    ["Patches", "Patches", 3, "patches"],
     ["CodeQL", "CodeQL findings", 2, "codeql"],
   ] as const) {
     test(`the ${tab} tab fits without scrolling sideways`, async ({ page }) => {

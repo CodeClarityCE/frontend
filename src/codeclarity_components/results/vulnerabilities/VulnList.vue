@@ -18,7 +18,6 @@ import {
   formatPercent,
   impacts,
   owaspCategories,
-  patchStatus,
   shortDescription,
   ticketVulnerability,
 } from "./vuln-format";
@@ -296,17 +295,6 @@ function cweUrl(id: string): string {
               >
                 <span class="font-semibold">{{ category.id }}</span>
                 {{ category.name }}
-              </dd>
-            </div>
-            <div class="flex flex-col gap-1">
-              <dt class="font-medium text-foreground-strong">Patch status</dt>
-              <dd
-                v-for="affected in finding.Affected"
-                :key="`${affected.AffectedDependency}@${affected.AffectedVersion}`"
-                class="flex flex-wrap items-center gap-2"
-              >
-                {{ affected.AffectedDependency }}
-                <StatusBadge v-bind="patchStatus(affected.PatchType)" />
               </dd>
             </div>
           </dl>

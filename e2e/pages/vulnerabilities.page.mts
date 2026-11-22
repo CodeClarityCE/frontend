@@ -52,10 +52,7 @@ const SCORES: Record<Level, number> = {
   low: 2.1,
 };
 
-/**
- * A finding's affected dependency. The API sends no PatchType unless a
- * patching result says otherwise.
- */
+/** A finding's affected dependency. */
 export function affected(
   dependency: string,
   overrides: Record<string, unknown> = {},
@@ -213,7 +210,6 @@ export const sampleDetails = {
       description: "The product does not control changes to object prototypes.",
     },
   ],
-  patch: {},
   common_consequences: {
     "CWE-1321": [
       {

@@ -63,18 +63,17 @@
               - columnheader "Impact"
               - columnheader "Actions"
           - rowgroup:
-            - 'row /CVE-\d+-\d+ Exploit risk \d+\.\d+% Critical 9\.8 CVSS 3\.1 lodash@1\.0\.0 Not checked CWE-\d+ OWASP A03 Injection 3\.9 EPSS \d+\.\d+% Confidentiality: High Integrity: Low Create Ticket Add to Policy/':
+            - 'row /CVE-\d+-\d+ Exploit risk \d+\.\d+% Critical 9\.8 CVSS 3\.1 lodash@1\.0\.0 CWE-\d+ OWASP A03 Injection 3\.9 EPSS \d+\.\d+% Confidentiality: High Integrity: Low Create Ticket Add to Policy/':
               - cell /CVE-\d+-\d+ Exploit risk \d+\.\d+%/:
                 - link /CVE-\d+-\d+/:
                   - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0001&workspace=.&dependency=lodash&version=1.0.0
                 - text: ""
               - cell "Critical 9.8 CVSS 3.1"
-              - cell "lodash@1.0.0 Not checked":
+              - cell "lodash@1.0.0":
                 - list:
                   - listitem:
                     - link "lodash@1.0.0":
                       - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0001&workspace=.&dependency=lodash&version=1.0.0
-                    - text: Not checked
               - cell /CWE-\d+ OWASP A03 Injection/:
                 - list:
                   - listitem "Cross-site Scripting": /CWE-\d+/
@@ -87,18 +86,17 @@
               - cell "Create Ticket Add to Policy":
                 - button "Create Ticket"
                 - button "Add to Policy"
-            - 'row /CVE-\d+-\d+ Uncorroborated High 7\.5 CVSS 3\.1 express@1\.0\.0 Not checked CWE-\d+ OWASP A03 Injection 3\.9 EPSS 2\.0% Confidentiality: High Integrity: Low Create Ticket Add to Policy/':
+            - 'row /CVE-\d+-\d+ Uncorroborated High 7\.5 CVSS 3\.1 express@1\.0\.0 CWE-\d+ OWASP A03 Injection 3\.9 EPSS 2\.0% Confidentiality: High Integrity: Low Create Ticket Add to Policy/':
               - cell /CVE-\d+-\d+ Uncorroborated/:
                 - link /CVE-\d+-\d+/:
                   - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0002&workspace=.&dependency=express&version=1.0.0
                 - text: ""
               - cell "High 7.5 CVSS 3.1"
-              - cell "express@1.0.0 Not checked":
+              - cell "express@1.0.0":
                 - list:
                   - listitem:
                     - link "express@1.0.0":
                       - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0002&workspace=.&dependency=express&version=1.0.0
-                    - text: Not checked
               - cell /CWE-\d+ OWASP A03 Injection/:
                 - list:
                   - listitem "Cross-site Scripting": /CWE-\d+/
@@ -111,17 +109,16 @@
               - cell "Create Ticket Add to Policy":
                 - button "Create Ticket"
                 - button "Add to Policy"
-            - 'row /CVE-\d+-\d+ Medium 5\.3 CVSS 3\.1 axios@1\.0\.0 Not checked CWE-\d+ OWASP A03 Injection 3\.9 EPSS 2\.0% Confidentiality: High Integrity: Low Create Ticket Add to Policy/':
+            - 'row /CVE-\d+-\d+ Medium 5\.3 CVSS 3\.1 axios@1\.0\.0 CWE-\d+ OWASP A03 Injection 3\.9 EPSS 2\.0% Confidentiality: High Integrity: Low Create Ticket Add to Policy/':
               - cell /CVE-\d+-\d+/:
                 - link /CVE-\d+-\d+/:
                   - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0003&workspace=.&dependency=axios&version=1.0.0
               - cell "Medium 5.3 CVSS 3.1"
-              - cell "axios@1.0.0 Not checked":
+              - cell "axios@1.0.0":
                 - list:
                   - listitem:
                     - link "axios@1.0.0":
                       - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0003&workspace=.&dependency=axios&version=1.0.0
-                    - text: Not checked
               - cell /CWE-\d+ OWASP A03 Injection/:
                 - list:
                   - listitem "Cross-site Scripting": /CWE-\d+/
@@ -134,17 +131,16 @@
               - cell "Create Ticket Add to Policy":
                 - button "Create Ticket"
                 - button "Add to Policy"
-            - 'row /CVE-\d+-\d+ Low 2\.1 CVSS 3\.1 minimist@1\.0\.0 Not checked CWE-\d+ OWASP A03 Injection 3\.9 EPSS 2\.0% Confidentiality: High Create Ticket Add to Policy/':
+            - 'row /CVE-\d+-\d+ Low 2\.1 CVSS 3\.1 minimist@1\.0\.0 CWE-\d+ OWASP A03 Injection 3\.9 EPSS 2\.0% Confidentiality: High Create Ticket Add to Policy/':
               - cell /CVE-\d+-\d+/:
                 - link /CVE-\d+-\d+/:
                   - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0004&workspace=.&dependency=minimist&version=1.0.0
               - cell "Low 2.1 CVSS 3.1"
-              - cell "minimist@1.0.0 Not checked":
+              - cell "minimist@1.0.0":
                 - list:
                   - listitem:
                     - link "minimist@1.0.0":
                       - /url: /results/vulnerabilities_details?analysis_id=2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f04&project_id=1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e03&finding_id=CVE-2024-0004&workspace=.&dependency=minimist&version=1.0.0
-                    - text: Not checked
               - cell /CWE-\d+ OWASP A03 Injection/:
                 - list:
                   - listitem "Cross-site Scripting": /CWE-\d+/

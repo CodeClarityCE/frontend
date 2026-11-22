@@ -520,10 +520,6 @@ export default typescriptEslint.config(
               path: "src/base_components/data-display/charts/TreeChartLegend.vue",
             },
             {
-              name: "PatchingSummary",
-              path: "src/codeclarity_components/results/patching/PatchingSummary.vue",
-            },
-            {
               name: "SbomImportPaths",
               path: "src/codeclarity_components/results/sbom/SbomDetails/SbomImportPaths.vue",
             },

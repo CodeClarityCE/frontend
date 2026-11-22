@@ -35,6 +35,8 @@ export const routeSpecs: Record<string, string> = {
   "orgs/list": "org-settings.spec.mts",
   "orgs/overview": "org-settings.spec.mts",
   "orgs/policies": "org-policies.spec.mts",
+  "orgs/policies?tab=license": "org-policies.spec.mts",
+  "orgs/policies?tab=vulnerability": "org-policies.spec.mts",
   "orgs/logs": "org-members.spec.mts",
   "orgs/members": "org-members.spec.mts",
   "orgs/invites": "org-members.spec.mts",

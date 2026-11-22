@@ -463,6 +463,41 @@ test.describe("Route coverage harness", () => {
     ]);
   });
 
+  test("finds the ?tab= values a subpage's own component reads", () => {
+    const router = `
+      import OrgsView from "@/orgs/OrgsView.vue";
+      const router = createRouter({
+        routes: [
+          { path: "/orgs/:action?/:page?", name: "orgs", component: OrgsView },
+        ],
+      });`;
+    const views: Record<string, string> = {
+      "@/orgs/OrgsView.vue": `<script setup>
+        const OrgPolicies = defineAsyncComponent(
+          (() => import("./policy/PoliciesView.vue")) as AsyncComponentLoader,
+        ) as Component;
+        </script>
+        <template>
+          <OrgsList v-if="view === 'list'" />
+          <OrgPolicies
+            v-else-if="view === 'policies'"
+            :page="props.page!"
+          />
+        </template>`,
+      "@/orgs/policy/PoliciesView.vue": `<script setup>
+        const tab = route.query.tab;
+        if (tab === "license" || tab === 'vulnerability') return tab;
+        </script>`,
+    };
+    expect(discoverRoutes(router, (from) => views[from] ?? "")).toEqual([
+      { key: "orgs", path: "/orgs/:action?/:page?" },
+      { key: "orgs/list", path: "/orgs/:action?/:page?" },
+      { key: "orgs/policies", path: "/orgs/:action?/:page?" },
+      { key: "orgs/policies?tab=license", path: "/orgs/:action?/:page?" },
+      { key: "orgs/policies?tab=vulnerability", path: "/orgs/:action?/:page?" },
+    ]);
+  });
+
   test("reads subpages only for a route with a :page param", () => {
     const router = `
       import TermsView from "@/TermsView.vue";

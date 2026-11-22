@@ -89,6 +89,7 @@ export const FIREFOX_CRASHING_RULES = [
   "aria-toggle-field-name",
   "label-content-name-mismatch",
   "nested-interactive",
+  "svg-img-alt",
   "target-size",
 ];
 

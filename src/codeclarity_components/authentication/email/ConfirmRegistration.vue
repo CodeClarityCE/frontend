@@ -37,7 +37,7 @@ async function init(): Promise<void> {
       bearerToken: "",
       data: {
         token: searchParams.get("token") ?? "",
-        userIdHash: searchParams.get("userid") ?? "",
+        user_id_hash: searchParams.get("userid") ?? "",
       },
       handleBusinessErrors: true,
     });

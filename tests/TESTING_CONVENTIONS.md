@@ -78,12 +78,29 @@ and when a registered spec has no `describeOnAPhone` block.
 ### Real-stack journeys
 
 `e2e/real-stack/*.journey.mts` run only in the `real-stack` project, which
-exists only when `E2E_BASE_URL` is set. They mock nothing: the analysis journey
-signs in as the dev account, uploads a tiny npm project, runs the Default
-Analyzer and reads its SBOM, its vulnerabilities and one vulnerability's details.
-The umbrella repo's `e2e (real stack)` job runs them against a trimmed stack with
-the knowledge dump fixture (`.cloud/scripts/e2e-real-stack.sh` runs them in the
-pinned Playwright image).
+exists only when `E2E_BASE_URL` is set. They are the golden journeys 1 to 6 and
+mock nothing: each drives the app as a user does and asserts only on what the
+user sees (pages, downloaded files, emails), never on API responses or the
+database. `stack.mts` holds the shared steps (log in, upload a project, run the
+Default Analyzer) and `mailbox.mts` reads emails from the stack's mail catcher.
+
+- `account.journey.mts`: sign up, confirm the email, log in, create an
+  organisation, invite the dev account, who joins from the email.
+- `analysis.journey.mts`: upload and analyse a project; browse and export its
+  vulnerabilities, SBOM and licences; create a ticket from its remediation and
+  resolve it.
+- `knowledge.journey.mts`: a project's advisories before and after a knowledge
+  update. The test tagged `@after-knowledge-update` runs only after the stack's
+  knowledge is updated.
+- `upgrade.journey.mts` (`@upgrade`): after an upgrade, the data seeded on the
+  previous release is still shown; it needs `E2E_LOGIN_EMAIL` and
+  `E2E_LOGIN_PASSWORD`.
+
+The umbrella repo's `e2e (real stack)` job runs them against a trimmed stack
+with the knowledge dump fixture, and its upgrade job runs `@upgrade`
+(`.cloud/scripts/e2e-real-stack.sh` runs them in the pinned Playwright image).
+Against the dev stack, add `--ignore-snapshots`: the aria snapshots expect the
+fixture's knowledge.
 
 ## Vitest
 

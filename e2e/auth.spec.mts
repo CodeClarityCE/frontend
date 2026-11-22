@@ -226,6 +226,7 @@ test.describe("Authentication E2E Tests", () => {
       await authPage.goto();
       await authPage.expectFormVisible();
       await expectNoAxeViolations(page);
+      await expectPageSweep(page);
     });
 
     test("matches the approved screenshots", async ({ page }) => {
@@ -414,6 +415,7 @@ test.describe("Sign up", () => {
     await page.goto("/signup");
     await expect(field(page, "Email")).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("matches the approved screenshots", async ({ page }) => {
@@ -426,6 +428,14 @@ test.describe("Sign up", () => {
 });
 
 describeOnAPhone("On a phone", () => {
+  test("the login page does not scroll sideways", async ({ page }) => {
+    const authPage = new AuthPage(page);
+    await authPage.goto();
+    await authPage.expectFormVisible();
+    await expectPageSweep(page);
+    await expectScreenshots(page, "login");
+  });
+
   test("the sign up page does not scroll sideways", async ({ page }) => {
     await page.goto("/signup");
     await expect(page.getByRole("heading").first()).toBeVisible();

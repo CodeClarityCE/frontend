@@ -1,6 +1,8 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
+import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { OrgAnalyzersPage } from "./pages/org-analyzers.page.mjs";
 import { OrgPoliciesPage } from "./pages/org-policies.page.mjs";
 import {
@@ -243,5 +245,18 @@ test.describe("Edit forms whose record failed to load", () => {
       page.getByText("The vulnerability policy could not be loaded."),
     ).toBeVisible();
     await expect(page.getByLabel("Name")).toBeDisabled();
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("the organisation not-found state fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const orgs = new OrgSettingsPage(page);
+    await orgs.signIn();
+    await orgs.shell.goto("/orgs");
+    await expect(notFound(page)).toBeVisible();
+    await expectPageSweep(page);
+    await expectScreenshots(page, "org-not-found");
   });
 });

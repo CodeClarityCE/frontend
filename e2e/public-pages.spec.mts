@@ -38,6 +38,7 @@ test.describe("Not found page", () => {
     await page.goto("/404");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("matches the approved screenshots", async ({ page }) => {
@@ -84,12 +85,20 @@ for (const doc of [
 
     test("has no WCAG 2.2 AA violations", async ({ page }) => {
       await expectNoAxeViolations(page);
+      await expectPageSweep(page);
     });
 
     test("matches the approved screenshots", async ({ page }) => {
       await expectPageSweep(page);
       await expectMainSnapshot(page, doc.name);
       await expectScreenshots(page, doc.name);
+    });
+
+    describeOnAPhone("On a phone", () => {
+      test("fits without scrolling sideways", async ({ page }) => {
+        await expectPageSweep(page);
+        await expectScreenshots(page, doc.name);
+      });
     });
   });
 }
@@ -143,6 +152,7 @@ test.describe("Help page signed out", () => {
       page.getByRole("link", { name: "contact@codeclarity.io" }),
     ).toHaveAttribute("href", "mailto:contact@codeclarity.io");
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 });
 
@@ -193,12 +203,20 @@ test.describe("Help page", () => {
     page,
   }) => {
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("matches the approved screenshots", async ({ page }) => {
     await expectPageSweep(page);
     await expectMainSnapshot(page, "help");
     await expectScreenshots(page, "help");
+  });
+
+  describeOnAPhone("On a phone", () => {
+    test("the help page fits without scrolling sideways", async ({ page }) => {
+      await expectPageSweep(page);
+      await expectScreenshots(page, "help");
+    });
   });
 });
 

@@ -309,6 +309,7 @@ test.describe("New Dataset", () => {
     );
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     // Closing hands focus back and the rest of the form works again.
     await page.keyboard.press("Escape");
@@ -427,6 +428,7 @@ test.describe("Dataset detail", () => {
       page.getByRole("button", { name: "Confirm delete" }),
     ).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("a building Dataset passes axe and matches the screenshots", async ({
@@ -511,6 +513,35 @@ test.describe("Dataset detail", () => {
 });
 
 describeOnAPhone("On a phone", () => {
+  test("the Datasets list fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const datasets = new DatasetsPage(page);
+    await datasets.signIn();
+    await datasets.gotoList();
+    await expect(datasets.rows()).toHaveCount(3);
+    await expectPageSweep(page);
+    await expectScreenshots(page, "datasets-list");
+  });
+
+  test("New Dataset fits without scrolling sideways", async ({ page }) => {
+    const datasets = new DatasetsPage(page);
+    await datasets.signIn();
+    await datasets.gotoCreate();
+    await expect(page.getByRole("combobox")).toContainText("github.com");
+    await expectPageSweep(page);
+    await expectScreenshots(page, "datasets-create");
+  });
+
+  test("a Dataset fits without scrolling sideways", async ({ page }) => {
+    const datasets = new DatasetsPage(page);
+    await datasets.signIn();
+    await datasets.gotoDetail();
+    await expect(datasets.rows()).toHaveCount(5);
+    await expectPageSweep(page);
+    await expectScreenshots(page, "dataset-detail");
+  });
+
   test("a failed Dataset fits without scrolling sideways", async ({ page }) => {
     const datasets = new DatasetsPage(page);
     await datasets.signIn({ detail: sampleDatasets[2] });

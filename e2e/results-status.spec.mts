@@ -3,6 +3,7 @@ import { expect, type Page, test } from "@playwright/test";
 import { expectNoAxeViolations } from "./helpers/a11y.mjs";
 import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   ANALYSIS,
@@ -193,8 +194,10 @@ test.describe("Detail pages for something they cannot show", () => {
 
     await expect(results.heading).toHaveText("Dependency not found");
     expect(results.requested("/sbom/dependency")).toBe(false);
+    await expectPageSweep(page);
     await expectMainSnapshot(page, "dependency-not-found");
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectBackTo(
       page,
       "Back to results",
@@ -243,8 +246,10 @@ test.describe("Detail pages for something they cannot show", () => {
 
     await expect(results.heading).toHaveText("Vulnerability not found");
     expect(results.requested("/vulnerabilities/vulnerability/")).toBe(false);
+    await expectPageSweep(page);
     await expectMainSnapshot(page, "vulnerability-not-found");
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectBackTo(
       page,
       "Back to results",
@@ -270,5 +275,20 @@ test.describe("Detail pages for something they cannot show", () => {
     );
 
     await expect(results.heading).toHaveText("Vulnerability not found");
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("a failed analysis fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const results = new ResultsStatusPage(page);
+    await results.signIn();
+    await results.goto();
+    await expect(
+      page.getByRole("status", { name: "Analysis status" }),
+    ).toContainText("Analysis failed");
+    await expectPageSweep(page);
+    await expectScreenshots(page, "results-failed");
   });
 });

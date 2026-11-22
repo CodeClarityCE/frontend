@@ -247,6 +247,7 @@ test.describe("Projects list", () => {
     });
     await expect(confirm).toContainText("1 analysis");
     await axe(page);
+    await expectPageSweep(page);
 
     await confirm.getByRole("button", { name: "Delete project" }).click();
 
@@ -330,6 +331,7 @@ test.describe("Projects list", () => {
       page.getByRole("status", { name: "Loading Projects" }),
     ).toBeVisible();
     await axe(page);
+    await expectPageSweep(page);
 
     release();
     await expect(projects.rows()).toHaveCount(3);
@@ -660,6 +662,7 @@ test.describe("Add a Project", () => {
     await expect(projects.rows(failures)).toContainText("example/billing");
     await expect(projects.rows(failures)).toContainText("Already imported");
     await axe(page);
+    await expectPageSweep(page);
   });
 
   test("the repository filter, sort and view choice work on every loaded repository", async ({
@@ -998,6 +1001,17 @@ describeOnAPhone("On a phone", () => {
 
     await expectPageSweep(page);
     await expectScreenshots(page, "projects-list");
+  });
+
+  test("the analyses route fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.shell.goto("/analyses");
+    await expect(projects.rows()).toHaveCount(3);
+    await expectPageSweep(page);
+    await expectScreenshots(page, "analyses-projects-list");
   });
 
   test("Add a Project does not scroll sideways", async ({ page }) => {

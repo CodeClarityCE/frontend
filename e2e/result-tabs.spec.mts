@@ -95,6 +95,7 @@ test.describe("SBOM results", () => {
       await expect(dialog.locator(":focus")).toHaveCount(1);
     }
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
@@ -185,6 +186,7 @@ test.describe("SBOM results", () => {
     await expect(dialog).toContainText("The commands update composer.lock");
     await expect(dialog).not.toContainText("could not tell");
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("the update dialog explains an unknown package manager", async ({
@@ -210,6 +212,7 @@ test.describe("SBOM results", () => {
       dialog.getByRole("button", { name: "Copy commands" }),
     ).toBeDisabled();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("Tab reaches the actions, search and table with visible focus", async ({
@@ -260,6 +263,7 @@ test.describe("SBOM results", () => {
       page.getByRole("status", { name: "Loading the SBOM" }),
     ).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     release();
     await expect(page.getByText("No dependencies found")).toBeVisible();
@@ -352,6 +356,7 @@ test.describe("SBOM dependency details", () => {
       page.getByRole("status", { name: "Loading the dependency" }),
     ).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     release();
     await expect(tabs.heading).toContainText("lodash");
@@ -462,6 +467,7 @@ test.describe("License results", () => {
       await expect(dialog.locator(":focus")).toHaveCount(1);
     }
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
@@ -475,6 +481,7 @@ test.describe("License results", () => {
     const release = await tabs.signIn({ hold: true });
     await tabs.goto("Licenses");
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     release();
     await expect(tabs.rows("Licenses")).toHaveCount(3);
@@ -490,6 +497,7 @@ test.describe("License results", () => {
     await tabs.goto("Licenses");
 
     await expect(page.getByText("No licenses found.")).toBeVisible();
+    await expectPageSweep(page);
     await expectMainSnapshot(page, "licenses-empty");
   });
 });
@@ -541,6 +549,7 @@ test.describe("Patch results", () => {
     await page.keyboard.press("Tab");
     await expect(dialog.locator(":focus")).toHaveCount(1);
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
@@ -570,6 +579,7 @@ test.describe("Patch results", () => {
     const release = await tabs.signIn({ hold: true });
     await tabs.goto("Patches");
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     release();
     await expect(tabs.rows("Patches")).toHaveCount(3);
@@ -701,4 +711,30 @@ describeOnAPhone("On a phone", () => {
     await expectPageSweep(page);
     await expectScreenshots(page, "analysis-results");
   });
+
+  test("a dependency's details fit without scrolling sideways", async ({
+    page,
+  }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn();
+    await tabs.gotoDetails();
+    await expect(tabs.heading).toContainText("lodash");
+    await expectPageSweep(page);
+    await expectScreenshots(page, "sbom-details");
+  });
+
+  for (const [tab, table, rows, name] of [
+    ["Licenses", "Licenses", 3, "licenses"],
+    ["Patches", "Patches", 3, "patches"],
+    ["CodeQL", "CodeQL findings", 2, "codeql"],
+  ] as const) {
+    test(`the ${tab} tab fits without scrolling sideways`, async ({ page }) => {
+      const tabs = new ResultTabsPage(page);
+      await tabs.signIn();
+      await tabs.goto(tab);
+      await expect(tabs.rows(table)).toHaveCount(rows);
+      await expectPageSweep(page);
+      await expectScreenshots(page, name);
+    });
+  }
 });

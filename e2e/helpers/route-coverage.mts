@@ -12,8 +12,10 @@ export function routeCoverageProblems(input: {
   routes: AppRoute[];
   registry: Record<string, string>;
   specFiles: string[];
+  // The spec files with a describeOnAPhone block; omitted, phone tests are not checked.
+  phoneSpecFiles?: string[];
 }): string[] {
-  const { routes, registry, specFiles } = input;
+  const { routes, registry, specFiles, phoneSpecFiles } = input;
   const problems: string[] = [];
   for (const route of routes) {
     const spec = registry[route.key];
@@ -25,6 +27,19 @@ export function routeCoverageProblems(input: {
       problems.push(
         `${route.key} (${route.path}) is registered against e2e/${spec}, which does not exist`,
       );
+  }
+  if (phoneSpecFiles !== undefined) {
+    const pagesBySpec = new Map<string, string[]>();
+    for (const route of routes) {
+      const spec = registry[route.key];
+      if (spec === undefined || !specFiles.includes(spec)) continue;
+      pagesBySpec.set(spec, [...(pagesBySpec.get(spec) ?? []), route.key]);
+    }
+    for (const [spec, pages] of pagesBySpec)
+      if (!phoneSpecFiles.includes(spec))
+        problems.push(
+          `e2e/${spec} covers ${pages.join(", ")} but has no describeOnAPhone block`,
+        );
   }
   const keys = new Set(routes.map((route) => route.key));
   for (const key of Object.keys(registry)) {

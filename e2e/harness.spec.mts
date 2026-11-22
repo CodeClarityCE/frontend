@@ -431,6 +431,24 @@ test.describe("Route coverage harness", () => {
     ).toEqual([expect.stringMatching(/projects\/import .*no such route/)]);
   });
 
+  test("fails on a registered spec with no phone test, naming its pages", () => {
+    expect(
+      routeCoverageProblems({
+        routes,
+        registry: {
+          projects: "projects.spec.mts",
+          "projects/add": "projects.spec.mts",
+        },
+        specFiles,
+        phoneSpecFiles: [],
+      }),
+    ).toEqual([
+      expect.stringMatching(
+        /projects\.spec\.mts .*projects, projects\/add.*describeOnAPhone/,
+      ),
+    ]);
+  });
+
   test("finds the router's routes, their subpages and results tabs", () => {
     const router = `
       import HomeView from "@/home/HomeView.vue";

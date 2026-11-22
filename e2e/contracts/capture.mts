@@ -188,6 +188,8 @@ const captures: Record<string, [string, string]> = {
     "GET /org/:org/policies/license_policy",
     `/org/${org}/policies/license_policy?page=0&entries_per_page=100`,
   ],
+  // Needs the account to be an admin of the organisation.
+  "organization-token-list": ["GET /org/:org/tokens", `/org/${org}/tokens`],
   analysis: [
     "GET /org/:org/projects/:project/analyses/:analysis",
     analysisPath,

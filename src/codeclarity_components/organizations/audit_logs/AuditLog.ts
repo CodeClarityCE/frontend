@@ -49,6 +49,7 @@ export enum ActionType {
   OrganizationIntegrationDeleted = "OrganizationIntegrationDeleted",
   OrganizationTokenCreated = "OrganizationTokenCreated",
   OrganizationTokenUsed = "OrganizationTokenUsed",
+  OrganizationTokenRevoked = "OrganizationTokenRevoked",
 }
 
 export class AuditLog {

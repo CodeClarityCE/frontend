@@ -110,7 +110,7 @@ on `pixel-5` at 390 px, and every other test runs on `chromium`. Set `E2E_ALL_BR
 
 The real-stack journeys (`e2e/real-stack/*.journey.mts`) mock nothing. Their `real-stack`
 project exists only when `E2E_BASE_URL` is set; run them with `--project=real-stack`, or in
-the pinned image with `.cloud/scripts/e2e-real-stack.sh [url] [outdir]`.
+the pinned image with `.cloud/scripts/e2e-real-stack.sh [url] [outdir] [options]`.
 
 How to write specs (sweep, aria snapshots, phone blocks, route coverage) is in
 `tests/TESTING_CONVENTIONS.md`.

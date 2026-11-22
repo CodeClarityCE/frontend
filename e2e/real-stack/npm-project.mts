@@ -1,29 +1,43 @@
 import { gzipSync } from "node:zlib";
 
-/** The project's one dependency, which the knowledge dump fixture gives one advisory. */
-export const DEPENDENCY = { name: "ms", version: "0.7.1" };
+/** One npm dependency with its lockfile entry. */
+export interface Dependency {
+  name: string;
+  version: string;
+  integrity: string;
+}
 
-const packageJson = {
-  name: "journey-app",
-  version: "1.0.0",
-  dependencies: { [DEPENDENCY.name]: DEPENDENCY.version },
+/** The default dependency, which the knowledge dump fixture gives one advisory. */
+export const DEPENDENCY: Dependency = {
+  name: "ms",
+  version: "0.7.1",
+  integrity:
+    "sha512-lRLiIR9fSNpnP6TC4v8+4OU7oStC01esuNowdQ34L+Gk8e5Puoc88IqJ+XAY/B3Mn2ZKis8l8HX90oU8ivzUHg==",
 };
 
-const packageLock = {
-  name: "journey-app",
-  version: "1.0.0",
-  lockfileVersion: 3,
-  requires: true,
-  packages: {
-    "": packageJson,
-    [`node_modules/${DEPENDENCY.name}`]: {
-      version: DEPENDENCY.version,
-      resolved: "https://registry.npmjs.org/ms/-/ms-0.7.1.tgz",
-      integrity:
-        "sha512-lRLiIR9fSNpnP6TC4v8+4OU7oStC01esuNowdQ34L+Gk8e5Puoc88IqJ+XAY/B3Mn2ZKis8l8HX90oU8ivzUHg==",
+// package.json and package-lock.json of a project with one dependency.
+function manifests(dependency: Dependency): [unknown, unknown] {
+  const packageJson = {
+    name: "journey-app",
+    version: "1.0.0",
+    dependencies: { [dependency.name]: dependency.version },
+  };
+  const packageLock = {
+    name: "journey-app",
+    version: "1.0.0",
+    lockfileVersion: 3,
+    requires: true,
+    packages: {
+      "": packageJson,
+      [`node_modules/${dependency.name}`]: {
+        version: dependency.version,
+        resolved: `https://registry.npmjs.org/${dependency.name}/-/${dependency.name}-${dependency.version}.tgz`,
+        integrity: dependency.integrity,
+      },
     },
-  },
-};
+  };
+  return [packageJson, packageLock];
+}
 
 // Writes an ASCII value into a tar header field.
 function field(header: Buffer, offset: number, length: number, value: string) {
@@ -49,7 +63,8 @@ function tarEntry(name: string, content: Buffer): Buffer {
 }
 
 /** A tiny npm project as a .tar.gz archive: package.json and its lockfile. */
-export function npmProjectArchive(): Buffer {
+export function npmProjectArchive(dependency = DEPENDENCY): Buffer {
+  const [packageJson, packageLock] = manifests(dependency);
   const json = (value: unknown) =>
     Buffer.from(`${JSON.stringify(value, null, 2)}\n`);
   return gzipSync(

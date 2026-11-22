@@ -1,72 +1,93 @@
 # Frontend Testing Conventions
 
-Vue 3, Vitest, and Cypress testing standards for CodeClarity.
+What a user sees on a page is tested in Playwright against API mocks whose shapes
+are checked against real API responses. Vitest is kept for logic: utils, stores,
+composables and repositories. See ADR 0017 in the umbrella repo
+(`docs/adr/0017-ui-behaviour-is-tested-in-playwright-against-checked-mocks.md`).
 
-## File Organization
+## Where tests live
 
 ```
+src/**/*.test.ts, src/**/*.spec.ts   # Vitest, next to the code they test
 tests/
-├── setup.ts                 # Global test setup
-├── real-app.ts             # createTestApp: real app, faked HTTP
-├── mocks/
-│   ├── handlers.ts          # MSW handlers
-│   └── server.ts            # MSW server
-├── fixtures/*.ts            # Test data
-└── components/              # Component tests (mirrors src)
+├── setup.ts                         # Global Vitest setup (browser APIs jsdom lacks)
+├── real-app.ts                      # createTestApp: real app, faked HTTP
+├── fixtures/*.ts                    # Unit test data
+└── unit/                            # Vitest tests that are not about one source file
+e2e/
+├── *.spec.mts                       # Playwright specs, one or more per page
+├── pages/*.page.mts                 # Page objects and the API fixtures they serve
+├── helpers/*.mts                    # Sweep, axe, aria snapshot, screenshots, phone
+├── route-registry.mts               # The spec that covers each page
+├── contracts/*.json                 # Captured API responses the fixtures are checked against
+└── real-stack/*.journey.mts         # Journeys against a real stack, nothing mocked
 ```
 
-### Test File Naming
-
-- Unit: `ComponentName.spec.ts`
-- Integration: `ComponentName.integration.spec.ts`
-- E2E: `feature-name.cy.ts`
-- Store: `storeName.store.spec.ts`
-- Composable: `useComposableName.composable.spec.ts`
+Running the suites, the screenshot baselines and the fixture contracts are in
+the README.
 
 ## Selectors
 
-**Priority:** `data-cy` → `data-testid` → semantic queries → text content → CSS selectors
+Find elements the way a user or a screen reader does: by role and accessible
+name (`getByRole("button", { name: "Save" })`), then by label (`getByLabel`), then
+by visible text. Scope with a named landmark, region, table or dialog rather than
+a CSS path. Do not add `data-testid`, `data-cy` or ids for tests. If a control or
+region has no accessible name, give it one in the app markup; that fixes it for
+users too.
 
-```html
-<!-- Good -->
-<button data-cy="submit-button" data-testid="submit-btn">Submit</button>
-<button type="submit" aria-label="Submit form">Submit</button>
+## Playwright specs
 
-<!-- Avoid -->
-<div class="btn-wrapper"><button>Submit</button></div>
-```
+Each page state a spec loads gets, in this order:
 
-**Naming:** Use kebab-case, be descriptive, include context:
+1. `await expectNoAxeViolations(page)` (`e2e/helpers/a11y.mts`).
+2. `await expectPageSweep(page)` (`e2e/helpers/page-sweep.mts`). It fails on a
+   visible enabled control without a pointer (or resize) cursor, a disabled one
+   with a pointer cursor, and sideways scroll at the current viewport. It never
+   resizes, since that would close dialogs and change the state under test.
+3. `await expectMainSnapshot(page, "<state>")` (`e2e/helpers/aria-snapshot.mts`):
+   compares the `main` landmark's accessibility tree with
+   `e2e/<spec>.mts-snapshots/<state>.aria.yml`. Every node and name in the file
+   must be on the page, in order; nodes the file leaves out are allowed, since
+   Playwright's generated files leave out text that repeats an element's name.
+   For another region use `expectAriaSnapshot(locator, name)`. Write a new file
+   by running the test once (it fails with "writing actual"), read it, then
+   rerun. Chromium and Pixel 5 share the file, so a phone-only layout needs its
+   own name, such as `<state>-phone`.
+4. `await expectScreenshots(page, "<state>")` (`e2e/helpers/screenshots.mts`):
+   `<state>-1280.png` in `chromium`, `<state>-390.png` in `pixel-5`, with
+   animations frozen. Other projects take none.
 
-- `data-cy="project-create-form"`
-- `data-testid="vulnerability-table-row"`
+### Phones
 
-## Test Patterns
+Every spec in `e2e/route-registry.mts` has a `describeOnAPhone("On a phone", ...)`
+block (`e2e/helpers/phone.mts`) that loads the pages it covers, sweeps each and
+takes its 390px screenshot. The block is tagged `@phone`, so it runs only in the
+`pixel-5` project (Pixel 5 emulation at 390x844), and every untagged test runs
+only in the desktop projects. The block sets the phone viewport again after the
+spec's desktop `beforeEach`.
 
-### Components
+### Route coverage
 
-```typescript
-describe("ComponentName", () => {
-  describe("rendering", () => {
-    it("should render with default props", () => {});
-  });
+`e2e/route-coverage.spec.mts` reads `src/router.ts` and lists each named route,
+each `:page` value its view compares with (`page === "x"` or `view === "x"`),
+the keys of a view's `const tab = ref({ ... })`, and the `tab === "x"` values
+of the component a view renders for a subpage. It fails when one of them has no
+entry in `e2e/route-registry.mts`, when an entry names a missing spec or route,
+and when a registered spec has no `describeOnAPhone` block.
 
-  describe("interactions", () => {
-    it("should emit event when clicked", async () => {});
-  });
+### Real-stack journeys
 
-  describe("edge cases", () => {
-    it("should handle empty data gracefully", () => {});
-  });
-});
-```
+`e2e/real-stack/*.journey.mts` run only in the `real-stack` project, which
+exists only when `E2E_BASE_URL` is set. They mock nothing: the analysis journey
+signs in as the dev account, uploads a tiny npm project, runs the Default
+Analyzer and reads its SBOM, its vulnerabilities and one vulnerability's details.
+The umbrella repo's `e2e (real stack)` job runs them against a trimmed stack with
+the knowledge dump fixture (`.cloud/scripts/e2e-real-stack.sh` runs them in the
+pinned Playwright image).
 
-### Stores
+## Vitest
 
-Store tests use the real-app setup below, so they run the real actions and the
-real navigation guard.
-
-### Real stores, router and HTTP only (`tests/real-app.ts`)
+### Real stores, router and HTTP (`tests/real-app.ts`)
 
 `tests/setup.ts` mocks no app code and no library: every test runs the real
 stores, router, repositories and components. It only adds the browser APIs jsdom
@@ -74,8 +95,7 @@ lacks (`ResizeObserver`, `IntersectionObserver`, `matchMedia`, `scrollTo`,
 `scrollIntoView`, `animate` and an immediate `requestAnimationFrame`), registers
 the logo icons the app ships (as `main.ts` does), gives each test a fresh
 in-memory `localStorage` and `sessionStorage`, and unmounts every mounted
-component after each test. HTTP is the only thing a test fakes. Build the app
-with `createTestApp` from `tests/real-app.ts`:
+component after each test. Build the app with `createTestApp`:
 
 ```typescript
 const app = createTestApp({ signedIn: true }); // fresh Pinia; fetch is faked
@@ -92,6 +112,8 @@ expect(app.http.requests.at(-1)?.body).toEqual({ name: "x" });
   (each with `method`, `path`, `query`, `headers` and the parsed `body`). Answers
   match on method and path only, and a logged warning sends its own `POST /logs`,
   so find the request you want rather than taking the last one.
+- A string answer is sent as raw text, for file exports; anything else is sent
+  as JSON.
 - `render(withToaster(Component, props), { global: app.global })` renders the
   app's toaster next to the component, so a toast is asserted as text.
 - Answer a request with the shape the API sends: responses are validated, so an
@@ -104,128 +126,24 @@ expect(app.http.requests.at(-1)?.body).toEqual({ name: "x" });
 
 `src/stores/*.test.ts` are the reference examples.
 
-### Composables
+### What may be faked
 
-```typescript
-describe("useComposableName", () => {
-  it("should return expected values", () => {
-    const { result } = renderComposable(() => useComposableName());
-    expect(result.value).toBe(expectedValue);
-  });
-});
-```
+HTTP, through `app.http`. A test may wrap `fetch` around it only for what
+`app.http` cannot answer: a held-back answer, a different answer per request,
+or a network failure.
 
-## Best Practices
-
-### Do ✅
-
-- Test user behavior, not implementation
-- Use semantic queries (`getByRole`, `getByLabelText`)
-- Mock external dependencies
-- Test error states and edge cases
-- Keep tests focused and isolated
-- Use descriptive test names
-- Clean up after tests
-
-### Don't ❌
-
-- Test implementation details
-- Test third-party libraries
-- Use generic selectors (`.btn`, `div`)
-- Test multiple behaviors in one test
-- Hardcode test data
-- Test CSS unless functional
-
-### Naming
-
-**Pattern:** `should [behavior] when [condition]`
-
-Examples:
-
-- `should display error message when login fails`
-- `should emit submit event when form is valid`
-- `should disable button when loading`
-
-## Mocking
-
-### API (MSW)
-
-```typescript
-// tests/mocks/handlers.ts
-export const handlers = [
-  http.get("/api/users", () => HttpResponse.json({ users: [] })),
-  http.get("/api/users", () =>
-    HttpResponse.json({ error: "Server error" }, { status: 500 }),
-  ),
-];
-```
-
-### Components
-
-```typescript
-const mockChild = { template: '<div data-testid="mock-child">Mock</div>' };
-render(Parent, {
-  global: { ...app.global, stubs: { Child: mockChild } },
-});
-```
-
-### Libraries
-
-Never mock the router, Pinia or the stores: use `createTestApp`. Mock a module
-only where jsdom cannot run it, such as a file download:
+Besides HTTP, only two browser boundaries jsdom cannot run are faked: the file
+download (`@/utils/download`) and PDF font loading (`@/utils/svg-pdf/load-fonts`).
+Never mock the router, Pinia, a store, a repository, a component or a library.
 
 ```typescript
 const { saveBlob } = vi.hoisted(() => ({ saveBlob: vi.fn() }));
 vi.mock("@/utils/download", () => ({ saveBlob }));
 ```
 
-## Coverage
+### Accessibility and coverage
 
-There is no coverage percentage target. Run `vitest run --coverage` and open
-`coverage/index.html` to see which lines a change leaves untested.
-
-## Accessibility
-
-Accessibility is checked in the Playwright specs (`e2e/helpers/a11y.mts`), where
-the real markup renders. Unit tests do not run axe.
-
-## Utilities
-
-### Async Operations
-
-```typescript
-await waitFor(() => expect(getByText("Loading complete")).toBeInTheDocument());
-```
-
-### User Interactions
-
-```typescript
-await userEvent.click(getByRole("button"));
-await userEvent.type(getByLabelText("Email"), "test@example.com");
-await userEvent.keyboard("{Enter}");
-```
-
-## Debugging
-
-```typescript
-import { screen, debug } from "@testing-library/vue";
-
-debug(); // Debug rendered DOM
-debug(screen.getByRole("button")); // Debug specific element
-console.log(wrapper.vm.$props); // Check component state
-```
-
-**Tips:**
-
-- Use `--reporter=verbose` for detailed output
-- Add strategic `console.log` statements
-- Use browser dev tools with `--open` flag
-
-## Migration
-
-**From Vue Test Utils to Testing Library:**
-
-- Replace `mount()` with `render()` from `@testing-library/vue`
-- Use semantic queries instead of `find()`
-- Focus on user interactions over implementation
-- Test behavior, not internals
+Accessibility is checked in the Playwright specs, where the real markup renders;
+unit tests do not run axe. There is no coverage percentage target: run
+`vitest run --coverage` and open `coverage/index.html` to see which lines a change
+leaves untested.

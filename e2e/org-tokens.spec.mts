@@ -5,7 +5,12 @@ import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
-import { NOW, OrgTokensPage, SECRET } from "./pages/org-tokens.page.mjs";
+import {
+  NOW,
+  OrgTokensPage,
+  SECRET,
+  tokenSummary,
+} from "./pages/org-tokens.page.mjs";
 
 const DAY = 86_400_000;
 
@@ -54,6 +59,117 @@ test.describe("Organisation tokens", () => {
     await expect(page.getByText(SECRET)).toHaveCount(0);
   });
 
+  test("an admin sees the organization's tokens, but never their secrets", async ({
+    page,
+  }) => {
+    const tokens = new OrgTokensPage(page);
+    await tokens.signIn({
+      tokens: [
+        tokenSummary({ id: "tok-1", name: "ci-pipeline", scope: "analyze" }),
+        tokenSummary({
+          id: "tok-2",
+          name: "old-scan",
+          expires_on: "2026-11-01T00:00:00.000Z",
+          created_by_email: null,
+        }),
+      ],
+    });
+    await tokens.goto();
+
+    await expect(tokens.row("ci-pipeline")).toContainText("Analyze");
+    await expect(tokens.row("ci-pipeline")).toContainText(
+      "john.doe@codeclarity.io",
+    );
+    await expect(tokens.row("ci-pipeline")).toContainText("Dec 13, 2026");
+    await expect(tokens.row("old-scan")).toContainText("Read");
+    await expect(tokens.row("old-scan")).toContainText("Expired");
+    await expect(tokens.row("old-scan")).toContainText("Deleted account");
+    await expect(page.getByText("ccot_")).toHaveCount(0);
+    await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "token-list");
+    await expectScreenshots(page, "token-list");
+  });
+
+  test("a new token joins the list", async ({ page }) => {
+    const tokens = new OrgTokensPage(page);
+    await tokens.signIn();
+    await tokens.goto();
+    await expect(page.getByText("No tokens yet.")).toBeVisible();
+
+    await tokens.name.fill("ci-pipeline");
+    await tokens.createButton.click();
+
+    await expect(tokens.row("ci-pipeline")).toContainText("Read");
+    await expect(tokens.list).not.toContainText(SECRET);
+  });
+
+  test("an admin revokes a token after confirming", async ({ page }) => {
+    const tokens = new OrgTokensPage(page);
+    await tokens.signIn({
+      tokens: [
+        tokenSummary({ id: "tok-1", name: "ci-pipeline" }),
+        tokenSummary({ id: "tok-2", name: "nightly-scan" }),
+      ],
+    });
+    await tokens.goto();
+
+    await tokens
+      .row("ci-pipeline")
+      .getByRole("button", { name: "Revoke" })
+      .click();
+    await expect(tokens.revokeDialog).toContainText("Revoke ci-pipeline?");
+    await tokens.revokeDialog.getByRole("button", { name: "Cancel" }).click();
+    expect(tokens.revoked).toEqual([]);
+
+    await tokens
+      .row("ci-pipeline")
+      .getByRole("button", { name: "Revoke" })
+      .click();
+    await expectNoAxeViolations(page);
+    await tokens.revokeDialog
+      .getByRole("button", { name: "Revoke token" })
+      .click();
+
+    await expect(tokens.row("ci-pipeline")).toHaveCount(0);
+    await expect(tokens.row("nightly-scan")).toHaveCount(1);
+    expect(tokens.revoked).toEqual(["tok-1"]);
+  });
+
+  test("a failed revoke says so and keeps the token", async ({ page }) => {
+    const tokens = new OrgTokensPage(page);
+    await tokens.signIn({
+      tokens: [tokenSummary({ id: "tok-1", name: "ci-pipeline" })],
+      failRevoke: true,
+    });
+    await tokens.goto();
+
+    await tokens
+      .row("ci-pipeline")
+      .getByRole("button", { name: "Revoke" })
+      .click();
+    await tokens.revokeDialog
+      .getByRole("button", { name: "Revoke token" })
+      .click();
+
+    await expect(tokens.revokeDialog).toContainText(
+      "The token could not be revoked.",
+    );
+    await tokens.revokeDialog.getByRole("button", { name: "Cancel" }).click();
+    await expect(tokens.row("ci-pipeline")).toHaveCount(1);
+  });
+
+  test("a list that fails to load says so", async ({ page }) => {
+    const tokens = new OrgTokensPage(page);
+    await tokens.signIn({ failList: true });
+    await tokens.goto();
+
+    await expect(
+      page.getByText("The tokens could not be loaded."),
+    ).toBeVisible();
+    await expect(tokens.list).toHaveCount(0);
+  });
+
   test("a token needs a name", async ({ page }) => {
     const tokens = new OrgTokensPage(page);
     await tokens.signIn();
@@ -88,5 +204,16 @@ describeOnAPhone("On a phone", () => {
     await expect(tokens.heading).toHaveText("Organization tokens");
     await expectPageSweep(page);
     await expectScreenshots(page, "create-form");
+  });
+
+  test("the token list fits", async ({ page }) => {
+    const tokens = new OrgTokensPage(page);
+    await tokens.signIn({
+      tokens: [tokenSummary({ id: "tok-1", name: "ci-pipeline" })],
+    });
+    await tokens.goto();
+    await expect(tokens.row("ci-pipeline")).toHaveCount(1);
+    await expectPageSweep(page);
+    await expectScreenshots(page, "token-list");
   });
 });

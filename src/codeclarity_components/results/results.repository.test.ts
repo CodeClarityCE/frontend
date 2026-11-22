@@ -77,10 +77,12 @@ describe("ResultsRepository.downloadSourceVerdicts", () => {
   it.each(["csv", "json"] as const)(
     "downloads the %s export of every workspace as a blob",
     async (format) => {
-      // The export is a file, not JSON, so fetch answers it directly.
-      vi.stubGlobal(
-        "fetch",
-        vi.fn(async () => new Response("workspace,source\r\n")),
+      const app = createTestApp();
+      // The export is a file, so the answer is sent as raw text.
+      app.http.on(
+        "GET",
+        `${analysisPath}/vulnerabilities/source-verdicts`,
+        "workspace,source\r\n",
       );
 
       const blob = await new ResultsRepository().downloadSourceVerdicts({
@@ -88,14 +90,12 @@ describe("ResultsRepository.downloadSourceVerdicts", () => {
         format,
       });
 
-      const url = new URL(vi.mocked(fetch).mock.calls[0]?.[0] as string);
-      expect(
-        url.pathname.endsWith(
-          `${analysisPath}/vulnerabilities/source-verdicts`,
-        ),
-      ).toBe(true);
-      expect(url.searchParams.get("format")).toBe(format);
-      expect(url.searchParams.has("workspace")).toBe(false);
+      const request = app.http.requests[0];
+      expect(request?.path).toBe(
+        `${analysisPath}/vulnerabilities/source-verdicts`,
+      );
+      expect(request?.query.get("format")).toBe(format);
+      expect(request?.query.has("workspace")).toBe(false);
       expect(await blob.text()).toBe("workspace,source\r\n");
     },
   );

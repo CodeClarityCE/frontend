@@ -37,7 +37,8 @@ export interface FakeRequest {
 }
 
 export interface FakeHttp {
-  // Answers every later METHOD request to the API path (no /api prefix) with this body.
+  // Answers every later METHOD request to the API path (no /api prefix) with this body;
+  // a string body is sent as raw text.
   on(method: string, path: string, body: unknown, status?: number): void;
   // Every request the app sent, oldest first.
   requests: FakeRequest[];
@@ -83,6 +84,9 @@ function fakeHttp(): FakeHttp {
       });
       const answer = answers.get(`${method} ${path}`);
       if (!answer) return new Response(null, { status: 404 });
+      // A string is a file download, sent as is.
+      if (typeof answer.body === "string")
+        return new Response(answer.body, { status: answer.status });
       return new Response(JSON.stringify(answer.body), {
         status: answer.status,
         headers: { "Content-Type": "application/json" },

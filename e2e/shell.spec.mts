@@ -300,6 +300,7 @@ test.describe("App shell accessibility and look", () => {
 
   test("the shell passes axe", async ({ page }) => {
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("the open palette passes axe", async ({ page }) => {
@@ -309,6 +310,7 @@ test.describe("App shell accessibility and look", () => {
     ).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("screenshots", async ({ page }) => {
@@ -423,5 +425,6 @@ test.describe("App shell on a phone", () => {
     await shell.navTrigger.tap();
     await expect(shell.nav).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 });

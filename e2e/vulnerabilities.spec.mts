@@ -323,6 +323,7 @@ test.describe("Vulnerability results", () => {
       page.getByRole("status", { name: "Loading vulnerabilities" }),
     ).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     release();
     await expect(page.getByText("No vulnerabilities found.")).toBeVisible();
@@ -376,6 +377,7 @@ test.describe("Vulnerability details", () => {
       await expect(dialog.locator(":focus")).toHaveCount(1);
     }
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
@@ -427,6 +429,7 @@ test.describe("Vulnerability details", () => {
       page.getByRole("status", { name: "Loading the vulnerability" }),
     ).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     release();
     await expect(vulns.heading).toContainText("CVE-2024-0001");
@@ -542,5 +545,16 @@ describeOnAPhone("On a phone", () => {
     await expect(vulns.rows()).toHaveCount(4);
     await expectPageSweep(page);
     await expectScreenshots(page, "vulnerabilities-table");
+  });
+
+  test("a vulnerability's details fit without scrolling sideways", async ({
+    page,
+  }) => {
+    const vulns = new VulnerabilitiesPage(page);
+    await vulns.signIn();
+    await vulns.gotoDetails();
+    await expect(vulns.heading).toContainText("CVE-2024-0001");
+    await expectPageSweep(page);
+    await expectScreenshots(page, "vulnerability-details");
   });
 });

@@ -1,9 +1,4 @@
-/**
- * The spec that covers each page of the app, keyed by route name, then
- * `name/subpage` for each `:page` value its view switches on and
- * `name?tab=value` for each results tab. route-coverage.spec fails when a
- * page is missing here or its spec does not exist.
- */
+// The spec that covers each page, keyed as route-coverage.spec lists them (see tests/TESTING_CONVENTIONS.md).
 export const routeSpecs: Record<string, string> = {
   home: "dashboard.spec.mts",
   orgVulnerability: "org-vulnerability.spec.mts",
@@ -35,6 +30,8 @@ export const routeSpecs: Record<string, string> = {
   "orgs/list": "org-settings.spec.mts",
   "orgs/overview": "org-settings.spec.mts",
   "orgs/policies": "org-policies.spec.mts",
+  "orgs/policies?tab=license": "org-policies.spec.mts",
+  "orgs/policies?tab=vulnerability": "org-policies.spec.mts",
   "orgs/logs": "org-members.spec.mts",
   "orgs/members": "org-members.spec.mts",
   "orgs/invites": "org-members.spec.mts",

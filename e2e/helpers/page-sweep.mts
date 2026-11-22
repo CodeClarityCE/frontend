@@ -27,15 +27,7 @@ const INTERACTIVE = [
   ].map((role) => `[role="${role}"]`),
 ].join(",");
 
-/**
- * Checks the invariants every loaded page must keep. Call it once per page
- * state a spec loads: `await expectPageSweep(page)`.
- * - Every visible enabled control has a pointer cursor (or a resize cursor,
- *   for a drag handle); disabled ones have neither.
- * - The page does not scroll sideways. This is checked at the current
- *   viewport, so run the spec at PHONE_WIDTH to cover phones; resizing here
- *   would close dialogs and change the state under test.
- */
+// Fails on controls with the wrong cursor and on sideways scroll at the current viewport.
 export async function expectPageSweep(page: Page): Promise<void> {
   const wrongCursors = await page.evaluate((selector) => {
     const describe = (el: Element, cursor: string): string => {
@@ -57,8 +49,7 @@ export async function expectPageSweep(page: Page): Promise<void> {
         el.closest('[aria-disabled="true"]') !== null ||
         el.hasAttribute("data-disabled");
       if (disabled) {
-        // A control that ignores the pointer shows the cursor beneath it.
-        if (style.pointerEvents !== "none" && clickable(style.cursor)) {
+        if (clickable(style.cursor)) {
           problems.push(`disabled ${describe(el, style.cursor)}`);
         }
       } else if (!clickable(style.cursor)) {

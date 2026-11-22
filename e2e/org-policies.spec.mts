@@ -147,6 +147,7 @@ test.describe("Organisation policies list", () => {
     await expect(
       page.getByRole("heading", { name: "No license policies yet" }),
     ).toBeVisible();
+    await expectPageSweep(page);
     await expectMainSnapshot(page, "org-policies-license-empty");
     await page.getByRole("link", { name: "Create a license policy" }).click();
 
@@ -164,6 +165,7 @@ test.describe("Organisation policies list", () => {
     await expect(
       page.getByRole("heading", { name: "No vulnerability policies yet" }),
     ).toBeVisible();
+    await expectPageSweep(page);
     await expectMainSnapshot(page, "org-policies-vulnerability-empty");
   });
 
@@ -484,5 +486,17 @@ describeOnAPhone("On a phone", () => {
 
     await expectPageSweep(page);
     await expectScreenshots(page, "license-policy-form");
+  });
+
+  test("the vulnerability policies tab fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const policies = new OrgPoliciesPage(page);
+    await policies.signIn();
+    await policies.gotoList();
+    await policies.tab("Vulnerability policies").click();
+    await expect(policies.rows("Vulnerability policies")).toHaveCount(2);
+    await expectPageSweep(page);
+    await expectScreenshots(page, "org-policies-vulnerability");
   });
 });

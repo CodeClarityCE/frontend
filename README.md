@@ -97,12 +97,23 @@ node_modules/.bin/playwright test
 Playwright builds the app, serves it with `vite preview` on `127.0.0.1:4173` and stops
 the server when the run ends. Set `E2E_PORT` to use another port, for example to run
 two worktrees at once. A server already listening on that port fails the run instead of
-being tested. `E2E_BASE_URL` targets a running stack instead and skips the build.
+being tested. `E2E_BASE_URL` (for example `https://localhost`) targets a running stack
+instead, skips the build and ignores HTTPS errors, since the dev stack's certificate is
+self-signed. `E2E_HOST_RESOLVER_RULES` (for example `MAP localhost 172.17.0.1`) maps hosts in
+Chromium, for a sandbox where the stack is published on the Docker gateway but Caddy only
+answers for `localhost`. `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` uses a system Chromium.
 
 A plain run uses two projects: `chromium` (desktop) and `pixel-5`. Phone tests are the
 blocks written with `describeOnAPhone` (`e2e/helpers/phone.mts`), tagged `@phone`: they run
 on `pixel-5` at 390 px, and every other test runs on `chromium`. Set `E2E_ALL_BROWSERS=1`
-to add desktop `firefox` and `webkit`, for nightly or manual runs.
+(or `true`) to add desktop `firefox` and `webkit`, for nightly or manual runs.
+
+The real-stack journeys (`e2e/real-stack/*.journey.mts`) mock nothing. Their `real-stack`
+project exists only when `E2E_BASE_URL` is set; run them with `--project=real-stack`, or in
+the pinned image with `.cloud/scripts/e2e-real-stack.sh [url] [outdir]`.
+
+How to write specs (sweep, aria snapshots, phone blocks, route coverage) is in
+`tests/TESTING_CONVENTIONS.md`.
 
 Every PR runs the default projects in CI, in the same pinned Playwright image as the
 baseline script (`e2e-image` in `.github/workflows/ci.yml`), and a failure fails `ci`. A failed

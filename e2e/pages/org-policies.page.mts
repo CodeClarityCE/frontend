@@ -182,7 +182,9 @@ export class OrgPoliciesPage {
   }
 
   rows(tableName: string): Locator {
-    return this.table(tableName).locator("tbody tr");
+    return this.table(tableName)
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell") });
   }
 }
 

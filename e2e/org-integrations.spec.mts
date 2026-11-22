@@ -115,12 +115,14 @@ test.describe("Integration logos", () => {
     for (const name of ["Add GitHub", "Add GitLab", "Add ClickUp"]) {
       const card = page.getByRole("link", { name: new RegExp(name) });
       await expect(card).toBeVisible();
-      // The logo is the card's first icon; bundled icons render as SVG paths.
-      await expect(card.locator("svg path").first()).toBeVisible();
+      // The logo is a decorative image; the blocked icon API below proves it is bundled.
+      await expect(
+        card.getByRole("img", { includeHidden: true }).first(),
+      ).toBeVisible();
     }
     expect(iconRequests).toEqual([]);
-    await expectMainSnapshot(page, "org-integrations-empty");
     await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-integrations-empty");
   });
 });
 
@@ -267,6 +269,7 @@ test.describe("Replacing a token", () => {
     ).toBeVisible();
     await expect(page.getByRole("radio")).toHaveCount(0);
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     await page
       .getByLabel("GitLab personal access token")
@@ -292,6 +295,7 @@ test.describe("Integrations accessibility and looks", () => {
     await expect(integrations.rows()).toHaveCount(4);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("the add and manage pages pass axe (WCAG 2.2 AA)", async ({ page }) => {
@@ -303,10 +307,12 @@ test.describe("Integrations accessibility and looks", () => {
       page.getByLabel("GitLab personal access token"),
     ).toHaveAttribute("aria-invalid", "true");
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     await integrations.gotoManage("GITHUB", "gh-1");
     await expect(page.getByText("Healthy", { exact: true })).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("Tab reaches the row actions and add buttons with visible focus", async ({

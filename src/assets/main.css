@@ -428,7 +428,7 @@
     color: var(--foreground);
   }
 
-  /* Tailwind v4 dropped the pointer cursor on buttons; give it back to every control. */
+  /* Every control shows a pointer cursor. */
   button,
   a[href],
   summary,
@@ -446,13 +446,14 @@
   [role="radio"] {
     cursor: pointer;
   }
+}
 
-  :disabled,
-  [aria-disabled="true"],
-  [aria-disabled="true"] *,
-  [data-disabled] {
-    cursor: default;
-  }
+/* Disabled controls show the default cursor; unlayered, so it beats any cursor utility. */
+:disabled,
+[aria-disabled="true"],
+[aria-disabled="true"] *,
+[data-disabled] {
+  cursor: default;
 }
 
 /* Custom keyframes for animations */

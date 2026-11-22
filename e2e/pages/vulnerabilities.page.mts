@@ -288,7 +288,9 @@ export class VulnerabilitiesPage {
     this.search = page.getByRole("searchbox", {
       name: "Search vulnerabilities",
     });
-    this.cards = page.getByTestId("vulnerability-card");
+    this.cards = page
+      .getByRole("list", { name: "Vulnerabilities" })
+      .getByRole("article");
   }
 
   /**
@@ -424,7 +426,9 @@ export class VulnerabilitiesPage {
 
   /** The table's body rows, without the header row. */
   rows(): Locator {
-    return this.table.locator("tbody tr");
+    return this.table
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell") });
   }
 
   columnHeader(name: string): Locator {

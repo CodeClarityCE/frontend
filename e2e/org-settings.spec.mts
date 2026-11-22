@@ -132,6 +132,7 @@ test.describe("Organisations list", () => {
     await expect(
       page.getByRole("heading", { name: "No organisations yet" }),
     ).toBeVisible();
+    await expectPageSweep(page);
     await expectMainSnapshot(page, "orgs-empty");
     await page.getByRole("link", { name: "Create an organisation" }).click();
 
@@ -419,6 +420,7 @@ test.describe("Organisation overview", () => {
     // Measure contrast once the dialog has finished fading in.
     await waitForAnimations(page);
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 });
 
@@ -540,5 +542,16 @@ describeOnAPhone("On a phone", () => {
 
     await expectPageSweep(page);
     await expectScreenshots(page, "organisation-form");
+  });
+
+  test("the organisation overview fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const orgs = new OrgSettingsPage(page);
+    await orgs.signIn();
+    await orgs.gotoOverview();
+    await expect(orgs.heading).toBeVisible();
+    await expectPageSweep(page);
+    await expectScreenshots(page, "org-overview");
   });
 });

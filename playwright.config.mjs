@@ -1,36 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
 
-/*
- * By default Playwright builds the app and serves it with `vite preview` on
- * 127.0.0.1, then stops the server when the run ends:
- * - E2E_PORT (default 4173): the preview port. Give each worktree its own to
- *   run suites side by side. A server already on the port fails the run
- *   (--strictPort), so a stale build is never tested.
- *
- * Running against the live dev stack instead of a local preview server:
- * - E2E_BASE_URL (e.g. https://localhost): target that URL and skip webServer.
- *   The dev stack uses a self-signed cert, so HTTPS errors are ignored then.
- * - E2E_HOST_RESOLVER_RULES (e.g. "MAP localhost 172.17.0.1"): Chromium host
- *   mapping, for a sandbox where the stack is published on the Docker gateway
- *   but Caddy only answers for the "localhost" server name.
- * - PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: use a system Chromium instead of a
- *   Playwright-downloaded one.
- *
- * Browsers: chromium desktop and Pixel 5 run by default. E2E_ALL_BROWSERS=1
- * adds desktop firefox and webkit, for nightly or manual runs. Phone tests
- * (tagged @phone) run on Pixel 5, all others on the desktop projects.
- *
- * The real-stack journey (e2e/real-stack/*.journey.mts) mocks nothing. Its
- * `real-stack` project exists only when E2E_BASE_URL is set, so a default run
- * never has it; run it with `--project=real-stack` (umbrella CI does, through
- * .cloud/scripts/e2e-real-stack.sh, against its trimmed stack).
- */
+// The E2E_* settings are described under "Run End-to-End Tests" in the README.
 const liveBaseURL = process.env.E2E_BASE_URL;
 const hostResolverRules = process.env.E2E_HOST_RESOLVER_RULES;
 const chromiumPath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
 const port = Number(process.env.E2E_PORT ?? 4173);
 const localURL = `http://127.0.0.1:${port}`;
-const allBrowsers = !!process.env.E2E_ALL_BROWSERS;
+// Only "1" or "true" turns the extra browsers on, so "0" leaves them off.
+const allBrowsers = /^(1|true)$/i.test(process.env.E2E_ALL_BROWSERS ?? "");
 
 // Chromium options shared by the desktop and Pixel 5 projects.
 const chromiumLaunch = {
@@ -92,10 +69,6 @@ const realStackProjects = liveBaseURL
     ]
   : [];
 
-/**
- * Playwright configuration for CodeClarity E2E tests
- * @see https://playwright.dev/docs/test-configuration
- */
 export default defineConfig({
   testDir: "./e2e",
   testMatch: "**/*.spec.mts",

@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -168,6 +169,9 @@ const instanceKey = (instance: AffectedInstance): string =>
             class="overflow-x-auto px-3 pb-3"
           >
             <Table>
+              <TableCaption class="sr-only"
+                >Instances in {{ project.project_name }}</TableCaption
+              >
               <TableHeader>
                 <TableRow>
                   <TableHead>Package</TableHead>

@@ -213,7 +213,9 @@ export class DatasetsPage {
 
   /** The table's body rows, without the header row. */
   rows(): Locator {
-    return this.table.locator("tbody tr");
+    return this.table
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell") });
   }
 
   columnHeader(name: string): Locator {

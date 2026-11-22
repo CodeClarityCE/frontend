@@ -26,15 +26,26 @@ describe("Playwright projects", () => {
     expect(await projectNames()).toEqual(["chromium", "pixel-5"]);
   });
 
-  it("adds firefox and webkit when E2E_ALL_BROWSERS is set", async () => {
-    vi.stubEnv("E2E_ALL_BROWSERS", "1");
-    expect(await projectNames()).toEqual([
-      "chromium",
-      "pixel-5",
-      "firefox",
-      "webkit",
-    ]);
-  });
+  it.each(["1", "true", "TRUE"])(
+    "adds firefox and webkit when E2E_ALL_BROWSERS is %s",
+    async (value) => {
+      vi.stubEnv("E2E_ALL_BROWSERS", value);
+      expect(await projectNames()).toEqual([
+        "chromium",
+        "pixel-5",
+        "firefox",
+        "webkit",
+      ]);
+    },
+  );
+
+  it.each(["0", "false", "no"])(
+    "keeps the default projects when E2E_ALL_BROWSERS is %s",
+    async (value) => {
+      vi.stubEnv("E2E_ALL_BROWSERS", value);
+      expect(await projectNames()).toEqual(["chromium", "pixel-5"]);
+    },
+  );
 
   // Lists the harness tests as "<project> › <describe> › <title>" lines.
   function listed(): string[] {

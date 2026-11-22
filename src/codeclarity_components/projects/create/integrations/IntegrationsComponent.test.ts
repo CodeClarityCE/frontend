@@ -9,6 +9,15 @@ import {
 
 import IntegrationsComponent from "./IntegrationsComponent.vue";
 
+// The import method card whose text starts with the name.
+function card(wrapper: ReturnType<typeof mount>, name: string) {
+  const found = wrapper
+    .findAll("button")
+    .find((button) => button.text().startsWith(name));
+  if (!found) throw new Error(`no ${name} card`);
+  return found;
+}
+
 function vcs(provider: IntegrationProvider, invalid = false): VCS {
   return {
     id: `${provider.toLowerCase()}-1`,
@@ -30,13 +39,11 @@ describe("IntegrationsComponent", () => {
         props: { vcsIntegrations: [vcs(IntegrationProvider.GITLAB), github] },
       });
 
-      const card = wrapper.find('[data-testid="popular-github-card"]');
-      expect(card.exists()).toBe(true);
-      expect(card.attributes("aria-disabled")).toBe("false");
-      expect(card.text()).toContain("Popular on GitHub");
-      expect(card.text()).toContain("Top 100 starred JS/TS/PHP repos");
+      const popular = card(wrapper, "Popular on GitHub");
+      expect(popular.attributes("aria-disabled")).toBe("false");
+      expect(popular.text()).toContain("Top 100 starred JS/TS/PHP repos");
 
-      await card.trigger("click");
+      await popular.trigger("click");
 
       expect(wrapper.emitted("onPopularGithub")).toHaveLength(1);
       expect(wrapper.emitted("onPopularGithub")![0]).toEqual([github]);
@@ -53,11 +60,11 @@ describe("IntegrationsComponent", () => {
         },
       });
 
-      const card = wrapper.find('[data-testid="popular-github-card"]');
-      expect(card.attributes("aria-disabled")).toBe("true");
-      expect(card.text()).toContain("Requires a GitHub integration");
+      const popular = card(wrapper, "Popular on GitHub");
+      expect(popular.attributes("aria-disabled")).toBe("true");
+      expect(popular.text()).toContain("Requires a GitHub integration");
 
-      await card.trigger("click");
+      await popular.trigger("click");
 
       expect(wrapper.emitted("onPopularGithub")).toBeUndefined();
     });
@@ -71,8 +78,8 @@ describe("IntegrationsComponent", () => {
         props: { vcsIntegrations: [github, gitlab] },
       });
 
-      await wrapper.find('[data-testid="github-card"]').trigger("click");
-      await wrapper.find('[data-testid="gitlab-card"]').trigger("click");
+      await card(wrapper, "GitHub").trigger("click");
+      await card(wrapper, "GitLab").trigger("click");
 
       expect(wrapper.emitted("onSelectedVCS")).toEqual([[github], [gitlab]]);
     });

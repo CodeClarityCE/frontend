@@ -202,6 +202,7 @@ test.describe("Tickets list", () => {
     );
     await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
     await axe(page);
+    await expectPageSweep(page);
   });
 });
 
@@ -317,6 +318,7 @@ test.describe("Ticket page", () => {
     await tickets.goto("/tickets/t-404");
 
     await expect(tickets.detail().getByText("Ticket not found")).toBeVisible();
+    await expectPageSweep(page);
     await expectMainSnapshot(page, "ticket-not-found");
   });
 
@@ -418,6 +420,7 @@ test.describe("Ticket integrations", () => {
     await expect(clickup).toBeVisible();
     await expect(clickup.getByLabel("ClickUp API key")).toBeVisible();
     await axe(page);
+    await expectPageSweep(page);
 
     await page.keyboard.press("Escape");
     await expect(clickup).toHaveCount(0);
@@ -599,5 +602,27 @@ describeOnAPhone("On a phone", () => {
 
     await expectPageSweep(page);
     await expectScreenshots(page, "tickets-list");
+  });
+
+  test("a ticket fits without scrolling sideways", async ({ page }) => {
+    const tickets = new TicketsPage(page);
+    await tickets.signIn();
+    await tickets.goto("/tickets/t-1");
+    await expect(tickets.detail()).toContainText("CVSS v3.1");
+    await expectPageSweep(page);
+    await expectScreenshots(page, "ticket-page");
+  });
+
+  test("the ClickUp callback fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const tickets = new TicketsPage(page);
+    await tickets.signIn();
+    await tickets.goto("/tickets/integrations/clickup/callback");
+    await expect(
+      page.getByRole("heading", { name: "Connection failed" }),
+    ).toBeVisible();
+    await expectPageSweep(page);
+    await expectScreenshots(page, "tickets-clickup-callback-error");
   });
 });

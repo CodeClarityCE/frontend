@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   businessError,
@@ -140,5 +141,16 @@ test.describe("Organisation invitation", () => {
     await expectPageSweep(page);
     await expectMainSnapshot(page, "org-join-expired");
     await expectScreenshots(page, "org-join-expired");
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("the invitation fits without scrolling sideways", async ({ page }) => {
+    const join = new OrgJoinPage(page);
+    await join.signIn();
+    await join.goto();
+    await expect(join.heading).toHaveText("Join Open Source Lab?");
+    await expectPageSweep(page);
+    await expectScreenshots(page, "org-join");
   });
 });

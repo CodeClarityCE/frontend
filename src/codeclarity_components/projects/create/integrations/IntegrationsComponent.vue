@@ -46,16 +46,7 @@ const choice =
 <template>
   <ul aria-label="Import methods" class="grid grid-cols-2 gap-4 lg:grid-cols-4">
     <li v-for="vcs in valid" :key="vcs.id">
-      <button
-        type="button"
-        :class="choice"
-        :data-testid="
-          vcs.integration_provider === IntegrationProvider.GITHUB
-            ? 'github-card'
-            : 'gitlab-card'
-        "
-        @click="emit('onSelectedVCS', vcs)"
-      >
+      <button type="button" :class="choice" @click="emit('onSelectedVCS', vcs)">
         <Icon
           :icon="
             vcs.integration_provider === IntegrationProvider.GITHUB
@@ -88,7 +79,6 @@ const choice =
           !githubIntegration && 'cursor-not-allowed hover:border-border',
         ]"
         :aria-disabled="!githubIntegration"
-        data-testid="popular-github-card"
         @click="onPopularGithub()"
       >
         <Star aria-hidden="true" class="size-7 text-foreground-strong" />

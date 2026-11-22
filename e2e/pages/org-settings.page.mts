@@ -162,7 +162,9 @@ export class OrgSettingsPage {
   }
 
   rows(): Locator {
-    return this.table.locator("tbody tr");
+    return this.table
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell") });
   }
 
   /** A link among the organisation settings pages in the sidebar. */

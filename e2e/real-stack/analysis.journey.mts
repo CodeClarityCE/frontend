@@ -4,12 +4,8 @@ import { expectMainSnapshot } from "../helpers/aria-snapshot.mjs";
 
 import { DEPENDENCY, npmProjectArchive } from "./npm-project.mjs";
 
-/*
- * One user journey against a real stack (E2E_BASE_URL), with nothing mocked:
- * the dev account uploads a tiny npm project, runs the Default Analyzer and
- * reads its SBOM, its vulnerabilities and one vulnerability's details. The
- * knowledge dump fixture gives ms@0.7.1 one advisory, GHSA-w9mr-4mfr-499f.
- */
+// Uploads a tiny npm project to a real stack, analyses it and reads its results.
+// The knowledge dump fixture gives ms@0.7.1 one advisory, GHSA-w9mr-4mfr-499f.
 
 const EMAIL = "john.doe@codeclarity.io";
 const PASSWORD = "ThisIs4Str0ngP4ssW0rd?";
@@ -72,14 +68,17 @@ test("an uploaded npm project is analysed and its results open", async ({
 
   await test.step("the vulnerabilities list its advisory", async () => {
     await page.getByRole("tab", { name: "Vulnerabilities" }).click();
-    const card = page.getByTestId("vulnerability-card");
+    const card = page
+      .getByRole("list", { name: "Vulnerabilities" })
+      .getByRole("article");
     await expect(card).toHaveCount(1, LOADED);
     await expectMainSnapshot(page, "vulnerabilities", LOADED);
   });
 
   await test.step("the vulnerability's details open", async () => {
     await page
-      .getByTestId("vulnerability-card")
+      .getByRole("list", { name: "Vulnerabilities" })
+      .getByRole("article")
       .getByRole("link", { name: /CVE-2017-20162|GHSA-w9mr-4mfr-499f/ })
       .first()
       .click();

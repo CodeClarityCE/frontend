@@ -213,11 +213,18 @@ test.describe("Page sweep harness", () => {
     await expect(expectPageSweep(page)).rejects.toThrow(/button "Off"/);
   });
 
-  test("passes a disabled control that ignores the pointer", async ({
+  test("fails on a disabled control that ignores the pointer but has a pointer cursor", async ({
     page,
   }) => {
     await page.setContent(
-      `<style>button{cursor:pointer}</style><button disabled style="pointer-events:none">Off</button><span role="switch" aria-disabled="true">Mute</span>`,
+      `<button disabled style="cursor:pointer;pointer-events:none">Off</button>`,
+    );
+    await expect(expectPageSweep(page)).rejects.toThrow(/button "Off"/);
+  });
+
+  test("passes disabled controls with a default cursor", async ({ page }) => {
+    await page.setContent(
+      `<button disabled style="cursor:default">Off</button><span role="switch" aria-disabled="true">Mute</span><div role="tab" data-disabled="">Later</div>`,
     );
     await expectPageSweep(page);
   });
@@ -426,6 +433,24 @@ test.describe("Route coverage harness", () => {
     ).toEqual([expect.stringMatching(/projects\/import .*no such route/)]);
   });
 
+  test("fails on a registered spec with no phone test, naming its pages", () => {
+    expect(
+      routeCoverageProblems({
+        routes,
+        registry: {
+          projects: "projects.spec.mts",
+          "projects/add": "projects.spec.mts",
+        },
+        specFiles,
+        phoneSpecFiles: [],
+      }),
+    ).toEqual([
+      expect.stringMatching(
+        /projects\.spec\.mts .*projects, projects\/add.*describeOnAPhone/,
+      ),
+    ]);
+  });
+
   test("finds the router's routes, their subpages and results tabs", () => {
     const router = `
       import HomeView from "@/home/HomeView.vue";
@@ -455,6 +480,41 @@ test.describe("Route coverage harness", () => {
       { key: "results/other", path: "/results/:page?" },
       { key: "results?tab=sbom", path: "/results/:page?" },
       { key: "results?tab=vuln-finder", path: "/results/:page?" },
+    ]);
+  });
+
+  test("finds the ?tab= values a subpage's own component reads", () => {
+    const router = `
+      import OrgsView from "@/orgs/OrgsView.vue";
+      const router = createRouter({
+        routes: [
+          { path: "/orgs/:action?/:page?", name: "orgs", component: OrgsView },
+        ],
+      });`;
+    const views: Record<string, string> = {
+      "@/orgs/OrgsView.vue": `<script setup>
+        const OrgPolicies = defineAsyncComponent(
+          (() => import("./policy/PoliciesView.vue")) as AsyncComponentLoader,
+        ) as Component;
+        </script>
+        <template>
+          <OrgsList v-if="view === 'list'" />
+          <OrgPolicies
+            v-else-if="view === 'policies'"
+            :page="props.page!"
+          />
+        </template>`,
+      "@/orgs/policy/PoliciesView.vue": `<script setup>
+        const tab = route.query.tab;
+        if (tab === "license" || tab === 'vulnerability') return tab;
+        </script>`,
+    };
+    expect(discoverRoutes(router, (from) => views[from] ?? "")).toEqual([
+      { key: "orgs", path: "/orgs/:action?/:page?" },
+      { key: "orgs/list", path: "/orgs/:action?/:page?" },
+      { key: "orgs/policies", path: "/orgs/:action?/:page?" },
+      { key: "orgs/policies?tab=license", path: "/orgs/:action?/:page?" },
+      { key: "orgs/policies?tab=vulnerability", path: "/orgs/:action?/:page?" },
     ]);
   });
 

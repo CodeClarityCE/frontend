@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
 import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
 import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { businessError, SettingsPage } from "./pages/settings.page.mjs";
 
@@ -310,5 +311,17 @@ test.describe("Account settings", () => {
     await expectNoAxeViolations(page);
     await expectPageSweep(page);
     await expectScreenshots(page, "settings-delete-dialog");
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("the account settings fit without scrolling sideways", async ({
+    page,
+  }) => {
+    const settings = new SettingsPage(page);
+    await settings.signIn();
+    await settings.goto();
+    await expectPageSweep(page);
+    await expectScreenshots(page, "settings-account");
   });
 });

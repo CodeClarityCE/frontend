@@ -8,8 +8,8 @@
 # Base URL defaults to https://localhost, reached through the host network. The HTML
 # report, test results (traces) and the journeys' snapshot folder land in the output
 # directory (default: playwright-real-stack in this checkout). Options such as
-# --grep @after-knowledge-update pick journeys. E2E_RUN, E2E_MAILBOX_URL, E2E_LOGIN_EMAIL and
-# E2E_LOGIN_PASSWORD are passed on to the journeys. Needs Docker.
+# --grep @after-knowledge-update pick journeys. E2E_RUN, E2E_MAILBOX_URL, E2E_LOGIN_EMAIL,
+# E2E_LOGIN_PASSWORD, MONKEY_SEED and MONKEY_STEPS are passed on to the journeys. Needs Docker.
 set -eu
 
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
@@ -30,7 +30,7 @@ docker run --rm --network host --ipc=host \
   -v "$ROOT:/src:ro" -v "$OUT:/out" \
   -e CI=1 -e E2E_BASE_URL="$BASE_URL" -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
   -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
-  -e E2E_RUN -e E2E_MAILBOX_URL -e E2E_LOGIN_EMAIL -e E2E_LOGIN_PASSWORD \
+  -e E2E_RUN -e E2E_MAILBOX_URL -e E2E_LOGIN_EMAIL -e E2E_LOGIN_PASSWORD -e MONKEY_SEED -e MONKEY_STEPS \
   -w /work "$IMAGE" sh -euc '
     tar -C /src --exclude=./node_modules --exclude=./dist --exclude=./.git \
       --exclude=./playwright-report --exclude=./test-results --exclude=./playwright-real-stack -cf - . | tar -xf -

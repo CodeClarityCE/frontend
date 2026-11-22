@@ -95,6 +95,10 @@ Default Analyzer) and `mailbox.mts` reads emails from the stack's mail catcher.
 - `upgrade.journey.mts` (`@upgrade`): after an upgrade, the data seeded on the
   previous release is still shown; it needs `E2E_LOGIN_EMAIL` and
   `E2E_LOGIN_PASSWORD`.
+- `monkey.journey.mts` is not a golden journey and is the one exception to the
+  rule above: its seeded random-interaction runs (nightly, `scripts/monkey/`)
+  fail on what a user would not see too, an uncaught error, an error report sent
+  to `POST /logs` or a 5xx response.
 
 The umbrella repo's `e2e (real stack)` job runs them against a trimmed stack
 with the knowledge dump fixture, and its upgrade job runs `@upgrade`

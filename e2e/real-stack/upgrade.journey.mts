@@ -21,18 +21,20 @@ test(
     ).toBeTruthy();
     await logIn(page, { email: email!, password: password! });
 
-    await test.step("the analysis results still list the dependency and its licence", async () => {
+    await test.step("the analysis results still list the dependency under a licence", async () => {
       await openResults(page, PROJECT);
       await page.getByRole("tab", { name: "SBOM" }).click(LOADED);
       await expect(
         page.getByRole("main").getByText("ms", { exact: true }).first(),
       ).toBeVisible(LOADED);
       await expect(page.getByRole("main")).toContainText("2.1.3");
+      // The licence is whatever the previous release found (it may be unknown there);
+      // seed.sh checks it is unchanged, so here the dependency only has to be listed.
       await page.getByRole("tab", { name: "Licenses" }).click(LOADED);
       await expect(
         page
           .getByRole("table", { name: "Licenses" })
-          .getByRole("row", { name: /MIT/ }),
+          .getByRole("row", { name: / 1 Details of / }),
       ).toBeVisible(LOADED);
     });
 

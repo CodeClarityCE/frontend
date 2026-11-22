@@ -10,7 +10,7 @@
     - term: Owner
     - definition: Deleted user
   - heading "Organization tokens" [level=1]
-  - paragraph: Secrets a pipeline uses to act in this organisation without a member's password.
+  - paragraph: Secrets a pipeline uses to act in this organization without a member's password.
   - heading "Create a token" [level=2]
   - text: Name
   - textbox "Name":

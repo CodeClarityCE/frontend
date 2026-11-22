@@ -76,6 +76,18 @@ const SCOPE_LABEL: Record<OrganizationTokenScope, string> = {
   [OrganizationTokenScope.ANALYZE]: "Analyze",
 };
 
+// The create form's scope choices, built from the same labels.
+const SCOPE_OPTIONS = [
+  {
+    value: OrganizationTokenScope.READ,
+    text: SCOPE_LABEL[OrganizationTokenScope.READ],
+  },
+  {
+    value: OrganizationTokenScope.ANALYZE,
+    text: `${SCOPE_LABEL[OrganizationTokenScope.ANALYZE]} (includes read)`,
+  },
+];
+
 function isExpired(token: OrganizationTokenSummary): boolean {
   return token.expires_on.getTime() <= Date.now();
 }
@@ -169,7 +181,7 @@ function setOrgInfo(info: Organization): void {
     <HeaderItem :org-id="props.orgId" @on-org-info="setOrgInfo" />
 
     <PageHeading
-      description="Secrets a pipeline uses to act in this organisation without a member's password."
+      description="Secrets a pipeline uses to act in this organization without a member's password."
     >
       Organization <BrandEmphasis>tokens</BrandEmphasis>
     </PageHeading>
@@ -183,8 +195,8 @@ function setOrgInfo(info: Organization): void {
         New token
       </h2>
       <p class="text-sm text-muted-foreground">
-        {{ created.name }} ({{ created.scope }}). Copy it now: it will not be
-        shown again.
+        {{ created.name }} ({{ SCOPE_LABEL[created.scope] }}). Copy it now: it
+        will not be shown again.
       </p>
       <CopyCommand :command="created.secret" label="token" />
       <div>
@@ -213,11 +225,12 @@ function setOrgInfo(info: Organization): void {
         <div class="flex flex-col gap-1">
           <label for="token-scope" class="text-sm font-medium">Scope</label>
           <NativeSelect id="token-scope" v-model="scope">
-            <NativeSelectOption :value="OrganizationTokenScope.READ">
-              Read
-            </NativeSelectOption>
-            <NativeSelectOption :value="OrganizationTokenScope.ANALYZE">
-              Analyze (includes read)
+            <NativeSelectOption
+              v-for="option in SCOPE_OPTIONS"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.text }}
             </NativeSelectOption>
           </NativeSelect>
         </div>

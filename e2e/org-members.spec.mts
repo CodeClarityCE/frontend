@@ -9,6 +9,7 @@ import {
   member,
   OrgMembersPage,
   sampleMembers,
+  tokenAuditLog,
 } from "./pages/org-members.page.mjs";
 
 test.beforeEach(async ({ page }) => {
@@ -142,6 +143,28 @@ test.describe("Organisation audit logs", () => {
     await expect(members.row("Updated Default analyzer")).toContainText(
       "No longer a member",
     );
+  });
+
+  test("an entry made with an Organization token names the token", async ({
+    page,
+  }) => {
+    const members = new OrgMembersPage(page);
+    await members.signIn({
+      logs: [
+        tokenAuditLog(
+          "log-t",
+          "ci-pipeline",
+          "The Organization token ci-pipeline called GET /org/:org_id/projects.",
+        ),
+      ],
+    });
+    await members.gotoLogs();
+
+    await expect(members.rows()).toHaveCount(1);
+    await expect(members.rows()).toContainText(
+      "Organization token ci-pipeline",
+    );
+    await expect(members.rows()).not.toContainText("No longer a member");
   });
 
   test("searching asks the API for matching entries", async ({ page }) => {

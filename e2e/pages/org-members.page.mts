@@ -108,6 +108,20 @@ export const sampleInvitations = [
   }),
 ];
 
+/** An entry whose actor is an Organization token, as the audit logs endpoint returns it. */
+export function tokenAuditLog(
+  id: string,
+  tokenName: string,
+  description: string,
+): Record<string, unknown> {
+  return auditLog(id, 0, "OrganizationTokenUsed", description, {
+    blame_on: undefined,
+    blame_on_email: null,
+    blame_on_token_id: "tok-1",
+    blame_on_token_name: tokenName,
+  });
+}
+
 /** An audit log entry as the audit logs endpoint returns it. */
 export function auditLog(
   id: string,
@@ -126,6 +140,8 @@ export function auditLog(
     description,
     blame_on: person(sampleMembers[0]),
     blame_on_email: user.email,
+    blame_on_token_id: null,
+    blame_on_token_name: null,
     created_on: "2026-11-12T10:30:00Z",
     ...overrides,
   };

@@ -1,0 +1,15 @@
+{
+  "endpoint": "POST /org/:org/tokens",
+  "response": {
+    "status_code": 201,
+    "status": "success",
+    "data": {
+      "id": "a865bd5b-1b94-4aaa-a570-0bf7d3512f23",
+      "name": "ci-pipeline",
+      "scope": "analyze",
+      "created_on": "2026-11-22T14:16:01.707Z",
+      "expires_on": "2026-11-23T14:16:01.686Z",
+      "secret": "ccot_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    }
+  }
+}

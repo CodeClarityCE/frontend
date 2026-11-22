@@ -37,6 +37,7 @@ export const routeSpecs: Record<string, string> = {
   "orgs/invites": "org-members.spec.mts",
   "orgs/integrations": "org-integrations.spec.mts",
   "orgs/analyzers": "org-analyzers.spec.mts",
+  "orgs/tokens": "org-tokens.spec.mts",
   signup: "auth.spec.mts",
   recoveryRequest: "account-recovery.spec.mts",
   emailAction: "account-recovery.spec.mts",

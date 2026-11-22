@@ -56,7 +56,7 @@ export interface ExperimentEstimateBasis {
 export const EXPERIMENT_REQUIRED_PLUGINS = ["js-sbom", "vuln-finder"];
 
 /** An experiment in one of these states may still change */
-export const ACTIVE_EXPERIMENT_STATUSES: readonly ExperimentStatus[] = [
+const ACTIVE_EXPERIMENT_STATUSES: readonly ExperimentStatus[] = [
   ExperimentStatus.PENDING,
   ExperimentStatus.RUNNING,
 ];
@@ -312,7 +312,7 @@ export const SweepSubsetLabels: Record<SweepSubset, string> = {
   non_withdrawn: "Not withdrawn",
 };
 
-export interface HeadlineScalars {
+interface HeadlineScalars {
   n_projects: number;
   n_affected: number;
   affected_share: number | null;
@@ -331,14 +331,14 @@ export interface HeadlineScalars {
   pkgs_clear_90: number;
 }
 
-export interface Headline extends HeadlineScalars {
+interface Headline extends HeadlineScalars {
   sev_counts: SeverityCounts;
   /** [package, projects affected], most widespread first */
   top_packages: [string, number][];
   high_critical_share_of_classed: number | null;
 }
 
-export interface SweepRow extends HeadlineScalars {
+interface SweepRow extends HeadlineScalars {
   subset: SweepSubset;
 }
 
@@ -347,19 +347,19 @@ export interface ConfidenceInterval {
   high: number;
 }
 
-export interface ScalarShareIntervals {
+interface ScalarShareIntervals {
   affected_share: ConfidenceInterval | null;
   high_critical_share: ConfidenceInterval | null;
   top10_pkg_share: ConfidenceInterval | null;
   top10_proj_share: ConfidenceInterval | null;
 }
 
-export interface SweepShareIntervals extends ScalarShareIntervals {
+interface SweepShareIntervals extends ScalarShareIntervals {
   subset: SweepSubset;
 }
 
 /** 95% Wilson intervals of the headline, sweep and severity shares. */
-export interface ShareIntervals {
+interface ShareIntervals {
   headline: ScalarShareIntervals & {
     high_critical_share_of_classed: ConfidenceInterval | null;
   };
@@ -378,7 +378,7 @@ export interface RemovedTransitiveIntervals {
   by_interval: (ConfidenceInterval | null)[];
 }
 
-export interface EpssBlock {
+interface EpssBlock {
   nonnull_share: number | null;
   median: number | null;
   p90: number | null;
@@ -388,21 +388,21 @@ export interface EpssBlock {
   missing_cve: number;
 }
 
-export interface RqcBlock {
+interface RqcBlock {
   spearman_rho: number | null;
   p: number | null;
   n: number;
   excluded_zero_dep_projects: number;
 }
 
-export interface RqdRow {
+interface RqdRow {
   package_manager: string;
   projects: number;
   med_deps: number;
   med_vulns: number;
 }
 
-export interface CoverageBlock {
+interface CoverageBlock {
   runs: number;
   attempted: number;
   done: number;
@@ -429,7 +429,7 @@ export interface GridCoverageRow {
   mixed_knowledge: boolean;
 }
 
-export interface KnowledgeSnapshot {
+interface KnowledgeSnapshot {
   knowledge_sources: Record<string, string | null>;
   epss_rows: number;
 }
@@ -440,7 +440,7 @@ export interface BootstrapInterval {
   high: number;
 }
 
-export interface ConcentrationIntervals {
+interface ConcentrationIntervals {
   load_median: BootstrapInterval | null;
   gini_pkg: BootstrapInterval | null;
   gini_proj: BootstrapInterval | null;
@@ -474,14 +474,14 @@ export interface ResultIntervals {
   };
 }
 
-export interface BootstrapProvenance {
+interface BootstrapProvenance {
   method: string;
   confidence: number;
   resamples: number;
   seed: number;
 }
 
-export interface ProvenanceBlock {
+interface ProvenanceBlock {
   /** How the bootstrap intervals are computed; absent from older APIs */
   bootstrap?: BootstrapProvenance;
   api_version: string | null;
@@ -578,7 +578,7 @@ export interface ProbesBlock {
 }
 
 /** The analysis budget, what was submitted against it and whether it is spent */
-export interface ProbeBudget {
+interface ProbeBudget {
   analysis_budget: number | null;
   analyses_submitted: number | null;
   spent: boolean;
@@ -600,7 +600,7 @@ export interface LoadRow {
 }
 
 /** A distribution of day counts */
-export interface DaysSummary {
+interface DaysSummary {
   n: number;
   median: number | null;
   p25: number | null;
@@ -610,11 +610,11 @@ export interface DaysSummary {
 }
 
 /** One severity class of a days distribution */
-export interface DaysGroup extends DaysSummary {
+interface DaysGroup extends DaysSummary {
   key: string;
 }
 
-export interface ResidencePoint {
+interface ResidencePoint {
   severity: keyof SeverityCounts;
   residence_days: number;
   precision: DatingPrecision;
@@ -666,7 +666,7 @@ export interface ExposureSurvivalBlock {
 }
 
 /** Instance concentration at one grid date */
-export interface PackagesToClearRow {
+interface PackagesToClearRow {
   /** YYYY-MM-DD, null for HEAD */
   grid_date: string | null;
   projects: number;
@@ -677,7 +677,7 @@ export interface PackagesToClearRow {
   pkgs_clear_80: number | null;
 }
 
-export interface FixKindCounts {
+interface FixKindCounts {
   fixes: number;
   upgraded: number;
   removed_direct: number;
@@ -701,7 +701,7 @@ export interface UpstreamLeverageBlock {
 }
 
 /** Instances hidden by default (contradicted or retired on every source). */
-export interface HiddenInstanceCounts {
+interface HiddenInstanceCounts {
   contradicted: number;
   retired_all: number;
 }

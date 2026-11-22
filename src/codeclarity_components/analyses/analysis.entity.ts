@@ -5,6 +5,7 @@ import { Analyzer } from "../organizations/analyzers/Analyzer";
 
 // Copy of the API's AnalysisStatus in api/src/base_modules/analyses/analysis.entity.ts.
 // The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
+/** @public type-sync copy of an API enum: every API value stays */
 export enum AnalysisStatus {
   REQUESTED = "requested",
   TRIGGERED = "triggered",
@@ -86,14 +87,9 @@ export class Analysis {
   is_active?: boolean;
 }
 
-export class StageBase {
+class StageBase {
   Name!: string;
   Version!: string;
-}
-
-export class Stage extends StageBase {
-  config!: Record<string, unknown>;
-  persistant_config!: Record<string, unknown>;
 }
 
 export class AnalysisStage extends StageBase {

@@ -81,7 +81,7 @@ export interface JoinOrgRequestOptions
 export interface GetOrgMetaDataRequestOptions
   extends AuthRepoMethodGetRequestOptions, BaseOrgRequestOptions {}
 
-export interface OrganizationSettingsUpdate {
+interface OrganizationSettingsUpdate {
   auto_resolve_tickets?: boolean;
   freshness_threshold_days?: number;
   service_level_targets_enabled?: boolean;

@@ -114,6 +114,9 @@ test.describe("Pages a role cannot use", () => {
     await expect(main.getByRole("link", { name: /^Audit logs/ })).toHaveCount(
       0,
     );
+    await expect(
+      main.getByRole("link", { name: /^Organization tokens/ }),
+    ).toHaveCount(0);
   });
 
   test("a member sees the policies without New or Edit", async ({ page }) => {

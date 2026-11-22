@@ -16,7 +16,7 @@
         - listitem: "GCVE: No update has been recorded yet."
         - listitem: "CISA KEV: No update has been recorded yet."
         - listitem: "Licenses: No update has been recorded yet."
-        - listitem: "/NVD: No update has been recorded yet\\. Data is current to May \\d+, \\d+\\./"
+        - listitem: "/NVD: No update has been recorded yet\\.( Data is current to \\w+ \\d+, \\d+\\.)?$/"
         - listitem: "OSV: No update has been recorded yet."
     - region "Summary":
       - heading "Summary" [level=2]

@@ -42,3 +42,7 @@ tmp
 *.tsbuildinfo
 # Output of .cloud/scripts/e2e-real-stack.sh
 /playwright-real-stack
+
+# Playwright output
+/playwright-report/
+/test-results/

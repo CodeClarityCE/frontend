@@ -209,6 +209,18 @@ test.describe("Registration confirmation", () => {
     await expect(page).toHaveURL(/\/login$/);
   });
 
+  test("sends the token and user id hash under the names the API validates", async ({
+    page,
+  }) => {
+    await answerConfirmation(page, true);
+    const request = page.waitForRequest("**/api/users/confirm_registration");
+    await page.goto(confirmUrl);
+    expect((await request).postDataJSON()).toEqual({
+      token: "t1",
+      user_id_hash: "u1",
+    });
+  });
+
   test("redirects to sign in after the countdown", async ({ page }) => {
     await pauseClock(page);
     await answerConfirmation(page, true);

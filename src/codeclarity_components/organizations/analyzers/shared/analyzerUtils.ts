@@ -5,15 +5,6 @@ import type { AnalyzerNode } from "@/utils/vueFlow";
 
 import { isSbomProducer } from "./workflowRules";
 
-export interface AnalyzerFormData {
-  name: string;
-  description: string;
-}
-
-export interface AnalyzerSubmissionData extends AnalyzerFormData {
-  steps: Record<string, unknown>[];
-}
-
 export interface TemplateStep {
   name: string;
   config?: Record<string, unknown>;
@@ -66,7 +57,7 @@ export function initializeDefaultNodes(
   return defaultNodes;
 }
 
-export function createAnalyzerNode(plugin: Plugin): AnalyzerNode {
+function createAnalyzerNode(plugin: Plugin): AnalyzerNode {
   const nodeId = `analyzer-${plugin.name}`;
 
   return {

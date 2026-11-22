@@ -2,7 +2,7 @@
   - link "Experiments":
     - /url: /experiments
   - heading "Fix lag study" [level=1]
-  - text: Completed
+  - text: Completed Preview
   - paragraph:
     - text: Analyzer
     - strong: JavaScript analyzer

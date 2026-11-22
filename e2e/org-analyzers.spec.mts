@@ -12,7 +12,7 @@ import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { analyzer, OrgAnalyzersPage } from "./pages/org-analyzers.page.mjs";
 
 // Three stages with plugin options that a save must keep as is.
-const configuredAnalyzer = analyzer("an-3", "Patched audit", {
+const configuredAnalyzer = analyzer("an-3", "Checked audit", {
   steps: [
     [
       {
@@ -37,7 +37,7 @@ const configuredAnalyzer = analyzer("an-3", "Patched audit", {
     ],
     [
       {
-        name: "js-patching",
+        name: "js-checker",
         version: "1.0.0",
         config: {},
       },
@@ -224,13 +224,13 @@ test.describe("Analyzer workflow rules", () => {
     await analyzers.removePlugin("vuln-finder");
     await analyzers.removePlugin("js-sbom");
 
-    await analyzers.addPlugin("js-patching");
+    await analyzers.addPlugin("js-checker");
 
     await expect(analyzers.workflowNodes()).toHaveCount(3);
     await expect(analyzers.workflowNodes()).toContainText([
       "js-sbom",
       "vuln-finder",
-      "js-patching",
+      "js-checker",
     ]);
     await fillDetails(page);
     await page.getByRole("button", { name: "Create analyzer" }).click();
@@ -240,7 +240,7 @@ test.describe("Analyzer workflow rules", () => {
         steps: [
           [expect.objectContaining({ name: "js-sbom" })],
           [expect.objectContaining({ name: "vuln-finder" })],
-          [expect.objectContaining({ name: "js-patching" })],
+          [expect.objectContaining({ name: "js-checker" })],
         ],
       }),
     ]);
@@ -403,15 +403,15 @@ test.describe("Edit analyzer", () => {
     const analyzers = new OrgAnalyzersPage(page);
     await analyzers.signIn({ analyzers: [configuredAnalyzer] });
     await analyzers.gotoEdit("an-3");
-    await expect(page.getByLabel("Name")).toHaveValue("Patched audit");
+    await expect(page.getByLabel("Name")).toHaveValue("Checked audit");
 
     await page.getByRole("button", { name: "Save changes" }).click();
 
     await expect(page).toHaveURL(/\/orgs\/manage\/analyzers\/org-123/);
     expect(analyzers.updated).toEqual([
       {
-        name: "Patched audit",
-        description: "Patched audit for JavaScript projects",
+        name: "Checked audit",
+        description: "Checked audit for JavaScript projects",
         steps: configuredAnalyzer.steps,
       },
     ]);
@@ -421,19 +421,19 @@ test.describe("Edit analyzer", () => {
     const analyzers = new OrgAnalyzersPage(page);
     await analyzers.signIn({ analyzers: [configuredAnalyzer] });
     await analyzers.gotoEdit("an-3");
-    await expect(page.getByLabel("Name")).toHaveValue("Patched audit");
+    await expect(page.getByLabel("Name")).toHaveValue("Checked audit");
 
-    await page.getByLabel("Name").fill("Patched review");
+    await page.getByLabel("Name").fill("Checked review");
     await page.getByRole("button", { name: "Save changes" }).click();
-    await expect(analyzers.row("Patched review")).toContainText("3 stages");
+    await expect(analyzers.row("Checked review")).toContainText("3 stages");
 
     await analyzers.gotoEdit("an-3");
-    await expect(page.getByLabel("Name")).toHaveValue("Patched review");
+    await expect(page.getByLabel("Name")).toHaveValue("Checked review");
     await expect(analyzers.workflowNodes()).toHaveCount(3);
     await expect(analyzers.workflowNodes()).toContainText([
       "js-sbom",
       "vuln-finder",
-      "js-patching",
+      "js-checker",
     ]);
   });
 

@@ -27,7 +27,8 @@
       - term: Unlicensed
       - definition: "0"
       - term: Outdated
-      - button "Update 0 direct dependencies" [disabled]
+      - definition: "1"
+      - button "Update 1 direct dependency"
       - button "Export SBOM"
       - region "All dependencies":
         - heading "All dependencies" [level=3]
@@ -50,13 +51,16 @@
               - columnheader "Scope":
                 - button "Scope"
           - rowgroup:
-            - row /ms JavaScript 0\.7\.1 .+ No Direct Production/:
+            - row /ms JavaScript 0\.7\.1 Major update \S+ No Direct Production/:
               - cell "ms":
                 - link "ms":
                   - /url: /\/results\/sbom_details\?analysis_id=[0-9a-f-]+&project_id=[0-9a-f-]+&package_id=ms@0\.7\.1&workspace=\./
               - cell "JavaScript"
               - cell "0.7.1":
                 - code: 0.7.1
+              - cell /Major update \S+/:
+                - text: Major update
+                - code: /\S+/
               - cell "No"
               - cell "Direct"
               - cell "Production"

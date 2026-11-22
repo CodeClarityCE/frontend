@@ -34,6 +34,7 @@ const analysis = {
   analyzer: { id: "an-x", name: "Default analyzer" },
   status: "completed",
   branch: "main",
+  // js-patching is gone, but analyses made before keep its step.
   steps: [
     [step("js-sbom")],
     [step("license-finder"), step("js-patching"), step("codeql")],
@@ -67,7 +68,7 @@ export function dependency(
   };
 }
 
-export const sampleDependencies = [
+const sampleDependencies = [
   dependency("express", "4.18.2", {
     newest_release: "5.0.1",
     is_direct: true,
@@ -159,168 +160,7 @@ export const sampleLicenses = [
   },
 ];
 
-function toPatch(dep: string, version: string, vuln: string, path: string[]) {
-  return {
-    DependencyName: dep,
-    DependencyVersion: version,
-    Path: path,
-    Vulnerability: {
-      VulnerabilityId: vuln,
-      Severity: { Severity: 7.5, Impact: 5.9, Exploitability: 3.9 },
-    },
-  };
-}
-
-const semver = (major: number, minor: number, patch: number) => ({
-  Major: major,
-  Minor: minor,
-  Patch: patch,
-  PreReleaseTag: "",
-  MetaData: "",
-});
-
-const patches = {
-  patches: {
-    "express@4.18.2": {
-      TopLevelVulnerable: false,
-      IsPatchable: "FULL",
-      Unpatchable: [],
-      Patchable: [
-        toPatch("qs", "6.10.3", "CVE-2022-24999", ["express", "qs"]),
-        toPatch("cookie", "0.5.0", "CVE-2024-47764", ["express", "cookie"]),
-      ],
-      Introduced: [],
-      Patches: { "qs@6.10.3": semver(6, 11, 0) },
-      Update: semver(4, 21, 2),
-    },
-    "request@2.88.2": {
-      TopLevelVulnerable: true,
-      IsPatchable: "NONE",
-      Unpatchable: [
-        toPatch("request", "2.88.2", "CVE-2023-28155", ["request"]),
-      ],
-      Patchable: [],
-      Introduced: [],
-      Patches: {},
-      Update: semver(0, 0, 0),
-    },
-  },
-  dev_patches: {
-    "vitest@3.2.0": {
-      TopLevelVulnerable: false,
-      IsPatchable: "PARTIAL",
-      Unpatchable: [
-        toPatch("esbuild", "0.21.5", "GHSA-67mh-4wv8-2f99", [
-          "vitest",
-          "vite",
-          "esbuild",
-        ]),
-      ],
-      Patchable: [
-        toPatch("vite", "5.4.0", "CVE-2025-30208", ["vitest", "vite"]),
-      ],
-      Introduced: [],
-      Patches: {},
-      Update: semver(3, 2, 4),
-    },
-  },
-};
-
-const patchingStats = {
-  before_patch_number_of_issues: 4,
-  after_patch_number_of_issues: 2,
-  before_patch_number_of_vulnerabilities: 4,
-  after_patch_number_of_vulnerabilities: 2,
-  before_patch_number_of_vulnerable_dependencies: 3,
-  after_patch_number_of_vulnerable_dependencies: 2,
-  before_patch_number_of_critical: 1,
-  after_patch_number_of_critical: 0,
-  before_patch_number_of_high: 2,
-  after_patch_number_of_high: 1,
-  before_patch_number_of_medium: 1,
-  after_patch_number_of_medium: 1,
-  before_patch_number_of_low: 0,
-  after_patch_number_of_low: 0,
-  before_patch_number_of_none: 0,
-  after_patch_number_of_none: 0,
-  before_patch_overall_confidentiality_impact: 6.2,
-  after_patch_overall_confidentiality_impact: 3.1,
-  before_patch_overall_integrity_impact: 4.0,
-  after_patch_overall_integrity_impact: 2.0,
-  before_patch_overall_availability_impact: 1.5,
-  after_patch_overall_availability_impact: 0.5,
-};
-
-const manifest = {
-  patched_manifest_raw: { name: "web-frontend" },
-  patched_manifest: {
-    name: "web-frontend",
-    version: "1.0.0",
-    description: "",
-    dependencies: {
-      express: {
-        vulnerable: true,
-        patch_type: "FULL",
-        original_constraint: "^4.18.2",
-        upgrade_to: "^4.21.2",
-        upgrade_to_installed_ver: false,
-      },
-      request: {
-        vulnerable: true,
-        patch_type: "NONE",
-        original_constraint: "^2.88.2",
-        upgrade_to: "",
-        upgrade_to_installed_ver: false,
-      },
-      ms: {
-        vulnerable: false,
-        patch_type: "NONE",
-        original_constraint: "^2.1.3",
-        upgrade_to: "",
-        upgrade_to_installed_ver: false,
-      },
-    },
-  },
-  other_info: { package_manager: "NPM", relative_package_file: "package.json" },
-};
-
-// An analysis with nothing to patch: no patches, zero counts, and a manifest
-// whose direct dependencies are all left as they are.
-const emptyPatches = { patches: {}, dev_patches: {} };
-
-const emptyPatchingStats = Object.fromEntries(
-  Object.keys(patchingStats).map((key) => [key, 0]),
-);
-
-const emptyManifest = {
-  patched_manifest_raw: JSON.stringify(
-    { dependencies: { express: "^4.18.2", ms: "^2.1.3" }, devDependencies: {} },
-    null,
-    2,
-  ),
-  patched_manifest: {
-    dependencies: {
-      express: {
-        original_constraint: "^4.18.2",
-        vulnerable: false,
-        patch_type: null,
-        upgrade_to: null,
-        potential_breaking_changes: false,
-      },
-      ms: {
-        original_constraint: "^2.1.3",
-        vulnerable: false,
-        patch_type: null,
-        upgrade_to: null,
-        potential_breaking_changes: false,
-      },
-    },
-    devDependencies: {},
-  },
-  other_info: { package_manager: "NPM", relative_package_file: "package.json" },
-};
-
-export const sampleCodeql = [
+const sampleCodeql = [
   {
     ruleId: "js/sql-injection",
     ruleIndex: 0,
@@ -349,7 +189,7 @@ export const sampleCodeql = [
   },
 ];
 
-export const sampleDetails = {
+const sampleDetails = {
   name: "lodash",
   version: "4.17.20",
   latest_version: "4.17.21",
@@ -414,15 +254,13 @@ export interface ResultTabsOptions {
   vulnStats?: Record<string, unknown>;
   /** Adds a successful vuln-finder step, so the SBOM asks for vulnerability stats. */
   vulnFinder?: boolean;
-  /** Answers the patch endpoints for an analysis with nothing to patch. */
-  noPatches?: boolean;
   /** Keeps the tab's main requests pending until the returned function runs. */
   hold?: boolean;
   /** Leaves the real clock: the fixed one stops menus moving focus. */
   realClock?: boolean;
 }
 
-/** The SBOM, license, patch and CodeQL result tabs, with their API mocked. */
+/** The SBOM, license and CodeQL result tabs, with their API mocked. */
 export class ResultTabsPage {
   readonly page: Page;
   readonly shell: ShellPage;
@@ -517,27 +355,13 @@ export class ResultTabsPage {
             paginated(options.licenses ?? sampleLicenses, page, perPage),
           );
         }
-        if (path === `${results}/patching`) {
-          await wait();
-          return fulfil(route, {
-            data: options.noPatches ? emptyPatches : patches,
-          });
-        }
-        if (path === `${results}/patching/manifest`)
-          return fulfil(route, {
-            data: options.noPatches ? emptyManifest : manifest,
-          });
-        if (path === `${results}/patching/stats`)
-          return fulfil(route, {
-            data: options.noPatches ? emptyPatchingStats : patchingStats,
-          });
         return fulfil(route, { data: [] });
       },
     );
     return release;
   }
 
-  async goto(tab?: "Licenses" | "Patches" | "CodeQL"): Promise<void> {
+  async goto(tab?: "Licenses" | "CodeQL"): Promise<void> {
     await this.shell.goto(
       `/results?analysis_id=${ANALYSIS}&project_id=${PROJECT}`,
     );

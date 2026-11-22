@@ -28,6 +28,7 @@ describe("OrganizationView", () => {
     [`/orgs/manage/members/${org.id}`, "Members"],
     [`/orgs/manage/invites/${org.id}`, "Invitations"],
     [`/orgs/manage/logs/${org.id}`, "Audit logs"],
+    [`/orgs/manage/tokens/${org.id}`, "Organization tokens"],
     [`/orgs/manage/analyzers/${org.id}`, "Analyzers"],
     [`/orgs/manage/policies/${org.id}`, "Policies"],
     [`/orgs/manage/policy/${org.id}`, "Policies"],

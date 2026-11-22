@@ -110,7 +110,12 @@ on `pixel-5` at 390 px, and every other test runs on `chromium`. Set `E2E_ALL_BR
 
 The real-stack journeys (`e2e/real-stack/*.journey.mts`) mock nothing. Their `real-stack`
 project exists only when `E2E_BASE_URL` is set; run them with `--project=real-stack`, or in
-the pinned image with `.cloud/scripts/e2e-real-stack.sh [url] [outdir]`.
+the pinned image with `.cloud/scripts/e2e-real-stack.sh [url] [outdir] [options]`.
+
+`e2e/real-stack/monkey.journey.mts` (tagged `@monkey`) runs seeded random interactions on each
+golden-journey page and fails on an uncaught error, an error report or a 5xx. Each test prints
+its seed; `MONKEY_SEED` replays it and `MONKEY_STEPS` sets the run length. The umbrella's
+nightly `monkey.yml` runs it; fixed runs go in `MONKEY_REGRESSIONS`.
 
 How to write specs (sweep, aria snapshots, phone blocks, route coverage) is in
 `tests/TESTING_CONVENTIONS.md`.

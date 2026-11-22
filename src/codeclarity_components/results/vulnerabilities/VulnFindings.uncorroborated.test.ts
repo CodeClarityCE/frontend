@@ -72,7 +72,7 @@ async function renderFindings(data: unknown[]): Promise<void> {
   await app.visit("/projects");
   queries = serveFindings(() => paginated(data));
   render(VulnFindings, {
-    props: { analysisID: "a-1", projectID: "p-1", hasPatching: false },
+    props: { analysisID: "a-1", projectID: "p-1" },
     global: app.global,
   });
   await flushPromises();

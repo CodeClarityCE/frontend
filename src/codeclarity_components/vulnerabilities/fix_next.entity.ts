@@ -18,7 +18,7 @@ export interface FixNextRank {
 }
 
 /** The change one entry makes in one project workspace. */
-export interface FixNextRemediation {
+interface FixNextRemediation {
   project_id: string;
   project_name: string;
   workspace: string;

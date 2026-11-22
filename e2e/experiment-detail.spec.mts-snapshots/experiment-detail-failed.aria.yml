@@ -2,7 +2,7 @@
   - link "Experiments":
     - /url: /experiments
   - heading "Broken cohort" [level=1]
-  - text: Failed
+  - text: Failed Preview
   - paragraph:
     - text: Analyzer
     - strong: JavaScript analyzer

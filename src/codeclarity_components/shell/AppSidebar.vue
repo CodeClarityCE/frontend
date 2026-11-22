@@ -4,6 +4,7 @@ import { computed, ref, watch } from "vue";
 import { type RouteLocationRaw, RouterLink, useRoute } from "vue-router";
 
 import logo from "@/assets/images/logos/logo-green.svg";
+import { PreviewBadge } from "@/base_components/page";
 import { Kbd } from "@/shadcn/ui/kbd";
 import {
   Sidebar,
@@ -27,6 +28,7 @@ import {
   isActive,
   navGroups,
   type NavItem,
+  navTooltip,
   orgSettingsItem,
   type OrgSettingsSubItem,
   orgSettingsSubItems,
@@ -62,6 +64,11 @@ watch(
   },
   { immediate: true },
 );
+
+// The id of an item's Preview marker, which describes its link.
+function previewId(item: NavItem): string | undefined {
+  return item.preview ? `nav-preview-${item.label.toLowerCase()}` : undefined;
+}
 
 function target(item: NavItem): RouteLocationRaw | null {
   if (item.label === "Results") return lastResults.value;
@@ -174,7 +181,7 @@ const activeBar =
                 v-if="target(item)"
                 as-child
                 :is-active="isActive(item, route.name)"
-                :tooltip="item.label"
+                :tooltip="navTooltip(item)"
                 :class="activeBar"
               >
                 <RouterLink
@@ -182,9 +189,18 @@ const activeBar =
                   :aria-current="
                     isActive(item, route.name) ? 'page' : undefined
                   "
+                  :aria-describedby="previewId(item)"
                 >
                   <component :is="item.icon" aria-hidden="true" />
                   <span>{{ item.label }}</span>
+                  <!-- Keeps the label and the marker apart as words. -->
+                  <template v-if="item.preview">{{ " " }}</template>
+                  <PreviewBadge
+                    v-if="item.preview"
+                    :id="previewId(item)"
+                    aria-hidden="true"
+                    class="ml-auto group-data-[collapsible=icon]:hidden"
+                  />
                 </RouterLink>
               </SidebarMenuButton>
               <SidebarMenuButton

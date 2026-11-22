@@ -8,6 +8,8 @@ import members from "./contracts/members.json" with { type: "json" };
 import orgVulnerability from "./contracts/org-vulnerability.json" with { type: "json" };
 import orgVulnerabilityFreshness from "./contracts/org-vulnerability-freshness.json" with { type: "json" };
 import organizationList from "./contracts/organization-list.json" with { type: "json" };
+import organizationTokenCreated from "./contracts/organization-token-created.json" with { type: "json" };
+import organizationTokenList from "./contracts/organization-token-list.json" with { type: "json" };
 import projectTickets from "./contracts/project-tickets.json" with { type: "json" };
 import ticketDetail from "./contracts/ticket-detail.json" with { type: "json" };
 import { shapeDiff } from "./helpers/shape.mjs";
@@ -15,6 +17,11 @@ import { AnalysesPage } from "./pages/analyses.page.mjs";
 import { OrgMembersPage } from "./pages/org-members.page.mjs";
 import { OrgPoliciesPage } from "./pages/org-policies.page.mjs";
 import { OrgSettingsPage } from "./pages/org-settings.page.mjs";
+import {
+  createdToken,
+  tokenList,
+  tokenSummary,
+} from "./pages/org-tokens.page.mjs";
 import {
   notYetChecked,
   OrgVulnerabilityPage,
@@ -243,4 +250,19 @@ test.describe("Fixture contracts", () => {
       ).toEqual([]);
     });
   }
+});
+
+// A POST answer, so the fixture is compared directly rather than fetched.
+test("created organization token fixture matches POST /org/:org/tokens", () => {
+  const fixture = createdToken({
+    name: "ci-pipeline",
+    scope: "analyze",
+    expires_on: "2026-12-13T12:00:00.000Z",
+  });
+  expect(shapeDiff(fixture, organizationTokenCreated.response)).toEqual([]);
+});
+
+test("organization token list fixture matches GET /org/:org/tokens", () => {
+  const fixture = tokenList([tokenSummary()]);
+  expect(shapeDiff(fixture, organizationTokenList.response)).toEqual([]);
 });

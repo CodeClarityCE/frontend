@@ -1,7 +1,7 @@
 import { reactive } from "vue";
 
 /** One dashboard request that several cards can share. */
-export interface DashboardRequest<T> {
+interface DashboardRequest<T> {
   data: T | null;
   loading: boolean;
   error: boolean;
@@ -9,9 +9,7 @@ export interface DashboardRequest<T> {
   run: () => Promise<void>;
 }
 
-export function useDashboardRequest<T>(
-  load: () => Promise<T>,
-): DashboardRequest<T> {
+function useDashboardRequest<T>(load: () => Promise<T>): DashboardRequest<T> {
   const request = reactive({
     data: null as T | null,
     loading: false,

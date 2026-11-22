@@ -1,9 +1,7 @@
 // Filter types and utilities
 
 export enum FilterType {
-  DIVIDER = "divider",
   CHECKBOX = "checkbox",
-  RADIO = "radio",
 }
 
 export interface ActiveFilter {
@@ -13,7 +11,7 @@ export interface ActiveFilter {
   option: string;
 }
 
-export interface FilterOption {
+interface FilterOption {
   title: string;
   value: boolean;
 }

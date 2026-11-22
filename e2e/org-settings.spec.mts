@@ -286,6 +286,7 @@ test.describe("Organisation overview", () => {
       "Integrations",
       "Analyzers",
       "Policies",
+      "Organization tokens",
       "Audit logs",
     ]) {
       await expect(
@@ -439,6 +440,7 @@ test.describe("Organisation settings in the sidebar", () => {
       "Integrations",
       "Analyzers",
       "Policies",
+      "Organization tokens",
       "Audit logs",
     ]);
     await expect(orgs.subLink("Overview")).toHaveAttribute(
@@ -516,6 +518,7 @@ test.describe("Organisation settings in the sidebar", () => {
       "Integrations",
       "Analyzers",
       "Policies",
+      "Organization tokens",
       "Audit logs",
     ]);
   });

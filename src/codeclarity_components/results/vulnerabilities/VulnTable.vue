@@ -14,7 +14,6 @@ import {
   formatPercent,
   impacts,
   owaspCategories,
-  patchStatus,
   ticketVulnerability,
 } from "./vuln-format";
 import type { VulnerabilityMerged } from "./VulnStats";
@@ -151,10 +150,6 @@ function rowKey(finding: VulnerabilityMerged): string {
           >
             {{ affected.AffectedDependency }}@{{ affected.AffectedVersion }}
           </RouterLink>
-          <StatusBadge
-            v-bind="patchStatus(affected.PatchType)"
-            class="whitespace-nowrap"
-          />
         </li>
       </ul>
     </template>

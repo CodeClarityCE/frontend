@@ -6,6 +6,7 @@ export type OrgView =
   | "members"
   | "invites"
   | "logs"
+  | "tokens"
   | "integrations"
   | "analyzers"
   | "policies"
@@ -17,6 +18,7 @@ const managePages: Record<string, OrgView> = {
   members: "members",
   invites: "invites",
   logs: "logs",
+  tokens: "tokens",
 };
 
 // The invites page opens its invite dialog with the "add" action.

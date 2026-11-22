@@ -33,6 +33,8 @@ function orgTitle(to: RouteLocationNormalized): string {
       return "Invitations";
     case "logs":
       return "Audit logs";
+    case "tokens":
+      return "Organization tokens";
     case "integrations":
       return "Integrations";
     case "analyzers":

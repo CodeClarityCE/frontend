@@ -3,7 +3,6 @@
   - paragraph: web-frontend
   - tablist "Results":
     - tab "SBOM"
-    - tab "Patches"
     - tab "Licenses"
     - tab "CodeQL" [selected]
   - tabpanel "CodeQL":

@@ -11,7 +11,7 @@ import type { DetectedLanguage as SharedDetectedLanguage } from "./ecosystem-sha
 // A detected language and its logo; colours come from the logo itself.
 export type DetectedLanguage = Omit<SharedDetectedLanguage, "color">;
 
-export const SUPPORTED_LANGUAGES: Record<string, DetectedLanguage> = {
+const SUPPORTED_LANGUAGES: Record<string, DetectedLanguage> = {
   javascript: {
     name: "JavaScript",
     icon: "devicon:javascript",

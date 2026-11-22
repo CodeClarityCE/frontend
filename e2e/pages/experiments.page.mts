@@ -50,7 +50,7 @@ export function experiment(
 }
 
 /** An analyzer; the default one runs the plugins an Experiment needs. */
-export function analyzer(
+function analyzer(
   id: string,
   name: string,
   plugins: string[] = ["js-sbom", "vuln-finder"],
@@ -72,7 +72,7 @@ export function analyzer(
   };
 }
 
-export const sampleExperiments = [
+const sampleExperiments = [
   experiment("exp-1", "Fix lag study"),
   experiment("exp-2", "Residence time 2026", "RUNNING", {
     created_on: "2026-11-02T09:00:00Z",
@@ -88,7 +88,7 @@ export const sampleDatasets = [
   dataset("ds-2", "Frameworks 2026", "BUILDING"),
 ];
 
-export const sampleAnalyzers = [
+const sampleAnalyzers = [
   analyzer("an-1", "JavaScript analyzer"),
   analyzer("an-2", "Licenses only", ["license-finder"]),
 ];

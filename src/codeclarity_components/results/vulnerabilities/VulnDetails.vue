@@ -6,7 +6,7 @@ import { RouterLink } from "vue-router";
 
 import { PageHeading, SeverityBadge, StatTile } from "@/base_components/page";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
-import { type VulnerabilityDetails } from "@/codeclarity_components/results/vulnerabilities/VulnDetails";
+import { type VulnerabilityDetails } from "@/codeclarity_components/results/vulnerabilities/VulnDetails/VulnDetails";
 import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";

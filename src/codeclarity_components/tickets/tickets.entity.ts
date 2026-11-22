@@ -21,6 +21,7 @@ import type {
 
 // Copy of the API's TicketStatus in api/src/codeclarity_modules/tickets/ticket.entity.ts.
 // The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
+/** @public type-sync copy of an API enum: every API value stays */
 export enum TicketStatus {
   OPEN = "OPEN",
   IN_PROGRESS = "IN_PROGRESS",
@@ -31,6 +32,7 @@ export enum TicketStatus {
 
 // Copy of the API's TicketPriority in api/src/codeclarity_modules/tickets/ticket.entity.ts.
 // The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
+/** @public type-sync copy of an API enum: every API value stays */
 export enum TicketPriority {
   CRITICAL = "CRITICAL",
   HIGH = "HIGH",
@@ -40,6 +42,7 @@ export enum TicketPriority {
 
 // Copy of the API's TicketType in api/src/codeclarity_modules/tickets/ticket.entity.ts.
 // The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
+/** @public type-sync copy of an API enum: every API value stays */
 export enum TicketType {
   VULNERABILITY = "VULNERABILITY",
   LICENSE = "LICENSE",
@@ -54,6 +57,7 @@ export enum ExternalTicketProvider {
 
 // Copy of the API's TicketEventType in api/src/codeclarity_modules/tickets/ticket-event.entity.ts.
 // The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
+/** @public type-sync copy of an API enum: every API value stays */
 export enum TicketEventType {
   CREATED = "CREATED",
   STATUS_CHANGED = "STATUS_CHANGED",
@@ -415,15 +419,6 @@ export interface TicketFilters {
   created_before?: string;
 }
 
-export type TicketSortField =
-  | "created_on"
-  | "updated_on"
-  | "priority"
-  | "status"
-  | "severity_score"
-  | "title"
-  | "due_date";
-
 // ============================================
 // UI Helpers
 // ============================================
@@ -576,7 +571,7 @@ export const ExternalProviderIcons: Record<ExternalTicketProvider, string> = {
 // Vulnerability Details Types
 // ============================================
 
-export interface CVSS2 {
+interface CVSS2 {
   base_score: number;
   exploitability_score?: number;
   impact_score?: number;
@@ -588,7 +583,7 @@ export interface CVSS2 {
   authentication?: string;
 }
 
-export interface CVSS3 {
+interface CVSS3 {
   base_score: number;
   exploitability_score?: number;
   impact_score?: number;
@@ -602,35 +597,35 @@ export interface CVSS3 {
   privileges_required?: string;
 }
 
-export interface SeverityInfo {
+interface SeverityInfo {
   cvss_31?: CVSS3;
   cvss_3?: CVSS3;
   cvss_2?: CVSS2;
 }
 
-export interface WeaknessInfo {
+interface WeaknessInfo {
   id: string;
   name: string;
   description: string;
 }
 
-export interface ReferenceInfo {
+interface ReferenceInfo {
   url: string;
   tags: string[];
 }
 
-export interface VulnSourceInfo {
+interface VulnSourceInfo {
   source: string;
   vulnerability_id: string;
 }
 
-export interface VersionInfoReport {
+interface VersionInfoReport {
   affected_version: string;
   recommended_version?: string;
   patched_versions?: string[];
 }
 
-export interface VulnerabilityInfoReport {
+interface VulnerabilityInfoReport {
   vulnerability_id: string;
   description: string;
   version_info: VersionInfoReport;
@@ -640,33 +635,33 @@ export interface VulnerabilityInfoReport {
   aliases: string[];
 }
 
-export interface DependencyInfoReport {
+interface DependencyInfoReport {
   name: string;
   version: string;
   ecosystem?: string;
   direct: boolean;
 }
 
-export interface PatchInfo {
+interface PatchInfo {
   fix_available: boolean;
   recommended_version?: string;
   patched_versions?: string[];
   patch_notes?: string;
 }
 
-export interface CommonConsequencesInfo {
+interface CommonConsequencesInfo {
   scope: string[];
   impact: string[];
   description: string;
 }
 
-export interface OwaspTop10Info {
+interface OwaspTop10Info {
   id: string;
   name: string;
   description?: string;
 }
 
-export interface OtherInfo {
+interface OtherInfo {
   package_manager: string;
   epss_score?: number;
   epss_percentile?: number;

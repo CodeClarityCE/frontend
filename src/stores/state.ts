@@ -1,12 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-export interface StateStore {
-  page: string;
-  menu: string;
-  publicPage: boolean;
-}
-
 export const useStateStore = defineStore("state", () => {
   const page = ref("");
   const menu = ref("");

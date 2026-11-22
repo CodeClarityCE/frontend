@@ -93,7 +93,7 @@ const MANAGERS: Record<PackageManager, ManagerInfo> = {
  * The package manager named by an SBOM, or null when it is not one we know
  * (for example "multi-language").
  */
-export function toPackageManager(value?: string): PackageManager | null {
+function toPackageManager(value?: string): PackageManager | null {
   const name = value?.toLowerCase() ?? "";
   return name in MANAGERS ? (name as PackageManager) : null;
 }

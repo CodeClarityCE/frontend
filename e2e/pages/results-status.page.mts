@@ -46,7 +46,7 @@ export function analysis(
   };
 }
 
-export const failedAnalysis = analysis(
+const failedAnalysis = analysis(
   "failure",
   [[step("js-sbom", "failure")], [step("vuln-finder", "requested")]],
   { failure_reason: "Clone failed: repository not found" },
@@ -83,7 +83,7 @@ export interface Failure {
 }
 
 export const NOT_FOUND: Failure = { status: 404, error_code: "EntityNotFound" };
-export const NOT_AUTHORIZED: Failure = {
+const NOT_AUTHORIZED: Failure = {
   status: 403,
   error_code: "NotAuthorized",
 };

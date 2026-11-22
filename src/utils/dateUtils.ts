@@ -217,26 +217,6 @@ export function calculateDateDifference(
 }
 
 /**
- * Check if a date is expiring soon (within specified days)
- * Replaces moment.duration().asDays() <= threshold logic
- */
-export function isDateExpiring(
-  date: Date | string | null | undefined,
-  thresholdDays = 14,
-): boolean {
-  if (!date) return false;
-
-  const dateObj = typeof date === "string" ? new Date(date) : date;
-  if (!isValidDate(dateObj)) return false;
-
-  const now = new Date();
-  const diffMs = dateObj.getTime() - now.getTime();
-  const diffDays = diffMs / DAY_MS;
-
-  return diffDays > 0 && diffDays <= thresholdDays;
-}
-
-/**
  * Get the number of days until a date expires
  * Replaces moment.duration(moment(date).diff(new Date())).asDays()
  */
@@ -272,34 +252,6 @@ export function isValidDate(date: Date | string | null | undefined): boolean {
   return true;
 }
 
-/**
- * Format current date in MMM DD format
- * Replaces moment().format('MMM DD')
- */
-export function formatCurrentDate(format = "MMM DD"): string {
-  return formatDate(new Date(), format);
-}
-
-/**
- * Check if a package is outdated (> 182 days old)
- * Common pattern used in dependency health checks
- */
-export function isPackageOutdated(
-  date: Date | string | null | undefined,
-  thresholdDays = 182,
-): boolean {
-  if (!date) return false;
-
-  const dateObj = typeof date === "string" ? new Date(date) : date;
-  if (!isValidDate(dateObj)) return false;
-
-  const now = new Date();
-  const diffMs = now.getTime() - dateObj.getTime();
-  const diffDays = diffMs / DAY_MS;
-
-  return diffDays > thresholdDays;
-}
-
 /** Monday to Sunday of an ISO week number in an ISO week year. */
 export function getWeekRange(
   weekNumber: number,
@@ -317,31 +269,4 @@ export function getWeekRange(
   weekEnd.setDate(weekStart.getDate() + 6);
 
   return { start: weekStart, end: weekEnd };
-}
-
-/**
- * Format a date range
- * Common pattern for displaying week ranges
- */
-export function formatDateRange(
-  startDate: Date,
-  endDate: Date,
-  format = "MMM DD",
-): string {
-  return `${formatDate(startDate, format)} - ${formatDate(endDate, format)}`;
-}
-
-/**
- * Alias for formatRelativeTime - provides distance to now
- * e.g., "3 hours", "2 days", etc. (without "ago")
- */
-export function formatDistanceToNow(
-  date: Date | string | null | undefined,
-): string {
-  const relativeTime = formatRelativeTime(date);
-  // Remove "ago" and "in" prefixes to get just the distance
-  return relativeTime
-    .replace(/ ago$/, "")
-    .replace(/^in /, "")
-    .replace(/^a /, "1 ");
 }

@@ -191,18 +191,6 @@ export function isStable(version: string): boolean {
 }
 
 /**
- * Get the prerelease identifiers from a version
- */
-export function getPrereleaseIdentifiers(version: string): string[] {
-  try {
-    const parsed = parseSemver(version);
-    return parsed.prerelease;
-  } catch {
-    return [];
-  }
-}
-
-/**
  * Check if an upgrade from version1 to version2 should be recommended
  * Returns false for stable-to-prerelease upgrades
  */

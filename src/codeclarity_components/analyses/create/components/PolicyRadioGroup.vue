@@ -5,7 +5,7 @@ import { StatusBadge } from "@/base_components/page";
 import { RadioGroup, RadioGroupItem } from "@/shadcn/ui/radio-group";
 import { Skeleton } from "@/shadcn/ui/skeleton";
 
-export interface PolicyOption {
+interface PolicyOption {
   id: string;
   name: string;
   description: string;

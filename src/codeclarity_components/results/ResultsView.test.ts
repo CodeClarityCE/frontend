@@ -78,7 +78,6 @@ describe("ResultsView", () => {
       import("./licenses/ResultsLicenses.vue"),
       import("./vulnerabilities/ResultsVulnerabilities.vue"),
       import("./vulnerabilities/ResultsVulnerabilitiesDetails.vue"),
-      import("./patching/ResultsPatching.vue"),
       import("./codeql/ResultsCodeQL.vue"),
     ]);
   }, 30000);
@@ -100,23 +99,32 @@ describe("ResultsView", () => {
     await open([
       step("js-sbom"),
       step("vuln-finder", "failure"),
-      step("js-patching"),
+      step("license-finder"),
     ]);
-    expect(tabNames()).toEqual(["SBOM", "Patches"]);
+    expect(tabNames()).toEqual(["SBOM", "Licenses"]);
+  });
+
+  // Analyses from before js-patching was removed keep its step.
+  it("opens an old analysis with a js-patching step on its other tabs", async () => {
+    await open([step("js-sbom"), step("js-patching"), step("vuln-finder")]);
+    expect(tabNames()).toEqual(["SBOM", "Vulnerabilities"]);
+    expect(
+      await screen.findByRole("heading", {
+        name: "Software bill of materials",
+      }),
+    ).toBeTruthy();
   });
 
   it("shows every result tab when all plugins succeed", async () => {
     await open([
       step("js-sbom"),
       step("vuln-finder"),
-      step("js-patching"),
       step("license-finder"),
       step("codeql"),
     ]);
     expect(tabNames()).toEqual([
       "SBOM",
       "Vulnerabilities",
-      "Patches",
       "Licenses",
       "CodeQL Preview",
     ]);

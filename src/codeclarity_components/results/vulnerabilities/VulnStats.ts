@@ -33,12 +33,6 @@ export enum SeverityType {
   Ghsa = "GHSA",
 }
 
-enum PatchType {
-  Full = "FULL",
-  Partial = "PARTIAL",
-  None = "NONE",
-}
-
 interface Conflict {
   ConflictWinner: string;
   ConflictFlag: string;
@@ -87,7 +81,6 @@ interface AffectedDeps {
   AffectedDependencyFilePath: string;
   AffectedDependencyImportPaths: string[];
   AffectedDependencyObject?: DependencyObject;
-  PatchType?: PatchType;
   Disputed?: boolean;
   Uncorroborated?: boolean;
   /** One verdict per knowledge source; absent on older analyses. */

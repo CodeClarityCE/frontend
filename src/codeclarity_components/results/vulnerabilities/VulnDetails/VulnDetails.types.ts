@@ -1,5 +1,3 @@
-import type { PatchInfo } from "../../patching/Patching";
-
 interface VulnSourceInfo {
   name: string;
   vuln_url: string;
@@ -157,7 +155,6 @@ export class VulnerabilityDetails {
   severities!: SeverityInfo;
   owasp_top_10!: OwaspInfo | null;
   weaknesses!: WeaknessInfo[];
-  patch!: PatchInfo;
   common_consequences!: Record<string, CommonConsequencesInfo[]>;
   references!: ReferenceInfo[];
   location!: string[];

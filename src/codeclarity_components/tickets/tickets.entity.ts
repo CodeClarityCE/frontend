@@ -642,13 +642,6 @@ interface DependencyInfoReport {
   direct: boolean;
 }
 
-interface PatchInfo {
-  fix_available: boolean;
-  recommended_version?: string;
-  patched_versions?: string[];
-  patch_notes?: string;
-}
-
 interface CommonConsequencesInfo {
   scope: string[];
   impact: string[];
@@ -675,7 +668,6 @@ export interface VulnerabilityDetailsReport {
   severities: SeverityInfo;
   owasp_top_10: OwaspTop10Info | null;
   weaknesses: WeaknessInfo[];
-  patch: PatchInfo;
   common_consequences: Record<string, CommonConsequencesInfo[]>;
   references: ReferenceInfo[];
   location: string[];

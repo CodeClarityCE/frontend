@@ -404,10 +404,7 @@ onUnmounted(() => clearTimeout(pollTimer));
         </template>
       </PageHeading>
 
-      <p
-        v-if="confirming === 'import'"
-        class="text-sm text-foreground"
-      >
+      <p v-if="confirming === 'import'" class="text-sm text-foreground">
         This creates {{ importCountLabel }}, one per repository. Repositories
         imported before are skipped.
       </p>

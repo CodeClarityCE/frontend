@@ -13,7 +13,8 @@
 # node_modules and lockfile are never touched; only e2e/*-snapshots come back.
 set -eu
 
-# Keep in sync with @playwright/test in package.json and e2e-image in .github/workflows/ci.yml.
+# Keep in sync with @playwright/test in package.json and e2e-image in .github/workflows/ci.yml
+# (tests/unit/e2e/playwright-version.test.ts fails when they differ).
 IMAGE="mcr.microsoft.com/playwright:v1.65.1-noble@sha256:1507cbfc550a63a6b7396791ca4f00df17beb56342d2447b3f106c306f525579"
 
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)

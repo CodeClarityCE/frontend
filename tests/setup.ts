@@ -12,18 +12,6 @@ import "@testing-library/jest-dom/vitest";
 
 // Unit tests run the real stores, router and repositories; only HTTP is faked (see tests/real-app.ts).
 
-// Suppress known Zod v4 cleanup errors during test teardown
-// These occur when components using Zod schemas are unmounted
-process.on("unhandledRejection", (reason: unknown) => {
-  const message = reason instanceof Error ? reason.message : String(reason);
-  if (message.includes("_zod") || message.includes("Closing rpc while")) {
-    // Known Zod v4 / Vitest cleanup issue - suppress in tests
-    return;
-  }
-  // Re-throw other unhandled rejections
-  throw reason;
-});
-
 // Brand and language logos ship with the app, as in main.ts, so Iconify never fetches them.
 for (const collection of logoIcons) addCollection(collection);
 

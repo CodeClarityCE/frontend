@@ -30,7 +30,8 @@ const hostResolverRules = process.env.E2E_HOST_RESOLVER_RULES;
 const chromiumPath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
 const port = Number(process.env.E2E_PORT ?? 4173);
 const localURL = `http://127.0.0.1:${port}`;
-const allBrowsers = !!process.env.E2E_ALL_BROWSERS;
+// Only "1" or "true" turns the extra browsers on, so "0" leaves them off.
+const allBrowsers = /^(1|true)$/i.test(process.env.E2E_ALL_BROWSERS ?? "");
 
 // Chromium options shared by the desktop and Pixel 5 projects.
 const chromiumLaunch = {

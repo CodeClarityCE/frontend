@@ -68,14 +68,17 @@ test("an uploaded npm project is analysed and its results open", async ({
 
   await test.step("the vulnerabilities list its advisory", async () => {
     await page.getByRole("tab", { name: "Vulnerabilities" }).click();
-    const card = page.getByTestId("vulnerability-card");
+    const card = page
+      .getByRole("list", { name: "Vulnerabilities" })
+      .getByRole("article");
     await expect(card).toHaveCount(1, LOADED);
     await expectMainSnapshot(page, "vulnerabilities", LOADED);
   });
 
   await test.step("the vulnerability's details open", async () => {
     await page
-      .getByTestId("vulnerability-card")
+      .getByRole("list", { name: "Vulnerabilities" })
+      .getByRole("article")
       .getByRole("link", { name: /CVE-2017-20162|GHSA-w9mr-4mfr-499f/ })
       .first()
       .click();

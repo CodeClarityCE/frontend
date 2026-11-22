@@ -563,7 +563,9 @@ export class ResultTabsPage {
 
   /** A table's body rows, without the header row. */
   rows(name: string): Locator {
-    return this.table(name).locator("tbody tr");
+    return this.table(name)
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell") });
   }
 
   sortButton(table: string, column: string): Locator {

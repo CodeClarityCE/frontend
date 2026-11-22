@@ -616,7 +616,7 @@ test.describe("Add a Project", () => {
     const projects = new ProjectsPage(page);
     await projects.signIn();
     await projects.gotoCreate();
-    await page.getByTestId("github-card").click();
+    await projects.importMethod("GitHub").click();
 
     await expect(
       page.getByRole("heading", { name: "GitHub repositories" }),
@@ -647,7 +647,7 @@ test.describe("Add a Project", () => {
       failImport: ["https://github.com/example/billing"],
     });
     await projects.gotoCreate();
-    await page.getByTestId("github-card").click();
+    await projects.importMethod("GitHub").click();
 
     await page
       .getByRole("checkbox", { name: "Select example/billing" })
@@ -671,7 +671,7 @@ test.describe("Add a Project", () => {
     const projects = new ProjectsPage(page);
     await projects.signIn();
     await projects.gotoCreate();
-    await page.getByTestId("gitlab-card").click();
+    await projects.importMethod("GitLab").click();
     await expect(projects.rows()).toHaveCount(3);
 
     await projects.filter.fill("docs");
@@ -703,7 +703,7 @@ test.describe("Add a Project", () => {
       ],
     });
     await projects.gotoCreate();
-    await page.getByTestId("popular-github-card").click();
+    await projects.importMethod("Popular on GitHub").click();
 
     await expect(projects.rows().first()).toContainText("facebook/react");
     await expect(projects.rows().first()).toContainText("230,000");
@@ -723,7 +723,7 @@ test.describe("Add a Project", () => {
     const projects = new ProjectsPage(page);
     await projects.signIn();
     await projects.gotoCreate();
-    await page.getByTestId("github-card").click();
+    await projects.importMethod("GitHub").click();
 
     await page.getByRole("button", { name: "Import repository" }).click();
 
@@ -802,7 +802,7 @@ test.describe("Add a Project", () => {
     const projects = new ProjectsPage(page);
     await projects.signIn();
     await projects.gotoCreate();
-    await page.getByTestId("github-card").click();
+    await projects.importMethod("GitHub").click();
 
     await page
       .getByLabel("Repository URL")
@@ -893,7 +893,7 @@ test.describe("Add a Project", () => {
     await expectScreenshots(page, "projects-add");
 
     await page.setViewportSize({ width: 1280, height: 1024 });
-    await page.getByTestId("github-card").click();
+    await projects.importMethod("GitHub").click();
     await expect(projects.rows()).toHaveCount(3);
     await page
       .getByRole("checkbox", { name: "Select example/billing" })
@@ -932,7 +932,7 @@ test.describe("Add a Project", () => {
     const projects = new ProjectsPage(page);
     await projects.signIn();
     await projects.gotoCreate();
-    await page.getByTestId("github-card").click();
+    await projects.importMethod("GitHub").click();
     const field = page.getByLabel("Repository URL");
 
     const submit = page.getByRole("button", { name: "Import repository" });
@@ -1031,7 +1031,7 @@ describeOnAPhone("On a phone", () => {
     const projects = new ProjectsPage(page);
     await projects.signIn();
     await projects.gotoCreate();
-    await page.getByTestId("github-card").click();
+    await projects.importMethod("GitHub").click();
     await expect(projects.rows()).toHaveCount(3);
     await expectPageSweep(page);
     await expectScreenshots(page, "github-import");

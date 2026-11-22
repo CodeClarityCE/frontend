@@ -517,7 +517,9 @@ export class ExperimentDetailPage {
 
   /** The runs table's body rows. */
   runRows(): Locator {
-    return this.runsTable.locator("tbody tr");
+    return this.runsTable
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell") });
   }
 
   /** A results section, by its heading. */

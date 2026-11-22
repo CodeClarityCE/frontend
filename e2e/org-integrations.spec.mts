@@ -115,13 +115,14 @@ test.describe("Integration logos", () => {
     for (const name of ["Add GitHub", "Add GitLab", "Add ClickUp"]) {
       const card = page.getByRole("link", { name: new RegExp(name) });
       await expect(card).toBeVisible();
-      // The logo is the card's first icon; bundled icons render as SVG paths.
-      await expect(card.locator("svg path").first()).toBeVisible();
+      // The logo is a decorative image; the blocked icon API below proves it is bundled.
+      await expect(
+        card.getByRole("img", { includeHidden: true }).first(),
+      ).toBeVisible();
     }
     expect(iconRequests).toEqual([]);
     await expectPageSweep(page);
     await expectMainSnapshot(page, "org-integrations-empty");
-    await expectPageSweep(page);
   });
 });
 

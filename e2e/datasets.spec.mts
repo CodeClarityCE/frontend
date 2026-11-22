@@ -497,7 +497,7 @@ test.describe("Dataset detail", () => {
     await expect(datasets.rows()).toHaveCount(5);
 
     await page.getByRole("button", { name: "Import as projects" }).click();
-    await expect(page.getByTestId("dataset-import-hint")).toContainText(
+    await expect(page.getByText(/one per repository/)).toContainText(
       "5 projects",
     );
     await page.getByRole("button", { name: "Keep" }).click();

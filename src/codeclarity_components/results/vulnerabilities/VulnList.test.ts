@@ -47,7 +47,9 @@ describe("a CVE found in two versions of a dependency", () => {
   it("shows its worst severity and both versions on the card", () => {
     render(VulnList, { props, global: app.global });
 
-    const card = screen.getByTestId("vulnerability-card");
+    const card = within(
+      screen.getByRole("list", { name: "Vulnerabilities" }),
+    ).getByRole("article");
     expect(within(card).getByText("Critical")).toBeTruthy();
     expect(within(card).queryByText("Medium")).toBeNull();
     const versions = within(

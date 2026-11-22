@@ -81,7 +81,6 @@ function cweUrl(id: string): string {
     <li
       v-for="(finding, index) in findings"
       :key="findingKey(finding)"
-      data-testid="vulnerability-card"
       class="rounded-card border bg-card text-card-foreground shadow-card"
     >
       <article

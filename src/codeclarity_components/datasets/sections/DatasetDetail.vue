@@ -407,7 +407,6 @@ onUnmounted(() => clearTimeout(pollTimer));
       <p
         v-if="confirming === 'import'"
         class="text-sm text-foreground"
-        data-testid="dataset-import-hint"
       >
         This creates {{ importCountLabel }}, one per repository. Repositories
         imported before are skipped.

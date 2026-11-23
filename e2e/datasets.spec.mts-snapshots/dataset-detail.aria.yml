@@ -2,7 +2,7 @@
   - link "Datasets":
     - /url: /datasets
   - heading "Top npm packages" [level=1]
-  - text: Ready
+  - text: Ready Preview
   - paragraph: /Top \d+ JavaScript \/ TypeScript repositories with more than \d+ stars, 3 search page\(s\) per language\. Created Oct 1, \d+, 9:\d+ AM by John Doe\./
   - button "Run Experiment"
   - button "Import as projects"

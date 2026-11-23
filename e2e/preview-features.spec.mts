@@ -3,6 +3,7 @@ import { expect, type Locator, type Page, test } from "@playwright/test";
 import { describeOnAPhone } from "./helpers/phone.mjs";
 import { AnalysesPage, codeqlAnalyzer } from "./pages/analyses.page.mjs";
 import { DashboardPage } from "./pages/dashboard.page.mjs";
+import { DatasetsPage } from "./pages/datasets.page.mjs";
 import {
   ExperimentDetailPage,
   samplePublishedVersion,
@@ -11,8 +12,8 @@ import { ExperimentsPage } from "./pages/experiments.page.mjs";
 import { ResultTabsPage } from "./pages/result-tabs.page.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 
-// Experiments (with Published results and the As-of and Hindsight views) and
-// CodeQL are Preview features; see GLOSSARY.md.
+// Datasets, Experiments (with Published results and the As-of and Hindsight
+// views) and CodeQL are Preview features; see GLOSSARY.md.
 const PREVIEW_NOTE =
   "Preview feature: it and the data it keeps may change between releases.";
 
@@ -36,24 +37,25 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe("Preview features in the navigation", () => {
-  test("the Experiments link is marked Preview, the others are not", async ({
+  test("the Datasets and Experiments links are marked Preview, the others are not", async ({
     page,
   }) => {
     const shell = new ShellPage(page);
     await shell.signIn();
     await shell.goto();
 
-    const experiments = shell.link("Experiments");
-    await expectMarked(experiments);
-    await expect(experiments).toHaveAccessibleDescription("Preview");
-    for (const name of ["Dashboard", "Datasets", "Projects", "Tickets"]) {
+    for (const name of ["Datasets", "Experiments"]) {
+      await expectMarked(shell.link(name));
+      await expect(shell.link(name)).toHaveAccessibleDescription("Preview");
+    }
+    for (const name of ["Dashboard", "Projects", "Tickets"]) {
       await expect(marker(shell.link(name))).toHaveCount(0);
       await expect(shell.link(name)).toHaveAccessibleDescription("");
     }
     await expectNoExperimentalWording(page);
   });
 
-  test("the collapsed sidebar names Experiments as Preview in its tooltip", async ({
+  test("the collapsed sidebar names Datasets and Experiments as Preview in their tooltips", async ({
     page,
   }) => {
     const shell = new ShellPage(page);
@@ -61,12 +63,16 @@ test.describe("Preview features in the navigation", () => {
     await shell.goto();
     await page.getByRole("button", { name: "Collapse sidebar" }).click();
 
-    await shell.link("Experiments").hover();
-
-    await expect(page.getByRole("tooltip")).toHaveText("Experiments (Preview)");
+    for (const name of ["Datasets", "Experiments"]) {
+      await shell.link(name).hover();
+      await expect(page.getByRole("tooltip")).toHaveText(`${name} (Preview)`);
+      // Moves away so the next link opens its own tooltip.
+      await page.mouse.move(900, 500);
+      await expect(page.getByRole("tooltip")).toHaveCount(0);
+    }
   });
 
-  test("the palette marks the Experiments page and Create an Experiment", async ({
+  test("the palette marks the Datasets and Experiments pages and their Create actions", async ({
     page,
   }) => {
     const shell = new ShellPage(page);
@@ -74,20 +80,55 @@ test.describe("Preview features in the navigation", () => {
     await shell.goto();
     await page.keyboard.press("ControlOrMeta+k");
 
-    for (const name of ["Experiments", "Create an Experiment"]) {
+    for (const name of [
+      "Datasets",
+      "Experiments",
+      "Create a Dataset",
+      "Create an Experiment",
+    ]) {
       const option = shell.palette.getByRole("option", { name, exact: true });
       await expectMarked(option);
       await expect(option).toHaveAccessibleDescription("Preview");
     }
     await expect(
       marker(
-        shell.palette.getByRole("option", { name: "Datasets", exact: true }),
+        shell.palette.getByRole("option", { name: "Projects", exact: true }),
       ),
     ).toHaveCount(0);
   });
 });
 
 test.describe("Preview features on their pages", () => {
+  test("the Datasets list is marked Preview", async ({ page }) => {
+    const datasets = new DatasetsPage(page);
+    await datasets.signIn();
+    await datasets.gotoList();
+
+    await expect(datasets.heading).toHaveText("Datasets");
+    await expectMarked(page.getByRole("main"));
+    await expectNoExperimentalWording(page);
+  });
+
+  test("the New Dataset form is marked Preview", async ({ page }) => {
+    const datasets = new DatasetsPage(page);
+    await datasets.signIn();
+    await datasets.gotoCreate();
+
+    await expect(datasets.heading).toHaveText("New Dataset");
+    await expectMarked(page.getByRole("main"));
+    await expectNoExperimentalWording(page);
+  });
+
+  test("a Dataset is marked Preview", async ({ page }) => {
+    const datasets = new DatasetsPage(page);
+    await datasets.signIn();
+    await datasets.gotoDetail();
+
+    await expect(datasets.heading).toHaveText("Top npm packages");
+    await expectMarked(page.getByRole("main"));
+    await expectNoExperimentalWording(page);
+  });
+
   test("the Experiments list is marked Preview", async ({ page }) => {
     const experiments = new ExperimentsPage(page);
     await experiments.signIn();
@@ -178,12 +219,15 @@ test.describe("Preview features on their pages", () => {
 });
 
 describeOnAPhone("Preview features on a phone", () => {
-  test("the navigation drawer marks Experiments Preview", async ({ page }) => {
+  test("the navigation drawer marks Datasets and Experiments Preview", async ({
+    page,
+  }) => {
     const shell = new ShellPage(page);
     await shell.signIn();
     await shell.goto();
     await shell.navTrigger.tap();
 
+    await expectMarked(shell.link("Datasets"));
     await expectMarked(shell.link("Experiments"));
   });
 

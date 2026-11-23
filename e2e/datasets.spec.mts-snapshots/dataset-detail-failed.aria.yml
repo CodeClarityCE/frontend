@@ -2,7 +2,7 @@
   - link "Datasets":
     - /url: /datasets
   - heading "Archived cohort" [level=1]
-  - text: Failed
+  - text: Failed Preview
   - paragraph: /Top \d+ JavaScript \/ TypeScript repositories with more than \d+ stars, 3 search page\(s\) per language\. Created Sep \d+, \d+, 9:\d+ AM by John Doe\./
   - button "Delete"
   - alert: "The build failed: Bad credentials"

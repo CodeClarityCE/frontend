@@ -4,7 +4,12 @@ import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 import { DataTable, type DataTableColumn } from "@/base_components/data-table";
-import { BrandEmphasis, PageHeading, StatTile } from "@/base_components/page";
+import {
+  BrandEmphasis,
+  PageHeading,
+  PreviewBadge,
+  StatTile,
+} from "@/base_components/page";
 import {
   getImportErrorMessage,
   IMPORT_CONCURRENCY,
@@ -335,6 +340,7 @@ onUnmounted(() => clearTimeout(pollTimer));
             :status="dataset.status"
             data-testid="dataset-status"
           />
+          <PreviewBadge />
         </template>
         <template #description>
           Top {{ dataset.params.limit }}

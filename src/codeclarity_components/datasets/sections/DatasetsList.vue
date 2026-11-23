@@ -8,6 +8,7 @@ import {
   BrandEmphasis,
   OwlEmptyState,
   PageHeading,
+  PreviewBadge,
 } from "@/base_components/page";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
@@ -110,6 +111,7 @@ defineExpose({ load });
     description="Reproducible cohorts of the most-starred GitHub projects."
   >
     <BrandEmphasis>Datasets</BrandEmphasis>
+    <template #badge><PreviewBadge /></template>
     <template #actions>
       <Button
         :as="RouterLink"

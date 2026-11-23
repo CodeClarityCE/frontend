@@ -2,7 +2,11 @@
 import { ArrowLeft } from "@lucide/vue";
 import { computed, onMounted, ref } from "vue";
 
-import { BrandEmphasis, PageHeading } from "@/base_components/page";
+import {
+  BrandEmphasis,
+  PageHeading,
+  PreviewBadge,
+} from "@/base_components/page";
 import TextLink from "@/codeclarity_components/authentication/layout/TextLink.vue";
 import {
   IntegrationProvider,
@@ -211,6 +215,7 @@ onMounted(() => void loadIntegrations());
       </RouterLink>
       <PageHeading>
         New <BrandEmphasis>Dataset</BrandEmphasis>
+        <template #badge><PreviewBadge /></template>
         <template #description>
           Rank GitHub repositories by stars and keep the first ones whose root
           commits a <code class="font-mono text-sm">package.json</code> and a

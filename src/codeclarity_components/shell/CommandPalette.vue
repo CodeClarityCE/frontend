@@ -103,6 +103,7 @@ function actions(): Action[] {
       label: "Create a Dataset",
       icon: Plus,
       to: { name: "datasets", params: { page: "add" } },
+      preview: true,
     },
     {
       id: "create-experiment",

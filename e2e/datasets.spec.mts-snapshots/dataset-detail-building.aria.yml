@@ -2,7 +2,7 @@
   - link "Datasets":
     - /url: /datasets
   - heading /Frameworks \d+/ [level=1]
-  - text: Building
+  - text: Building Preview
   - paragraph: /Top \d+ JavaScript \/ TypeScript repositories with more than \d+ stars, 3 search page\(s\) per language\. Created Nov 2, \d+, 9:\d+ AM by John Doe\./
   - button "Cancel build"
   - status: Searching GitHub and checking each candidate's root files. This takes a few minutes, and pauses by itself if the GitHub rate limit is reached.

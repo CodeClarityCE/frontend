@@ -48,6 +48,7 @@ export const navGroups: NavGroup[] = [
         icon: Database,
         routes: ["datasets"],
         to: () => ({ name: "datasets" }),
+        preview: true,
       },
       {
         label: "Experiments",

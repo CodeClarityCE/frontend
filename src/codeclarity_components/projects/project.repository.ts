@@ -56,31 +56,7 @@ export interface CreateProjectOptions extends AuthRepoMethodPostRequestOptions<C
 }
 
 export enum ProjectsSortInterface {
-  IMPORTED_ON = "imported_on",
-  URL = "url",
   NAME = "name",
-  VERSION = "version",
-  LICENSES = "licenses",
-  COMBINED_SEVERITY = "combined_severity",
-  DEPRECATED = "deprecated",
-  OUTDATED = "outdated",
-  UNLICENSED = "unlicensed",
-  TYPE = "user_installed",
-  NEWEST_RELEASE = "newest_release",
-  PUBLISHED = "release",
-  CVE = "cve",
-  SEVERITY = "severity",
-  DEPENDENCY_NAME = "dep_name",
-  DEPENDENCY_VERSION = "dep_version",
-  WEAKNESS = "weakness",
-  OWASP_TOP_10 = "owasp_top_10",
-  EXPLOITABILITY = "exploitability",
-  PATCH_TYPE = "patch_type",
-  LICENSE_TYPE = "type",
-  DEPENDENCY_COUNT = "dep_count",
-  ID = "id",
-  DEV = "dev",
-  DIRECT = "is_direct_count",
 }
 
 export class ProjectRepository extends BaseRepository {

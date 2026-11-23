@@ -1,7 +1,7 @@
 import type { LocationQuery, RouteLocationRaw } from "vue-router";
 
 // Reasons another page sent the visitor to the login page.
-export const loginNotices = {
+const loginNotices = {
   oauth_failed:
     "Sign in with GitHub or GitLab did not complete. Please try again.",
   reset_link_invalid:

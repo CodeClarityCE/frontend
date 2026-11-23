@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-import { expectNoAxeViolations } from "./helpers/a11y.mjs";
+import { expectNoAxeViolations, waitForAnimations } from "./helpers/a11y.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 
@@ -84,10 +85,9 @@ test.describe("Notifications", () => {
     await expect(summary).toContainText("High 3");
 
     // Let the dialog finish fading in before checking contrast.
-    await page.evaluate(() =>
-      Promise.all(document.getAnimations().map((a) => a.finished)),
-    );
+    await waitForAnimations(page);
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "notifications-dialog");
   });
 

@@ -1,10 +1,14 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   AnalysesPage,
   analyzer,
+  codeqlAnalyzer,
   licensePolicies,
   vulnerabilityPolicies,
 } from "./pages/analyses.page.mjs";
@@ -18,38 +22,8 @@ function many(item: Record<string, unknown>, count: number): unknown[] {
   }));
 }
 
-/** An analyzer whose CodeQL step needs a language. */
-const codeqlAnalyzer = {
-  ...analyzer("an-codeql", "CodeQL", "Static analysis"),
-  steps: [
-    [
-      {
-        name: "codeql",
-        version: "1.0.0",
-        config: {
-          language: {
-            name: "language",
-            type: "string",
-            required: true,
-            description: "",
-          },
-        },
-        persistant_config: {},
-      },
-    ],
-  ],
-};
-
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 1024 });
-});
-
-test("unknown analysis routes need a sign-in or show the 404", async ({
-  page,
-}) => {
-  await page.goto("/projects/test-project/analyses");
-
-  await expect(page).toHaveURL(/\/(login|404)/);
 });
 
 test.describe("New Analysis", () => {
@@ -449,6 +423,8 @@ test.describe("New Analysis", () => {
     await expect(page.getByRole("radio")).toHaveCount(2);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "analysis-create");
     await expectScreenshots(page, "analysis-create");
 
     await page.setViewportSize({ width: 1280, height: 1024 });
@@ -462,6 +438,8 @@ test.describe("New Analysis", () => {
     await expect(page.getByText("A branch is required")).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "analysis-create-configured");
     await expectScreenshots(page, "analysis-create-configured");
   });
 
@@ -474,6 +452,21 @@ test.describe("New Analysis", () => {
     await expect(page.getByText("No analyzers yet")).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "analysis-create-empty");
     await expectScreenshots(page, "analysis-create-empty");
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("New Analysis does not scroll sideways", async ({ page }) => {
+    const analyses = new AnalysesPage(page);
+    await analyses.signIn();
+    await analyses.goto();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
+    await expectScreenshots(page, "new-analysis");
   });
 });

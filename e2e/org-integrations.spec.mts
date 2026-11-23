@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { OrgIntegrationsPage } from "./pages/org-integrations.page.mjs";
 
@@ -88,6 +91,38 @@ test.describe("Organisation integrations list", () => {
     release();
 
     await expect(integrations.rows()).toHaveCount(4);
+  });
+});
+
+test.describe("Integration logos", () => {
+  test("the add cards show bundled logos without asking an icon API", async ({
+    page,
+  }) => {
+    const integrations = new OrgIntegrationsPage(page);
+    // With nothing connected, every provider has an add card.
+    await integrations.signIn({ integrations: [], ticketing: [] });
+    // Record and block icon API calls, so a logo only shows if it is bundled.
+    const iconRequests: string[] = [];
+    await page.route(
+      /^https:\/\/api\d*\.(iconify\.design|simplesvg\.com|unisvg\.com)\//,
+      (route) => {
+        iconRequests.push(route.request().url());
+        return route.abort();
+      },
+    );
+    await integrations.gotoList();
+
+    for (const name of ["Add GitHub", "Add GitLab", "Add ClickUp"]) {
+      const card = page.getByRole("link", { name: new RegExp(name) });
+      await expect(card).toBeVisible();
+      // The logo is a decorative image; the blocked icon API below proves it is bundled.
+      await expect(
+        card.getByRole("img", { includeHidden: true }).first(),
+      ).toBeVisible();
+    }
+    expect(iconRequests).toEqual([]);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-integrations-empty");
   });
 });
 
@@ -234,6 +269,7 @@ test.describe("Replacing a token", () => {
     ).toBeVisible();
     await expect(page.getByRole("radio")).toHaveCount(0);
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     await page
       .getByLabel("GitLab personal access token")
@@ -259,6 +295,7 @@ test.describe("Integrations accessibility and looks", () => {
     await expect(integrations.rows()).toHaveCount(4);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("the add and manage pages pass axe (WCAG 2.2 AA)", async ({ page }) => {
@@ -270,10 +307,12 @@ test.describe("Integrations accessibility and looks", () => {
       page.getByLabel("GitLab personal access token"),
     ).toHaveAttribute("aria-invalid", "true");
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     await integrations.gotoManage("GITHUB", "gh-1");
     await expect(page.getByText("Healthy", { exact: true })).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("Tab reaches the row actions and add buttons with visible focus", async ({
@@ -316,14 +355,46 @@ test.describe("Integrations accessibility and looks", () => {
     await integrations.signIn();
     await integrations.gotoList();
     await expect(integrations.rows()).toHaveCount(4);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-integrations");
     await expectScreenshots(page, "org-integrations");
 
     await integrations.gotoAdd("GITHUB");
     await page.getByRole("button", { name: "Connect GitHub" }).click();
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-integrations-add-github");
     await expectScreenshots(page, "org-integrations-add-github");
 
     await integrations.gotoManage("GITLAB", "gl-1");
     await expect(page.getByText("The token expires soon")).toBeVisible();
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-integrations-manage");
     await expectScreenshots(page, "org-integrations-manage");
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("the integrations list does not scroll sideways", async ({ page }) => {
+    const integrations = new OrgIntegrationsPage(page);
+    await integrations.signIn();
+    await integrations.gotoList();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
+    await expectScreenshots(page, "integrations-list");
+  });
+
+  test("the GitHub integration form does not scroll sideways", async ({
+    page,
+  }) => {
+    const integrations = new OrgIntegrationsPage(page);
+    await integrations.signIn();
+    await integrations.gotoAdd("GITHUB");
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
+    await expectScreenshots(page, "github-integration-form");
   });
 });

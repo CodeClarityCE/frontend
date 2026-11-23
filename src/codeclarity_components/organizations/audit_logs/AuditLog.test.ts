@@ -1,10 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { Entity } from "@/utils/api/BaseEntity";
 
-import { AuditLog } from "./AuditLog";
+import { createTestApp } from "../../../../tests/real-app";
 
-vi.mock("@/utils/logger");
+import { AuditLog } from "./AuditLog";
 
 function auditLogEntry(action: string, actionClass = "Organization"): object {
   return {
@@ -19,6 +19,11 @@ function auditLogEntry(action: string, actionClass = "Organization"): object {
 }
 
 describe("AuditLog", () => {
+  // A dropped entry logs a warning, which would otherwise reach the network.
+  beforeEach(() => {
+    createTestApp();
+  });
+
   it.each([
     "AnalysisStarted",
     "AnalysisDeleted",

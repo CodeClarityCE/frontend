@@ -1,4 +1,4 @@
 export interface ConfirmRegistrationBody {
   token: string;
-  userIdHash: string;
+  user_id_hash: string;
 }

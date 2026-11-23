@@ -3,24 +3,11 @@ import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 
+import { analysisPath, paginated } from "../../../../tests/fixtures/results";
+import { createTestApp, type TestApp } from "../../../../tests/real-app";
+
 import type { License } from "./License";
 import LicensesComponent from "./LicensesComponent.vue";
-
-// The real useVModel, so typing in the search box filters the table.
-vi.unmock("@vueuse/core");
-
-const repo = vi.hoisted(() => ({ getLicenses: vi.fn() }));
-vi.mock("@/codeclarity_components/results/results.repository", () => ({
-  ResultsRepository: class {
-    getLicenses = repo.getLicenses;
-  },
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token" }),
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
 
 const license = (id: string, overrides: Partial<License> = {}): License =>
   ({
@@ -41,17 +28,47 @@ const licenses = [
   license("Custom", { unable_to_infer: true }),
 ];
 
-async function show(pages: License[][] = [licenses]): Promise<HTMLElement[]> {
-  repo.getLicenses.mockImplementation(({ pagination }) =>
-    Promise.resolve({
-      data: pages[pagination.page as number],
+// Signs in and answers the workspaces of analysis a-1.
+async function signedIn(): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  await app.visit("/projects");
+  app.http.on("GET", `${analysisPath}/sbom/workspaces`, {
+    data: { workspaces: ["."], package_manager: "NPM" },
+  });
+  return app;
+}
+
+// Answers each page of the licenses list by its page query param.
+function answerLicensePages(pages: License[][]): void {
+  const fetch = globalThis.fetch;
+  vi.stubGlobal("fetch", (input: string | URL, init?: RequestInit) => {
+    const url = new URL(String(input));
+    if (!url.pathname.endsWith(`${analysisPath}/licenses`))
+      return fetch(input, init);
+    const page = Number(url.searchParams.get("page") ?? 0);
+    const body = paginated(pages[page] ?? [], {
+      page,
       total_pages: pages.length,
-    }),
-  );
+    });
+    return Promise.resolve(
+      new Response(JSON.stringify(body), {
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+  });
+}
+
+function showLicenses(app: TestApp): void {
   render(LicensesComponent, {
     props: { analysisID: "a-1", projectID: "p-1" },
-    global: { stubs: { SelectWorkspace: true } },
+    global: app.global,
   });
+}
+
+async function show(pages: License[][] = [licenses]): Promise<HTMLElement[]> {
+  const app = await signedIn();
+  answerLicensePages(pages);
+  showLicenses(app);
   await flushPromises();
   const table = screen.getByRole("table", { name: "Licenses" });
   return within(table).getAllByRole("row").slice(1);
@@ -104,11 +121,9 @@ describe("LicensesComponent", () => {
   });
 
   it("says so when the licenses cannot be loaded", async () => {
-    repo.getLicenses.mockRejectedValue(new Error("down"));
-    render(LicensesComponent, {
-      props: { analysisID: "a-1", projectID: "p-1" },
-      global: { stubs: { SelectWorkspace: true } },
-    });
+    const app = await signedIn();
+    app.http.on("GET", `${analysisPath}/licenses`, { error: "down" }, 500);
+    showLicenses(app);
     await flushPromises();
     expect(screen.getByText("Could not load the licenses")).toBeTruthy();
   });

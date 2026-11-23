@@ -110,8 +110,70 @@ if (!analysisPath) {
   throw new Error("No project has an analysis: run one first.");
 }
 
+// Picks an organisation vulnerability whose page has a ticket, a weakness and
+// a remediation, so their shapes are captured too.
+interface VulnerabilityPage {
+  data: {
+    details: { weaknesses: unknown[] };
+    projects: {
+      instances: { ticket: unknown }[];
+      remediations: unknown[];
+    }[];
+  };
+}
+let vulnerabilityPath: string | undefined;
+for (const id of orgIds) {
+  const list = (await call(
+    `/org/${id}/vulnerabilities?page=0&entries_per_page=50`,
+    token,
+  )) as { data: { vulnerability_id: string }[] };
+  for (const { vulnerability_id } of list.data) {
+    const path = `/org/${id}/vulnerabilities/${encodeURIComponent(vulnerability_id)}`;
+    const { data } = (await call(path, token)) as VulnerabilityPage;
+    const rich =
+      data.details.weaknesses.length > 0 &&
+      data.projects.some(
+        (p) => p.remediations.length > 0 && p.instances.some((i) => i.ticket),
+      );
+    if (rich) {
+      vulnerabilityPath = path;
+      break;
+    }
+  }
+  if (vulnerabilityPath) break;
+}
+if (!vulnerabilityPath) {
+  throw new Error(
+    "No vulnerability has a ticket and a remediation: open a ticket first.",
+  );
+}
+
+// Replaces project names, which can name private repositories, with a placeholder.
+function redactProjectNames(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactProjectNames);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, v]) => [
+        key,
+        key === "project_name" && typeof v === "string"
+          ? "example/project"
+          : redactProjectNames(v),
+      ]),
+    );
+  }
+  return value;
+}
+
 const captures: Record<string, [string, string]> = {
   ...ticketPaths,
+  "org-vulnerability": [
+    "GET /org/:org/vulnerabilities/:vulnerability",
+    vulnerabilityPath,
+  ],
+  "org-vulnerability-freshness": [
+    "GET /org/:org/vulnerabilities/:vulnerability/freshness",
+    `${vulnerabilityPath}/freshness`,
+  ],
   "auth-user": ["GET /auth/user", "/auth/user"],
   "organization-list": ["GET /org", "/org?page=0&entries_per_page=50"],
   members: [
@@ -126,6 +188,8 @@ const captures: Record<string, [string, string]> = {
     "GET /org/:org/policies/license_policy",
     `/org/${org}/policies/license_policy?page=0&entries_per_page=100`,
   ],
+  // Needs the account to be an admin of the organisation.
+  "organization-token-list": ["GET /org/:org/tokens", `/org/${org}/tokens`],
   analysis: [
     "GET /org/:org/projects/:project/analyses/:analysis",
     analysisPath,
@@ -133,7 +197,7 @@ const captures: Record<string, [string, string]> = {
 };
 
 for (const [name, [endpoint, path]] of Object.entries(captures)) {
-  const response = await call(path, token);
+  const response = redactProjectNames(await call(path, token));
   const file = join(dir, `${name}.json`);
   writeFileSync(file, `${JSON.stringify({ endpoint, response }, null, 2)}\n`);
   process.stdout.write(`wrote ${file}\n`);

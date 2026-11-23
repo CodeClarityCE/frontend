@@ -1,83 +1,24 @@
-import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { defineComponent, h } from "vue";
+import userEvent from "@testing-library/user-event";
+import { render, screen, within } from "@testing-library/vue";
+import { describe, expect, it, vi } from "vitest";
+
+import {
+  createTestApp,
+  org,
+  type TestApp,
+  withToaster,
+} from "../../../../../tests/real-app";
 
 import PoliciesList from "./PoliciesList.vue";
 
-const { getLicensePolicies, deletePolicy, push, successToast, errorToast } =
-  vi.hoisted(() => ({
-    getLicensePolicies: vi.fn(),
-    deletePolicy: vi.fn(),
-    push: vi.fn(),
-    successToast: vi.fn(),
-    errorToast: vi.fn(),
-  }));
-
-vi.mock("@/utils/toasts", () => ({ successToast, errorToast }));
-
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getAuthenticated: true, getToken: "test-token" }),
-}));
-
-// The global @vueuse/core mock leaves shadcn Input inert, so use a plain input.
-vi.mock("@/shadcn/ui/input", () => ({
-  Input: defineComponent({
-    props: { modelValue: { type: String, default: "" } },
-    emits: ["update:modelValue"],
-    setup(props, { emit, attrs }) {
-      return () =>
-        h("input", {
-          ...attrs,
-          value: props.modelValue,
-          onInput: (e: Event) =>
-            emit("update:modelValue", (e.target as HTMLInputElement).value),
-        });
-    },
-  }),
-}));
-
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class {},
-  BusinessLogicError: class BusinessLogicError extends Error {
-    error_message: string;
-    constructor(message: string) {
-      super(message);
-      this.error_message = message;
-    }
-  },
-}));
-
-vi.mock(
-  "@/codeclarity_components/organizations/policy/license_policy.repository",
-  () => ({
-    LicensePolicyRepository: class {
-      getLicensePolicies = getLicensePolicies;
-      deletePolicy = deletePolicy;
-    },
-  }),
-);
-
-vi.mock("vue-router", async () => {
-  const actual =
-    await vi.importActual<typeof import("vue-router")>("vue-router");
-  return {
-    ...actual,
-    useRouter: () => ({ push }),
-    RouterLink: defineComponent({
-      props: { to: { type: Object, required: true } },
-      setup(_, { slots, attrs }) {
-        return () => h("a", { ...attrs, href: "#" }, slots.default?.());
-      },
-    }),
-  };
-});
+const listPath = `/org/${org.id}/policies/license_policy`;
 
 const sample = [
   {
     id: "p-1",
     name: "No copyleft",
     description: "Blocks GPL licenses",
-    policy_type: "BLACKLIST",
+    policy_type: "LICENSE_POLICY",
     default: true,
     created_by: "Jane",
     created_on: "2025-01-10T10:00:00Z",
@@ -87,7 +28,7 @@ const sample = [
     id: "p-2",
     name: "Strict",
     description: "Also blocks LGPL",
-    policy_type: "BLACKLIST",
+    policy_type: "LICENSE_POLICY",
     default: false,
     created_by: "Bob",
     created_on: "2025-02-10T10:00:00Z",
@@ -95,124 +36,138 @@ const sample = [
   },
 ];
 
-let wrapper: VueWrapper | undefined;
+const page = (data: unknown[]) => ({
+  data,
+  entry_count: data.length,
+  page: 0,
+  entries_per_page: 100,
+  total_entries: data.length,
+  total_pages: 1,
+  matching_count: data.length,
+  filter_count: {},
+  status: "success",
+});
 
-async function render(canManage = true): Promise<void> {
-  wrapper = mount(PoliciesList, {
-    props: { page: "policy", orgId: "org-1", canManage },
-    attachTo: document.body,
-  });
-  await flushPromises();
+async function openList(
+  policies: unknown[] | null = sample,
+  canManage = true,
+): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  if (policies) app.http.on("GET", listPath, page(policies));
+  await app.visit(`/orgs/manage/policies/${org.id}`);
+  render(
+    withToaster(PoliciesList, { page: "policy", orgId: org.id, canManage }),
+    {
+      global: app.global,
+    },
+  );
+  return app;
 }
 
-function button(name: string): HTMLElement | undefined {
-  return [...document.querySelectorAll<HTMLElement>("button, a")].find(
-    (el) =>
-      el.getAttribute("aria-label") === name || el.textContent?.trim() === name,
-  );
-}
+const totals = (label: string): string =>
+  within(screen.getByLabelText("License policy totals"))
+    .getAllByRole("listitem")
+    .find((li) => li.textContent?.includes(label))?.textContent ?? "";
 
-function tile(label: string): string {
-  const item = [...document.querySelectorAll("li")].find((li) =>
-    li.textContent?.includes(label),
+async function deleteStrict(): Promise<void> {
+  await userEvent.click(
+    await screen.findByRole("button", { name: "Delete Strict" }),
   );
-  return item?.textContent ?? "";
+  expect(await screen.findByText("Delete Strict?")).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Delete policy" }));
 }
 
 describe("PoliciesList", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    getLicensePolicies.mockResolvedValue({ data: sample });
-  });
-
-  afterEach(() => {
-    wrapper?.unmount();
-    wrapper = undefined;
-    document.body.innerHTML = "";
-  });
-
   it("lists each license policy", async () => {
-    await render();
+    await openList();
 
-    const text = document.querySelector("table")?.textContent ?? "";
-    expect(text).toContain("No copyleft");
-    expect(text).toContain("Default");
-    expect(text).toContain("Strict");
+    const table = await screen.findByRole("table");
+    expect(table).toHaveTextContent("No copyleft");
+    expect(table).toHaveTextContent("Default");
+    expect(table).toHaveTextContent("Strict");
   });
 
   it("counts policies and the distinct licenses they cover", async () => {
-    await render();
+    await openList();
+    await screen.findByRole("table");
 
-    expect(tile("Policies")).toContain("2");
-    expect(tile("Licenses covered")).toContain("3");
+    expect(totals("Policies")).toContain("2");
+    expect(totals("Licenses covered")).toContain("3");
   });
 
   it("shows an empty state when there are no policies", async () => {
-    getLicensePolicies.mockResolvedValue({ data: [] });
-    await render();
+    await openList([]);
 
-    expect(document.body.textContent).toContain("No license policies yet");
-    expect(button("Create a license policy")).toBeDefined();
+    expect(
+      await screen.findByText("No license policies yet"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Create a license policy/ }),
+    ).toBeInTheDocument();
   });
 
   it("says when the policies could not be loaded", async () => {
-    getLicensePolicies.mockRejectedValueOnce(new Error("boom"));
-    await render();
+    await openList(null);
 
-    expect(document.body.textContent).toContain(
-      "The license policies could not be loaded.",
-    );
+    expect(
+      await screen.findByText("The license policies could not be loaded."),
+    ).toBeInTheDocument();
   });
 
   it("offers no Edit or Delete to members who cannot manage policies", async () => {
-    await render(false);
+    await openList(sample, false);
+    await screen.findByRole("table");
 
-    expect(button("Edit Strict")).toBeUndefined();
-    expect(button("Delete Strict")).toBeUndefined();
+    expect(
+      screen.queryByRole("button", { name: "Edit Strict" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Delete Strict" }),
+    ).not.toBeInTheDocument();
   });
 
   it("opens the editor for a policy", async () => {
-    await render();
+    const app = await openList();
 
-    button("Edit Strict")?.click();
-    await flushPromises();
-
-    expect(push).toHaveBeenCalledWith(
-      expect.objectContaining({ query: { policyId: "p-2" } }),
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Edit Strict" }),
     );
+
+    await vi.waitFor(() =>
+      expect(app.router.currentRoute.value.query).toEqual({ policyId: "p-2" }),
+    );
+    expect(app.router.currentRoute.value.params).toMatchObject({
+      action: "edit",
+      page: "policy",
+    });
   });
 
   it("deletes a policy after confirmation", async () => {
-    deletePolicy.mockResolvedValue({});
-    await render();
+    const app = await openList();
+    app.http.on("DELETE", `${listPath}/p-2`, {
+      status_code: 200,
+      status: "success",
+    });
 
-    button("Delete Strict")?.click();
-    await flushPromises();
-    expect(document.body.textContent).toContain("Delete Strict?");
-    expect(deletePolicy).not.toHaveBeenCalled();
+    await deleteStrict();
 
-    button("Delete policy")?.click();
-    await flushPromises();
-
-    expect(deletePolicy).toHaveBeenCalledWith(
-      expect.objectContaining({ orgId: "org-1", policyId: "p-2" }),
-    );
-    expect(document.querySelector("table")?.textContent).not.toContain(
-      "Strict",
-    );
-    expect(successToast).toHaveBeenCalledWith("Deleted Strict");
+    expect(await screen.findByText("Deleted Strict")).toBeInTheDocument();
+    expect(screen.getByRole("table")).not.toHaveTextContent("Strict");
+    expect(
+      app.http.requests.some(
+        (r) => r.method === "DELETE" && r.path === `${listPath}/p-2`,
+      ),
+    ).toBe(true);
   });
 
   it("keeps a policy that could not be deleted", async () => {
-    deletePolicy.mockRejectedValue(new Error("boom"));
-    await render();
+    await openList();
 
-    button("Delete Strict")?.click();
-    await flushPromises();
-    button("Delete policy")?.click();
-    await flushPromises();
+    await deleteStrict();
 
-    expect(document.querySelector("table")?.textContent).toContain("Strict");
-    expect(errorToast).toHaveBeenCalledWith("The policy could not be deleted");
+    expect(
+      await screen.findByText("The policy could not be deleted"),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("table")).toHaveTextContent("Strict");
   });
 });

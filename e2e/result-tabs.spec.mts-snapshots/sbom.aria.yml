@@ -1,0 +1,112 @@
+- main:
+  - heading "Results" [level=1]
+  - paragraph: web-frontend
+  - tablist "Results":
+    - tab "SBOM" [selected]
+    - tab "Licenses"
+    - tab "CodeQL"
+  - tabpanel "SBOM":
+    - region "Software bill of materials":
+      - heading "Software bill of materials" [level=2]
+      - text: Language JavaScript Workspace Root
+      - list "Dependency numbers":
+        - listitem: Dependencies 5 All project dependencies
+        - listitem: Direct dependencies 3 Added by you
+        - listitem: Health grade C Needs attention
+        - listitem: Vulnerabilities - Vulnerability data unavailable
+      - button "How the health grade is set"
+      - heading "Dependency composition" [level=3]
+      - group "Dependencies by how they are added":
+        - 'img /Direct: 3 dependencies, \d+% of total/'
+        - 'img /Transitive: 2 dependencies, \d+% of total/'
+        - 'img "Both: 0 dependencies, 0% of total"'
+      - group: Show table
+      - heading "Health factors" [level=3]
+      - term: Deprecated
+      - definition: "1"
+      - term: Unlicensed
+      - definition: "0"
+      - term: Outdated
+      - definition: "2"
+      - button "Update 2 direct dependencies"
+      - button "Export SBOM"
+      - region "All dependencies":
+        - heading "All dependencies" [level=3]
+        - searchbox "Search dependencies"
+        - table "Dependencies":
+          - caption: Dependencies
+          - rowgroup:
+            - row "Package Ecosystem Version Newest release Deprecated Added as Scope":
+              - columnheader "Package":
+                - button "Package"
+              - columnheader "Ecosystem":
+                - button "Ecosystem"
+              - columnheader "Version"
+              - columnheader "Newest release":
+                - button "Newest release"
+              - columnheader "Deprecated":
+                - button "Deprecated"
+              - columnheader "Added as":
+                - button "Added as"
+              - columnheader "Scope":
+                - button "Scope"
+          - rowgroup:
+            - row /express JavaScript \d+\.\d+\.2 Major update 5\.0\.1 No Direct Production/:
+              - cell "express":
+                - link "express":
+                  - /url: /results/sbom_details?analysis_id=7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c02&project_id=3f2a1b4c-5d6e-4f70-8a91-b2c3d4e5f601&package_id=express@4.18.2&workspace=.
+              - cell "JavaScript"
+              - cell /\d+\.\d+\.2/:
+                - code: /\d+\.\d+\.2/
+              - cell "Major update 5.0.1":
+                - text: ""
+                - code: 5.0.1
+              - cell "No"
+              - cell "Direct"
+              - cell "Production"
+            - row /lodash JavaScript \d+\.\d+\.\d+ Patch update \d+\.\d+\.\d+ No Direct Production/:
+              - cell "lodash":
+                - link "lodash":
+                  - /url: /results/sbom_details?analysis_id=7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c02&project_id=3f2a1b4c-5d6e-4f70-8a91-b2c3d4e5f601&package_id=lodash@4.17.20&workspace=.
+              - cell "JavaScript"
+              - cell /\d+\.\d+\.\d+/:
+                - code: /\d+\.\d+\.\d+/
+              - cell /Patch update \d+\.\d+\.\d+/:
+                - text: ""
+                - code: /\d+\.\d+\.\d+/
+              - cell "No"
+              - cell "Direct"
+              - cell "Production"
+            - row "ms JavaScript 2.1.3 Up to date No Transitive Production":
+              - cell "ms":
+                - link "ms":
+                  - /url: /results/sbom_details?analysis_id=7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c02&project_id=3f2a1b4c-5d6e-4f70-8a91-b2c3d4e5f601&package_id=ms@2.1.3&workspace=.
+              - cell "JavaScript"
+              - cell "2.1.3":
+                - code: 2.1.3
+              - cell "Up to date"
+              - cell "No"
+              - cell "Transitive"
+              - cell "Production"
+            - row /request JavaScript \d+\.\d+\.2 Up to date Deprecated Transitive Production/:
+              - cell "request":
+                - link "request":
+                  - /url: /results/sbom_details?analysis_id=7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c02&project_id=3f2a1b4c-5d6e-4f70-8a91-b2c3d4e5f601&package_id=request@2.88.2&workspace=.
+              - cell "JavaScript"
+              - cell /\d+\.\d+\.2/:
+                - code: /\d+\.\d+\.2/
+              - cell "Up to date"
+              - cell "Deprecated"
+              - cell "Transitive"
+              - cell "Production"
+            - row "vitest JavaScript 3.2.0 Up to date No Direct Development":
+              - cell "vitest":
+                - link "vitest":
+                  - /url: /results/sbom_details?analysis_id=7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c02&project_id=3f2a1b4c-5d6e-4f70-8a91-b2c3d4e5f601&package_id=vitest@3.2.0&workspace=.
+              - cell "JavaScript"
+              - cell "3.2.0":
+                - code: 3.2.0
+              - cell "Up to date"
+              - cell "No"
+              - cell "Direct"
+              - cell "Development"

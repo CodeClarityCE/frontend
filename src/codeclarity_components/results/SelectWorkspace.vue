@@ -18,7 +18,7 @@ import { ECOSYSTEMS } from "@/utils/packageEcosystem";
 import { ResultsRepository } from "./results.repository";
 import { WorkspacesOutput } from "./workspace.entity";
 
-export interface Props {
+interface Props {
   analysisID?: string;
   projectID?: string;
   /** List of SBOM plugins that were executed (e.g., ['js-sbom', 'php-sbom']). Only checks for these plugins. */

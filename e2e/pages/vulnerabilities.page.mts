@@ -52,10 +52,7 @@ const SCORES: Record<Level, number> = {
   low: 2.1,
 };
 
-/**
- * A finding's affected dependency. The API sends no PatchType unless a
- * patching result says otherwise.
- */
+/** A finding's affected dependency. */
 export function affected(
   dependency: string,
   overrides: Record<string, unknown> = {},
@@ -112,16 +109,11 @@ export function finding(
   };
 }
 
-export const sampleFindings = [
+const sampleFindings = [
   finding("CVE-2024-0001", "critical", "lodash", {
     EPSS: { Score: 0.42, Percentile: 0.97 },
   }),
-  finding("CVE-2024-0002", "high", "express", {
-    Conflict: {
-      ConflictWinner: "OSV",
-      ConflictFlag: "MATCH_POSSIBLE_INCORRECT",
-    },
-  }),
+  finding("CVE-2024-0002", "high", "express", { Uncorroborated: true }),
   finding("CVE-2024-0003", "medium", "axios"),
   finding("CVE-2024-0004", "low", "minimist"),
 ];
@@ -218,7 +210,6 @@ export const sampleDetails = {
       description: "The product does not control changes to object prototypes.",
     },
   ],
-  patch: {},
   common_consequences: {
     "CWE-1321": [
       {
@@ -293,7 +284,9 @@ export class VulnerabilitiesPage {
     this.search = page.getByRole("searchbox", {
       name: "Search vulnerabilities",
     });
-    this.cards = page.getByTestId("vulnerability-card");
+    this.cards = page
+      .getByRole("list", { name: "Vulnerabilities" })
+      .getByRole("article");
   }
 
   /**
@@ -429,7 +422,9 @@ export class VulnerabilitiesPage {
 
   /** The table's body rows, without the header row. */
   rows(): Locator {
-    return this.table.locator("tbody tr");
+    return this.table
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell") });
   }
 
   columnHeader(name: string): Locator {

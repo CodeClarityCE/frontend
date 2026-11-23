@@ -2,7 +2,7 @@ import type { StatusTone } from "@/base_components/page";
 import { getDaysUntilExpiry } from "@/utils/dateUtils";
 
 // A token this close to its expiry is flagged so it gets replaced in time.
-export const EXPIRES_IN_DAYS_RISK = 14;
+const EXPIRES_IN_DAYS_RISK = 14;
 
 export interface IntegrationHealth {
   tone: StatusTone;

@@ -1,5 +1,8 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
+import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { OrgAnalyzersPage } from "./pages/org-analyzers.page.mjs";
 import { OrgPoliciesPage } from "./pages/org-policies.page.mjs";
 import {
@@ -56,6 +59,7 @@ test.describe("Organisation URLs that match no page", () => {
           name: /Back to the organisation|Organisations/,
         }),
       ).toBeVisible();
+      await expectPageSweep(page);
     });
   }
 
@@ -70,6 +74,7 @@ test.describe("Organisation URLs that match no page", () => {
     await orgs.shell.goto(`/orgs/edit/integrations/${ORG}`);
     await expect(notFound(page)).toHaveText("Integration not found");
     await expect(page).toHaveURL(new RegExp(`/orgs/edit/integrations/${ORG}`));
+    await expectPageSweep(page);
   });
 });
 
@@ -109,6 +114,9 @@ test.describe("Pages a role cannot use", () => {
     await expect(main.getByRole("link", { name: /^Audit logs/ })).toHaveCount(
       0,
     );
+    await expect(
+      main.getByRole("link", { name: /^Organization tokens/ }),
+    ).toHaveCount(0);
   });
 
   test("a member sees the policies without New or Edit", async ({ page }) => {
@@ -240,5 +248,18 @@ test.describe("Edit forms whose record failed to load", () => {
       page.getByText("The vulnerability policy could not be loaded."),
     ).toBeVisible();
     await expect(page.getByLabel("Name")).toBeDisabled();
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("the organisation not-found state fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const orgs = new OrgSettingsPage(page);
+    await orgs.signIn();
+    await orgs.shell.goto("/orgs");
+    await expect(notFound(page)).toBeVisible();
+    await expectPageSweep(page);
+    await expectScreenshots(page, "org-not-found");
   });
 });

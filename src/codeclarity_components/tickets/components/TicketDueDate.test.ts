@@ -1,66 +1,74 @@
-import { flushPromises, mount } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/vue";
+import { describe, expect, it } from "vitest";
+
+import {
+  createTestApp,
+  org,
+  type TestApp,
+  withToaster,
+} from "../../../../tests/real-app";
 
 import TicketDueDate from "./TicketDueDate.vue";
 
-// The real v-model helper, so the shadcn input binds its value.
-vi.unmock("@vueuse/core");
+const ticketPath = `/org/${org.id}/tickets/t-1`;
 
-const { updateTicket } = vi.hoisted(() => ({ updateTicket: vi.fn() }));
+// The ticket page's due date field next to the app's toaster.
+async function openDueDate(dueDate?: string): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  app.http.on("PATCH", ticketPath, { status_code: 200, status: "success" });
+  await app.visit("/tickets/t-1");
+  render(withToaster(TicketDueDate, { ticketId: "t-1", dueDate }), {
+    global: app.global,
+  });
+  return app;
+}
 
-vi.mock("../tickets.repository", () => ({
-  TicketsRepository: class {
-    updateTicket = updateTicket;
-  },
-}));
-vi.mock("@/utils/toasts", () => ({
-  successToast: vi.fn(),
-  errorToast: vi.fn(),
-}));
-
-const mountDueDate = (dueDate?: string) =>
-  mount(TicketDueDate, { props: { ticketId: "t-1", dueDate } });
+// The body of the last ticket update the page sent.
+const saved = (app: TestApp): unknown =>
+  app.http.requests.filter((r) => r.method === "PATCH").at(-1)?.body;
 
 describe("TicketDueDate", () => {
-  beforeEach(() => {
-    updateTicket.mockReset();
-    updateTicket.mockResolvedValue({});
-  });
+  it("shows the ticket's due date as a day", async () => {
+    await openDueDate(new Date(2027, 0, 15, 23, 59, 59).toISOString());
 
-  it("shows the ticket's due date as a day", () => {
-    const due = new Date(2027, 0, 15, 23, 59, 59).toISOString();
-    const wrapper = mountDueDate(due);
-    expect(
-      wrapper.get<HTMLInputElement>("input#ticket-due-date").element.value,
-    ).toBe("2027-01-15");
+    expect(screen.getByLabelText<HTMLInputElement>("Due date").value).toBe(
+      "2027-01-15",
+    );
   });
 
   it("saves a new due date at the end of the chosen day", async () => {
-    const wrapper = mountDueDate();
+    const app = await openDueDate();
+    const typist = userEvent.setup();
 
-    await wrapper.get("input#ticket-due-date").setValue("2027-03-01");
-    await wrapper.get("form").trigger("submit");
-    await flushPromises();
+    await typist.type(screen.getByLabelText("Due date"), "2027-03-01");
+    await typist.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(updateTicket).toHaveBeenCalledWith(
-      expect.objectContaining({
-        orgId: "test-org-id",
-        ticketId: "t-1",
-        data: { due_date: new Date(2027, 2, 1, 23, 59, 59).toISOString() },
-      }),
-    );
-    expect(wrapper.emitted("updated")).toHaveLength(1);
+    expect(await screen.findByText("Due date saved")).toBeInTheDocument();
+    expect(saved(app)).toEqual({
+      due_date: new Date(2027, 2, 1, 23, 59, 59).toISOString(),
+    });
   });
 
   it("clears the due date", async () => {
-    const wrapper = mountDueDate(new Date(2027, 0, 15).toISOString());
+    const app = await openDueDate(new Date(2027, 0, 15).toISOString());
 
-    await wrapper.get("button[aria-label='Clear due date']").trigger("click");
-    await flushPromises();
-
-    expect(updateTicket).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { due_date: null } }),
+    await userEvent.click(
+      screen.getByRole("button", { name: "Clear due date" }),
     );
-    expect(wrapper.emitted("updated")).toHaveLength(1);
+
+    expect(await screen.findByText("Due date cleared")).toBeInTheDocument();
+    expect(saved(app)).toEqual({ due_date: null });
+  });
+
+  it("says so when the due date can't be saved", async () => {
+    const app = await openDueDate(new Date(2027, 0, 15).toISOString());
+    app.http.on("PATCH", ticketPath, { error_code: "InternalError" }, 500);
+
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(
+      await screen.findByText("The due date could not be saved"),
+    ).toBeInTheDocument();
   });
 });

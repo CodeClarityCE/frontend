@@ -1,24 +1,13 @@
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import type { Project } from "@/codeclarity_components/projects/project.entity";
 
-import ResultsCodeQL from "./ResultsCodeQL.vue";
+import { createTestApp, type TestApp } from "../../../../tests/real-app";
 
-const repo = vi.hoisted(() => ({ getResultByType: vi.fn() }));
-vi.mock("@/codeclarity_components/results/results.repository", () => ({
-  ResultsRepository: class {
-    getResultByType = repo.getResultByType;
-  },
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token" }),
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
+import ResultsCodeQL from "./ResultsCodeQL.vue";
 
 const finding = (ruleId: string, uri: string, start: number, end: number) => ({
   ruleId,
@@ -33,21 +22,32 @@ const finding = (ruleId: string, uri: string, start: number, end: number) => ({
   ],
 });
 
-async function show(results: unknown[], runIndex?: number): Promise<void> {
-  repo.getResultByType.mockResolvedValue({
-    data: {
-      created_on: "2026-06-01T10:00:00Z",
-      result: { workspaces: { ".": { results } } },
-    },
-  });
+// Opens the CodeQL tab of analysis a-1, with the API answering the given findings.
+async function show(
+  results: unknown[] | null,
+  runIndex?: number,
+): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  await app.visit("/projects");
+  if (results)
+    app.http.on("GET", "/result", {
+      data: {
+        plugin: "codeql",
+        created_on: "2026-06-01T10:00:00Z",
+        result: { workspaces: { ".": { results } } },
+      },
+    });
+  else app.http.on("GET", "/result", { error: "down" }, 500);
   render(ResultsCodeQL, {
     props: {
       analysis: { id: "a-1" } as Analysis,
       project: { id: "p-1" } as Project,
       runIndex,
     },
+    global: app.global,
   });
   await flushPromises();
+  return app;
 }
 
 describe("ResultsCodeQL", () => {
@@ -78,22 +78,15 @@ describe("ResultsCodeQL", () => {
   });
 
   it("shows which run the result belongs to", async () => {
-    await show([], 2);
+    const app = await show([], 2);
     expect(screen.getByText("Run #3")).toBeTruthy();
-    expect(repo.getResultByType).toHaveBeenCalledWith(
-      expect.objectContaining({ type: "codeql", runIndex: 2 }),
-    );
+    const asked = app.http.requests.find((r) => r.path === "/result")?.query;
+    expect(asked?.get("type")).toBe("codeql");
+    expect(asked?.get("run_index")).toBe("2");
   });
 
   it("says so when the result cannot be loaded", async () => {
-    repo.getResultByType.mockRejectedValue(new Error("down"));
-    render(ResultsCodeQL, {
-      props: {
-        analysis: { id: "a-1" } as Analysis,
-        project: { id: "p-1" } as Project,
-      },
-    });
-    await flushPromises();
+    await show(null);
     expect(screen.getByText("Could not load the CodeQL results")).toBeTruthy();
   });
 });

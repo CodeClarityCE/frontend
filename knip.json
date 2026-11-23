@@ -1,0 +1,8 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "e2e/real-stack/*.journey.mts",
+    "e2e/contracts/capture.mts",
+    "eslint-rules/*.d.ts"
+  ]
+}

@@ -105,6 +105,7 @@ export class OrganizationMetaData {
 
 // Copy of the API's MemberRole in api/src/base_modules/organizations/memberships/organization.memberships.entity.ts.
 // The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
+/** @public type-sync copy of an API enum: every API value stays */
 export enum MemberRole {
   OWNER = 0,
   ADMIN = 1,
@@ -147,38 +148,6 @@ export class OrganizationInfoForInvitee {
 
   @IsEnum(MemberRole)
   role!: MemberRole;
-}
-
-export enum MemberRoleOrdering {
-  OWNER = 0,
-  ADMIN = 1,
-  MODERATOR = 2,
-  USER = 3,
-}
-
-export class TeamMemberShip {
-  @IsNotEmpty()
-  id!: string;
-
-  @IsEnum(MemberRole)
-  role!: MemberRole;
-
-  @IsDate()
-  @Type(() => Date)
-  added_on!: Date;
-
-  @IsNotEmpty()
-  added_by!: string;
-
-  @IsDate()
-  @Type(() => Date)
-  joined_on!: Date;
-
-  @IsNotEmpty()
-  organization_id!: string;
-
-  @IsNotEmpty()
-  user_id!: string;
 }
 
 export class TeamMember {
@@ -231,25 +200,4 @@ export function isMemberRoleGreaterOrEqualTo(
   memberRole2: MemberRole,
 ): boolean {
   return memberRole1 <= memberRole2;
-}
-
-export function isMemberRoleEqualThan(
-  memberRole1: MemberRole,
-  memberRole2: MemberRole,
-): boolean {
-  return memberRole1 === memberRole2;
-}
-
-export function isMemberRoleLessThan(
-  memberRole1: MemberRole,
-  memberRole2: MemberRole,
-): boolean {
-  return memberRole1 > memberRole2;
-}
-
-export function isMemberRoleLessOrEqualTo(
-  memberRole1: MemberRole,
-  memberRole2: MemberRole,
-): boolean {
-  return memberRole1 >= memberRole2;
 }

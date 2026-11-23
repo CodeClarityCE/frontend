@@ -1,99 +1,19 @@
-import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { defineComponent, h, onMounted } from "vue";
+import userEvent from "@testing-library/user-event";
+import { render, screen, within } from "@testing-library/vue";
+import { describe, expect, it, vi } from "vitest";
 
 import { MemberRole } from "@/codeclarity_components/organizations/organization.entity";
-import router from "@/router";
-import { successToast } from "@/utils/toasts";
+
+import {
+  createTestApp,
+  org,
+  type TestApp,
+  withToaster,
+} from "../../../../tests/real-app";
 
 import IntegrationsList from "./IntegrationsList.vue";
 
-const { getVCS, deleteVcs, getTicketing, deleteTicketing, orgInfo } =
-  vi.hoisted(() => ({
-    getVCS: vi.fn(),
-    deleteVcs: vi.fn(),
-    getTicketing: vi.fn(),
-    deleteTicketing: vi.fn(),
-    orgInfo: { current: {} },
-  }));
-
-vi.mock("@/router", () => ({ default: { push: vi.fn(), replace: vi.fn() } }));
-
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getAuthenticated: true, getToken: "test-token" }),
-}));
-
-vi.mock("@/utils/toasts", () => ({
-  successToast: vi.fn(),
-  errorToast: vi.fn(),
-}));
-
-// The global @vueuse/core mock leaves shadcn Input inert, so use a plain input.
-vi.mock("@/shadcn/ui/input", () => ({
-  Input: defineComponent({
-    props: { modelValue: { type: String, default: "" } },
-    emits: ["update:modelValue"],
-    setup(props, { emit, attrs }) {
-      return () =>
-        h("input", {
-          ...attrs,
-          value: props.modelValue,
-          onInput: (e: Event) =>
-            emit("update:modelValue", (e.target as HTMLInputElement).value),
-        });
-    },
-  }),
-}));
-
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class {},
-  BusinessLogicError: class BusinessLogicError extends Error {},
-}));
-
-vi.mock(
-  "@/codeclarity_components/organizations/integrations/IntegrationsRepository",
-  () => ({
-    IntegrationsRepository: class {
-      getVCS = getVCS;
-      deleteIntegration = deleteVcs;
-    },
-  }),
-);
-
-vi.mock("@/codeclarity_components/tickets/tickets.repository", () => ({
-  TicketsRepository: class {
-    getIntegrations = getTicketing;
-    deleteIntegration = deleteTicketing;
-  },
-}));
-
-// The header reports the organisation, as the real one does once loaded.
-vi.mock(
-  "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue",
-  () => ({
-    default: defineComponent({
-      emits: ["onOrgInfo"],
-      setup(_, { emit }) {
-        onMounted(() => emit("onOrgInfo", orgInfo.current));
-        return () => h("div", "Organisation header");
-      },
-    }),
-  }),
-);
-
-vi.mock("vue-router", async () => {
-  const actual =
-    await vi.importActual<typeof import("vue-router")>("vue-router");
-  return {
-    ...actual,
-    RouterLink: defineComponent({
-      props: { to: { type: Object, required: true } },
-      setup(_, { slots, attrs }) {
-        return () => h("a", { ...attrs, href: "#" }, slots.default?.());
-      },
-    }),
-  };
-});
+const vcsPath = `/org/${org.id}/integrations/vcs`;
 
 const github = {
   id: "vcs-1",
@@ -113,59 +33,58 @@ const gitlab = {
   invalid: true,
 };
 
-let wrapper: VueWrapper | undefined;
+const page = (data: unknown[]) => ({
+  data,
+  entry_count: data.length,
+  page: 0,
+  entries_per_page: 100,
+  total_entries: data.length,
+  total_pages: 1,
+  matching_count: data.length,
+  filter_count: {},
+  status: "success",
+});
 
-async function render(): Promise<void> {
-  wrapper = mount(IntegrationsList, {
-    props: { orgId: "org-1" },
-    attachTo: document.body,
+// Opens the integrations page of the signed-in user's org.
+async function openList(
+  options: { vcs?: boolean; role?: MemberRole } = {},
+): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  if (options.vcs !== false)
+    app.http.on("GET", vcsPath, page([github, gitlab]));
+  app.http.on("GET", `/org/${org.id}/tickets/integrations`, { data: [] });
+  if (options.role !== undefined) {
+    app.http.on("GET", `/org/${org.id}`, {
+      data: { ...org, role: options.role },
+    });
+  }
+  await app.visit(`/orgs/manage/integrations/${org.id}`);
+  render(withToaster(IntegrationsList, { orgId: org.id }), {
+    global: app.global,
   });
-  await flushPromises();
+  return app;
 }
 
-function button(name: string): HTMLElement | undefined {
-  return [...document.querySelectorAll<HTMLElement>("button, a")].find(
-    (el) =>
-      el.getAttribute("aria-label") === name ||
-      el.textContent?.replace(/\s+/g, " ").trim() === name,
-  );
-}
-
-function tile(label: string): string {
-  const item = [...document.querySelectorAll("li")].find((li) =>
-    li.textContent?.includes(label),
-  );
-  return item?.textContent ?? "";
-}
+const tile = (label: string): string =>
+  within(screen.getByLabelText("Integration health"))
+    .getAllByRole("listitem")
+    .find((li) => li.textContent?.includes(label))?.textContent ?? "";
 
 describe("IntegrationsList", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    orgInfo.current = { id: "org-1", role: MemberRole.ADMIN };
-    getVCS.mockResolvedValue({ data: [github, gitlab] });
-    getTicketing.mockResolvedValue({ data: [] });
-    deleteVcs.mockResolvedValue({});
-  });
-
-  afterEach(() => {
-    wrapper?.unmount();
-    wrapper = undefined;
-    document.body.innerHTML = "";
-  });
-
   it("lists each connected service with its health", async () => {
-    await render();
+    await openList();
 
-    const text = document.querySelector("table")?.textContent ?? "";
-    expect(text).toContain("GitHub");
-    expect(text).toContain("github.com");
-    expect(text).toContain("Healthy");
-    expect(text).toContain("GitLab");
-    expect(text).toContain("Invalid");
+    const table = await screen.findByRole("table");
+    await within(table).findByText("github.com");
+    expect(table).toHaveTextContent("GitHub");
+    expect(table).toHaveTextContent("Healthy");
+    expect(table).toHaveTextContent("GitLab");
+    expect(table).toHaveTextContent("Invalid");
   });
 
   it("counts healthy and invalid integrations", async () => {
-    await render();
+    await openList();
+    await screen.findByText("github.com");
 
     expect(tile("Healthy")).toContain("1");
     expect(tile("Invalid or expired")).toContain("1");
@@ -173,51 +92,69 @@ describe("IntegrationsList", () => {
   });
 
   it("offers to add only the services that are not connected", async () => {
-    await render();
+    await openList();
+    await screen.findByText("github.com");
 
-    expect(button("Add ClickUp")).toBeDefined();
-    expect(button("Add GitHub")).toBeUndefined();
+    expect(screen.getByRole("link", { name: /Add ClickUp/ })).toBeVisible();
+    expect(
+      screen.queryByRole("link", { name: /Add GitHub/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("says when the version control integrations fail and retries", async () => {
-    getVCS.mockRejectedValueOnce(new Error("boom"));
-    await render();
+    const app = await openList({ vcs: false });
 
-    expect(document.body.textContent).toContain(
-      "The version control integrations failed to load.",
-    );
+    expect(
+      await screen.findByText(
+        "The version control integrations failed to load.",
+      ),
+    ).toBeInTheDocument();
 
-    button("Try again")?.click();
-    await flushPromises();
+    app.http.on("GET", vcsPath, page([github, gitlab]));
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
 
-    expect(document.querySelector("table")?.textContent).toContain("GitLab");
+    expect(await screen.findByText("gitlab.example.com")).toBeInTheDocument();
   });
 
   it("deletes an integration after confirmation", async () => {
-    await render();
+    const app = await openList();
+    app.http.on("DELETE", `/org/${org.id}/integrations/vcs-2`, {
+      status_code: 200,
+      status: "success",
+    });
 
-    button("Delete the GitLab integration on gitlab.example.com")?.click();
-    await flushPromises();
-
-    const confirm = [
-      ...document.querySelectorAll<HTMLElement>('[role="dialog"] button'),
-    ].find((el) => el.textContent?.includes("Delete"));
-    confirm?.click();
-    await flushPromises();
-
-    expect(deleteVcs).toHaveBeenCalledWith(
-      expect.objectContaining({ orgId: "org-1", integrationId: "vcs-2" }),
+    await userEvent.click(
+      await screen.findByRole("button", {
+        name: "Delete the GitLab integration on gitlab.example.com",
+      }),
     );
-    expect(successToast).toHaveBeenCalledWith("Deleted the GitLab integration");
+    await userEvent.click(
+      within(await screen.findByRole("dialog")).getByRole("button", {
+        name: "Delete integration",
+      }),
+    );
+
+    expect(
+      await screen.findByText("Deleted the GitLab integration"),
+    ).toBeInTheDocument();
+    expect(
+      app.http.requests.some(
+        (r) =>
+          r.method === "DELETE" &&
+          r.path === `/org/${org.id}/integrations/vcs-2`,
+      ),
+    ).toBe(true);
   });
 
   it("sends members who are not admins to the organisation overview", async () => {
-    orgInfo.current = { id: "org-1", role: MemberRole.USER };
-    await render();
+    const app = await openList({ role: MemberRole.USER });
 
-    expect(router.replace).toHaveBeenCalledWith({
-      name: "orgs",
-      params: { action: "manage", page: "main", orgId: "org-1" },
-    });
+    await vi.waitFor(() =>
+      expect(app.router.currentRoute.value.params).toMatchObject({
+        action: "manage",
+        page: "main",
+        orgId: org.id,
+      }),
+    );
   });
 });

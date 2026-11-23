@@ -1,122 +1,92 @@
-import { mount } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/vue";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
-import { GetRepositoriesSortInterface } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
+import {
+  createTestApp,
+  org,
+  type TestApp,
+} from "../../../../../tests/real-app";
 
 import PopularGithubImportComponent from "./PopularGithubImportComponent.vue";
 
-const { getPopularGithubRepositories } = vi.hoisted(() => ({
-  getPopularGithubRepositories: vi.fn(),
-}));
+const popularPath = `/org/${org.id}/integrations/github/gh-1/repositories/popular`;
 
-vi.mock(
-  "@/codeclarity_components/organizations/integrations/IntegrationsRepository",
-  async (importOriginal) => {
-    const actual =
-      await importOriginal<
-        typeof import("@/codeclarity_components/organizations/integrations/IntegrationsRepository")
-      >();
-    return {
-      ...actual,
-      IntegrationsRepository: class {
-        getPopularGithubRepositories = getPopularGithubRepositories;
-      },
-    };
-  },
-);
-
-vi.mock("./BaseImportComponent.vue", () => ({
-  default: {
-    name: "BaseImportComponent",
-    props: ["getRepos", "integration", "tableConfig"],
-    template: '<div data-testid="base-import" />',
-  },
-}));
-
-const baseOptions = {
-  orgId: "test-org-id",
-  integrationId: "gh-1",
-  forceRefresh: false,
-  pagination: { page: 0, entries_per_page: 100 },
-  search: { searchKey: "" },
-  bearerToken: "test-token",
-  handleBusinessErrors: true,
-  sort: { sortKey: "stars", sortDirection: "DESC" },
+const popular = {
+  data: [
+    {
+      id: "repo-1",
+      url: "https://github.com/vuejs/core",
+      default_branch: "main",
+      visibility: "public",
+      fully_qualified_name: "vuejs/core",
+      description: "",
+      created_at: "2026-01-01T00:00:00.000Z",
+      imported_already: false,
+      integration_id: "gh-1",
+      stars: 48000,
+    },
+  ],
+  entry_count: 1,
+  page: 0,
+  entries_per_page: 100,
+  total_entries: 1,
+  total_pages: 1,
+  status: "success",
+  matching_count: 1,
+  filter_count: {},
 };
 
+// The "Popular on GitHub" import page.
+async function openPopular(): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  app.http.on("GET", popularPath, popular);
+  await app.visit("/projects/add");
+  render(PopularGithubImportComponent, {
+    props: { integration: "gh-1" },
+    global: app.global,
+  });
+  await screen.findByText("vuejs/core");
+  return app;
+}
+
+// The query of the last request for the popular list.
+const lastQuery = (app: TestApp): URLSearchParams =>
+  app.http.requests.filter((r) => r.path === popularPath).at(-1)!.query;
+
 describe("PopularGithubImportComponent", () => {
-  beforeEach(() => {
-    getPopularGithubRepositories.mockReset();
-    getPopularGithubRepositories.mockResolvedValue({
-      data: [],
-      total_entries: 0,
-      total_pages: 0,
-    });
+  // jsdom lacks the pointer capture calls the select menu makes.
+  beforeAll(() => {
+    Element.prototype.hasPointerCapture ??= () => false;
+    Element.prototype.releasePointerCapture ??= () => undefined;
   });
 
-  function mountWithBase(): {
-    props: Record<string, any>;
-  } {
-    const wrapper = mount(PopularGithubImportComponent, {
-      props: { integration: "gh-1" },
-    });
-    const base = wrapper.findComponent({ name: "BaseImportComponent" });
-    expect(base.exists()).toBe(true);
-    return { props: base.props() };
-  }
+  it("lists the popular repositories ranked by stars, in every language", async () => {
+    const app = await openPopular();
 
-  it("renders the base importer ranked by stars with the language choices", () => {
-    const { props } = mountWithBase();
+    expect(screen.getByRole("columnheader", { name: /Stars/ })).toBeTruthy();
+    const query = lastQuery(app);
+    expect(query.get("sort_key")).toBe("stars");
+    expect(query.get("languages")).toBe("");
+    expect(query.get("active_filters")).toBe("[only_non_imported]");
+  });
 
-    expect(props.integration).toBe("gh-1");
-    expect(props.tableConfig).toMatchObject({
-      defaultSortKey: GetRepositoriesSortInterface.STARS,
-      showStars: true,
-    });
-    expect(
-      props.tableConfig.languages.map(
-        (option: { label: string }) => option.label,
-      ),
-    ).toEqual([
+  it("asks for the chosen language only, outside the filters", async () => {
+    const app = await openPopular();
+
+    await userEvent.click(screen.getByRole("combobox", { name: "Language" }));
+    const choices = screen
+      .getAllByRole("option")
+      .map((o) => o.textContent?.trim());
+    expect(choices).toEqual([
       "All (JavaScript, TypeScript, PHP)",
       "JavaScript",
       "TypeScript",
       "PHP",
     ]);
-  });
+    await userEvent.click(screen.getByRole("option", { name: "PHP" }));
 
-  it("turns a selected language filter into the languages parameter and strips it from the filters", async () => {
-    const { props } = mountWithBase();
-
-    await props.getRepos({
-      ...baseOptions,
-      activeFilters: ["only_non_imported", "language_php"],
-    });
-
-    expect(getPopularGithubRepositories).toHaveBeenCalledWith(
-      expect.objectContaining({
-        orgId: "test-org-id",
-        integrationId: "gh-1",
-        languages: ["PHP"],
-        activeFilters: ["only_non_imported"],
-        bearerToken: "test-token",
-      }),
-    );
-  });
-
-  it("requests every language when the 'all' option is active", async () => {
-    const { props } = mountWithBase();
-
-    await props.getRepos({
-      ...baseOptions,
-      activeFilters: ["imported_and_non_imported", "language_all"],
-    });
-
-    expect(getPopularGithubRepositories).toHaveBeenCalledWith(
-      expect.objectContaining({
-        languages: [],
-        activeFilters: ["imported_and_non_imported"],
-      }),
-    );
+    await vi.waitFor(() => expect(lastQuery(app).get("languages")).toBe("PHP"));
+    expect(lastQuery(app).get("active_filters")).toBe("[only_non_imported]");
   });
 });

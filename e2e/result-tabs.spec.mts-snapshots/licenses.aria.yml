@@ -1,0 +1,54 @@
+- main:
+  - heading "Results" [level=1]
+  - paragraph: web-frontend
+  - tablist "Results":
+    - tab "SBOM"
+    - tab "Licenses" [selected]
+    - tab "CodeQL"
+  - tabpanel "Licenses":
+    - region "Licenses":
+      - heading "Licenses" [level=2]
+      - text: Language JavaScript Workspace Root
+      - list "License numbers":
+        - listitem: Licenses 3
+        - listitem: Dependencies 5 Using these licenses
+        - listitem: Permissive 1 MIT, BSD, Apache and similar
+        - listitem: Copyleft 1 GPL, LGPL, MPL and similar
+        - listitem: Policy violations 1 1 need review
+      - paragraph: A dependency under a license expression such as "MIT OR GPL-2.0" is listed under each license it names. It counts as copyleft if any of them is, even when an OR lets you pick a permissive one.
+      - searchbox "Search licenses"
+      - table "Licenses":
+        - caption: Licenses
+        - rowgroup:
+          - row "License Type Status Dependencies Details":
+            - columnheader "License":
+              - button "License"
+            - columnheader "Type":
+              - button "Type"
+            - columnheader "Status":
+              - button "Status"
+            - columnheader "Dependencies":
+              - button "Dependencies"
+            - columnheader "Details"
+        - rowgroup:
+          - row "MIT License(MIT) Permissive Compliant 3 Details of MIT License":
+            - cell "MIT License(MIT)"
+            - cell "Permissive"
+            - cell "Compliant"
+            - cell "3"
+            - cell "Details of MIT License":
+              - button "Details of MIT License"
+          - row "GNU General Public License v3.0(GPL-3.0) Copyleft Violation 1 Details of GNU General Public License v3.0":
+            - cell "GNU General Public License v3.0(GPL-3.0)"
+            - cell "Copyleft"
+            - cell "Violation"
+            - cell "1"
+            - cell "Details of GNU General Public License v3.0":
+              - button "Details of GNU General Public License v3.0"
+          - row "Custom Other Needs review 1 Details of Custom":
+            - cell "Custom"
+            - cell "Other"
+            - cell "Needs review"
+            - cell "1"
+            - cell "Details of Custom":
+              - button "Details of Custom"

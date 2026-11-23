@@ -1,5 +1,5 @@
 /** One project's current analysis and whether it is past the freshness threshold. */
-export interface ProjectFreshness {
+interface ProjectFreshness {
   project_id: string;
   project_name: string;
   analysis_id: string;

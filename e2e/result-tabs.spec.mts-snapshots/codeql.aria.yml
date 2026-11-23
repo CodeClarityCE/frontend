@@ -1,0 +1,41 @@
+- main:
+  - heading "Results" [level=1]
+  - paragraph: web-frontend
+  - tablist "Results":
+    - tab "SBOM"
+    - tab "Licenses"
+    - tab "CodeQL" [selected]
+  - tabpanel "CodeQL":
+    - region "CodeQL findings":
+      - heading "CodeQL findings" [level=2]
+      - paragraph: /CodeQL result created Jan \d+, \d+ \d+:\d+/
+      - list "CodeQL numbers":
+        - listitem: Findings 2
+        - listitem: Rules 2
+        - listitem: Files 2
+      - searchbox "Search findings"
+      - table "CodeQL findings":
+        - caption: CodeQL findings
+        - rowgroup:
+          - row "Rule Finding File Lines":
+            - columnheader "Rule":
+              - button "Rule"
+            - columnheader "Finding"
+            - columnheader "File":
+              - button "File"
+            - columnheader "Lines"
+        - rowgroup:
+          - row /js\/sql-injection This query depends on a user-provided value\. src\/db\.js \d+/:
+            - cell "js/sql-injection":
+              - code: js/sql-injection
+            - cell "This query depends on a user-provided value."
+            - cell "src/db.js":
+              - code: src/db.js
+            - cell /\d+/
+          - row /js\/xss Cross-site scripting from a URL parameter\. src\/view\.js \d+ to \d+/:
+            - cell "js/xss":
+              - code: js/xss
+            - cell "Cross-site scripting from a URL parameter."
+            - cell "src/view.js":
+              - code: src/view.js
+            - cell /\d+ to \d+/

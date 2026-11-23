@@ -12,7 +12,7 @@ import {
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-import { PageHeading } from "@/base_components/page";
+import { PageHeading, PreviewBadge } from "@/base_components/page";
 import {
   Analysis,
   analysisSkippedFolders,
@@ -44,7 +44,6 @@ const ResultsVulnerabilities = lazy(
 const ResultsVulnerabilitiesDetails = lazy(
   () => import("./vulnerabilities/ResultsVulnerabilitiesDetails.vue"),
 );
-const ResultsPatching = lazy(() => import("./patching/ResultsPatching.vue"));
 const ResultsCodeQL = lazy(() => import("./codeql/ResultsCodeQL.vue"));
 
 const state = useStateStore();
@@ -74,7 +73,6 @@ const analysisRepository: AnalysisRepository = new AnalysisRepository();
 const tab = ref({
   sbom: false, // Generic SBOM tab for both js-sbom and php-sbom
   "vuln-finder": false,
-  "js-patching": false,
   "license-finder": false,
   codeql: false,
 });
@@ -91,7 +89,6 @@ const TAB_OF: Record<string, keyof typeof tab.value> = {
   "js-sbom": "sbom",
   "php-sbom": "sbom",
   "vuln-finder": "vuln-finder",
-  "js-patching": "js-patching",
   "license-finder": "license-finder",
   codeql: "codeql",
 };
@@ -295,7 +292,7 @@ onBeforeMount(async () => {
     />
     <template v-else-if="!loading">
       <Alert v-if="failed" variant="destructive">
-        <AlertTitle>Could not load this analysis</AlertTitle>
+        <AlertTitle as="h2">Could not load this analysis</AlertTitle>
         <AlertDescription>Reload the page to try again.</AlertDescription>
       </Alert>
       <Alert
@@ -309,7 +306,7 @@ onBeforeMount(async () => {
             : 'default'
         "
       >
-        <AlertTitle>{{ statusNotice.title }}</AlertTitle>
+        <AlertTitle as="h2">{{ statusNotice.title }}</AlertTitle>
         <AlertDescription>{{ statusNotice.text }}</AlertDescription>
       </Alert>
       <Alert
@@ -317,7 +314,7 @@ onBeforeMount(async () => {
         role="status"
         aria-label="Skipped folders"
       >
-        <AlertTitle>Some folders were not analysed</AlertTitle>
+        <AlertTitle as="h2">Some folders were not analysed</AlertTitle>
         <AlertDescription>
           <ul class="flex flex-col gap-1">
             <li
@@ -345,14 +342,16 @@ onBeforeMount(async () => {
           <TabsTrigger v-if="tab['vuln-finder']" value="vuln-finder">
             Vulnerabilities
           </TabsTrigger>
-          <TabsTrigger v-if="tab['js-patching']" value="js-patching">
-            Patches
-          </TabsTrigger>
           <TabsTrigger v-if="tab['license-finder']" value="license-finder">
             Licenses
           </TabsTrigger>
-          <TabsTrigger v-if="tab['codeql']" value="codeql">
+          <TabsTrigger
+            v-if="tab['codeql']"
+            value="codeql"
+            aria-describedby="codeql-tab-preview"
+          >
             CodeQL
+            <PreviewBadge id="codeql-tab-preview" aria-hidden="true" />
           </TabsTrigger>
         </TabsList>
         <TabsContent value="sbom" class="space-y-4">
@@ -364,13 +363,6 @@ onBeforeMount(async () => {
         </TabsContent>
         <TabsContent value="vuln-finder" class="mt-0">
           <ResultsVulnerabilities
-            :project="project"
-            :analysis="analysis"
-            :run-index="runIndex"
-          />
-        </TabsContent>
-        <TabsContent value="js-patching" class="space-y-4">
-          <ResultsPatching
             :project="project"
             :analysis="analysis"
             :run-index="runIndex"

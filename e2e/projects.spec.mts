@@ -1,6 +1,9 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   analysis,
@@ -244,6 +247,7 @@ test.describe("Projects list", () => {
     });
     await expect(confirm).toContainText("1 analysis");
     await axe(page);
+    await expectPageSweep(page);
 
     await confirm.getByRole("button", { name: "Delete project" }).click();
 
@@ -308,6 +312,8 @@ test.describe("Projects list", () => {
     ).toBeVisible();
     await expect(projects.table).toHaveCount(0);
     await axe(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "projects-empty");
     await expectScreenshots(page, "projects-empty");
 
     await page.getByRole("link", { name: "Add a Project" }).click();
@@ -325,6 +331,7 @@ test.describe("Projects list", () => {
       page.getByRole("status", { name: "Loading Projects" }),
     ).toBeVisible();
     await axe(page);
+    await expectPageSweep(page);
 
     release();
     await expect(projects.rows()).toHaveCount(3);
@@ -375,6 +382,8 @@ test.describe("Projects list", () => {
     await expect(projects.row("web-frontend")).toContainText("JavaScript");
 
     await axe(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "projects-list");
     await expectScreenshots(page, "projects-list");
 
     await page.setViewportSize({ width: 1280, height: 1024 });
@@ -385,6 +394,7 @@ test.describe("Projects list", () => {
     await dialog.getByRole("button", { name: "3 steps" }).first().click();
     await expect(dialog).toContainText("No composer.lock");
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "projects-analyses-dialog");
   });
 
@@ -498,9 +508,56 @@ test.describe("Projects list", () => {
     await page.getByRole("button", { name: "Delete Local archive" }).click();
     const confirm = page.getByRole("dialog", { name: "Delete Local archive?" });
     await expect(confirm).toContainText(
-      "The project is deleted. It has no analyses. This cannot be undone.",
+      "The project and its tickets are deleted. It has no analyses.",
     );
     await expect(confirm).not.toContainText("0 analyses");
+  });
+});
+
+// The analyses route without a page opens the same project list.
+test.describe("Analyses without a page", () => {
+  test("lists the projects, passes axe and starts a new analysis", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.shell.goto("/analyses");
+
+    await expect(projects.heading).toHaveText("Projects");
+    await expect(projects.rows()).toHaveCount(3);
+    await expect(projects.row("web-frontend")).toContainText("JavaScript");
+    await axe(page);
+    await expectPageSweep(page);
+    // The same tree as /projects, so it shares that snapshot.
+    await expectMainSnapshot(page, "projects-list");
+
+    await page
+      .getByRole("link", { name: "New analysis of example/web-frontend" })
+      .click();
+    await expect(page).toHaveURL(/\/analyses\/add\?id=p-1$/);
+  });
+
+  test("with no projects offers Add a Project", async ({ page }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn({ projects: [] });
+    await projects.shell.goto("/analyses");
+
+    await expect(
+      page.getByRole("heading", { name: "No Projects yet" }),
+    ).toBeVisible();
+    await axe(page);
+    await expectPageSweep(page);
+  });
+
+  test("a failed load says so", async ({ page }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn({ failList: true });
+    await projects.shell.goto("/analyses");
+
+    await expect(page.getByRole("alert")).toContainText(
+      "The projects could not be loaded.",
+    );
+    await expectPageSweep(page);
   });
 });
 
@@ -543,6 +600,8 @@ test.describe("Add a Project", () => {
       page.getByRole("link", { name: "Manage integrations" }),
     ).toBeVisible();
     await axe(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "projects-add-no-integration");
     await expectScreenshots(page, "projects-add-no-integration");
 
     await page.getByRole("button", { name: "Upload an archive" }).click();
@@ -557,7 +616,7 @@ test.describe("Add a Project", () => {
     const projects = new ProjectsPage(page);
     await projects.signIn();
     await projects.gotoCreate();
-    await page.getByTestId("github-card").click();
+    await projects.importMethod("GitHub").click();
 
     await expect(
       page.getByRole("heading", { name: "GitHub repositories" }),
@@ -588,7 +647,7 @@ test.describe("Add a Project", () => {
       failImport: ["https://github.com/example/billing"],
     });
     await projects.gotoCreate();
-    await page.getByTestId("github-card").click();
+    await projects.importMethod("GitHub").click();
 
     await page
       .getByRole("checkbox", { name: "Select example/billing" })
@@ -603,6 +662,7 @@ test.describe("Add a Project", () => {
     await expect(projects.rows(failures)).toContainText("example/billing");
     await expect(projects.rows(failures)).toContainText("Already imported");
     await axe(page);
+    await expectPageSweep(page);
   });
 
   test("the repository filter, sort and view choice work on every loaded repository", async ({
@@ -611,7 +671,7 @@ test.describe("Add a Project", () => {
     const projects = new ProjectsPage(page);
     await projects.signIn();
     await projects.gotoCreate();
-    await page.getByTestId("gitlab-card").click();
+    await projects.importMethod("GitLab").click();
     await expect(projects.rows()).toHaveCount(3);
 
     await projects.filter.fill("docs");
@@ -643,7 +703,7 @@ test.describe("Add a Project", () => {
       ],
     });
     await projects.gotoCreate();
-    await page.getByTestId("popular-github-card").click();
+    await projects.importMethod("Popular on GitHub").click();
 
     await expect(projects.rows().first()).toContainText("facebook/react");
     await expect(projects.rows().first()).toContainText("230,000");
@@ -663,7 +723,7 @@ test.describe("Add a Project", () => {
     const projects = new ProjectsPage(page);
     await projects.signIn();
     await projects.gotoCreate();
-    await page.getByTestId("github-card").click();
+    await projects.importMethod("GitHub").click();
 
     await page.getByRole("button", { name: "Import repository" }).click();
 
@@ -731,6 +791,8 @@ test.describe("Add a Project", () => {
       "A name of at least 2 characters is required",
     );
     await axe(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "projects-add-upload-errors");
     await expectScreenshots(page, "projects-add-upload-errors");
   });
 
@@ -740,7 +802,7 @@ test.describe("Add a Project", () => {
     const projects = new ProjectsPage(page);
     await projects.signIn();
     await projects.gotoCreate();
-    await page.getByTestId("github-card").click();
+    await projects.importMethod("GitHub").click();
 
     await page
       .getByLabel("Repository URL")
@@ -826,15 +888,19 @@ test.describe("Add a Project", () => {
     ).toHaveCount(4);
 
     await axe(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "projects-add");
     await expectScreenshots(page, "projects-add");
 
     await page.setViewportSize({ width: 1280, height: 1024 });
-    await page.getByTestId("github-card").click();
+    await projects.importMethod("GitHub").click();
     await expect(projects.rows()).toHaveCount(3);
     await page
       .getByRole("checkbox", { name: "Select example/billing" })
       .click();
     await axe(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "projects-add-github");
     await expectScreenshots(page, "projects-add-github");
   });
 
@@ -866,7 +932,7 @@ test.describe("Add a Project", () => {
     const projects = new ProjectsPage(page);
     await projects.signIn();
     await projects.gotoCreate();
-    await page.getByTestId("github-card").click();
+    await projects.importMethod("GitHub").click();
     const field = page.getByLabel("Repository URL");
 
     const submit = page.getByRole("button", { name: "Import repository" });
@@ -924,3 +990,50 @@ test.describe("Add a Project", () => {
 function repoWithStars(name: string, stars: number): Record<string, unknown> {
   return repo(name, { stargazers_count: stars, language: "JavaScript" });
 }
+
+describeOnAPhone("On a phone", () => {
+  test("the projects list does not scroll sideways", async ({ page }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.gotoList();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
+    await expectScreenshots(page, "projects-list");
+  });
+
+  test("the analyses route fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.shell.goto("/analyses");
+    await expect(projects.rows()).toHaveCount(3);
+    await expectPageSweep(page);
+    await expectScreenshots(page, "analyses-projects-list");
+  });
+
+  test("Add a Project does not scroll sideways", async ({ page }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.gotoCreate();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
+    await expectScreenshots(page, "add-a-project");
+  });
+
+  test("the GitHub import fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const projects = new ProjectsPage(page);
+    await projects.signIn();
+    await projects.gotoCreate();
+    await projects.importMethod("GitHub").click();
+    await expect(projects.rows()).toHaveCount(3);
+    await expectPageSweep(page);
+    await expectScreenshots(page, "github-import");
+  });
+});

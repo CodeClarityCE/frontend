@@ -1,0 +1,88 @@
+- main:
+  - link "Datasets":
+    - /url: /datasets
+  - heading "Top npm packages" [level=1]
+  - text: Ready
+  - paragraph: /Top \d+ JavaScript \/ TypeScript repositories with more than \d+ stars, 3 search page\(s\) per language\. Created Oct 1, \d+, 9:\d+ AM by John Doe\./
+  - button "Run Experiment"
+  - button "Import as projects"
+  - button "Delete"
+  - list "Build numbers":
+    - listitem: /Selected \d+ \/ \d+/
+    - listitem: /Candidates \d+/
+    - listitem: /Probed \d+/
+    - listitem: /Built Oct 1, \d+ \d+:\d+ AM/
+  - heading "Left out while probing" [level=2]
+  - paragraph:
+    - text: "Gone or inaccessible:"
+    - strong: "2"
+    - text: "Renamed duplicate:"
+    - strong: "1"
+    - text: "Fork or archived:"
+    - strong: /\d+/
+    - text: "No root package.json:"
+    - strong: /\d+/
+    - text: "No root lockfile:"
+    - strong: /\d+/
+  - region "Repositories":
+    - heading "Repositories" [level=2]
+    - searchbox "Filter repositories"
+    - table "Dataset entries":
+      - caption: Dataset entries
+      - rowgroup:
+        - row "Rank Repository Stars Branch Lockfiles":
+          - columnheader "Rank":
+            - button "Rank"
+          - columnheader "Repository":
+            - button "Repository"
+          - columnheader "Stars":
+            - button "Stars"
+          - columnheader "Branch":
+            - button "Branch"
+          - columnheader "Lockfiles"
+      - rowgroup:
+        - row /#1 facebook\/react · TypeScript \d+,\d+ main pnpm-lock\.yaml/:
+          - cell "#1"
+          - cell "facebook/react · TypeScript":
+            - link "facebook/react":
+              - /url: https://github.com/facebook/react
+            - text: ""
+          - cell /\d+,\d+/
+          - cell "main"
+          - cell "pnpm-lock.yaml"
+        - row /#2 vuejs\/core · JavaScript \d+,\d+ main package-lock\.json/:
+          - cell "#2"
+          - cell "vuejs/core · JavaScript":
+            - link "vuejs/core":
+              - /url: https://github.com/vuejs/core
+            - text: ""
+          - cell /\d+,\d+/
+          - cell "main"
+          - cell "package-lock.json"
+        - row /#3 vercel\/next\.js · TypeScript \d+,\d+ main package-lock\.json/:
+          - cell "#3"
+          - cell "vercel/next.js · TypeScript":
+            - link "vercel/next.js":
+              - /url: https://github.com/vercel/next.js
+            - text: ""
+          - cell /\d+,\d+/
+          - cell "main"
+          - cell "package-lock.json"
+        - row /#4 sveltejs\/svelte · JavaScript \d+,\d+ main pnpm-lock\.yaml/:
+          - cell "#4"
+          - cell "sveltejs/svelte · JavaScript":
+            - link "sveltejs/svelte":
+              - /url: https://github.com/sveltejs/svelte
+            - text: ""
+          - cell /\d+,\d+/
+          - cell "main"
+          - cell "pnpm-lock.yaml"
+        - row /#5 expressjs\/express · TypeScript \d+,\d+ main package-lock\.json/:
+          - cell "#5"
+          - cell "expressjs/express · TypeScript":
+            - link "expressjs/express":
+              - /url: https://github.com/expressjs/express
+            - text: ""
+          - cell /\d+,\d+/
+          - cell "main"
+          - cell "package-lock.json"

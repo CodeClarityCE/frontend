@@ -1,0 +1,523 @@
+- main:
+  - link "Experiments":
+    - /url: /experiments
+  - heading "Fix lag study" [level=1]
+  - text: Completed Preview
+  - paragraph:
+    - text: Analyzer
+    - strong: JavaScript analyzer
+    - text: over Dataset
+    - link "Top npm packages":
+      - /url: /datasets/detail?id=ds-1
+    - text: /, 2 retries per failed run\. Created Oct 5, \d+, \d+:\d+ AM by John Doe\. Started Oct 5, \d+, \d+:\d+ AM, ended Oct 6, \d+, \d+:\d+ AM/
+  - region "Progress":
+    - heading "Progress" [level=2]
+    - text: /Finished runs \d+ \/ \d+/
+    - progressbar "Finished runs"
+    - list "Runs by state":
+      - listitem: /Done \d+/
+      - listitem: Failed 6
+      - listitem: Skipped 4
+      - listitem: Pending 0
+  - tablist:
+    - tab "Results" [selected]
+    - tab "Figures"
+  - tabpanel "Results":
+    - region "Results":
+      - heading "Results" [level=2]
+      - text: Frozen
+      - paragraph: /Published results, metric version 2, published Oct 7, \d+, \d+:\d+ AM by John Doe\. These numbers are frozen under metric version 2 and will not change\./
+      - text: Version
+      - combobox "Version": Metric version 2
+      - paragraph: "/Package SHA-\\d+: 9f2c1e0b7a6d5c4b3a29180f7e6d5c4b3a29180f7e6d5c4b3a29180f7e6d5c4b/"
+      - group "Downloads":
+        - button "runs.csv"
+        - button "vulnerabilities.csv"
+        - button "exposures.csv"
+        - button "fixes.csv"
+        - button "results.json"
+        - button "Replication package"
+      - region "Coverage per grid date":
+        - heading "Coverage per grid date" [level=3]
+        - paragraph: Empty runs are done but had no lockfile yet at that date.
+        - table:
+          - rowgroup:
+            - row "Grid date Done Empty Failed Skipped Pending":
+              - columnheader "Grid date"
+              - columnheader "Done"
+              - columnheader "Empty"
+              - columnheader "Failed"
+              - columnheader "Skipped"
+              - columnheader "Pending"
+          - rowgroup:
+            - row /\d+-\d+-\d+ \d+ 2 3 2 0/:
+              - cell /\d+-\d+-\d+/
+              - cell /\d+/
+              - cell "2"
+              - cell "3"
+              - cell "2"
+              - cell "0"
+            - row /\d+-\d+-\d+ \d+ 2 2 1 0/:
+              - cell /\d+-\d+-\d+/
+              - cell /\d+/
+              - cell "2"
+              - cell "2"
+              - cell "1"
+              - cell "0"
+            - row /HEAD \d+ 2 1 1 0/:
+              - cell "HEAD"
+              - cell /\d+/
+              - cell "2"
+              - cell "1"
+              - cell "1"
+              - cell "0"
+      - region "At HEAD":
+        - heading "At HEAD" [level=3]
+        - paragraph: The blocks below are computed on the HEAD snapshot of every entry.
+        - list "Numbers at HEAD":
+          - listitem: /Affected projects \d+ \/ \d+ \d+\.\d+%/
+          - listitem: /Vulnerability instances \d+/
+          - listitem: /Vulnerable packages \d+ distinct/
+          - listitem: /Load per project 2 \/ 4\.2 \/ \d+ median \/ mean \/ max instances/
+          - listitem: "/Gini by package \\d+\\.\\d+ top \\d+ packages: \\d+\\.\\d+%/"
+          - listitem: "/Gini by project \\d+\\.\\d+ top \\d+ projects: \\d+\\.\\d+%/"
+          - listitem: /Packages to clear 6 \/ \d+ \/ \d+ \d+% \/ \d+% \/ \d+% of instances/
+          - listitem: "/High \\+ critical \\d+\\.\\d+% of classed: \\d+\\.\\d+%/"
+        - region "Coverage":
+          - heading "Coverage" [level=4]
+          - paragraph: "/\\d+ of \\d+ runs attempted: \\d+ done, 6 failed, 4 skipped, 0 pending\\./"
+          - paragraph: Failure reasons
+          - list:
+            - listitem:
+              - text: "missing result: vuln-finder:"
+              - strong: "6"
+          - paragraph: Skip reasons
+          - list:
+            - listitem:
+              - text: "repository not found:"
+              - strong: "4"
+        - region "Severity mix":
+          - heading "Severity mix" [level=4]
+          - table:
+            - rowgroup:
+              - row /Severity Instances Share \d+% CI/:
+                - columnheader "Severity"
+                - columnheader "Instances"
+                - columnheader "Share"
+                - columnheader /\d+% CI/
+            - rowgroup:
+              - row /CRITICAL \d+ 5\.0% -/:
+                - cell "CRITICAL"
+                - cell /\d+/
+                - cell "5.0%"
+                - cell "-"
+              - row /HIGH \d+ \d+\.\d+% -/:
+                - cell "HIGH"
+                - cell /\d+/
+                - cell /\d+\.\d+%/
+                - cell "-"
+              - row /MEDIUM \d+ \d+\.\d+% -/:
+                - cell "MEDIUM"
+                - cell /\d+/
+                - cell /\d+\.\d+%/
+                - cell "-"
+              - row /LOW \d+ \d+\.\d+% -/:
+                - cell "LOW"
+                - cell /\d+/
+                - cell /\d+\.\d+%/
+                - cell "-"
+              - row /NONE \d+ 4\.1% -/:
+                - cell "NONE"
+                - cell /\d+/
+                - cell "4.1%"
+                - cell "-"
+        - region "Most widespread packages":
+          - heading "Most widespread packages" [level=4]
+          - table:
+            - rowgroup:
+              - row "Package Projects affected":
+                - columnheader "Package"
+                - columnheader "Projects affected"
+            - rowgroup:
+              - row /lodash \d+/:
+                - cell "lodash"
+                - cell /\d+/
+              - row /minimist \d+/:
+                - cell "minimist"
+                - cell /\d+/
+              - row "semver 9":
+                - cell "semver"
+                - cell "9"
+        - region "EPSS":
+          - heading "EPSS" [level=4]
+          - term: Instances with a score
+          - definition: /\d+\.\d+%/
+          - term: Median / p90
+          - definition: /\d+\.\d+ \/ \d+\.\d+/
+          - term: /Above \d+% \/ \d+%/
+          - definition: /\d+ \/ 9/
+          - term: Missing, CVE / not CVE
+          - definition: /\d+ \/ \d+/
+        - region "Match flags":
+          - heading "Match flags" [level=4]
+          - table:
+            - rowgroup:
+              - row "Flag Instances Share":
+                - columnheader "Flag"
+                - columnheader "Instances"
+                - columnheader "Share"
+            - rowgroup:
+              - row /exact \d+ \d+\.\d+%/:
+                - cell "exact"
+                - cell /\d+/
+                - cell /\d+\.\d+%/
+              - row /range \d+ 9\.1%/:
+                - cell "range"
+                - cell /\d+/
+                - cell "9.1%"
+        - region "Winning source":
+          - heading "Winning source" [level=4]
+          - table:
+            - rowgroup:
+              - row "Source Instances Share":
+                - columnheader "Source"
+                - columnheader "Instances"
+                - columnheader "Share"
+            - rowgroup:
+              - row /osv \d+ \d+\.\d+%/:
+                - cell "osv"
+                - cell /\d+/
+                - cell /\d+\.\d+%/
+              - row /nvd \d+ \d+\.\d+%/:
+                - cell "nvd"
+                - cell /\d+/
+                - cell /\d+\.\d+%/
+        - region "Stars vs load":
+          - heading "Stars vs load" [level=4]
+          - paragraph:
+            - text: "Spearman rho between star rank and vulnerability load:"
+            - strong: /\d+\.\d+/
+            - text: /\(two-sided p = \d+\.\d+, n = \d+\)\./
+          - paragraph: 2 projects without dependencies left out.
+        - region "By package manager":
+          - heading "By package manager" [level=4]
+          - table:
+            - rowgroup:
+              - row "Manager Projects Median deps Median vulns":
+                - columnheader "Manager"
+                - columnheader "Projects"
+                - columnheader "Median deps"
+                - columnheader "Median vulns"
+            - rowgroup:
+              - row /npm \d+ \d+ 3/:
+                - cell "npm"
+                - cell /\d+/
+                - cell /\d+/
+                - cell "3"
+              - row /yarn \d+ \d+ 4/:
+                - cell "yarn"
+                - cell /\d+/
+                - cell /\d+/
+                - cell "4"
+        - region "Sweep":
+          - heading "Sweep" [level=4]
+          - table:
+            - rowgroup:
+              - row /Subset Affected Instances Packages Load median \/ mean High \+ critical Gini pkg \/ proj Clear \d+ \/ \d+ \/ \d+/:
+                - columnheader "Subset"
+                - columnheader "Affected"
+                - columnheader "Instances"
+                - columnheader "Packages"
+                - columnheader "Load median / mean"
+                - columnheader "High + critical"
+                - columnheader "Gini pkg / proj"
+                - columnheader /Clear \d+ \/ \d+ \/ \d+/
+            - rowgroup:
+              - row /All instances \d+ \/ \d+ \d+ \d+ 2 \/ 4\.2 \d+\.\d+% \d+\.\d+ \/ \d+\.\d+ 6 \/ \d+ \/ \d+/:
+                - cell "All instances"
+                - cell /\d+ \/ \d+/
+                - cell /\d+/
+                - cell /\d+/
+                - cell "2 / 4.2"
+                - cell /\d+\.\d+%/
+                - cell /\d+\.\d+ \/ \d+\.\d+/
+                - cell /6 \/ \d+ \/ \d+/
+              - row /Not withdrawn \d+ \/ \d+ \d+ \d+ 2 \/ 4\.2 \d+\.\d+% \d+\.\d+ \/ \d+\.\d+ 6 \/ \d+ \/ \d+/:
+                - cell "Not withdrawn"
+                - cell /\d+ \/ \d+/
+                - cell /\d+/
+                - cell /\d+/
+                - cell "2 / 4.2"
+                - cell /\d+\.\d+%/
+                - cell /\d+\.\d+ \/ \d+\.\d+/
+                - cell /6 \/ \d+ \/ \d+/
+      - region "Fix lag":
+        - heading "Fix lag" [level=3]
+        - paragraph: Days from an advisory's disclosure to the fix. Below zero, the project fixed it before the advisory was published. Each dot is one fix; the band spans the middle half and the tick marks the median.
+        - paragraph: /\d+ fixes, \d+ before disclosure, over \d+ exposures \(\d+ still open at HEAD\)\. \d+\.\d+% dated only to a snapshot interval, using the later snapshot's commit date \(an upper bound\)\. A fix reverted and re-applied within one interval reads as one fix\./
+        - heading "By severity" [level=4]
+        - 'figure /Metric version 2\. Fix lag in days by severity\. n = \d+ fixes\. Excluded: \d+ fixes without a disclosure date; 6 snapshots failed; 4 snapshots skipped\./':
+          - group "Fix lag in days by severity":
+            - 'img /Critical: \d+ fixes, median \d+ days, 0 before disclosure/': /Critical n=\d+, median \d+/
+            - 'img /High: \d+ fixes, median \d+ days, 4 before disclosure/': /High n=\d+, median \d+/
+            - 'img /Medium: \d+ fixes, median \d+ days, 6 before disclosure/': /Medium n=\d+, median \d+/
+            - 'img /Low: \d+ fixes, median \d+ days, 2 before disclosure/': /Low n=\d+, median \d+/
+          - group: Show table
+          - text: ""
+        - text: Width
+        - combobox "Width":
+          - option "Single column (3.5 in)"
+          - option "Double column (7 in)" [selected]
+        - button "Download SVG"
+        - button /Download PNG \(\d+ dpi\)/
+        - button "Download PDF"
+        - button "Download data (CSV)"
+        - button "Download caption"
+        - heading "By fix kind" [level=4]
+        - 'figure /Metric version 2\. Fix lag in days by fix kind\. n = \d+ fixes\. Excluded: \d+ fixes without a disclosure date; 6 snapshots failed; 4 snapshots skipped\./':
+          - group "Fix lag in days by fix kind":
+            - 'img /Upgraded: \d+ fixes, median \d+ days, 8 before disclosure/': /Upgraded n=\d+, median \d+/
+            - 'img /Removed transitively: \d+ fixes, median \d+ days, 4 before disclosure/': /Removed transitively n=\d+, median \d+/
+          - group: Show table
+          - text: ""
+        - text: Width
+        - combobox "Width":
+          - option "Single column (3.5 in)"
+          - option "Double column (7 in)" [selected]
+        - button "Download SVG"
+        - button /Download PNG \(\d+ dpi\)/
+        - button "Download PDF"
+        - button "Download data (CSV)"
+        - button "Download caption"
+      - region "Fix probes":
+        - heading "Fix probes" [level=3]
+        - paragraph: Probes analyse the commits between two snapshots to date a fix or an introduction to the commit that made it. Events found are dated to a commit; the rest stay dated to their snapshot interval and are pooled with them in the metrics above. Ambiguous means a commit already known in the interval contradicts a single change.
+        - table:
+          - rowgroup:
+            - row "Event Found Ambiguous Not found Not probed yet Commit precision Snapshot precision":
+              - columnheader "Event"
+              - columnheader "Found"
+              - columnheader "Ambiguous"
+              - columnheader "Not found"
+              - columnheader "Not probed yet"
+              - columnheader "Commit precision"
+              - columnheader "Snapshot precision"
+          - rowgroup:
+            - row /Fixes \d+ \d+ \d+ \d+ \d+\.\d+% \d+\.\d+%/:
+              - cell "Fixes"
+              - cell /\d+/
+              - cell /\d+/
+              - cell /\d+/
+              - cell /\d+/
+              - cell /\d+\.\d+%/
+              - cell /\d+\.\d+%/
+            - row /Introductions \d+ 4 \d+ 6 \d+\.\d+% \d+\.\d+%/:
+              - cell "Introductions"
+              - cell /\d+/
+              - cell "4"
+              - cell /\d+/
+              - cell "6"
+              - cell /\d+\.\d+%/
+              - cell /\d+\.\d+%/
+        - heading "Why no commit was found" [level=4]
+        - list:
+          - listitem: "/history rewritten: \\d+/"
+          - listitem: "/lockfile missing: \\d+/"
+      - region "Exposure survival":
+        - heading "Exposure survival" [level=3]
+        - paragraph: /Share of exposures still unfixed after a number of days, from their introduction \(or the first grid date they were seen\) to the fix \(Kaplan-Meier\)\. Exposures still open at HEAD are censored, shown as ticks; failed snapshots are gaps, never fixes\. The shaded band is the \d+% confidence interval \(Greenwood, log-log\)\./
+        - paragraph: /\d+ exposures, \d+ fixed, \d+ still open at HEAD \(censored at \d+-\d+-\d+\)\. \d+\.\d+% of fixes dated only to a snapshot interval, using the later snapshot's commit date \(an upper bound\)\./
+        - group "Severity":
+          - button "All severities" [pressed]
+          - button "High"
+        - paragraph: /Median \d+ days until half are fixed\./
+        - 'figure /Metric version 2\. Exposure survival \(Kaplan-Meier with \d+% Greenwood log-log band\), all severities\. n = \d+ exposures, \d+ fixed, \d+ censored at \d+-\d+-\d+\. Excluded: 6 snapshots failed; 4 snapshots skipped\./':
+          - 'img /Exposure survival, all severities: \d+ exposures, \d+ fixed, median \d+ days/'
+          - text: "/Metric version 2\\. Exposure survival \\(Kaplan-Meier with \\d+% Greenwood log-log band\\), all severities\\. n = \\d+ exposures, \\d+ fixed, \\d+ censored at \\d+-\\d+-\\d+\\. Excluded: 6 snapshots failed; 4 snapshots skipped\\./"
+        - text: Width
+        - combobox "Width":
+          - option "Single column (3.5 in)"
+          - option "Double column (7 in)" [selected]
+        - button "Download SVG"
+        - button /Download PNG \(\d+ dpi\)/
+        - button "Download PDF"
+        - button "Download data (CSV)"
+        - button "Download caption"
+        - group: Show table
+        - group: /Show steps with \d+% bounds/
+      - region "Pre-disclosure residence":
+        - heading "Pre-disclosure residence" [level=3]
+        - paragraph: Days a vulnerable version sat in a project before its advisory was published, from the introduction to the disclosure. Each dot is one introduction; the band spans the middle half and the tick marks the median.
+        - paragraph: /\d+ introductions, \d+ on or before disclosure, \d+ after it, 3 without a disclosure date\. \d+ exposures present at the first grid date have no introduction and are left out\. \d+\.\d+% dated only to a snapshot interval, using the later snapshot's commit date \(an upper bound, so residence may read longer\)\./
+        - heading "By severity" [level=4]
+        - 'figure /Metric version 2\. Pre-disclosure residence in days by severity\. n = \d+ introductions on or before disclosure\. Excluded: \d+ introductions after disclosure; 3 introductions without a disclosure date; \d+ exposures present at the first grid date; 6 snapshots failed; 4 snapshots skipped\./':
+          - group "Pre-disclosure residence in days by severity":
+            - 'img /High: \d+ introductions, median \d+ days/': /High n=\d+, median \d+/
+            - 'img /Medium: \d+ introductions, median \d+ days/': /Medium n=\d+, median \d+/
+          - group: Show table
+          - text: "/Metric version 2\\. Pre-disclosure residence in days by severity\\. n = \\d+ introductions on or before disclosure\\. Excluded: \\d+ introductions after disclosure; 3 introductions without a disclosure date; \\d+ exposures present at the first grid date; 6 snapshots failed; 4 snapshots skipped\\./"
+        - text: Width
+        - combobox "Width":
+          - option "Single column (3.5 in)"
+          - option "Double column (7 in)" [selected]
+        - button "Download SVG"
+        - button /Download PNG \(\d+ dpi\)/
+        - button "Download PDF"
+        - button "Download data (CSV)"
+        - button "Download caption"
+        - heading "After disclosure" [level=4]
+        - paragraph: /\d+ introductions adopted a version already known to be vulnerable, a median \d+ days after disclosure\./
+        - table:
+          - rowgroup:
+            - row "Severity Introductions Median days after disclosure":
+              - columnheader "Severity"
+              - columnheader "Introductions"
+              - columnheader "Median days after disclosure"
+          - rowgroup:
+            - row /High \d+ \d+/:
+              - cell "High"
+              - cell /\d+/
+              - cell /\d+/
+            - row /Medium \d+ \d+/:
+              - cell "Medium"
+              - cell /\d+/
+              - cell /\d+/
+      - region "Upstream leverage over time":
+        - heading "Upstream leverage over time" [level=3]
+        - paragraph: "How few packages carry most vulnerability instances at each grid date, and how much remediation came from upstream: fixes where a vulnerable transitive dependency left the tree."
+        - heading "Packages to clear instances" [level=4]
+        - paragraph: /The fewest packages whose fixes would clear \d+% and \d+% of the instances in done snapshots at each grid date\./
+        - 'figure /Metric version 2\. Packages needed to clear \d+% and \d+% of instances per grid date\. n = \d+ instances in \d+ projects at HEAD\. Excluded: 6 snapshots failed; 4 snapshots skipped\./':
+          - list:
+            - listitem: /Clear \d+%/
+            - listitem: /Clear \d+%/
+          - group /Packages needed to clear \d+% and \d+% of instances per grid date/:
+            - 'img /\d+-\d+-\d+: \d+% of \d+ instances in 5 packages, \d+% in \d+ packages/'
+            - 'img /\d+-\d+-\d+: \d+% of \d+ instances in 6 packages, \d+% in \d+ packages/'
+            - 'img /HEAD: \d+% of \d+ instances in 6 packages, \d+% in \d+ packages/'
+          - group: Show table
+          - text: ""
+        - text: Width
+        - combobox "Width":
+          - option "Single column (3.5 in)"
+          - option "Double column (7 in)" [selected]
+        - button "Download SVG"
+        - button /Download PNG \(\d+ dpi\)/
+        - button "Download PDF"
+        - button "Download data (CSV)"
+        - button "Download caption"
+        - heading "Fixes removed transitively" [level=4]
+        - paragraph: /\d+\.\d+% of \d+ fixes of known kind removed transitively\. \d+ of \d+ fixes have an unknown kind \(no probe outcome after the fix\) and are left out of the share\./
+        - 'figure /Metric version 2\. Share of fixes of known kind removed transitively, per grid interval\. n = \d+ fixes of known kind\. Excluded: \d+ fixes of unknown kind; 6 snapshots failed; 4 snapshots skipped\./':
+          - group "Share of fixes of known kind removed transitively, per grid interval":
+            - 'img /\d+-\d+-\d+ to \d+-\d+-\d+: \d+\.\d+% of \d+ fixes of known kind removed transitively, 5 unknown/'
+            - 'img /\d+-\d+-\d+ to HEAD: \d+\.\d+% of \d+ fixes of known kind removed transitively, \d+ unknown/'
+          - group: Show table
+          - text: ""
+        - text: Width
+        - combobox "Width":
+          - option "Single column (3.5 in)"
+          - option "Double column (7 in)" [selected]
+        - button "Download SVG"
+        - button /Download PNG \(\d+ dpi\)/
+        - button "Download PDF"
+        - button "Download data (CSV)"
+        - button "Download caption"
+        - paragraph: /\d+\.\d+% of fixes dated only to a snapshot interval\. A fix counts in the interval ending at the later snapshot it was seen fixed in\./
+      - region "Load over time":
+        - heading "Load over time" [level=3]
+        - paragraph: Vulnerability instances per grid date, summed over the projects with a done snapshot. Hindsight counts every advisory known today; as-of drops advisories published after the grid date (HEAD uses the experiment's end date). Where the lines meet, the two views agree. Instances whose advisory has no readable publication date stay in both and are counted as undated.
+        - button "Open as Figure"
+        - 'figure /Metric version 2\. Vulnerability instances per grid date, hindsight and as-of views\. n = \d+ to \d+ projects with a done snapshot per grid date\. Excluded: 6 snapshots failed; 4 snapshots skipped\. The as-of view approximates what could be known at each grid date by dropping advisories published after it; an advisory later withdrawn, re-scored or with a widened affected range shows in its current form, not as it read on the grid date\./':
+          - group "Vulnerability instances per grid date, hindsight and as-of views":
+            - 'img /\d+-\d+-\d+: hindsight \d+, as-of \d+, \d+ projects/'
+            - 'img /\d+-\d+-\d+: hindsight \d+, as-of \d+, \d+ projects/'
+            - 'img /HEAD: hindsight \d+, as-of \d+, \d+ projects/'
+          - group: Show table
+          - text: "/Metric version 2\\. Vulnerability instances per grid date, hindsight and as-of views\\. n = \\d+ to \\d+ projects with a done snapshot per grid date\\. Excluded: 6 snapshots failed; 4 snapshots skipped\\. The as-of view approximates what could be known at each grid date by dropping advisories published after it; an advisory later withdrawn, re-scored or with a widened affected range shows in its current form, not as it read on the grid date\\./"
+        - text: Width
+        - combobox "Width":
+          - option "Single column (3.5 in)"
+          - option "Double column (7 in)" [selected]
+        - button "Download SVG"
+        - button /Download PNG \(\d+ dpi\)/
+        - button "Download PDF"
+        - button "Download data (CSV)"
+        - button "Download caption"
+      - region "Provenance":
+        - heading "Provenance" [level=3]
+        - term: Analyzer steps
+        - definition:
+          - list:
+            - listitem: js-sbom v1, vuln-finder v1
+        - term: API version
+        - definition: v1.4.0
+        - term: Created
+        - definition: /Oct 5, \d+, \d+:\d+ AM by John Doe/
+        - term: Started / ended
+        - definition: /Oct 5, \d+, \d+:\d+ AM \/ Oct 6, \d+, \d+:\d+ AM/
+        - term: Knowledge sources, start / end
+        - definition:
+          - list:
+            - listitem: "/nvd: \\d+-\\d+-\\d+ \\/ \\d+-\\d+-\\d+/"
+            - listitem: "/osv: \\d+-\\d+-\\d+ \\/ \\d+-\\d+-\\d+/"
+        - term: EPSS rows, start / end
+        - definition: /\d+,\d+ \/ \d+,\d+/
+    - region "Runs":
+      - heading "Runs" [level=2]
+      - table "Experiment runs":
+        - caption: Experiment runs
+        - rowgroup:
+          - row "Rank Repository Snapshot State Error Commit Analysis":
+            - columnheader "Rank"
+            - columnheader "Repository"
+            - columnheader "Snapshot"
+            - columnheader "State"
+            - columnheader "Error"
+            - columnheader "Commit"
+            - columnheader "Analysis"
+        - rowgroup:
+          - row "#1 acme/repo-1 HEAD Done 0abcdef (main) Open":
+            - cell "#1"
+            - cell "acme/repo-1":
+              - link "acme/repo-1":
+                - /url: https://github.com/acme/repo-1
+            - cell "HEAD"
+            - cell "Done"
+            - cell
+            - cell "0abcdef (main)"
+            - cell "Open":
+              - link "Open":
+                - /url: /results?analysis_id=an-0&project_id=p-0
+          - 'row "#2 acme/repo-2 HEAD Failed 3 attempts missing result: vuln-finder 1abcdef (main)"':
+            - cell "#2"
+            - cell "acme/repo-2":
+              - link "acme/repo-2":
+                - /url: https://github.com/acme/repo-2
+            - cell "HEAD"
+            - cell "Failed 3 attempts"
+            - 'cell "missing result: vuln-finder"'
+            - cell "1abcdef (main)"
+            - cell
+          - row "#3 acme/repo-3 HEAD Skipped repository not found - (main)":
+            - cell "#3"
+            - cell "acme/repo-3":
+              - link "acme/repo-3":
+                - /url: https://github.com/acme/repo-3
+            - cell "HEAD"
+            - cell "Skipped"
+            - cell "repository not found"
+            - cell "- (main)"
+            - cell
+          - row /#4 acme\/repo-4 \d+-\d+-\d+ Done 3abcdef \(main\) Open/:
+            - cell "#4"
+            - cell "acme/repo-4":
+              - link "acme/repo-4":
+                - /url: https://github.com/acme/repo-4
+            - cell /\d+-\d+-\d+/
+            - cell "Done"
+            - cell
+            - cell "3abcdef (main)"
+            - cell "Open":
+              - link "Open":
+                - /url: /results?analysis_id=an-3&project_id=p-3

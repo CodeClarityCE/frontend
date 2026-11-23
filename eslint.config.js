@@ -9,6 +9,7 @@ import testingLibrary from "eslint-plugin-testing-library";
 
 import designSystem from "./eslint-rules/design-system.js";
 import designSystemAllowlist from "./eslint-rules/design-system-allowlist.json" with { type: "json" };
+import noCondensedWhitespace from "./eslint-rules/no-condensed-whitespace.js";
 
 /** @type {import('eslint').Linter.Config[]} */
 export default typescriptEslint.config(
@@ -380,6 +381,22 @@ export default typescriptEslint.config(
   },
 
   // ==========================================
+  // Run-together Text
+  // ==========================================
+  // Flags spaces at an element's edge that Vue's whitespace condensing removes.
+  {
+    files: ["src/**/*.vue"],
+    plugins: {
+      whitespace: {
+        rules: { "no-condensed-whitespace": noCondensedWhitespace },
+      },
+    },
+    rules: {
+      "whitespace/no-condensed-whitespace": "error",
+    },
+  },
+
+  // ==========================================
   // Design System Guardrail
   // ==========================================
   // Bans raw colours, stray icon sets and removed components. Allowlisted files only ever leave the list.
@@ -501,10 +518,6 @@ export default typescriptEslint.config(
             {
               name: "TreeChartLegend",
               path: "src/base_components/data-display/charts/TreeChartLegend.vue",
-            },
-            {
-              name: "PatchingSummary",
-              path: "src/codeclarity_components/results/patching/PatchingSummary.vue",
             },
             {
               name: "SbomImportPaths",

@@ -1,0 +1,60 @@
+- main:
+  - link "Experiments":
+    - /url: /experiments
+  - heading "Fix lag study" [level=1]
+  - text: Completed Preview
+  - paragraph:
+    - text: Analyzer
+    - strong: JavaScript analyzer
+    - text: over Dataset
+    - link "Top npm packages":
+      - /url: /datasets/detail?id=ds-1
+    - text: /, 2 retries per failed run\. Created Oct 5, \d+, \d+:\d+ AM by John Doe\. Started Oct 5, \d+, \d+:\d+ AM, ended Oct 6, \d+, \d+:\d+ AM/
+  - button "Publish"
+  - button "Delete"
+  - region "Progress":
+    - heading "Progress" [level=2]
+    - text: /Finished runs \d+ \/ \d+/
+    - progressbar "Finished runs"
+    - list "Runs by state":
+      - listitem: /Done \d+/
+      - listitem: Failed 6
+      - listitem: Skipped 4
+      - listitem: Pending 0
+  - tablist:
+    - tab "Results"
+    - tab "Figures" [selected]
+  - tabpanel "Figures":
+    - region "Figure":
+      - heading "Figure" [level=3]
+      - text: Metric
+      - combobox "Metric": Load over time
+      - text: Chart form
+      - combobox "Chart form": Line
+      - text: View
+      - combobox "View": No filter
+      - text: Name
+      - textbox "Name"
+      - button "Save" [disabled]
+    - list "Saved Figures"
+    - region "Preview":
+      - heading "Load over time" [level=3]
+      - 'figure "Unpublished results, not for citation. Load over time: Vulnerability instances by Grid date. Sample size not reported. Excluded: 6 snapshots failed; 4 snapshots skipped. The as-of view approximates what could be known at each grid date by dropping advisories published after it; an advisory later withdrawn, re-scored or with a widened affected range shows in its current form, not as it read on the grid date."':
+        - list:
+          - listitem: Hindsight
+          - listitem: As-of
+        - 'group "Load over time: Vulnerability instances per Grid date"':
+          - 'img /\d+-\d+-\d+: Hindsight \d+, As-of \d+/'
+          - 'img /\d+-\d+-\d+: Hindsight \d+, As-of \d+/'
+          - 'img /HEAD: Hindsight \d+, As-of \d+/'
+        - group: Show table
+        - text: "Unpublished results, not for citation. Load over time: Vulnerability instances by Grid date. Sample size not reported. Excluded: 6 snapshots failed; 4 snapshots skipped. The as-of view approximates what could be known at each grid date by dropping advisories published after it; an advisory later withdrawn, re-scored or with a widened affected range shows in its current form, not as it read on the grid date."
+      - text: Width
+      - combobox "Width":
+        - option "Single column (3.5 in)"
+        - option "Double column (7 in)" [selected]
+      - button "Download SVG"
+      - button /Download PNG \(\d+ dpi\)/
+      - button "Download PDF"
+      - button "Download data (CSV)"
+      - button "Download caption"

@@ -1,6 +1,9 @@
 import { expect, type Page, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 
 // The body the API sends for a request that returns no data.
@@ -26,6 +29,7 @@ test.describe("Password reset request", () => {
     await expect(page.getByText(/valid for 30 minutes/)).toBeVisible();
     expect(bodies).toEqual([{ email: "jane@example.com" }]);
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("is reached from the sign in page", async ({ page }) => {
@@ -43,6 +47,7 @@ test.describe("Password reset request", () => {
       page.getByRole("heading", { name: "Reset your password" }),
     ).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("matches the approved screenshots", async ({ page }) => {
@@ -50,7 +55,22 @@ test.describe("Password reset request", () => {
     await expect(
       page.getByRole("heading", { name: "Reset your password" }),
     ).toBeVisible();
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "password-reset-request");
     await expectScreenshots(page, "password-reset-request");
+  });
+
+  describeOnAPhone("On a phone", () => {
+    test("the request form fits without scrolling sideways", async ({
+      page,
+    }) => {
+      await page.goto("/password_reset_request");
+      await expect(
+        page.getByRole("heading", { name: "Reset your password" }),
+      ).toBeVisible();
+      await expectPageSweep(page);
+      await expectScreenshots(page, "password-reset-request");
+    });
   });
 });
 
@@ -86,6 +106,7 @@ test.describe("Password reset from the emailed link", () => {
       },
     ]);
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("offers a new link when this one expired", async ({ page }) => {
@@ -119,6 +140,7 @@ test.describe("Password reset from the emailed link", () => {
       page.getByRole("heading", { name: "Choose a new password" }),
     ).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("matches the approved screenshots", async ({ page }) => {
@@ -126,7 +148,22 @@ test.describe("Password reset from the emailed link", () => {
     await expect(
       page.getByRole("heading", { name: "Choose a new password" }),
     ).toBeVisible();
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "password-reset-form");
     await expectScreenshots(page, "password-reset-form");
+  });
+
+  describeOnAPhone("On a phone", () => {
+    test("the new password form fits without scrolling sideways", async ({
+      page,
+    }) => {
+      await page.goto(resetUrl);
+      await expect(
+        page.getByRole("heading", { name: "Choose a new password" }),
+      ).toBeVisible();
+      await expectPageSweep(page);
+      await expectScreenshots(page, "password-reset-form");
+    });
   });
 });
 
@@ -162,12 +199,26 @@ test.describe("Registration confirmation", () => {
     await expect(page.getByRole("status")).toContainText(
       /redirecting to sign in in 5 seconds/i,
     );
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "registration-confirmed");
     await expectScreenshots(page, "registration-confirmed");
     const signIn = page.getByRole("link", { name: "Go to sign in" });
     await signIn.focus();
     await expectVisibleFocus(signIn);
     await signIn.click();
     await expect(page).toHaveURL(/\/login$/);
+  });
+
+  test("sends the token and user id hash under the names the API validates", async ({
+    page,
+  }) => {
+    await answerConfirmation(page, true);
+    const request = page.waitForRequest("**/api/users/confirm_registration");
+    await page.goto(confirmUrl);
+    expect((await request).postDataJSON()).toEqual({
+      token: "t1",
+      user_id_hash: "u1",
+    });
   });
 
   test("redirects to sign in after the countdown", async ({ page }) => {
@@ -186,6 +237,17 @@ test.describe("Registration confirmation", () => {
       page.getByRole("heading", { name: /registration confirmed/i }),
     ).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+  });
+
+  test("an unknown email link opens the registration confirmation", async ({
+    page,
+  }) => {
+    await answerConfirmation(page, true);
+    await page.goto("/email_action/unknown_page?token=t1&userid=u1");
+    await expect(
+      page.getByRole("heading", { name: /registration confirmed/i }),
+    ).toBeVisible();
   });
 
   test("explains a failed confirmation", async ({ page }) => {
@@ -197,5 +259,21 @@ test.describe("Registration confirmation", () => {
       }),
     ).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+  });
+
+  describeOnAPhone("On a phone", () => {
+    test("the confirmation fits without scrolling sideways", async ({
+      page,
+    }) => {
+      await pauseClock(page);
+      await answerConfirmation(page, true);
+      await page.goto(confirmUrl);
+      await expect(
+        page.getByRole("heading", { name: /registration confirmed/i }),
+      ).toBeVisible();
+      await expectPageSweep(page);
+      await expectScreenshots(page, "registration-confirmed");
+    });
   });
 });

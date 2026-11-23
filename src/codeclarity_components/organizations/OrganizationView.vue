@@ -23,6 +23,9 @@ const CreateOrg = defineAsyncComponent(
 const OrgManageAuditLogs = defineAsyncComponent(
   (() => import("./audit_logs/ManageAuditLogs.vue")) as AsyncComponentLoader,
 ) as Component;
+const OrgManageTokens = defineAsyncComponent(
+  (() => import("./tokens/ManageTokens.vue")) as AsyncComponentLoader,
+) as Component;
 const OrgPolicies = defineAsyncComponent(
   (() => import("./policy/PoliciesView.vue")) as AsyncComponentLoader,
 ) as Component;
@@ -67,6 +70,11 @@ const view = computed(() => orgView(props));
     />
     <OrgManageAuditLogs
       v-else-if="view === 'logs'"
+      :page="props.page!"
+      :org-id="props.orgId!"
+    />
+    <OrgManageTokens
+      v-else-if="view === 'tokens'"
       :page="props.page!"
       :org-id="props.orgId!"
     />

@@ -1,16 +1,17 @@
 import { render, screen, within } from "@testing-library/vue";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+
+import { createTestApp, type TestApp } from "../../../../tests/real-app";
 
 import VulnList from "./VulnList.vue";
 import type { VulnerabilityMerged } from "./VulnStats";
 import VulnTable from "./VulnTable.vue";
 
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token" }),
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
+let app: TestApp;
+beforeEach(async () => {
+  app = createTestApp({ signedIn: true });
+  await app.visit("/projects");
+});
 
 const affected = (version: string, score: number) => ({
   AffectedDependency: "qs",
@@ -41,13 +42,14 @@ const props = {
   projectID: "p-1",
   workspace: ".",
 };
-const global = { stubs: { RouterLink: { template: "<a><slot /></a>" } } };
 
 describe("a CVE found in two versions of a dependency", () => {
   it("shows its worst severity and both versions on the card", () => {
-    render(VulnList, { props, global });
+    render(VulnList, { props, global: app.global });
 
-    const card = screen.getByTestId("vulnerability-card");
+    const card = within(
+      screen.getByRole("list", { name: "Vulnerabilities" }),
+    ).getByRole("article");
     expect(within(card).getByText("Critical")).toBeTruthy();
     expect(within(card).queryByText("Medium")).toBeNull();
     const versions = within(
@@ -68,7 +70,7 @@ describe("a CVE found in two versions of a dependency", () => {
         pageSize: 20,
         pageIndex: 0,
       },
-      global,
+      global: app.global,
     });
 
     expect(screen.getByText("Critical")).toBeTruthy();
@@ -77,17 +79,6 @@ describe("a CVE found in two versions of a dependency", () => {
     expect(screen.getByText("qs@6.5.0")).toBeTruthy();
   });
 });
-
-// Renders a route's query as the link's href, so tests can read where it goes.
-const LinkWithQuery = {
-  props: ["to"],
-  computed: {
-    href(this: { to: { query: Record<string, string> } }): string {
-      return `?${new URLSearchParams(this.to.query).toString()}`;
-    },
-  },
-  template: '<a :href="href"><slot /></a>',
-};
 
 const lodashAt = (version: string) => ({
   AffectedDependency: "lodash",
@@ -105,14 +96,14 @@ const threeVersions = {
 
 function linkQuery(link: HTMLElement): Record<string, string> {
   const href = link.closest("a")!.getAttribute("href")!;
-  return Object.fromEntries(new URLSearchParams(href));
+  return Object.fromEntries(new URL(href, "https://app.test").searchParams);
 }
 
 describe("detail links of a CVE found in three versions", () => {
   it("links each affected version to its own detail", () => {
     render(VulnList, {
       props: { ...props, findings: [threeVersions] },
-      global: { stubs: { RouterLink: LinkWithQuery } },
+      global: app.global,
     });
 
     const badges = within(

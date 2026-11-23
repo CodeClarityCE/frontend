@@ -12,27 +12,6 @@
 
 export type Grade = "A+" | "A" | "B+" | "B" | "C+" | "C" | "D+" | "D";
 
-export interface GradeThreshold {
-  grade: Grade;
-  minScore: number;
-  label: string;
-}
-
-/**
- * Grade thresholds on a 0-100% scale
- * These thresholds are shared between frontend and should match backend
- */
-export const GRADE_THRESHOLDS: GradeThreshold[] = [
-  { grade: "A+", minScore: 95, label: "Excellent" },
-  { grade: "A", minScore: 90, label: "Excellent" },
-  { grade: "B+", minScore: 85, label: "Good" },
-  { grade: "B", minScore: 75, label: "Good" },
-  { grade: "C+", minScore: 65, label: "Fair" },
-  { grade: "C", minScore: 55, label: "Fair" },
-  { grade: "D+", minScore: 45, label: "Poor" },
-  { grade: "D", minScore: 0, label: "Poor" },
-];
-
 /**
  * Tooltip display ranges for each grade tier
  */
@@ -55,14 +34,6 @@ export function scoreToGrade(score: number): Grade {
   if (score >= 55) return "C";
   if (score >= 45) return "D+";
   return "D";
-}
-
-/**
- * Convert a 0-10 scale score to a letter grade
- * Useful for CVSS-based scores
- */
-export function score10ToGrade(score: number): Grade {
-  return scoreToGrade(score * 10);
 }
 
 /**

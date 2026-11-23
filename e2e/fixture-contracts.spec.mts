@@ -5,7 +5,11 @@ import authUser from "./contracts/auth-user.json" with { type: "json" };
 import licensePolicy from "./contracts/license-policy.json" with { type: "json" };
 import licensePolicyList from "./contracts/license-policy-list.json" with { type: "json" };
 import members from "./contracts/members.json" with { type: "json" };
+import orgVulnerability from "./contracts/org-vulnerability.json" with { type: "json" };
+import orgVulnerabilityFreshness from "./contracts/org-vulnerability-freshness.json" with { type: "json" };
 import organizationList from "./contracts/organization-list.json" with { type: "json" };
+import organizationTokenCreated from "./contracts/organization-token-created.json" with { type: "json" };
+import organizationTokenList from "./contracts/organization-token-list.json" with { type: "json" };
 import projectTickets from "./contracts/project-tickets.json" with { type: "json" };
 import ticketDetail from "./contracts/ticket-detail.json" with { type: "json" };
 import { shapeDiff } from "./helpers/shape.mjs";
@@ -13,6 +17,16 @@ import { AnalysesPage } from "./pages/analyses.page.mjs";
 import { OrgMembersPage } from "./pages/org-members.page.mjs";
 import { OrgPoliciesPage } from "./pages/org-policies.page.mjs";
 import { OrgSettingsPage } from "./pages/org-settings.page.mjs";
+import {
+  createdToken,
+  tokenList,
+  tokenSummary,
+} from "./pages/org-tokens.page.mjs";
+import {
+  notYetChecked,
+  OrgVulnerabilityPage,
+  VULNERABILITY,
+} from "./pages/org-vulnerability.page.mjs";
 import {
   ANALYSIS,
   PROJECT,
@@ -194,6 +208,29 @@ const contracts = [
       records: ["$.data.steps[][].Config"],
     },
   },
+  {
+    name: "organisation vulnerability",
+    capture: orgVulnerability,
+    path: `/api/org/org-123/vulnerabilities/${VULNERABILITY}`,
+    signIn: (page: Page) => new OrgVulnerabilityPage(page).signIn(),
+    // Only some instances have an open ticket, and no dev vulnerability is
+    // in the KEV catalog.
+    rules: {
+      nullable: [
+        "$.data.projects[].instances[].ticket",
+        "$.data.details.known_exploited",
+      ],
+    },
+  },
+  {
+    name: "projects not yet checked",
+    capture: orgVulnerabilityFreshness,
+    path: `/api/org/org-123/vulnerabilities/${VULNERABILITY}/freshness`,
+    signIn: (page: Page) =>
+      new OrgVulnerabilityPage(page).signIn({ notYetChecked: [notYetChecked] }),
+    // Every dev project was analysed after its vulnerabilities were published.
+    rules: { nullable: ["$.data.projects"] },
+  },
 ];
 
 test.describe("Fixture contracts", () => {
@@ -213,4 +250,19 @@ test.describe("Fixture contracts", () => {
       ).toEqual([]);
     });
   }
+});
+
+// A POST answer, so the fixture is compared directly rather than fetched.
+test("created organization token fixture matches POST /org/:org/tokens", () => {
+  const fixture = createdToken({
+    name: "ci-pipeline",
+    scope: "analyze",
+    expires_on: "2026-12-13T12:00:00.000Z",
+  });
+  expect(shapeDiff(fixture, organizationTokenCreated.response)).toEqual([]);
+});
+
+test("organization token list fixture matches GET /org/:org/tokens", () => {
+  const fixture = tokenList([tokenSummary()]);
+  expect(shapeDiff(fixture, organizationTokenList.response)).toEqual([]);
 });

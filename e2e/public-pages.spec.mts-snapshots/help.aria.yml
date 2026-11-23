@@ -1,0 +1,27 @@
+- main:
+  - heading "How can we help?" [level=1]
+  - region "Frequently asked questions":
+    - heading "Frequently asked questions" [level=2]
+    - heading "What is Software Composition Analysis (SCA)?" [level=3]:
+      - button "What is Software Composition Analysis (SCA)?"
+    - heading "Does SCA find non-disclosed vulnerabilities?" [level=3]:
+      - button "Does SCA find non-disclosed vulnerabilities?"
+    - heading "Where can I upload/import my projects?" [level=3]:
+      - button "Where can I upload/import my projects?"
+    - heading "Can I upload/import projects that are not stored in a Versions Control System?" [level=3]:
+      - button "Can I upload/import projects that are not stored in a Versions Control System?"
+    - heading "What can I do, if a vulnerable component is not patchable?" [level=3]:
+      - button "What can I do, if a vulnerable component is not patchable?"
+    - heading "I found an error in a vulnerability description." [level=3]:
+      - button "I found an error in a vulnerability description."
+    - heading "A vulnerability was reported which does not affect my project." [level=3]:
+      - button "A vulnerability was reported which does not affect my project."
+    - heading "Where do you source vulnerability information?" [level=3]:
+      - button "Where do you source vulnerability information?"
+  - region "Contact us":
+    - heading "Contact us" [level=2]
+    - paragraph:
+      - text: Email
+      - link "contact@codeclarity.io":
+        - /url: mailto:contact@codeclarity.io
+      - text: .

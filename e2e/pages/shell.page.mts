@@ -33,7 +33,7 @@ function paginated(data: unknown[]): Record<string, unknown> {
   };
 }
 
-export const datasets = [
+const datasets = [
   {
     id: "ds-1",
     name: "Top npm packages",
@@ -55,7 +55,7 @@ export const datasets = [
   },
 ];
 
-export const experiments = [
+const experiments = [
   {
     id: "exp-1",
     name: "Fix lag study",
@@ -80,7 +80,7 @@ export const experiments = [
   },
 ];
 
-export const projects = [
+const projects = [
   {
     id: "proj-1",
     name: "web-frontend",
@@ -180,13 +180,19 @@ export class ShellPage {
 
   async goto(path = "/datasets"): Promise<void> {
     await this.page.goto(path);
-    await this.nav.waitFor();
+    await this.waitForShell();
   }
 
   /** Reloads and waits for the shell, so its keyboard shortcuts are listening. */
   async reload(): Promise<void> {
     await this.page.reload();
-    await this.nav.waitFor();
+    await this.waitForShell();
+  }
+
+  // Below the sidebar breakpoint the shell shows a header instead of the nav.
+  private async waitForShell(): Promise<void> {
+    const width = this.page.viewportSize()?.width ?? 1280;
+    await (width < 768 ? this.mobileHeader : this.nav).waitFor();
   }
 
   /** Hides the routed page so screenshots show only the shell. */

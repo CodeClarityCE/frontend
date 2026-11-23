@@ -2,7 +2,8 @@
 import BrandHeader from "@/codeclarity_components/authentication/layout/BrandHeader.vue";
 import { useAuthStore } from "@/stores/auth";
 
-// Frame for pages open to everyone; signed-in users already have the app shell.
+// Frame for pages open to everyone; signed-in users already have the app shell
+// and its main landmark.
 const authStore = useAuthStore();
 </script>
 
@@ -16,7 +17,7 @@ const authStore = useAuthStore();
       <slot />
     </main>
   </div>
-  <main v-else class="px-8 py-12 text-foreground">
+  <div v-else class="px-8 py-12 text-foreground">
     <slot />
-  </main>
+  </div>
 </template>

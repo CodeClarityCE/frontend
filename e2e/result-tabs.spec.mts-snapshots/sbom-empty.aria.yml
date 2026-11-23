@@ -1,0 +1,21 @@
+- main:
+  - heading "Results" [level=1]
+  - paragraph: web-frontend
+  - tablist "Results":
+    - tab "SBOM" [selected]
+    - tab "Licenses"
+    - tab "CodeQL"
+  - tabpanel "SBOM":
+    - region "Software bill of materials":
+      - heading "Software bill of materials" [level=2]
+      - text: Language JavaScript Workspace Root
+      - img "The CodeClarity owl"
+      - heading "No dependencies found" [level=2]
+      - paragraph:
+        - text: The analysis found no dependencies. A project needs a package manifest, such as
+        - link "package.json":
+          - /url: https://docs.npmjs.com/cli/configuring-npm/package-json
+        - text: ", next to its lockfile. If your project has both, write to"
+        - link "help@codeclarity.io":
+          - /url: mailto:help@codeclarity.io
+        - text: .

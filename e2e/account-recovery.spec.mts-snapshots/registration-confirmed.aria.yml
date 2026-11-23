@@ -1,0 +1,6 @@
+- main:
+  - heading "Registration confirmed" [level=1]
+  - paragraph: Your account is ready. You can now sign in.
+  - status: Redirecting to sign in in 5 seconds.
+  - link "Go to sign in":
+    - /url: /login

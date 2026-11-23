@@ -1,0 +1,96 @@
+- main:
+  - link "Experiments":
+    - /url: /experiments
+  - heading /Residence time \d+/ [level=1]
+  - text: Running Preview
+  - paragraph:
+    - text: Analyzer
+    - strong: JavaScript analyzer
+    - text: over Dataset
+    - link "Top npm packages":
+      - /url: /datasets/detail?id=ds-1
+    - text: /, 2 retries per failed run\. Created Oct 5, \d+, \d+:\d+ AM by John Doe\. Started Oct 5, \d+, \d+:\d+ AM, ended -/
+  - button "Cancel Experiment"
+  - button "Delete"
+  - region "Progress":
+    - heading "Progress" [level=2]
+    - text: /Finished runs \d+ \/ \d+/
+    - progressbar "Finished runs"
+    - list "Runs by state":
+      - listitem: /Done \d+/
+      - listitem: Failed 6
+      - listitem: Skipped 4
+      - listitem: /Pending \d+/
+  - tablist:
+    - tab "Results" [selected]
+    - tab "Figures"
+  - tabpanel "Results":
+    - region "Results":
+      - heading "Results" [level=2]
+      - group "Downloads":
+        - button "runs.csv"
+        - button "vulnerabilities.csv"
+        - button "exposures.csv"
+        - button "fixes.csv"
+        - button "results.json"
+      - status:
+        - paragraph: "/Reading stored results: \\d+ of \\d+ commits \\(\\d+%\\)/"
+        - 'progressbar /Reading stored results: \d+ of \d+ commits \(\d+%\)/'
+    - region "Runs":
+      - heading "Runs" [level=2]
+      - table "Experiment runs":
+        - caption: Experiment runs
+        - rowgroup:
+          - row "Rank Repository Snapshot State Error Commit Analysis":
+            - columnheader "Rank"
+            - columnheader "Repository"
+            - columnheader "Snapshot"
+            - columnheader "State"
+            - columnheader "Error"
+            - columnheader "Commit"
+            - columnheader "Analysis"
+        - rowgroup:
+          - row "#1 acme/repo-1 HEAD Done 0abcdef (main) Open":
+            - cell "#1"
+            - cell "acme/repo-1":
+              - link "acme/repo-1":
+                - /url: https://github.com/acme/repo-1
+            - cell "HEAD"
+            - cell "Done"
+            - cell
+            - cell "0abcdef (main)"
+            - cell "Open":
+              - link "Open":
+                - /url: /results?analysis_id=an-0&project_id=p-0
+          - 'row "#2 acme/repo-2 HEAD Failed 3 attempts missing result: vuln-finder 1abcdef (main)"':
+            - cell "#2"
+            - cell "acme/repo-2":
+              - link "acme/repo-2":
+                - /url: https://github.com/acme/repo-2
+            - cell "HEAD"
+            - cell "Failed 3 attempts"
+            - 'cell "missing result: vuln-finder"'
+            - cell "1abcdef (main)"
+            - cell
+          - row "#3 acme/repo-3 HEAD Skipped repository not found - (main)":
+            - cell "#3"
+            - cell "acme/repo-3":
+              - link "acme/repo-3":
+                - /url: https://github.com/acme/repo-3
+            - cell "HEAD"
+            - cell "Skipped"
+            - cell "repository not found"
+            - cell "- (main)"
+            - cell
+          - row /#4 acme\/repo-4 \d+-\d+-\d+ Done 3abcdef \(main\) Open/:
+            - cell "#4"
+            - cell "acme/repo-4":
+              - link "acme/repo-4":
+                - /url: https://github.com/acme/repo-4
+            - cell /\d+-\d+-\d+/
+            - cell "Done"
+            - cell
+            - cell "3abcdef (main)"
+            - cell "Open":
+              - link "Open":
+                - /url: /results?analysis_id=an-3&project_id=p-3

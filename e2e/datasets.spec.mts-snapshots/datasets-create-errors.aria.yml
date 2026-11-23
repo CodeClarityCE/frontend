@@ -1,0 +1,37 @@
+- main:
+  - link "Datasets":
+    - /url: /datasets
+  - heading "New Dataset" [level=1]
+  - paragraph:
+    - text: Rank GitHub repositories by stars and keep the first ones whose root commits a
+    - code: package.json
+    - text: and a lockfile (
+    - code: package-lock.json
+    - text: ","
+    - code: yarn.lock
+    - text: ","
+    - code: pnpm-lock.yaml
+    - text: or
+    - code: npm-shrinkwrap.json
+    - text: ).
+  - text: Name
+  - textbox "Name" [invalid]:
+    - /placeholder: top100-2026-10
+  - paragraph: A name is required
+  - text: GitHub integration
+  - combobox "GitHub integration": github.com (added by John Doe)
+  - paragraph: Its token is used for every GitHub request of the build.
+  - group "Languages":
+    - text: ""
+    - checkbox "JavaScript" [checked]
+    - text: JavaScript
+    - checkbox "TypeScript" [checked]
+    - text: TypeScript
+  - text: Repositories
+  - spinbutton "Repositories": /\d+/
+  - text: Search pages per language
+  - spinbutton "Search pages per language": "3"
+  - paragraph: /\d+ candidates per page/
+  - text: Minimum stars
+  - spinbutton "Minimum stars": /\d+/
+  - button "Build Dataset"

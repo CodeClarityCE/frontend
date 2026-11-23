@@ -1,0 +1,48 @@
+- main:
+  - heading "Experiments" [level=1]
+  - paragraph: One analyzer run over every repository of a Dataset, at each date of a snapshot grid.
+  - link "New Experiment":
+    - /url: /experiments/add
+  - searchbox "Filter Experiments"
+  - table "Experiments":
+    - caption: Experiments
+    - rowgroup:
+      - row "Name Status Dataset Finished runs Created":
+        - columnheader "Name":
+          - button "Name"
+        - columnheader "Status":
+          - button "Status"
+        - columnheader "Dataset":
+          - button "Dataset"
+        - columnheader "Finished runs":
+          - button "Finished runs"
+        - columnheader "Created":
+          - button "Created"
+    - rowgroup:
+      - row /Fix lag study JavaScript analyzer Completed Top npm packages \d+ \/ \d+ Oct 5, \d+/:
+        - cell "Fix lag study JavaScript analyzer":
+          - link "Fix lag study":
+            - /url: /experiments/detail?id=exp-1
+          - text: ""
+        - cell "Completed"
+        - cell "Top npm packages"
+        - cell /\d+ \/ \d+/
+        - cell /Oct 5, \d+/
+      - row /Residence time \d+ JavaScript analyzer Running Top npm packages \d+ \/ \d+ Nov 2, \d+/:
+        - cell /Residence time \d+ JavaScript analyzer/:
+          - link /Residence time \d+/:
+            - /url: /experiments/detail?id=exp-2
+          - text: ""
+        - cell "Running"
+        - cell "Top npm packages"
+        - cell /\d+ \/ \d+/
+        - cell /Nov 2, \d+/
+      - row /Broken cohort JavaScript analyzer Failed Frameworks \d+ 0 \/ \d+ Sep \d+, \d+/:
+        - cell "Broken cohort JavaScript analyzer":
+          - link "Broken cohort":
+            - /url: /experiments/detail?id=exp-3
+          - text: ""
+        - cell "Failed"
+        - cell /Frameworks \d+/
+        - cell /0 \/ \d+/
+        - cell /Sep \d+, \d+/

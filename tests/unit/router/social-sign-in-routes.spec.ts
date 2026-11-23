@@ -1,9 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-// The shared test setup mocks the router; this spec needs the real routes.
-vi.unmock("@/router");
-
-const { default: router } = await import("@/router");
+import router from "@/router";
 
 describe("router", () => {
   it.each(["/auth/github/callback", "/auth/gitlab/callback"])(

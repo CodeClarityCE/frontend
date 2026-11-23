@@ -9,7 +9,7 @@ const BASE = `**/api/org/${ORG}/experiments/exp-1`;
 type RunStatus = "pending" | "done" | "failed" | "skipped";
 
 /** One Experiment run as the API returns it. */
-export function run(
+function run(
   rank: number,
   status: RunStatus,
   overrides: Record<string, unknown> = {},
@@ -41,7 +41,7 @@ export function run(
   };
 }
 
-export const sampleRuns = [
+const sampleRuns = [
   run(0, "done"),
   run(1, "failed", {
     attempts: 3,
@@ -123,7 +123,7 @@ const scalars = {
 };
 
 /** Results of a finished Experiment with a three-date grid. */
-export const sampleResults = {
+const sampleResults = {
   coverage: {
     runs: 400,
     attempted: 400,
@@ -387,7 +387,7 @@ export const sampleResults = {
   },
 };
 
-export const sampleCatalog = {
+const sampleCatalog = {
   metrics: [
     {
       id: "load_over_time",
@@ -408,7 +408,7 @@ export const sampleCatalog = {
   ],
 };
 
-export const sampleFigureData = {
+const sampleFigureData = {
   x_title: "Grid date",
   y_title: "Vulnerability instances",
   labels: ["2026-08-01", "2026-09-01", "HEAD"],
@@ -517,7 +517,9 @@ export class ExperimentDetailPage {
 
   /** The runs table's body rows. */
   runRows(): Locator {
-    return this.runsTable.locator("tbody tr");
+    return this.runsTable
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell") });
   }
 
   /** A results section, by its heading. */

@@ -1,64 +1,21 @@
-import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { render, screen, waitFor } from "@testing-library/vue";
+import { flushPromises } from "@vue/test-utils";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { IMPORT_CONCURRENCY } from "@/codeclarity_components/projects/create/import/projectImport";
-import router from "@/router";
+
+import {
+  createTestApp,
+  org,
+  type TestApp,
+  withToaster,
+} from "../../../../tests/real-app";
 
 import DatasetDetail from "./DatasetDetail.vue";
 
-const {
-  getDataset,
-  getDatasetEntries,
-  deleteDataset,
-  createProject,
-  successToast,
-  errorToast,
-} = vi.hoisted(() => ({
-  getDataset: vi.fn(),
-  getDatasetEntries: vi.fn(),
-  deleteDataset: vi.fn(),
-  createProject: vi.fn(),
-  successToast: vi.fn(),
-  errorToast: vi.fn(),
-}));
-
-vi.mock("../datasets.repository", () => ({
-  DatasetsRepository: class {
-    getDataset = getDataset;
-    getDatasetEntries = getDatasetEntries;
-    deleteDataset = deleteDataset;
-  },
-}));
-
-vi.mock("@/codeclarity_components/projects/project.repository", () => ({
-  ProjectRepository: class {
-    createProject = createProject;
-  },
-}));
-
-vi.mock("@/utils/toasts", () => ({ successToast, errorToast }));
-
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BaseRepository: class {},
-  BusinessLogicError: class BusinessLogicError extends Error {
-    error_code: string;
-    constructor(error_code: string) {
-      super(error_code);
-      this.error_code = error_code;
-    }
-  },
-}));
-
-vi.mock("vue-router", () => ({
-  useRoute: () => ({ query: { id: "ds-1" } }),
-}));
-
-vi.mock("@/shadcn/ui/progress", () => ({
-  Progress: {
-    props: ["modelValue"],
-    template: '<div data-testid="progress" :data-value="modelValue" />',
-  },
-}));
+const datasetPath = `/org/${org.id}/datasets/ds-1`;
+const projectsPath = `/org/${org.id}/projects`;
 
 const params = {
   languages: ["JavaScript"],
@@ -95,7 +52,7 @@ function dataset(status: string, overrides: object = {}): object {
     entry_count: status === "READY" ? 3 : 0,
     integration_id: "gh-1",
     created_by_name: "John Doe",
-    created_on: new Date("2026-10-30T10:00:00Z"),
+    created_on: "2026-10-30T10:00:00.000Z",
     built_on: null,
     ...overrides,
   };
@@ -116,179 +73,257 @@ function entry(rank: number): object {
   };
 }
 
-const entries = [entry(0), entry(1), entry(2)];
-
-function mountDetail(): VueWrapper {
-  return mount(DatasetDetail, {
-    global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
-  });
+function page(data: object[]): object {
+  return {
+    data,
+    entry_count: data.length,
+    page: 0,
+    entries_per_page: 500,
+    total_entries: data.length,
+    total_pages: 1,
+    status: "success",
+    matching_count: data.length,
+    filter_count: {},
+  };
 }
 
-describe("DatasetDetail", () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-    getDataset.mockReset();
-    getDatasetEntries
-      .mockReset()
-      .mockResolvedValue({ data: entries, total_pages: 1 });
-    createProject.mockReset().mockResolvedValue({ id: "p" });
-    successToast.mockReset();
-    errorToast.mockReset();
+const apiError = (error_code: string, status_code = 409): object => ({
+  status_code,
+  status: "failure",
+  error_code,
+  error_message: error_code,
+});
+
+const json = (body: unknown, status = 200): Response =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
   });
 
+// Answers each project import by the repository it names, still recording the request.
+function answerImports(
+  answer: (url: string) => Response | Promise<Response>,
+): void {
+  const fake = globalThis.fetch;
+  vi.stubGlobal(
+    "fetch",
+    async (input: string | URL, init: RequestInit = {}): Promise<Response> => {
+      const response = fake(input, init);
+      const path = new URL(String(input)).pathname;
+      if (init.method === "POST" && path.endsWith(projectsPath)) {
+        const body = JSON.parse(init.body as string) as { url: string };
+        return answer(body.url);
+      }
+      return response;
+    },
+  );
+}
+
+// Opens the dataset's page with the dataset and entries the API answers.
+async function openDetail(
+  answer: object,
+  entries: object[] = [entry(0), entry(1), entry(2)],
+): Promise<TestApp> {
+  const app = createTestApp({ signedIn: true });
+  app.http.on("GET", datasetPath, { data: answer });
+  app.http.on("GET", `${datasetPath}/entries`, page(entries));
+  await app.visit("/datasets/detail?id=ds-1");
+  render(withToaster(DatasetDetail), { global: app.global });
+  await flushPromises();
+  return app;
+}
+
+const datasetRequests = (app: TestApp) =>
+  app.http.requests.filter((r) => r.method === "GET" && r.path === datasetPath);
+
+const importRequests = (app: TestApp) =>
+  app.http.requests.filter(
+    (r) => r.method === "POST" && r.path === projectsPath,
+  );
+
+describe("DatasetDetail", () => {
   afterEach(() => {
     vi.useRealTimers();
   });
 
   it("polls while building, then shows the entries once READY", async () => {
-    getDataset
-      .mockResolvedValueOnce({ data: dataset("BUILDING") })
-      .mockResolvedValueOnce({ data: dataset("READY") });
-    const wrapper = mountDetail();
-    await flushPromises();
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const app = await openDetail(dataset("BUILDING"));
 
-    expect(wrapper.find('[data-testid="dataset-status"]').text()).toBe(
-      "Building",
-    );
-    expect(getDatasetEntries).not.toHaveBeenCalled();
+    expect(screen.getByTestId("dataset-status")).toHaveTextContent("Building");
+    expect(screen.queryAllByTestId("dataset-entry")).toHaveLength(0);
 
+    app.http.on("GET", datasetPath, { data: dataset("READY") });
     await vi.advanceTimersByTimeAsync(5000);
     await flushPromises();
 
-    expect(wrapper.find('[data-testid="dataset-status"]').text()).toBe("Ready");
-    expect(wrapper.findAll('[data-testid="dataset-entry"]')).toHaveLength(3);
-    expect(wrapper.find('[data-testid="dataset-stats"]').text()).toContain(
+    expect(screen.getByTestId("dataset-status")).toHaveTextContent("Ready");
+    expect(screen.getAllByTestId("dataset-entry")).toHaveLength(3);
+    expect(screen.getByTestId("dataset-stats")).toHaveTextContent(
       "No root lockfile: 1",
     );
 
     // Ready datasets are not polled any more
     await vi.advanceTimersByTimeAsync(20_000);
-    expect(getDataset).toHaveBeenCalledTimes(2);
+    expect(datasetRequests(app)).toHaveLength(2);
   });
 
-  it("stops polling when unmounted", async () => {
-    getDataset.mockResolvedValue({ data: dataset("BUILDING") });
-    const wrapper = mountDetail();
+  it("stops polling when the page closes", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const app = createTestApp({ signedIn: true });
+    app.http.on("GET", datasetPath, { data: dataset("BUILDING") });
+    await app.visit("/datasets/detail?id=ds-1");
+    const { unmount } = render(DatasetDetail, { global: app.global });
     await flushPromises();
 
-    wrapper.unmount();
+    unmount();
     await vi.advanceTimersByTimeAsync(20_000);
 
-    expect(getDataset).toHaveBeenCalledTimes(1);
+    expect(datasetRequests(app)).toHaveLength(1);
   });
 
   it("shows why a build failed", async () => {
-    getDataset.mockResolvedValue({
-      data: dataset("FAILED", { error: "Bad credentials" }),
-    });
-    const wrapper = mountDetail();
-    await flushPromises();
+    await openDetail(dataset("FAILED", { error: "Bad credentials" }));
 
-    expect(wrapper.find('[data-testid="dataset-error"]').text()).toContain(
+    expect(screen.getByTestId("dataset-error")).toHaveTextContent(
       "Bad credentials",
     );
-    expect(wrapper.find('[data-testid="dataset-import"]').exists()).toBe(false);
+    expect(
+      screen.queryByRole("button", { name: "Import as projects" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("says so when the dataset does not exist", async () => {
+    const app = createTestApp({ signedIn: true });
+    app.http.on("GET", datasetPath, apiError("EntityNotFound", 404), 404);
+    await app.visit("/datasets/detail?id=ds-1");
+    render(DatasetDetail, { global: app.global });
+
+    expect(
+      await screen.findByRole("heading", { name: "Dataset not found" }),
+    ).toBeInTheDocument();
   });
 
   it("imports every entry as a project, counting already imported ones", async () => {
-    const { BusinessLogicError } = await import("@/utils/api/BaseRepository");
-    const Err = BusinessLogicError as unknown as new (code: string) => Error;
-    getDataset.mockResolvedValue({ data: dataset("READY") });
-    createProject
-      .mockResolvedValueOnce({ id: "p0" })
-      .mockRejectedValueOnce(new Err("AlreadyExists"))
-      .mockRejectedValueOnce(new Err("FailedToRetrieveReposFromProvider"));
-    const wrapper = mountDetail();
-    await flushPromises();
+    const app = await openDetail(dataset("READY"));
+    answerImports((url) => {
+      if (url.endsWith("repo-0")) return json({ id: "p0" }, 201);
+      if (url.endsWith("repo-1")) return json(apiError("AlreadyExists"), 409);
+      return json(apiError("FailedToRetrieveReposFromProvider", 400), 400);
+    });
+    const typist = userEvent.setup();
 
-    await wrapper.find('[data-testid="dataset-import"]').trigger("click");
-    await wrapper
-      .find('[data-testid="dataset-import-confirm"]')
-      .trigger("click");
-    await flushPromises();
+    await typist.click(
+      screen.getByRole("button", { name: "Import as projects" }),
+    );
+    await typist.click(
+      screen.getByRole("button", { name: "Import 3 projects" }),
+    );
 
-    expect(createProject).toHaveBeenCalledTimes(3);
-    expect(createProject).toHaveBeenCalledWith(
-      expect.objectContaining({
-        orgId: "test-org-id",
-        data: { integration_id: "gh-1", url: "https://github.com/org/repo-0" },
-      }),
-    );
-    expect(successToast).toHaveBeenCalledWith(
-      "Imported 1 projects, 1 already imported",
-    );
-    const failures = wrapper.find('[data-testid="dataset-import-failures"]');
-    expect(failures.text()).toContain("org/repo-2");
-    expect(failures.text()).not.toContain("org/repo-1");
+    expect(
+      await screen.findByText("Imported 1 projects, 1 already imported"),
+    ).toBeInTheDocument();
+    expect(importRequests(app).map((r) => r.body)).toContainEqual({
+      integration_id: "gh-1",
+      url: "https://github.com/org/repo-0",
+    });
+    expect(importRequests(app)).toHaveLength(3);
+    const failures = screen.getByTestId("dataset-import-failures");
+    expect(failures).toHaveTextContent("org/repo-2");
+    expect(failures).not.toHaveTextContent("org/repo-1");
+    expect(
+      screen.getByText("Failed to import 1 repositories"),
+    ).toBeInTheDocument();
   });
 
-  it("keeps at most IMPORT_CONCURRENCY imports in flight", async () => {
+  it(`keeps at most ${IMPORT_CONCURRENCY} imports in flight`, async () => {
     const many = Array.from({ length: 10 }, (_, i) => entry(i));
-    getDataset.mockResolvedValue({
-      data: dataset("READY", { entry_count: 10 }),
-    });
-    getDatasetEntries.mockResolvedValue({ data: many, total_pages: 1 });
+    const app = await openDetail(dataset("READY", { entry_count: 10 }), many);
     const pending: (() => void)[] = [];
-    createProject.mockImplementation(
+    answerImports(
       () =>
-        new Promise<void>((resolve) => {
-          pending.push(resolve);
+        new Promise<Response>((resolve) => {
+          pending.push(() => resolve(json({ id: "p" }, 201)));
         }),
     );
-    const wrapper = mountDetail();
+    const typist = userEvent.setup();
+
+    await typist.click(
+      screen.getByRole("button", { name: "Import as projects" }),
+    );
+    await typist.click(
+      screen.getByRole("button", { name: "Import 10 projects" }),
+    );
+    await waitFor(() =>
+      expect(importRequests(app)).toHaveLength(IMPORT_CONCURRENCY),
+    );
     await flushPromises();
 
-    await wrapper.find('[data-testid="dataset-import"]').trigger("click");
-    await wrapper
-      .find('[data-testid="dataset-import-confirm"]')
-      .trigger("click");
-    await flushPromises();
-
-    expect(createProject).toHaveBeenCalledTimes(IMPORT_CONCURRENCY);
-    pending.forEach((resolve) => resolve());
+    expect(importRequests(app)).toHaveLength(IMPORT_CONCURRENCY);
+    expect(screen.getByText("Importing projects")).toBeInTheDocument();
+    await waitFor(() => {
+      while (pending.length) pending.shift()!();
+      expect(screen.getByText("Import finished")).toBeInTheDocument();
+    });
+    expect(importRequests(app)).toHaveLength(10);
   });
 
   it("asks for confirmation before deleting", async () => {
-    getDataset.mockResolvedValue({ data: dataset("READY") });
-    deleteDataset.mockResolvedValue({});
-    const wrapper = mountDetail();
-    await flushPromises();
+    const app = await openDetail(dataset("READY"));
+    app.http.on("DELETE", datasetPath, {
+      status_code: 200,
+      status: "success",
+    });
+    const typist = userEvent.setup();
 
-    await wrapper.find('[data-testid="dataset-delete"]').trigger("click");
-    expect(deleteDataset).not.toHaveBeenCalled();
-    await wrapper
-      .find('[data-testid="dataset-delete-confirm"]')
-      .trigger("click");
-    await flushPromises();
+    await typist.click(screen.getByRole("button", { name: "Delete" }));
+    expect(app.http.requests.some((r) => r.method === "DELETE")).toBe(false);
+    await typist.click(screen.getByRole("button", { name: "Confirm delete" }));
 
-    expect(deleteDataset).toHaveBeenCalledWith(
-      expect.objectContaining({ orgId: "test-org-id", datasetId: "ds-1" }),
+    expect(await screen.findByText("Dataset deleted")).toBeInTheDocument();
+    expect(
+      app.http.requests.filter((r) => r.method === "DELETE"),
+    ).toMatchObject([{ path: datasetPath }]);
+    await waitFor(() =>
+      expect(app.router.currentRoute.value.path).toBe("/datasets"),
     );
   });
+
+  it("tells a member that only admins delete datasets", async () => {
+    const app = await openDetail(dataset("READY"));
+    app.http.on("DELETE", datasetPath, apiError("NotAuthorized", 403), 403);
+    const typist = userEvent.setup();
+
+    await typist.click(screen.getByRole("button", { name: "Delete" }));
+    await typist.click(screen.getByRole("button", { name: "Confirm delete" }));
+
+    expect(
+      await screen.findByText("Only organization admins can delete datasets"),
+    ).toBeInTheDocument();
+  });
+
   it("runs an experiment on a READY dataset, preselecting it", async () => {
-    getDataset.mockResolvedValue({ data: dataset("READY") });
-    vi.mocked(router.push).mockClear();
-    const wrapper = mountDetail();
-    await flushPromises();
+    const app = await openDetail(dataset("READY"));
 
-    await wrapper
-      .find('[data-testid="dataset-run-experiment"]')
-      .trigger("click");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Run Experiment" }),
+    );
 
-    expect(router.push).toHaveBeenCalledWith({
-      name: "experiments",
-      params: { page: "add" },
-      query: { dataset: "ds-1" },
-    });
+    await waitFor(() =>
+      expect(app.router.currentRoute.value.fullPath).toBe(
+        "/experiments/add?dataset=ds-1",
+      ),
+    );
   });
 
   it("does not offer an experiment before the dataset is READY", async () => {
-    getDataset.mockResolvedValue({ data: dataset("BUILDING") });
-    const wrapper = mountDetail();
-    await flushPromises();
+    await openDetail(dataset("BUILDING"));
 
     expect(
-      wrapper.find('[data-testid="dataset-run-experiment"]').exists(),
-    ).toBe(false);
+      screen.queryByRole("button", { name: "Run Experiment" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Cancel build" }),
+    ).toBeInTheDocument();
   });
 });

@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectAriaSnapshot } from "./helpers/aria-snapshot.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { ShellPage } from "./pages/shell.page.mjs";
 
@@ -19,7 +21,7 @@ test.describe("App shell", () => {
     await expect(shell.nav.getByRole("listitem")).toHaveText([
       "Dashboard",
       "Datasets",
-      "Experiments",
+      "Experiments Preview",
       "Projects",
       "Results",
       "Tickets",
@@ -27,7 +29,7 @@ test.describe("App shell", () => {
     ]);
     await expect(
       shell.nav.getByRole("group", { name: "Research" }).getByRole("listitem"),
-    ).toHaveText(["Datasets", "Experiments"]);
+    ).toHaveText(["Datasets", "Experiments Preview"]);
     await expect(
       shell.nav.getByRole("group", { name: "Projects" }).getByRole("listitem"),
     ).toHaveText(["Projects", "Results", "Tickets"]);
@@ -285,8 +287,20 @@ test.describe("App shell accessibility and look", () => {
     ).toBeVisible();
   });
 
+  // The only snapshot of the sidebar: page snapshots cover main alone.
+  test("the sidebar matches its aria snapshot, open and collapsed", async ({
+    page,
+  }) => {
+    await expectAriaSnapshot(shell.sidebar, "sidebar");
+
+    await page.getByRole("button", { name: "Collapse sidebar" }).click();
+
+    await expectAriaSnapshot(shell.sidebar, "sidebar-collapsed");
+  });
+
   test("the shell passes axe", async ({ page }) => {
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("the open palette passes axe", async ({ page }) => {
@@ -296,14 +310,17 @@ test.describe("App shell accessibility and look", () => {
     ).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("screenshots", async ({ page }) => {
     // The page body belongs to each page's own spec; only the shell is compared here.
     await shell.hidePageContent();
+    await expectPageSweep(page);
     await expectScreenshots(page, "shell");
 
     await page.getByRole("button", { name: "Collapse sidebar" }).click();
+    await expectPageSweep(page);
     await expectScreenshots(page, "shell-collapsed");
     await page.getByRole("button", { name: "Expand sidebar" }).click();
 
@@ -311,6 +328,7 @@ test.describe("App shell accessibility and look", () => {
     await expect(
       shell.palette.getByRole("option", { name: "Fix lag study" }),
     ).toBeVisible();
+    await expectPageSweep(page);
     await expectScreenshots(page, "palette");
   });
 });
@@ -386,6 +404,16 @@ test.describe("App shell on a phone", () => {
     await expect(shell.navTrigger).toBeHidden();
   });
 
+  // The only snapshot of the phone header and its navigation drawer.
+  test("the header and the open navigation match their aria snapshots", async () => {
+    await expectAriaSnapshot(shell.mobileHeader, "mobile-header");
+
+    await shell.navTrigger.tap();
+    await expect(shell.nav).toBeVisible();
+
+    await expectAriaSnapshot(shell.sidebar, "mobile-navigation");
+  });
+
   test("the header fits the viewport and the open navigation passes axe", async ({
     page,
   }) => {
@@ -397,5 +425,6 @@ test.describe("App shell on a phone", () => {
     await shell.navTrigger.tap();
     await expect(shell.nav).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 });

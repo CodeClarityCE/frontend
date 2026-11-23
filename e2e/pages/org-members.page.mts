@@ -9,7 +9,7 @@ const ORG = "org-123";
 const DAY = 86_400_000;
 
 /** Pages see this as now, so expiry dates and screenshots stay stable. */
-export const NOW = new Date("2026-11-13T12:00:00Z");
+const NOW = new Date("2026-11-13T12:00:00Z");
 
 type Role = 0 | 1 | 2 | 3;
 
@@ -39,7 +39,7 @@ function memberUser(
 }
 
 /** The organisation each membership of the members endpoint carries. */
-export const memberOrg = {
+const memberOrg = {
   id: ORG,
   name: "Test Organization",
   description: "Test org",
@@ -82,7 +82,7 @@ function person(m: Membership): Record<string, unknown> {
 }
 
 /** An open invitation as the invitations endpoint returns it. */
-export function invitation(
+function invitation(
   id: string,
   email: string,
   role: Role,
@@ -100,7 +100,7 @@ export function invitation(
   };
 }
 
-export const sampleInvitations = [
+const sampleInvitations = [
   invitation("inv-1", "carol@example.com", 3),
   invitation("inv-2", "dave@example.com", 2, {
     created_by: person(sampleMembers[1]),
@@ -108,8 +108,22 @@ export const sampleInvitations = [
   }),
 ];
 
+/** An entry whose actor is an Organization token, as the audit logs endpoint returns it. */
+export function tokenAuditLog(
+  id: string,
+  tokenName: string,
+  description: string,
+): Record<string, unknown> {
+  return auditLog(id, 0, "OrganizationTokenUsed", description, {
+    blame_on: undefined,
+    blame_on_email: null,
+    blame_on_token_id: "tok-1",
+    blame_on_token_name: tokenName,
+  });
+}
+
 /** An audit log entry as the audit logs endpoint returns it. */
-export function auditLog(
+function auditLog(
   id: string,
   severity: 0 | 1 | 2 | 3,
   action: string,
@@ -126,12 +140,14 @@ export function auditLog(
     description,
     blame_on: person(sampleMembers[0]),
     blame_on_email: user.email,
+    blame_on_token_id: null,
+    blame_on_token_name: null,
     created_on: "2026-11-12T10:30:00Z",
     ...overrides,
   };
 }
 
-export const sampleLogs = [
+const sampleLogs = [
   auditLog("log-1", 0, "ProjectCreate", "Added the project web-frontend", {
     created_on: "2026-11-12T10:30:00Z",
   }),
@@ -300,7 +316,9 @@ export class OrgMembersPage {
 
   /** The table's body rows, without the header row. */
   rows(): Locator {
-    return this.table.locator("tbody tr");
+    return this.table
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell") });
   }
 
   row(text: string): Locator {

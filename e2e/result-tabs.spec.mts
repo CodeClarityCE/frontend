@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   ANALYSIS,
@@ -92,6 +95,7 @@ test.describe("SBOM results", () => {
       await expect(dialog.locator(":focus")).toHaveCount(1);
     }
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
@@ -182,6 +186,7 @@ test.describe("SBOM results", () => {
     await expect(dialog).toContainText("The commands update composer.lock");
     await expect(dialog).not.toContainText("could not tell");
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("the update dialog explains an unknown package manager", async ({
@@ -207,6 +212,7 @@ test.describe("SBOM results", () => {
       dialog.getByRole("button", { name: "Copy commands" }),
     ).toBeDisabled();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
 
   test("Tab reaches the actions, search and table with visible focus", async ({
@@ -244,6 +250,8 @@ test.describe("SBOM results", () => {
     await expect(tabs.rows("Dependencies")).toHaveCount(5);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "sbom");
     await expectScreenshots(page, "sbom");
   });
 
@@ -255,10 +263,13 @@ test.describe("SBOM results", () => {
       page.getByRole("status", { name: "Loading the SBOM" }),
     ).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     release();
     await expect(page.getByText("No dependencies found")).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "sbom-empty");
     await expectScreenshots(page, "sbom-empty");
   });
 
@@ -345,6 +356,7 @@ test.describe("SBOM dependency details", () => {
       page.getByRole("status", { name: "Loading the dependency" }),
     ).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     release();
     await expect(tabs.heading).toContainText("lodash");
@@ -360,6 +372,8 @@ test.describe("SBOM dependency details", () => {
     ).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "sbom-details");
     await expectScreenshots(page, "sbom-details");
   });
 });
@@ -453,6 +467,7 @@ test.describe("License results", () => {
       await expect(dialog.locator(":focus")).toHaveCount(1);
     }
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
@@ -466,95 +481,24 @@ test.describe("License results", () => {
     const release = await tabs.signIn({ hold: true });
     await tabs.goto("Licenses");
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
 
     release();
     await expect(tabs.rows("Licenses")).toHaveCount(3);
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "licenses");
     await expectScreenshots(page, "licenses");
   });
-});
 
-test.describe("Patch results", () => {
-  test("shows the patch summary and a status per dependency", async ({
-    page,
-  }) => {
+  test("no licenses says so", async ({ page }) => {
     const tabs = new ResultTabsPage(page);
-    await tabs.signIn();
-    await tabs.goto("Patches");
+    await tabs.signIn({ licenses: [] });
+    await tabs.goto("Licenses");
 
-    const numbers = page.getByRole("list", { name: "Patch numbers" });
-    await expect(numbers.getByRole("listitem").nth(0)).toHaveText(
-      /Issues after patching\s*2\s*4 before patching/,
-    );
-    const rows = tabs.rows("Patches");
-    await expect(rows).toHaveCount(3);
-    await expect(rows.filter({ hasText: "express" })).toContainText(
-      "Full patch",
-    );
-    await expect(rows.filter({ hasText: "request" })).toContainText("No patch");
-    await expect(rows.filter({ hasText: "vitest" })).toContainText(
-      "Partial patch",
-    );
-    await expect(
-      page.getByRole("heading", { name: "Patched manifest" }),
-    ).toBeVisible();
-
-    await page.getByText("Show table").click();
-    await expect(
-      page.getByRole("row", { name: "Critical 1 0", exact: true }),
-    ).toBeVisible();
-  });
-
-  test("the patch dialog traps focus and closes with Escape", async ({
-    page,
-  }) => {
-    const tabs = new ResultTabsPage(page);
-    await tabs.signIn();
-    await tabs.goto("Patches");
-    const open = page.getByRole("button", {
-      name: "Details of vitest@3.2.0",
-    });
-
-    await open.click();
-    const dialog = page.getByRole("dialog", { name: "vitest@3.2.0" });
-    await expect(dialog).toContainText("Not fixed (1)");
-    await page.keyboard.press("Tab");
-    await expect(dialog.locator(":focus")).toHaveCount(1);
-    await expectNoAxeViolations(page);
-
-    await page.keyboard.press("Escape");
-    await expect(dialog).toHaveCount(0);
-    await expect(open).toBeFocused();
-  });
-
-  test("Tab reaches the copy buttons with visible focus", async ({ page }) => {
-    const tabs = new ResultTabsPage(page);
-    await tabs.signIn();
-    await tabs.goto("Patches");
-
-    const copy = page.getByRole("button", {
-      name: "Copy the patched manifest",
-    });
-    await copy.focus();
-    await expectVisibleFocus(copy);
-    await page.keyboard.press("Tab");
-    await expectVisibleFocus(
-      page.getByRole("button", { name: "Copy the command" }),
-    );
-  });
-
-  test("passes axe while loading and matches the screenshots", async ({
-    page,
-  }) => {
-    const tabs = new ResultTabsPage(page);
-    const release = await tabs.signIn({ hold: true });
-    await tabs.goto("Patches");
-    await expectNoAxeViolations(page);
-
-    release();
-    await expect(tabs.rows("Patches")).toHaveCount(3);
-    await expectNoAxeViolations(page);
-    await expectScreenshots(page, "patches");
+    await expect(page.getByText("No licenses found.")).toBeVisible();
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "licenses-empty");
   });
 });
 
@@ -592,6 +536,8 @@ test.describe("CodeQL results", () => {
     await expect(tabs.rows("CodeQL findings")).toHaveCount(2);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "codeql");
     await expectScreenshots(page, "codeql");
   });
 
@@ -604,6 +550,8 @@ test.describe("CodeQL results", () => {
 
     await expect(page.getByText("No findings")).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "codeql-empty");
     await expectScreenshots(page, "codeql-empty");
   });
 });
@@ -649,4 +597,56 @@ test.describe("Selected results tab", () => {
       "true",
     );
   });
+  test("an old link to the removed patches tab opens the first tab", async ({
+    page,
+  }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn();
+    await tabs.shell.goto(
+      `/results?analysis_id=${ANALYSIS}&project_id=${PROJECT}&tab=js-patching`,
+    );
+    await expect(page.getByRole("tab", { name: "SBOM" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await expect(page.getByRole("tab", { name: "Patches" })).toHaveCount(0);
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("the analysis results does not scroll sideways", async ({ page }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn({ vulnFinder: true });
+    await tabs.goto();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
+    await expectScreenshots(page, "analysis-results");
+  });
+
+  test("a dependency's details fit without scrolling sideways", async ({
+    page,
+  }) => {
+    const tabs = new ResultTabsPage(page);
+    await tabs.signIn();
+    await tabs.gotoDetails();
+    await expect(tabs.heading).toContainText("lodash");
+    await expectPageSweep(page);
+    await expectScreenshots(page, "sbom-details");
+  });
+
+  for (const [tab, table, rows, name] of [
+    ["Licenses", "Licenses", 3, "licenses"],
+    ["CodeQL", "CodeQL findings", 2, "codeql"],
+  ] as const) {
+    test(`the ${tab} tab fits without scrolling sideways`, async ({ page }) => {
+      const tabs = new ResultTabsPage(page);
+      await tabs.signIn();
+      await tabs.goto(tab);
+      await expect(tabs.rows(table)).toHaveCount(rows);
+      await expectPageSweep(page);
+      await expectScreenshots(page, name);
+    });
+  }
 });

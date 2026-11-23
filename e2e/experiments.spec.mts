@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   experiment,
@@ -200,6 +203,8 @@ test.describe("Experiments list", () => {
     await expect(experiments.rows()).toHaveCount(3);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "experiments-list");
     await expectScreenshots(page, "experiments-list");
   });
 
@@ -212,6 +217,8 @@ test.describe("Experiments list", () => {
     await expect(page.getByText("No Experiments yet")).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "experiments-empty");
     await expectScreenshots(page, "experiments-empty");
   });
 
@@ -226,6 +233,8 @@ test.describe("Experiments list", () => {
     ).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "experiments-loading");
     await expectScreenshots(page, "experiments-loading");
   });
 });
@@ -372,12 +381,38 @@ test.describe("New Experiment", () => {
     await expect(page.getByText(/Estimated/)).toBeVisible();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "experiments-create");
     await expectScreenshots(page, "experiments-create");
 
     await page.getByRole("button", { name: "Start Experiment" }).click();
     await page.getByLabel("Name").blur();
     await expect(page.getByText("A name is required")).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "experiments-create-errors");
     await expectScreenshots(page, "experiments-create-errors");
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("the Experiments list fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const experiments = new ExperimentsPage(page);
+    await experiments.signIn();
+    await experiments.gotoList();
+    await expect(experiments.rows()).toHaveCount(3);
+    await expectPageSweep(page);
+    await expectScreenshots(page, "experiments-list");
+  });
+
+  test("New Experiment fits without scrolling sideways", async ({ page }) => {
+    const experiments = new ExperimentsPage(page);
+    await experiments.signIn();
+    await experiments.gotoCreate("?dataset=ds-1");
+    await expect(page.getByText(/Estimated/)).toBeVisible();
+    await expectPageSweep(page);
+    await expectScreenshots(page, "experiments-create");
   });
 });

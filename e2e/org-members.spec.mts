@@ -1,11 +1,15 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   member,
   OrgMembersPage,
   sampleMembers,
+  tokenAuditLog,
 } from "./pages/org-members.page.mjs";
 
 test.beforeEach(async ({ page }) => {
@@ -141,6 +145,28 @@ test.describe("Organisation audit logs", () => {
     );
   });
 
+  test("an entry made with an Organization token names the token", async ({
+    page,
+  }) => {
+    const members = new OrgMembersPage(page);
+    await members.signIn({
+      logs: [
+        tokenAuditLog(
+          "log-t",
+          "ci-pipeline",
+          "The Organization token ci-pipeline called GET /org/:org_id/projects.",
+        ),
+      ],
+    });
+    await members.gotoLogs();
+
+    await expect(members.rows()).toHaveCount(1);
+    await expect(members.rows()).toContainText(
+      "Organization token ci-pipeline",
+    );
+    await expect(members.rows()).not.toContainText("No longer a member");
+  });
+
   test("searching asks the API for matching entries", async ({ page }) => {
     const members = new OrgMembersPage(page);
     await members.signIn();
@@ -162,6 +188,8 @@ test.describe("Organisation audit logs", () => {
     await members.gotoLogs();
 
     await expect(page.getByText("No audit log entries yet.")).toBeVisible();
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-logs-empty");
   });
 
   test("a moderator is sent back to the overview", async ({ page }) => {
@@ -295,6 +323,8 @@ test.describe("Organisation invitations", () => {
       page.getByRole("heading", { name: "No open invitations" }),
     ).toBeVisible();
     await expect(members.table).toHaveCount(0);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "org-invites-empty");
   });
 });
 
@@ -325,6 +355,8 @@ test.describe("Organisation members, invitations and logs: keyboard, axe and scr
       await expect(members.rows().first()).toBeVisible();
 
       await expectNoAxeViolations(page);
+      await expectPageSweep(page);
+      await expectMainSnapshot(page, `org-${view}`);
       await expectScreenshots(page, `org-${view}`);
     });
   }
@@ -340,5 +372,23 @@ test.describe("Organisation members, invitations and logs: keyboard, axe and scr
     await page.waitForTimeout(400);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
   });
+});
+
+describeOnAPhone("On a phone", () => {
+  for (const view of ["members", "invites", "logs"] as const) {
+    test(`the ${view} page fits without scrolling sideways`, async ({
+      page,
+    }) => {
+      const members = new OrgMembersPage(page);
+      await members.signIn();
+      if (view === "members") await members.gotoMembers();
+      if (view === "invites") await members.gotoInvites();
+      if (view === "logs") await members.gotoLogs();
+      await expect(members.rows().first()).toBeVisible();
+      await expectPageSweep(page);
+      await expectScreenshots(page, `org-${view}`);
+    });
+  }
 });

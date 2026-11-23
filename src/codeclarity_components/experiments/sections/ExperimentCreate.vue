@@ -3,7 +3,11 @@ import { ArrowLeft } from "@lucide/vue";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
-import { BrandEmphasis, PageHeading } from "@/base_components/page";
+import {
+  BrandEmphasis,
+  PageHeading,
+  PreviewBadge,
+} from "@/base_components/page";
 import TextLink from "@/codeclarity_components/authentication/layout/TextLink.vue";
 import {
   type Dataset,
@@ -330,6 +334,7 @@ onMounted(() => void load());
         description="Run one analyzer over every repository of a Dataset at each date of a snapshot grid and at HEAD, each pinned to a default branch commit."
       >
         New <BrandEmphasis>Experiment</BrandEmphasis>
+        <template #badge><PreviewBadge /></template>
       </PageHeading>
     </div>
 

@@ -6,18 +6,18 @@ import ChartExport from "@/base_components/charts/ChartExport.vue";
 import GridLineChart from "@/base_components/charts/GridLineChart.vue";
 import { testPdfFonts } from "@/utils/svg-pdf/test/fonts";
 
+import { createTestApp, withToaster } from "../../../../tests/real-app";
 import type { ExperimentResults as Results } from "../experiment.entity";
 
 import ExperimentResults from "./ExperimentResults.vue";
 
-const { saveBlob, errorToast, loadPdfFonts } = vi.hoisted(() => ({
+const { saveBlob, loadPdfFonts } = vi.hoisted(() => ({
   saveBlob: vi.fn(),
-  errorToast: vi.fn(),
   loadPdfFonts: vi.fn(),
 }));
 
+// jsdom cannot save files; the saved blob is what the user would get.
 vi.mock("@/utils/download", () => ({ saveBlob }));
-vi.mock("@/utils/toasts", () => ({ errorToast }));
 // Fonts are fetched in the browser; here they come from disk
 vi.mock("@/utils/svg-pdf/load-fonts", () => ({ loadPdfFonts }));
 
@@ -266,10 +266,15 @@ function results(overrides: object = {}): Results {
   } as unknown as Results;
 }
 
+// The results section next to the app's toaster.
 function mountResults(overrides: object = {}): VueWrapper {
-  return mount(ExperimentResults, {
-    props: { results: results(overrides), metricVersion: null } as never,
-  });
+  return mount(
+    withToaster(ExperimentResults, {
+      results: results(overrides),
+      metricVersion: null,
+    }),
+    { global: createTestApp().global },
+  );
 }
 
 function lastSaved(): { blob: Blob; name: string } {
@@ -813,7 +818,6 @@ describe("experiment chart export", () => {
 
   describe("PDF", () => {
     beforeEach(() => {
-      errorToast.mockReset();
       loadPdfFonts.mockReset();
       loadPdfFonts.mockResolvedValue(PDF_FONTS);
     });
@@ -835,8 +839,9 @@ describe("experiment chart export", () => {
     }
 
     it.each(EVERY_CHART)("exports %s as a vector PDF", async (block) => {
-      const pdf = await savedPdf(mountResults(), block);
-      expect(errorToast).not.toHaveBeenCalled();
+      const wrapper = mountResults();
+      const pdf = await savedPdf(wrapper, block);
+      expect(wrapper.text()).not.toContain("Could not export");
       expect(pdf.startsWith("%PDF-1.7")).toBe(true);
       expect(pdf).toContain("/FontFile2");
       expect(pdf).toContain("/ToUnicode");
@@ -865,9 +870,7 @@ describe("experiment chart export", () => {
         '[data-testid="experiment-load"] [data-testid="export-pdf"]',
       );
       await vi.waitFor(() =>
-        expect(errorToast).toHaveBeenCalledWith(
-          "Could not export the chart as PDF",
-        ),
+        expect(wrapper.text()).toContain("Could not export the chart as PDF"),
       );
       expect(saveBlob).not.toHaveBeenCalled();
     });

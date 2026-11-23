@@ -35,11 +35,11 @@ export function membership(
   return orgListRow(org);
 }
 
-export const sampleOrg = organization(ORG, "Test Organization", {
+const sampleOrg = organization(ORG, "Test Organization", {
   description: "Test org",
 });
 
-export const sampleMemberships = [
+const sampleMemberships = [
   membership(sampleOrg),
   membership(
     organization("org-456", "Research Lab", {
@@ -162,7 +162,9 @@ export class OrgSettingsPage {
   }
 
   rows(): Locator {
-    return this.table.locator("tbody tr");
+    return this.table
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell") });
   }
 
   /** A link among the organisation settings pages in the sidebar. */

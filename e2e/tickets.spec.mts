@@ -1,6 +1,13 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import {
+  expectNoAxeViolations,
+  expectVisibleFocus,
+  waitForAnimations,
+} from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import {
   remediationDetail,
@@ -11,9 +18,7 @@ import {
 
 // Waits for dialogs to finish fading in so axe sees the final colours.
 async function axe(page: Page): Promise<void> {
-  await page.evaluate(() =>
-    Promise.all(document.getAnimations().map((a) => a.finished)),
-  );
+  await waitForAnimations(page);
   await expectNoAxeViolations(page);
 }
 
@@ -168,6 +173,8 @@ test.describe("Tickets list", () => {
     await expect(tickets.rows()).toHaveCount(3);
 
     await axe(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "tickets-list");
     await expectScreenshots(page, "tickets-list");
   });
 
@@ -180,6 +187,8 @@ test.describe("Tickets list", () => {
     await expect(page.getByText("No tickets yet")).toBeVisible();
 
     await axe(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "tickets-empty");
     await expectScreenshots(page, "tickets-empty");
   });
 
@@ -193,6 +202,7 @@ test.describe("Tickets list", () => {
     );
     await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
     await axe(page);
+    await expectPageSweep(page);
   });
 });
 
@@ -229,6 +239,8 @@ test.describe("Kanban board", () => {
     ).toBeVisible();
 
     await axe(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "tickets-kanban");
     await expectScreenshots(page, "tickets-kanban");
   });
 });
@@ -306,6 +318,8 @@ test.describe("Ticket page", () => {
     await tickets.goto("/tickets/t-404");
 
     await expect(tickets.detail().getByText("Ticket not found")).toBeVisible();
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "ticket-not-found");
   });
 
   test("a remediation shows what its external issue says, grouped by vulnerability", async ({
@@ -361,6 +375,8 @@ test.describe("Ticket page", () => {
     await expect(tickets.detail()).toContainText("CVSS v3.1");
 
     await axe(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "ticket-page");
     await expectScreenshots(page, "ticket-page");
   });
 
@@ -373,6 +389,8 @@ test.describe("Ticket page", () => {
     await expect(tickets.detail()).toContainText("Resolves");
 
     await axe(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "ticket-page-remediation");
     await expectScreenshots(page, "ticket-page-remediation");
   });
 });
@@ -402,6 +420,7 @@ test.describe("Ticket integrations", () => {
     await expect(clickup).toBeVisible();
     await expect(clickup.getByLabel("ClickUp API key")).toBeVisible();
     await axe(page);
+    await expectPageSweep(page);
 
     await page.keyboard.press("Escape");
     await expect(clickup).toHaveCount(0);
@@ -430,6 +449,7 @@ test.describe("Ticket integrations", () => {
     await expect(dialog).not.toContainText("Workspace");
 
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "tickets-integrations");
   });
 });
@@ -449,6 +469,7 @@ test.describe("ClickUp authorisation callback", () => {
       "No authorization code received from ClickUp",
     );
     await axe(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "tickets-clickup-callback-error");
 
     await page.getByRole("link", { name: "Go to Tickets" }).click();
@@ -568,5 +589,40 @@ test.describe("Tickets read the same everywhere", () => {
       const box = await badge.boundingBox();
       expect(box?.height ?? 0).toBeLessThan(26);
     }
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("the tickets list does not scroll sideways", async ({ page }) => {
+    const tickets = new TicketsPage(page);
+    await tickets.signIn();
+    await tickets.goto();
+    await expect(page.getByRole("heading").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    await expectPageSweep(page);
+    await expectScreenshots(page, "tickets-list");
+  });
+
+  test("a ticket fits without scrolling sideways", async ({ page }) => {
+    const tickets = new TicketsPage(page);
+    await tickets.signIn();
+    await tickets.goto("/tickets/t-1");
+    await expect(tickets.detail()).toContainText("CVSS v3.1");
+    await expectPageSweep(page);
+    await expectScreenshots(page, "ticket-page");
+  });
+
+  test("the ClickUp callback fits without scrolling sideways", async ({
+    page,
+  }) => {
+    const tickets = new TicketsPage(page);
+    await tickets.signIn();
+    await tickets.goto("/tickets/integrations/clickup/callback");
+    await expect(
+      page.getByRole("heading", { name: "Connection failed" }),
+    ).toBeVisible();
+    await expectPageSweep(page);
+    await expectScreenshots(page, "tickets-clickup-callback-error");
   });
 });

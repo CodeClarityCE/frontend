@@ -1,0 +1,66 @@
+- main:
+  - heading "Results" [level=1]
+  - paragraph: /journey-\d+/
+  - tablist "Results":
+    - tab "SBOM" [selected]
+    - tab "Vulnerabilities"
+    - tab "Licenses"
+  - tabpanel "SBOM":
+    - region "Software bill of materials":
+      - heading "Software bill of materials" [level=2]
+      - text: Language JavaScript Workspace Root
+      - list "Dependency numbers":
+        - listitem: Dependencies 1 All project dependencies
+        - listitem: Direct dependencies 1 Added by you
+        - listitem: /Health grade \S+ .+/
+        - listitem: Vulnerabilities 1 See the vulnerabilities tab
+      - button "How the health grade is set"
+      - heading "Dependency composition" [level=3]
+      - group "Dependencies by how they are added":
+        - 'img /Direct: 1 dependency, \d+% of total/'
+        - 'img "Transitive: 0 dependencies, 0% of total"'
+        - 'img "Both: 0 dependencies, 0% of total"'
+      - group: Show table
+      - heading "Health factors" [level=3]
+      - term: Deprecated
+      - definition: "0"
+      - term: Unlicensed
+      - definition: "0"
+      - term: Outdated
+      - definition: "1"
+      - button "Update 1 direct dependency"
+      - button "Export SBOM"
+      - region "All dependencies":
+        - heading "All dependencies" [level=3]
+        - searchbox "Search dependencies"
+        - table "Dependencies":
+          - caption: Dependencies
+          - rowgroup:
+            - row "Package Ecosystem Version Newest release Deprecated Added as Scope":
+              - columnheader "Package":
+                - button "Package"
+              - columnheader "Ecosystem":
+                - button "Ecosystem"
+              - columnheader "Version"
+              - columnheader "Newest release":
+                - button "Newest release"
+              - columnheader "Deprecated":
+                - button "Deprecated"
+              - columnheader "Added as":
+                - button "Added as"
+              - columnheader "Scope":
+                - button "Scope"
+          - rowgroup:
+            - row /ms JavaScript 0\.7\.1 Major update \S+ No Direct Production/:
+              - cell "ms":
+                - link "ms":
+                  - /url: /\/results\/sbom_details\?analysis_id=[0-9a-f-]+&project_id=[0-9a-f-]+&package_id=ms@0\.7\.1&workspace=\./
+              - cell "JavaScript"
+              - cell "0.7.1":
+                - code: 0.7.1
+              - cell /Major update \S+/:
+                - text: Major update
+                - code: /\S+/
+              - cell "No"
+              - cell "Direct"
+              - cell "Production"

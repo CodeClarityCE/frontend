@@ -1,133 +1,152 @@
-import { flushPromises, mount } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { render, screen, waitFor } from "@testing-library/vue";
+import { afterEach, describe, expect, it } from "vitest";
 
 import PasswordResetForm from "@/codeclarity_components/authentication/email/PasswordResetForm.vue";
-import router from "@/router";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
 
-const { resetPassword } = vi.hoisted(() => ({
-  resetPassword: vi.fn(),
-}));
+import { createTestApp, type TestApp } from "../../../../real-app";
 
-vi.mock("@/codeclarity_components/authentication/auth.repository", () => ({
-  AuthRepository: class {
-    resetPassword = resetPassword;
-  },
-}));
+const ok = { status_code: 200, status: "success" };
 
-vi.mock("@/utils/api/BaseRepository", () => ({
-  BusinessLogicError: class extends Error {
-    constructor(public error_code: string) {
-      super();
-    }
-  },
-  ValidationError: class extends Error {},
-}));
-
-const RouterLink = {
-  props: ["to"],
-  template: '<a :href="to.name"><slot /></a>',
-};
-
-function mountAt(search: string) {
-  window.history.replaceState({}, "", `/email_action/reset_password${search}`);
-  return mount(PasswordResetForm, { global: { stubs: { RouterLink } } });
+// Opens the reset link from the email, with its query string.
+async function openResetLink(search: string): Promise<TestApp> {
+  const path = `/email_action/reset_password${search}`;
+  window.history.replaceState({}, "", path);
+  const app = createTestApp();
+  app.http.on("POST", "/auth/password_reset", ok);
+  await app.visit(path);
+  render(PasswordResetForm, { global: app.global });
+  return app;
 }
 
-async function submitPasswords(password: string, confirmation: string) {
-  const wrapper = mountAt("?token=t1&userid=u1");
-  await flushPromises();
-  await wrapper
-    .find('input[placeholder="Enter your new password"]')
-    .setValue(password);
-  await wrapper
-    .find('input[placeholder="Confirm your new password"]')
-    .setValue(confirmation);
-  await wrapper.find("form").trigger("submit");
-  return wrapper;
+async function submitPasswords(
+  password: string,
+  confirmation: string,
+): Promise<void> {
+  const typist = userEvent.setup();
+  await typist.type(screen.getByLabelText("New password"), password);
+  await typist.type(
+    screen.getByLabelText("Confirm new password"),
+    confirmation,
+  );
+  await typist.click(screen.getByRole("button", { name: "Update password" }));
 }
+
+const resetRequests = (app: TestApp) =>
+  app.http.requests.filter((r) => r.path === "/auth/password_reset");
+
+const failure = (error_code: string) => ({
+  status_code: 400,
+  status: "failure",
+  error_code,
+  error_message: "",
+});
 
 describe("PasswordResetForm", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    resetPassword.mockResolvedValue({});
-  });
-
   afterEach(() => {
     window.history.replaceState({}, "", "/");
   });
 
-  it("asks for the new password twice", () => {
-    const wrapper = mountAt("?token=t1&userid=u1");
-    expect(wrapper.find("h1").text()).toBe("Choose a new password");
-    expect(wrapper.findAll('input[type="password"]')).toHaveLength(2);
-    expect(wrapper.find("button[type=submit]").text()).toBe("Update password");
+  it("asks for the new password twice", async () => {
+    await openResetLink("?token=t1&userid=u1");
+
+    expect(
+      screen.getByRole("heading", { name: "Choose a new password" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("New password")).toHaveAttribute(
+      "type",
+      "password",
+    );
+    expect(screen.getByLabelText("Confirm new password")).toHaveAttribute(
+      "type",
+      "password",
+    );
   });
 
   it("sends the user back to sign in without a token", async () => {
-    mountAt("?userid=u1");
-    await flushPromises();
-    expect(router.replace).toHaveBeenCalledWith({
-      name: "login",
-      query: { notice: "reset_link_invalid" },
-    });
+    const app = await openResetLink("?userid=u1");
+
+    await waitFor(() =>
+      expect(app.router.currentRoute.value.name).toBe("login"),
+    );
+    expect(app.router.currentRoute.value.query.notice).toBe(
+      "reset_link_invalid",
+    );
   });
 
   it("resets the password with the link's token, then sends the user to sign in", async () => {
+    const app = await openResetLink("?token=t1&userid=u1");
+
     await submitPasswords("ThisIs4Str0ng", "ThisIs4Str0ng");
-    await vi.waitFor(() =>
-      expect(router.replace).toHaveBeenCalledWith({
-        name: "login",
-        query: { notice: "password_reset" },
-      }),
+
+    await waitFor(() =>
+      expect(app.router.currentRoute.value.query.notice).toBe("password_reset"),
     );
-    expect(resetPassword).toHaveBeenCalledWith({
-      data: {
+    expect(app.router.currentRoute.value.name).toBe("login");
+    expect(resetRequests(app).map((r) => r.body)).toEqual([
+      {
         new_password: "ThisIs4Str0ng",
         new_password_confirmation: "ThisIs4Str0ng",
         token: "t1",
         user_id_hash: "u1",
       },
-      handleBusinessErrors: true,
-    });
+    ]);
   });
 
   it("explains passwords the server says do not match", async () => {
-    resetPassword.mockRejectedValue(
-      new BusinessLogicError("PasswordsDoNotMatch", ""),
+    const app = await openResetLink("?token=t1&userid=u1");
+    app.http.on(
+      "POST",
+      "/auth/password_reset",
+      failure("PasswordsDoNotMatch"),
+      400,
     );
-    const wrapper = await submitPasswords("ThisIs4Str0ng", "ThisIs4Str0ng");
-    await vi.waitFor(() =>
-      expect(wrapper.text()).toContain("Passwords do not match."),
-    );
-    expect(router.replace).not.toHaveBeenCalled();
+
+    await submitPasswords("ThisIs4Str0ng", "ThisIs4Str0ng");
+
+    expect(
+      await screen.findByText("Passwords do not match.", { exact: false }),
+    ).toBeInTheDocument();
+    expect(app.router.currentRoute.value.name).toBe("emailAction");
   });
 
   it("does not submit a password shorter than 10 characters", async () => {
-    const wrapper = await submitPasswords("Short1!", "Short1!");
-    await vi.waitFor(() => expect(wrapper.text()).toContain("Too short"));
-    expect(resetPassword).not.toHaveBeenCalled();
+    const app = await openResetLink("?token=t1&userid=u1");
+
+    await submitPasswords("Short1!", "Short1!");
+
+    expect(await screen.findByText("Too short")).toBeInTheDocument();
+    expect(resetRequests(app)).toEqual([]);
   });
 
   it("does not submit passwords that do not match", async () => {
-    const wrapper = await submitPasswords("ThisIs4Str0ng", "SomethingElse1");
-    await vi.waitFor(() =>
-      expect(wrapper.text()).toContain("Passwords must match"),
-    );
-    expect(resetPassword).not.toHaveBeenCalled();
+    const app = await openResetLink("?token=t1&userid=u1");
+
+    await submitPasswords("ThisIs4Str0ng", "SomethingElse1");
+
+    expect(await screen.findByText("Passwords must match")).toBeInTheDocument();
+    expect(resetRequests(app)).toEqual([]);
   });
 
   it("offers a new reset when the link expired", async () => {
-    resetPassword.mockRejectedValue(
-      new BusinessLogicError("PasswordResetTokenInvalidOrExpired", ""),
+    const app = await openResetLink("?token=t1&userid=u1");
+    app.http.on(
+      "POST",
+      "/auth/password_reset",
+      failure("PasswordResetTokenInvalidOrExpired"),
+      400,
     );
-    const wrapper = await submitPasswords("ThisIs4Str0ng", "ThisIs4Str0ng");
-    await vi.waitFor(() =>
-      expect(wrapper.find("h1").text()).toBe("Reset link expired"),
-    );
-    expect(wrapper.text()).toContain("only valid for 30 minutes");
-    expect(wrapper.find('a[href="recoveryRequest"]').text()).toBe(
-      "Request a new password reset",
-    );
+
+    await submitPasswords("ThisIs4Str0ng", "ThisIs4Str0ng");
+
+    expect(
+      await screen.findByRole("heading", { name: "Reset link expired" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("only valid for 30 minutes", { exact: false }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Request a new password reset" }),
+    ).toHaveAttribute("href", "/password_reset_request");
   });
 });

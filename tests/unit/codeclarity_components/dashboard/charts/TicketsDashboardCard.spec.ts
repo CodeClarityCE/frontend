@@ -1,17 +1,9 @@
 import { flushPromises, mount } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import TicketsDashboardCard from "@/codeclarity_components/dashboard/charts/TicketsDashboardCard.vue";
 
-const { getDashboardStats } = vi.hoisted(() => ({
-  getDashboardStats: vi.fn(),
-}));
-
-vi.mock("@/codeclarity_components/tickets/tickets.repository", () => ({
-  TicketsRepository: class {
-    getDashboardStats = getDashboardStats;
-  },
-}));
+import { createTestApp, org } from "../../../../real-app";
 
 const stats = {
   total_open: 5,
@@ -27,12 +19,13 @@ const stats = {
 };
 
 describe("TicketsDashboardCard", () => {
-  beforeEach(() => getDashboardStats.mockReset());
-
   it("shows how many open tickets are overdue and due this week", async () => {
-    getDashboardStats.mockResolvedValue({ data: stats });
+    const app = createTestApp({ signedIn: true });
+    app.http.on("GET", `/org/${org.id}/tickets/stats`, { data: stats });
+    await app.visit("/");
     const wrapper = mount(TicketsDashboardCard, {
       props: { integrationIds: [] },
+      global: app.global,
     });
     await flushPromises();
 

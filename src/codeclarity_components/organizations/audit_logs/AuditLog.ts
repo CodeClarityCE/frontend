@@ -5,6 +5,7 @@ import { TeamMember } from "../organization.entity";
 
 // Copy of the API's ActionSeverity in api/src/base_modules/organizations/log/orgAuditLog.types.ts.
 // The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
+/** @public type-sync copy of an API enum: every API value stays */
 export enum ActionSeverity {
   Critical = 3,
   High = 2,
@@ -14,6 +15,7 @@ export enum ActionSeverity {
 
 // Copy of the API's ActionClassType in api/src/base_modules/organizations/log/orgAuditLog.types.ts.
 // The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
+/** @public type-sync copy of an API enum: every API value stays */
 export enum ActionClassType {
   Project = "Project",
   Analyzer = "Analyzer",
@@ -25,6 +27,7 @@ export enum ActionClassType {
 
 // Copy of the API's ActionType in api/src/base_modules/organizations/log/orgAuditLog.types.ts.
 // The umbrella type-sync check (scripts/type-sync) fails CI when a value is missing.
+/** @public type-sync copy of an API enum: every API value stays */
 export enum ActionType {
   ProjectCreate = "ProjectCreate",
   ProjectUpdate = "ProjectUpdate",
@@ -44,6 +47,9 @@ export enum ActionType {
   OrganizationIntegrationAdded = "OrganizationIntegrationAdded",
   OrganizationIntegrationUpdated = "OrganizationIntegrationUpdated",
   OrganizationIntegrationDeleted = "OrganizationIntegrationDeleted",
+  OrganizationTokenCreated = "OrganizationTokenCreated",
+  OrganizationTokenUsed = "OrganizationTokenUsed",
+  OrganizationTokenRevoked = "OrganizationTokenRevoked",
 }
 
 export class AuditLog {
@@ -66,8 +72,15 @@ export class AuditLog {
   @Type(() => TeamMember)
   blame_on?: TeamMember;
 
-  @IsNotEmpty()
-  blame_on_email!: string;
+  // Null when an Organization token is the actor.
+  @IsOptional()
+  blame_on_email?: string | null;
+
+  @IsOptional()
+  blame_on_token_id?: string | null;
+
+  @IsOptional()
+  blame_on_token_name?: string | null;
 
   @IsDate()
   @Type(() => Date)

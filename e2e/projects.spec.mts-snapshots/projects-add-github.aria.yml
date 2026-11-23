@@ -1,0 +1,69 @@
+- main:
+  - heading "Add a Project" [level=1]
+  - paragraph: Import a repository through an integration, or upload an archive.
+  - region "GitHub repositories":
+    - button "Back to import methods"
+    - heading "GitHub repositories" [level=2]
+    - heading "Repositories" [level=3]
+    - paragraph: Select the repositories to import, then import them together.
+    - button "Refresh from provider"
+    - text: Show
+    - combobox "Show": Not imported yet
+    - checkbox "Select every repository not imported yet"
+    - text: Select every repository not imported yet
+    - status: 1 repository selected
+    - searchbox "Filter repositories"
+    - table "Repositories":
+      - caption: Repositories
+      - rowgroup:
+        - row "Select Repository Import state Description Created":
+          - columnheader "Select"
+          - columnheader "Repository":
+            - button "Repository"
+          - columnheader "Import state":
+            - button "Import state"
+          - columnheader "Description"
+          - columnheader "Created":
+            - button "Created"
+      - rowgroup:
+        - row /Select example\/web-frontend example\/web-frontend public Imported The web-frontend repository Jun 1, \d+/:
+          - cell "Select example/web-frontend":
+            - checkbox "Select example/web-frontend" [disabled]
+          - cell "example/web-frontend public"
+          - cell "Imported"
+          - cell "The web-frontend repository"
+          - cell /Jun 1, \d+/
+        - row /Select example\/billing example\/billing public Not imported The billing repository Jun 1, \d+/:
+          - cell "Select example/billing":
+            - checkbox "Select example/billing" [checked]
+          - cell "example/billing public"
+          - cell "Not imported"
+          - cell "The billing repository"
+          - cell /Jun 1, \d+/
+        - row /Select example\/docs-site example\/docs-site public · TypeScript Not imported The docs-site repository Jun 1, \d+/:
+          - cell "Select example/docs-site":
+            - checkbox "Select example/docs-site"
+          - cell "example/docs-site public · TypeScript"
+          - cell "Not imported"
+          - cell "The docs-site repository"
+          - cell /Jun 1, \d+/
+    - button "Import 1 Project"
+    - heading "Import by URL" [level=3]
+    - paragraph: Cannot find a repository? Import it with its URL.
+    - text: Repository URL
+    - textbox "Repository URL":
+      - /placeholder: https://github.com/owner/repository
+    - paragraph: The full URL of the repository.
+    - button "Import repository"
+    - heading "Questions about importing" [level=3]
+    - paragraph: Answers to the usual import problems.
+    - term: I cannot find a recently created repository
+    - definition: Repositories are cached. Use Refresh from provider above the list to fetch them again.
+    - term: My imports keep failing
+    - definition: Refresh from provider first, then import again. If it still fails, contact support.
+    - term: I do not see all my repositories
+    - definition: The list holds only repositories the integration's token can read. Check its permissions in the organisation settings.
+    - link "Contact support":
+      - /url: mailto:support@codeclarity.io
+    - link "Documentation":
+      - /url: https://doc.codeclarity.io/

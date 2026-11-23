@@ -42,6 +42,13 @@ function actionLabel(action: string): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
+// Who acted when no member is attached: a token by name, or the email kept at the time.
+function actorLabel(log: AuditLog): string {
+  return log.blame_on_token_name
+    ? `Organization token ${log.blame_on_token_name}`
+    : (log.blame_on_email ?? "");
+}
+
 // Column ids are the API's sort keys.
 const columns: DataTableColumn<AuditLog>[] = [
   {
@@ -63,7 +70,7 @@ const columns: DataTableColumn<AuditLog>[] = [
   },
   {
     id: "blame_on_email",
-    accessorFn: (log) => log.blame_on?.email ?? log.blame_on_email,
+    accessorFn: (log) => log.blame_on?.email ?? actorLabel(log),
     header: "By",
   },
   {
@@ -98,6 +105,7 @@ const columns: DataTableColumn<AuditLog>[] = [
         <span>{{ row.blame_on.email }}</span>
         <RoleBadge :role="row.blame_on.role" />
       </div>
+      <span v-else-if="row.blame_on_token_name">{{ actorLabel(row) }}</span>
       <div v-else class="flex flex-col">
         <span>{{ row.blame_on_email }}</span>
         <span class="text-xs text-muted-foreground">No longer a member</span>

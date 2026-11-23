@@ -28,7 +28,6 @@ import { useUserStore } from "@/stores/user";
 import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 
 import VulnFilters from "./components/VulnFilters.vue";
-import { patchStatus } from "./vuln-format";
 import VulnList from "./VulnList.vue";
 import {
   type HiddenCounts,
@@ -43,9 +42,8 @@ const props = withDefaults(
     projectID: string;
     workspace?: string;
     ecosystemFilter?: string | null;
-    hasPatching?: boolean;
   }>(),
-  { workspace: ".", ecosystemFilter: null, hasPatching: false },
+  { workspace: ".", ecosystemFilter: null },
 );
 
 const emit = defineEmits<{
@@ -105,33 +103,6 @@ const HIDDEN_REASONS = [
     text: "retired on all sources",
   },
 ] as const;
-
-// Offered only when the analysis has a patching result.
-const PATCH_FILTERS = {
-  name: "Patch status",
-  type: FilterType.CHECKBOX,
-  showCounts: true,
-  // Titled like the badges, so a filter names what its rows show.
-  data: {
-    patch_full: { title: patchStatus("FULL").label, value: false },
-    patch_partial: { title: patchStatus("PARTIAL").label, value: false },
-    patch_none: { title: patchStatus("NONE").label, value: false },
-  },
-};
-
-watch(
-  () => props.hasPatching,
-  (hasPatching) => {
-    const state = filterState.value;
-    if (hasPatching && !state.filterConfig.PatchState) {
-      state.addFilterCategory(structuredClone(PATCH_FILTERS), "PatchState");
-    } else if (!hasPatching && state.filterConfig.PatchState) {
-      delete state.filterConfig.PatchState;
-      state.activeFilters = getActiveState(state.filterConfig);
-    }
-  },
-  { immediate: true },
-);
 
 const findings = ref<VulnerabilityMerged[]>([]);
 // How many vulnerabilities each filter would leave, from the API.
@@ -314,7 +285,7 @@ watch(
         />
       </div>
       <VulnFilters v-model:filter-state="filterState" :counts="filterCount" />
-      <div class="ml-auto flex items-center gap-3">
+      <div class="ml-auto flex flex-wrap items-center gap-3">
         <Select v-if="view === 'list'" v-model="sortValue">
           <SelectTrigger aria-label="Sort by" class="w-60">
             <SelectValue placeholder="Sort by" />

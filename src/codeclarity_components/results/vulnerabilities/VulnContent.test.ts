@@ -1,26 +1,26 @@
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+
+import {
+  ANALYSIS_ID,
+  analysisPath,
+  PROJECT_ID,
+} from "../../../../tests/fixtures/results";
+import { createTestApp } from "../../../../tests/real-app";
 
 import VulnContent from "./VulnContent.vue";
 
-const repo = vi.hoisted(() => ({ getVulnerabilitiesStat: vi.fn() }));
-vi.mock("@/codeclarity_components/results/results.repository", () => ({
-  ResultsRepository: class {
-    getVulnerabilitiesStat = repo.getVulnerabilitiesStat;
-  },
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token", getAuthenticated: true }),
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
-
-async function show(): Promise<void> {
+async function show(stats: Record<string, unknown>): Promise<void> {
+  const app = createTestApp({ signedIn: true });
+  await app.visit("/projects");
+  app.http.on("GET", `${analysisPath}/sbom/workspaces`, {
+    data: { workspaces: ["."], package_manager: "NPM" },
+  });
+  app.http.on("GET", `${analysisPath}/vulnerabilities/stats`, { data: stats });
   render(VulnContent, {
-    props: { analysisID: "a-1", projectID: "p-1" },
-    global: { stubs: { SelectWorkspace: true, ColumnChart: true } },
+    props: { analysisID: ANALYSIS_ID, projectID: PROJECT_ID },
+    global: app.global,
   });
   await flushPromises();
 }
@@ -34,26 +34,18 @@ function tile(label: string): string {
 }
 
 describe("VulnContent security grade", () => {
-  beforeEach(() => {
-    repo.getVulnerabilitiesStat.mockReset();
-  });
-
   it("leaves a disputed critical out of the grade but still counts it", async () => {
     // One disputed critical, one high and one medium.
-    repo.getVulnerabilitiesStat.mockResolvedValue({
-      data: {
-        number_of_vulnerabilities: 3,
-        number_of_critical: 1,
-        number_of_high: 1,
-        number_of_medium: 1,
-        number_of_disputed: 1,
-        graded_number_of_vulnerabilities: 2,
-        graded_number_of_critical: 0,
-        graded_number_of_high: 1,
-      },
+    await show({
+      number_of_vulnerabilities: 3,
+      number_of_critical: 1,
+      number_of_high: 1,
+      number_of_medium: 1,
+      number_of_disputed: 1,
+      graded_number_of_vulnerabilities: 2,
+      graded_number_of_critical: 0,
+      graded_number_of_high: 1,
     });
-
-    await show();
 
     expect(tile("Vulnerabilities")).toBe("3");
     expect(tile("Critical and high")).toBe("2");
@@ -61,16 +53,12 @@ describe("VulnContent security grade", () => {
   });
 
   it("grades on the plain counts when the stats have no grade inputs", async () => {
-    repo.getVulnerabilitiesStat.mockResolvedValue({
-      data: {
-        number_of_vulnerabilities: 3,
-        number_of_critical: 1,
-        number_of_high: 1,
-        number_of_medium: 1,
-      },
+    await show({
+      number_of_vulnerabilities: 3,
+      number_of_critical: 1,
+      number_of_high: 1,
+      number_of_medium: 1,
     });
-
-    await show();
 
     expect(tile("Security grade")).toBe("D+");
   });

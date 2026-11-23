@@ -1,6 +1,4 @@
-import type { PatchInfo } from "../../patching/Patching";
-
-export interface VulnSourceInfo {
+interface VulnSourceInfo {
   name: string;
   vuln_url: string;
 }
@@ -15,7 +13,7 @@ export interface VulnerabilityInfo {
   aliases: string[];
 }
 
-export interface SourceComparison {
+interface SourceComparison {
   agree: boolean;
   nvdReason?: string;
   nvdAllVersions?: string;
@@ -25,7 +23,7 @@ export interface SourceComparison {
   gcveAllVersions?: string;
 }
 
-export interface VersionInfo {
+interface VersionInfo {
   affected_versions_string: string;
   affected_versions_source?: string;
   patched_versions_string: string;
@@ -33,7 +31,7 @@ export interface VersionInfo {
   source_comparison?: SourceComparison;
 }
 
-export interface VulnerableVersionInfo {
+interface VulnerableVersionInfo {
   version: string;
   status: string;
   release: string;
@@ -51,7 +49,7 @@ export interface DependencyInfo {
   homepage?: string;
 }
 
-export interface PackageManagerLink {
+interface PackageManagerLink {
   package_manager: string;
   url: string;
 }
@@ -99,6 +97,7 @@ export interface OtherInfo {
 }
 
 // What one knowledge source said about a vulnerability instance.
+/** @public type-sync copy of an API enum: every API value stays */
 export enum SourceVerdictValue {
   Matched = "matched",
   NoRecord = "no_record",
@@ -129,7 +128,7 @@ export interface SourceProduct {
   target_sw?: string;
 }
 
-export interface SourceVerdictEvidence {
+interface SourceVerdictEvidence {
   record_ids?: string[];
   /** "stale", "failed" or "unknown", for a stale or failed verdict. */
   source_status?: string;
@@ -156,7 +155,6 @@ export class VulnerabilityDetails {
   severities!: SeverityInfo;
   owasp_top_10!: OwaspInfo | null;
   weaknesses!: WeaknessInfo[];
-  patch!: PatchInfo;
   common_consequences!: Record<string, CommonConsequencesInfo[]>;
   references!: ReferenceInfo[];
   location!: string[];

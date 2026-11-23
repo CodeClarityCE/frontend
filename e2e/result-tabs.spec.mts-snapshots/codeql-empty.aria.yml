@@ -1,0 +1,14 @@
+- main:
+  - heading "Results" [level=1]
+  - paragraph: web-frontend
+  - tablist "Results":
+    - tab "SBOM"
+    - tab "Licenses"
+    - tab "CodeQL" [selected]
+  - tabpanel "CodeQL":
+    - region "CodeQL findings":
+      - heading "CodeQL findings" [level=2]
+      - paragraph: /CodeQL result created Jan \d+, \d+ \d+:\d+/
+      - alert:
+        - heading "No findings" [level=5]
+        - text: CodeQL found no issues in this code.

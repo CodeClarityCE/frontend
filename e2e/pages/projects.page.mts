@@ -72,7 +72,7 @@ export function project(
   };
 }
 
-export const sampleProjects = [
+const sampleProjects = [
   project("p-1", "example/web-frontend", {
     added_on: "2026-10-03T09:00:00Z",
     analyses: [
@@ -99,7 +99,7 @@ export const sampleProjects = [
   }),
 ];
 
-export const sampleIntegrations = [
+const sampleIntegrations = [
   {
     id: "int-gh",
     added_on: "2026-01-01T00:00:00Z",
@@ -139,7 +139,7 @@ export function repo(
   };
 }
 
-export const sampleRepos = [
+const sampleRepos = [
   repo("example/web-frontend", { imported_already: true }),
   repo("example/billing"),
   repo("example/docs-site", { language: "TypeScript" }),
@@ -282,8 +282,15 @@ export class ProjectsPage {
   }
 
   /** The table's body rows, without the header row. */
+  // A card of Add a Project's import methods, by the name it starts with.
+  importMethod(name: string): Locator {
+    return this.page
+      .getByRole("list", { name: "Import methods" })
+      .getByRole("button", { name: new RegExp(`^${name}`) });
+  }
+
   rows(table: Locator = this.table): Locator {
-    return table.locator("tbody tr");
+    return table.getByRole("row").filter({ has: this.page.getByRole("cell") });
   }
 
   row(name: string): Locator {

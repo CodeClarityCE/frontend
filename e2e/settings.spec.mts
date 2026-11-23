@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 import { expectNoAxeViolations, expectVisibleFocus } from "./helpers/a11y.mjs";
+import { expectMainSnapshot } from "./helpers/aria-snapshot.mjs";
+import { expectPageSweep } from "./helpers/page-sweep.mjs";
+import { describeOnAPhone } from "./helpers/phone.mjs";
 import { expectScreenshots } from "./helpers/screenshots.mjs";
 import { businessError, SettingsPage } from "./pages/settings.page.mjs";
 
@@ -273,6 +276,8 @@ test.describe("Account settings", () => {
     await settings.goto();
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "settings-account");
     await expectScreenshots(page, "settings-account");
 
     await settings
@@ -281,6 +286,8 @@ test.describe("Account settings", () => {
       .click();
     await expect(page.getByText("Enter your current password")).toBeVisible();
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
+    await expectMainSnapshot(page, "settings-account-errors");
     await expectScreenshots(page, "settings-account-errors");
   });
 
@@ -302,6 +309,19 @@ test.describe("Account settings", () => {
     await page.waitForFunction(() => document.getAnimations().length === 0);
 
     await expectNoAxeViolations(page);
+    await expectPageSweep(page);
     await expectScreenshots(page, "settings-delete-dialog");
+  });
+});
+
+describeOnAPhone("On a phone", () => {
+  test("the account settings fit without scrolling sideways", async ({
+    page,
+  }) => {
+    const settings = new SettingsPage(page);
+    await settings.signIn();
+    await settings.goto();
+    await expectPageSweep(page);
+    await expectScreenshots(page, "settings-account");
   });
 });

@@ -10,7 +10,7 @@ const NOT_FOUND_CODES: string[] = [
 ];
 
 // Whether an id has the shape the API gives project and analysis ids.
-export function isWellFormedId(id: string): boolean {
+function isWellFormedId(id: string): boolean {
   return UUID.test(id);
 }
 

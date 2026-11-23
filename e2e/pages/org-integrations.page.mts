@@ -7,10 +7,10 @@ const ORG = "org-123";
 const DAY = 86_400_000;
 
 /** Pages see this as now, so expiry dates and screenshots stay stable. */
-export const NOW = new Date("2026-11-13T12:00:00Z");
+const NOW = new Date("2026-11-13T12:00:00Z");
 
 /** A version control integration as the VCS list returns it. */
-export function vcs(
+function vcs(
   id: string,
   provider: "GITHUB" | "GITLAB",
   overrides: Record<string, unknown> = {},
@@ -29,7 +29,7 @@ export function vcs(
 }
 
 /** One integration of each health: healthy, expiring soon and invalid. */
-export const sampleIntegrations = [
+const sampleIntegrations = [
   vcs("gh-1", "GITHUB"),
   vcs("gl-1", "GITLAB", {
     service_domain: "gitlab.example.com",
@@ -38,7 +38,7 @@ export const sampleIntegrations = [
   vcs("gl-2", "GITLAB", { invalid: true }),
 ];
 
-export const clickUp = {
+const clickUp = {
   id: "cu-1",
   provider: "CLICKUP",
   enabled: true,
@@ -172,7 +172,9 @@ export class OrgIntegrationsPage {
 
   /** The table's body rows, without the header row. */
   rows(): Locator {
-    return this.table.locator("tbody tr");
+    return this.table
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell") });
   }
 
   row(name: string): Locator {

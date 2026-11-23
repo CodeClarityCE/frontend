@@ -24,7 +24,7 @@ export function licensePolicy(
 }
 
 /** A vulnerability policy as the API list returns it: no author. */
-export function vulnerabilityPolicy(
+function vulnerabilityPolicy(
   id: string,
   name: string,
   overrides: Record<string, unknown> = {},
@@ -64,19 +64,19 @@ export function license(id: string, name: string): Record<string, unknown> {
   };
 }
 
-export const sampleLicensePolicies = [
+const sampleLicensePolicies = [
   licensePolicy("lp-1", "Permissive only", { default: true }),
   licensePolicy("lp-2", "No copyleft", { content: ["GPL-3.0-only"] }),
 ];
 
-export const sampleVulnerabilityPolicies = [
+const sampleVulnerabilityPolicies = [
   vulnerabilityPolicy("vp-1", "False positives", { default: true }),
   vulnerabilityPolicy("vp-2", "Test fixtures only", {
     content: ["CVE-2023-1234"],
   }),
 ];
 
-export const sampleLicenses = [
+const sampleLicenses = [
   license("MIT", "MIT License"),
   license("Apache-2.0", "Apache License 2.0"),
   license("GPL-3.0-only", "GNU General Public License v3.0 only"),
@@ -182,7 +182,9 @@ export class OrgPoliciesPage {
   }
 
   rows(tableName: string): Locator {
-    return this.table(tableName).locator("tbody tr");
+    return this.table(tableName)
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell") });
   }
 }
 

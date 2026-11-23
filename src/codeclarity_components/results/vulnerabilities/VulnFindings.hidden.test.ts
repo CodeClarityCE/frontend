@@ -1,24 +1,37 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen, within } from "@testing-library/vue";
 import { flushPromises } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+import { analysisPath, paginated } from "../../../../tests/fixtures/results";
+import { createTestApp, type TestApp } from "../../../../tests/real-app";
 
 import VulnFindings from "./VulnFindings.vue";
 
-vi.mock("@vueuse/core", async () => await vi.importActual("@vueuse/core"));
+const FINDINGS_PATH = `${analysisPath}/vulnerabilities`;
 
-const repo = vi.hoisted(() => ({ getVulnerabilities: vi.fn() }));
-vi.mock("@/codeclarity_components/results/results.repository", () => ({
-  ResultsRepository: class {
-    getVulnerabilities = repo.getVulnerabilities;
-  },
-}));
-vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ getToken: "token" }),
-}));
-vi.mock("@/stores/user", () => ({
-  useUserStore: () => ({ getDefaultOrg: { id: "org-1" } }),
-}));
+let app: TestApp;
+
+// Answers the findings list from its query, as the API filters it, and keeps each query sent.
+function serveFindings(
+  answer: (query: URLSearchParams) => unknown,
+): URLSearchParams[] {
+  const queries: URLSearchParams[] = [];
+  const answerOther = globalThis.fetch;
+  vi.stubGlobal(
+    "fetch",
+    async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      const url = new URL(String(input));
+      if (!url.pathname.endsWith(FINDINGS_PATH))
+        return answerOther(input, init);
+      queries.push(url.searchParams);
+      return new Response(JSON.stringify(answer(url.searchParams)), {
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+  );
+  return queries;
+}
 
 const finding = (id: string, affected: Record<string, unknown> = {}) => ({
   Id: id,
@@ -42,13 +55,10 @@ const finding = (id: string, affected: Record<string, unknown> = {}) => ({
 });
 
 // Answers like the API: hidden instances come back only when their filter asks.
-function answer(options: {
-  show_contradicted?: boolean;
-  show_retired?: boolean;
-}) {
+function answer(query: URLSearchParams) {
   const data = [
     finding("CVE-2024-0001", { ContradictedBy: ["gcve"] }),
-    ...(options.show_contradicted
+    ...(query.get("show_contradicted") === "true"
       ? [
           finding("CVE-2024-0002", {
             Hidden: "contradicted",
@@ -56,34 +66,31 @@ function answer(options: {
           }),
         ]
       : []),
-    ...(options.show_retired
+    ...(query.get("show_retired") === "true"
       ? [finding("CVE-2024-0003", { Hidden: "retired_all" })]
       : []),
   ];
-  return Promise.resolve({
-    data,
-    total_entries: data.length,
-    matching_count: data.length,
-    filter_count: {},
+  return paginated(data, {
     hidden_counts: { contradicted: 1, retired_all: 1 },
     source_verdicts_available: true,
   });
 }
 
-async function renderFindings(): Promise<void> {
+let queries: URLSearchParams[] = [];
+
+// Shows the findings, answered by the API stand-in unless a fixed answer is given.
+async function renderFindings(fixed?: Record<string, unknown>): Promise<void> {
+  app = createTestApp({ signedIn: true });
+  await app.visit("/projects");
+  queries = serveFindings((query) => fixed ?? answer(query));
   render(VulnFindings, {
-    props: { analysisID: "a-1", projectID: "p-1", hasPatching: false },
-    global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
+    props: { analysisID: "a-1", projectID: "p-1" },
+    global: app.global,
   });
   await flushPromises();
 }
 
 describe("VulnFindings hidden instances", () => {
-  beforeEach(() => {
-    repo.getVulnerabilities.mockReset();
-    repo.getVulnerabilities.mockImplementation(answer);
-  });
-
   it("says how many instances it hid and why", async () => {
     await renderFindings();
 
@@ -104,9 +111,8 @@ describe("VulnFindings hidden instances", () => {
     );
     await flushPromises();
 
-    expect(repo.getVulnerabilities).toHaveBeenLastCalledWith(
-      expect.objectContaining({ show_contradicted: true, show_retired: false }),
-    );
+    expect(queries.at(-1)?.get("show_contradicted")).toBe("true");
+    expect(queries.at(-1)?.get("show_retired")).toBeNull();
     expect(screen.getByText("CVE-2024-0002")).toBeTruthy();
     expect(screen.getByText("Contradicted")).toBeTruthy();
     expect(
@@ -126,9 +132,7 @@ describe("VulnFindings hidden instances", () => {
     );
     await flushPromises();
 
-    expect(repo.getVulnerabilities).toHaveBeenLastCalledWith(
-      expect.objectContaining({ show_retired: true }),
-    );
+    expect(queries.at(-1)?.get("show_retired")).toBe("true");
     expect(screen.getByText("CVE-2024-0003")).toBeTruthy();
     expect(screen.getByText("Retired everywhere")).toBeTruthy();
   });
@@ -143,29 +147,23 @@ describe("VulnFindings hidden instances", () => {
   });
 
   it("shows no hidden line when nothing was hidden", async () => {
-    repo.getVulnerabilities.mockResolvedValue({
-      data: [finding("CVE-2024-0004")],
-      total_entries: 1,
-      matching_count: 1,
-      filter_count: {},
-      hidden_counts: { contradicted: 0, retired_all: 0 },
-      source_verdicts_available: true,
-    });
-    await renderFindings();
+    await renderFindings(
+      paginated([finding("CVE-2024-0004")], {
+        hidden_counts: { contradicted: 0, retired_all: 0 },
+        source_verdicts_available: true,
+      }),
+    );
 
     expect(screen.queryByText(/hidden:/)).toBeNull();
   });
 
   it("says an analysis without source verdicts hides nothing until it is re-run", async () => {
-    repo.getVulnerabilities.mockResolvedValue({
-      data: [finding("CVE-2024-0005")],
-      total_entries: 1,
-      matching_count: 1,
-      filter_count: {},
-      hidden_counts: { contradicted: 0, retired_all: 0 },
-      source_verdicts_available: false,
-    });
-    await renderFindings();
+    await renderFindings(
+      paginated([finding("CVE-2024-0005")], {
+        hidden_counts: { contradicted: 0, retired_all: 0 },
+        source_verdicts_available: false,
+      }),
+    );
 
     expect(
       screen.getByText(

@@ -75,7 +75,7 @@ const canManage = ref(false);
 
 function checkRole(org: Organization): void {
   canManage.value = isOrgAdmin(org.role);
-  if (isForm.value) leaveUnlessOrgAdmin({ id: props.orgId, role: org.role });
+  if (isForm.value) leaveUnlessOrgAdmin(org);
 }
 </script>
 <template>

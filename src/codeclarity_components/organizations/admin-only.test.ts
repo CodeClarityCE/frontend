@@ -24,6 +24,7 @@ describe("isOrgAdmin", () => {
     expect(isOrgAdmin(MemberRole.MODERATOR)).toBe(false);
     expect(isOrgAdmin(MemberRole.USER)).toBe(false);
     expect(isOrgAdmin(undefined)).toBe(false);
+    expect(isOrgAdmin(null)).toBe(false);
   });
 });
 

@@ -203,8 +203,6 @@ export function isMemberRoleGreaterOrEqualTo(
 }
 
 /** True when the role is an admin or the owner of the org. */
-export function isOrgAdmin(role: MemberRole | undefined): boolean {
-  return (
-    role !== undefined && isMemberRoleGreaterOrEqualTo(role, MemberRole.ADMIN)
-  );
+export function isOrgAdmin(role: MemberRole | null | undefined): boolean {
+  return role != null && isMemberRoleGreaterOrEqualTo(role, MemberRole.ADMIN);
 }

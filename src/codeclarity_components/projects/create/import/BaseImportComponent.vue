@@ -40,7 +40,6 @@ export interface GetReposOptions extends GetRepositoriesRequestOptions {
 </script>
 <script lang="ts" setup>
 import { Plus, RefreshCw } from "@lucide/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { computed, type Ref, ref } from "vue";
 import * as z from "zod";
@@ -49,6 +48,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import type { PaginatedResponse } from "@/utils/api/responses/PaginatedResponse";
 import { guardFormSubmit } from "@/utils/form/guardSubmit";
+import { requiredMessage, toTypedSchema } from "@/utils/form/toTypedSchema";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import Faq from "./components/FaqComponent.vue";
@@ -113,7 +113,7 @@ function isWebUrl(value: string): boolean {
 
 const formSchema = z.object({
   repository: z
-    .string({ required_error: "A repository URL is required" })
+    .string({ error: requiredMessage("A repository URL is required") })
     .trim()
     .min(1, "A repository URL is required")
     .max(150, "At most 150 characters")

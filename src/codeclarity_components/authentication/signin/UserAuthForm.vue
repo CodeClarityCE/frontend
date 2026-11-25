@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { CircleAlert } from "@lucide/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { type Ref, ref } from "vue";
 import * as z from "zod";
@@ -27,6 +26,7 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { guardFormSubmit } from "@/utils/form/guardSubmit";
+import { toTypedSchema } from "@/utils/form/toTypedSchema";
 
 import TextLink from "../layout/TextLink.vue";
 
@@ -47,7 +47,7 @@ const formSchema = z.object({
     .string()
     .trim()
     .min(1, "Enter your email")
-    .email("Enter a valid email address"),
+    .check(z.email("Enter a valid email address")),
   password: z.string().min(1, "Enter your password"),
 });
 type FormValues = z.infer<typeof formSchema>;

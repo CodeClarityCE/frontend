@@ -57,6 +57,33 @@ const openedList = (app: TestApp): Promise<void> =>
   );
 
 describe("AddGitlab instance URL", () => {
+  it("asks for the instance URL when it is left empty", async () => {
+    const app = await openPage();
+    const typist = userEvent.setup();
+    await typist.type(
+      screen.getByLabelText("GitLab personal access token"),
+      TOKEN,
+    );
+    await typist.click(screen.getByLabelText("Self-hosted"));
+    await typist.click(screen.getByRole("button", { name: "Connect GitLab" }));
+
+    expect(
+      await screen.findByText("Enter the URL of your GitLab instance"),
+    ).toBeInTheDocument();
+    expect(sent(app, "POST", addPath)).toEqual([]);
+  });
+
+  it("asks for a full URL when the scheme is missing", async () => {
+    const app = await submitSelfHosted("gitlab.example.com");
+
+    expect(
+      await screen.findByText(
+        "Enter a full URL, such as https://gitlab.example.com",
+      ),
+    ).toBeInTheDocument();
+    expect(sent(app, "POST", addPath)).toEqual([]);
+  });
+
   it("shows a field error for a URL over 255 characters and sends nothing", async () => {
     const app = await submitSelfHosted(urlOfLength(256));
 

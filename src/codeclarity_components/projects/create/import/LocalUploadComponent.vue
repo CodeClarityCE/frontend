@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { FileArchive, Upload, X } from "@lucide/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { storeToRefs } from "pinia";
 import { useForm } from "vee-validate";
 import { computed, ref } from "vue";
@@ -24,6 +23,7 @@ import { Progress } from "@/shadcn/ui/progress";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { guardFormSubmit } from "@/utils/form/guardSubmit";
+import { toTypedSchema } from "@/utils/form/toTypedSchema";
 import { successToast } from "@/utils/toasts";
 
 // Cancel hands control back to the import method picker.

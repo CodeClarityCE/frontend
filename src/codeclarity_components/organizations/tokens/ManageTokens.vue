@@ -7,12 +7,9 @@ import {
   StatusBadge,
 } from "@/base_components/page";
 import CopyCommand from "@/base_components/ui/CopyCommand.vue";
-import {
-  MemberRole,
-  type Organization,
-} from "@/codeclarity_components/organizations/organization.entity";
+import { leaveUnlessOrgAdmin } from "@/codeclarity_components/organizations/admin-only";
+import { type Organization } from "@/codeclarity_components/organizations/organization.entity";
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
-import router from "@/router";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import {
   AlertDialog,
@@ -167,12 +164,7 @@ async function create(): Promise<void> {
 
 // Tokens need an admin, as on the API.
 function setOrgInfo(info: Organization): void {
-  if (info.role !== MemberRole.OWNER && info.role !== MemberRole.ADMIN) {
-    void router.push({
-      name: "orgs",
-      params: { action: "manage", page: "main", orgId: info.id },
-    });
-  }
+  leaveUnlessOrgAdmin(info);
 }
 </script>
 

@@ -15,10 +15,7 @@ import { type RouteLocationRaw, useRouter } from "vue-router";
 import { PreviewBadge } from "@/base_components/page";
 import { DatasetsRepository } from "@/codeclarity_components/datasets/datasets.repository";
 import { ExperimentsRepository } from "@/codeclarity_components/experiments/experiments.repository";
-import {
-  isMemberRoleGreaterOrEqualTo,
-  MemberRole,
-} from "@/codeclarity_components/organizations/organization.entity";
+import { isOrgAdmin } from "@/codeclarity_components/organizations/organization.entity";
 import { ProjectRepository } from "@/codeclarity_components/projects/project.repository";
 import {
   CommandDialog,
@@ -95,8 +92,7 @@ function actions(): Action[] {
   const org = userStore.getDefaultOrg;
   const orgId = org?.id;
   // Only admins can open the analyzer form.
-  const admin =
-    !!org && isMemberRoleGreaterOrEqualTo(org.role, MemberRole.ADMIN);
+  const admin = isOrgAdmin(org?.role);
   return [
     {
       id: "create-dataset",

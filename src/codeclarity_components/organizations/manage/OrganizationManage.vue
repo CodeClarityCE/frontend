@@ -19,6 +19,7 @@ import { BrandEmphasis, PageHeading } from "@/base_components/page";
 import FreshnessThresholdSetting from "@/codeclarity_components/organizations/manage/FreshnessThresholdSetting.vue";
 import ServiceLevelTargetsSetting from "@/codeclarity_components/organizations/manage/ServiceLevelTargetsSetting.vue";
 import {
+  isOrgAdmin,
   MemberRole,
   type Organization,
 } from "@/codeclarity_components/organizations/organization.entity";
@@ -101,11 +102,7 @@ const settingsLinks = computed(() =>
     : [],
 );
 
-const isAdmin = computed(
-  () =>
-    orgInfo.value?.role === MemberRole.OWNER ||
-    orgInfo.value?.role === MemberRole.ADMIN,
-);
+const isAdmin = computed(() => isOrgAdmin(orgInfo.value?.role));
 
 const faqs = [
   {

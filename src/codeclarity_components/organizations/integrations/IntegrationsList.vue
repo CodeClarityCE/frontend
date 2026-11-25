@@ -6,23 +6,19 @@ import { type RouteLocationRaw, RouterLink } from "vue-router";
 
 import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { StatTile, StatusBadge, type StatusTone } from "@/base_components/page";
+import { leaveUnlessOrgAdmin } from "@/codeclarity_components/organizations/admin-only";
 import {
   IntegrationProvider,
   type VCS,
 } from "@/codeclarity_components/organizations/integrations/Integrations";
 import { IntegrationsRepository } from "@/codeclarity_components/organizations/integrations/IntegrationsRepository";
-import {
-  isMemberRoleGreaterOrEqualTo,
-  MemberRole,
-  type Organization,
-} from "@/codeclarity_components/organizations/organization.entity";
+import { type Organization } from "@/codeclarity_components/organizations/organization.entity";
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
 import {
   ExternalTicketProvider,
   type IntegrationConfigSummary,
 } from "@/codeclarity_components/tickets/tickets.entity";
 import { TicketsRepository } from "@/codeclarity_components/tickets/tickets.repository";
-import router from "@/router";
 import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -183,12 +179,7 @@ function addRoute(provider: IntegrationProvider): RouteLocationRaw {
 }
 
 function setOrgInfo(org: Organization): void {
-  if (!isMemberRoleGreaterOrEqualTo(org.role, MemberRole.ADMIN)) {
-    void router.replace({
-      name: "orgs",
-      params: { action: "manage", page: "main", orgId: org.id },
-    });
-  }
+  leaveUnlessOrgAdmin(org);
 }
 
 async function fetchVcs(): Promise<void> {

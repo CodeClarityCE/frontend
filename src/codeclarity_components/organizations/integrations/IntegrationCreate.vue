@@ -2,15 +2,11 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 
+import { leaveUnlessOrgAdmin } from "@/codeclarity_components/organizations/admin-only";
 import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
-import {
-  isMemberRoleGreaterOrEqualTo,
-  MemberRole,
-  type Organization,
-} from "@/codeclarity_components/organizations/organization.entity";
+import { type Organization } from "@/codeclarity_components/organizations/organization.entity";
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
 import OrgNotFound from "@/codeclarity_components/organizations/subcomponents/OrgNotFound.vue";
-import router from "@/router";
 
 import OrgIntegrationAddClickUp from "./clickup/AddClickUp.vue";
 import OrgIntegrationAddGithub from "./github/AddGithub.vue";
@@ -31,12 +27,7 @@ const provider = computed(() =>
 
 // Only admins add integrations; others go to the organisation overview.
 function setOrgInfo(orgInfo: Organization): void {
-  if (!isMemberRoleGreaterOrEqualTo(orgInfo.role, MemberRole.ADMIN)) {
-    void router.replace({
-      name: "orgs",
-      params: { action: "manage", page: "main", orgId: orgInfo.id },
-    });
-  }
+  leaveUnlessOrgAdmin(orgInfo);
 }
 </script>
 <template>

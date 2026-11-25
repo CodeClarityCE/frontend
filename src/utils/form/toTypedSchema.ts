@@ -17,7 +17,7 @@ type DeepPartial<T> = T extends (infer U)[]
 
 type Issue = z.core.$ZodIssue;
 
-// zod 3 said "Required" for a missing value; keep it unless the field has its own message.
+// A missing value reads "Required" unless the field sets its own message.
 const parseOptions: z.core.ParseContext<Issue> = {
   error: (issue) =>
     issue.code === "invalid_type" && issue.input === undefined
@@ -25,7 +25,7 @@ const parseOptions: z.core.ParseContext<Issue> = {
       : undefined,
 };
 
-/** A field's message for a missing value, as zod 3's `required_error` gave. */
+/** The field's message for a missing value; other errors keep their own. */
 export function requiredMessage(
   message: string,
 ): (issue: z.core.$ZodRawIssue) => string | undefined {
@@ -41,14 +41,17 @@ function formPath(path: PropertyKey[]): string {
   }, "");
 }
 
+// Union option issues have paths relative to the union, so they get its path in front.
 function collectIssues(
   issues: readonly Issue[],
   errors: Map<string, TypedSchemaError>,
+  parent: PropertyKey[] = [],
 ): void {
   for (const issue of issues) {
-    const path = formPath(issue.path);
+    const fullPath = [...parent, ...issue.path];
+    const path = formPath(fullPath);
     if (issue.code === "invalid_union") {
-      collectIssues(issue.errors.flat(), errors);
+      collectIssues(issue.errors.flat(), errors, fullPath);
       if (path === "") continue;
     }
     const entry = errors.get(path) ?? { path, errors: [] };
@@ -80,15 +83,15 @@ function merge(
   return target;
 }
 
-// Each key's default, from parsing a missing value; nested objects get theirs.
+// Each key's .default() value; nested objects get theirs.
 function defaultsOf(schema: z.ZodType): unknown {
   if (!(schema instanceof z.ZodObject)) return undefined;
   const shape = schema.shape as Record<string, z.ZodType>;
   return Object.fromEntries(
     Object.entries(shape).map(([key, field]) => {
+      if (field instanceof z.ZodDefault) return [key, field.def.defaultValue];
       if (field instanceof z.ZodObject) return [key, defaultsOf(field)];
-      const parsed = field.safeParse(undefined);
-      return [key, parsed.success ? parsed.data : undefined];
+      return [key, undefined];
     }),
   );
 }
@@ -136,8 +139,12 @@ export function toTypedSchema<
       return { errors: [...errors.values()] };
     },
     cast(values) {
-      const parsed = schema.safeParse(values);
-      if (parsed.success) return parsed.data as TInput;
+      try {
+        const parsed = schema.safeParse(values);
+        if (parsed.success) return parsed.data as TInput;
+      } catch {
+        // An async schema cannot parse synchronously; fall back to the defaults.
+      }
       // zod cannot cast, so fill the defaults in under the given values.
       const defaults = defaultsOf(schema);
       if (isPlainObject(defaults) && isPlainObject(values)) {
@@ -146,7 +153,11 @@ export function toTypedSchema<
       return values as TInput;
     },
     describe(path) {
-      return describeSchema(path ? schemaAt(schema, path) : schema);
+      try {
+        return describeSchema(path ? schemaAt(schema, path) : schema);
+      } catch {
+        return { required: false, exists: false };
+      }
     },
   };
 }

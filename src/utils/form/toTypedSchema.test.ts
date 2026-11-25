@@ -134,6 +134,28 @@ describe("toTypedSchema", () => {
     });
   });
 
+  it("reports a union option's nested error under the union's path", async () => {
+    const union = z.object({
+      id: z.union([
+        z.string({ error: "Not text" }),
+        z.object({ n: z.number({ error: "Not a number" }) }),
+      ]),
+    });
+
+    // A wrong value on purpose, which the typed input would refuse.
+    const input = { id: { n: "x" } } as unknown as { id: { n: number } };
+    const result = await toTypedSchema(union).parse(input);
+
+    expect(result.errors).toContainEqual({
+      path: "id.n",
+      errors: ["Not a number"],
+    });
+    expect(result.errors).toContainEqual({
+      path: "id",
+      errors: expect.arrayContaining(["Not text"]),
+    });
+  });
+
   it("casts partial values by filling in the schema's defaults", () => {
     const cast = toTypedSchema(schema).cast?.({ name: "Bob" });
 
@@ -146,6 +168,16 @@ describe("toTypedSchema", () => {
       password: undefined,
       confirm: undefined,
     });
+  });
+
+  it("describes and casts a schema with an async refinement without throwing", () => {
+    const typed = toTypedSchema(
+      z.object({ name: z.string().refine(async () => Promise.resolve(true)) }),
+    );
+
+    expect(typed.describe?.("name")).toEqual({ required: true, exists: true });
+    expect(typed.cast?.({ name: "x" })).toEqual({ name: "x" });
+    expect(typed.cast?.({})).toEqual({ name: undefined });
   });
 
   it("describes which fields are required and which exist", () => {

@@ -42,7 +42,7 @@ export class FileRepository extends BaseRepository {
     };
 
     if (options.bearerToken) {
-      headers.Authorization = `Bearer ${options.bearerToken}`;
+      headers.Authorization = `Bearer ${await this.freshBearer(options.bearerToken)}`;
     }
 
     const response = await fetch(url, {

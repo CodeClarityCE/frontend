@@ -26,7 +26,7 @@ function sentReports(): SentReport[] {
 function signIn(): void {
   const auth = useAuthStore();
   auth.setAuthenticated(true);
-  auth.setRefreshToken("session-token");
+  auth.setToken("session-token");
 }
 
 // Renders the app's toaster, so a toast would show up as a list item.

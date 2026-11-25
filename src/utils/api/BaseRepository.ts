@@ -1,5 +1,7 @@
 import { toast } from "vue-sonner";
 
+import { loginRoute } from "@/codeclarity_components/authentication/signin/login-route";
+
 import { APIErrors } from "./ApiErrors";
 
 // Parses a JSON body; a 204 or an empty body gives undefined.
@@ -63,6 +65,24 @@ export class BaseRepository {
     else return `${this.getBaseUrl()}/${relativeUrl}`;
   }
 
+  /**
+   * The bearer to send: the caller's token, refreshed first when it is the
+   * session's access token and has expired. A refused refresh signs the user out.
+   */
+  protected async freshBearer(bearerToken: string): Promise<string> {
+    // Loaded here because the session module imports the auth store, which imports this one.
+    const { bearerFor } = await import("./session");
+    const bearer = await bearerFor(bearerToken);
+    if ("token" in bearer) return bearer.token;
+    void import("@/router").then(({ default: router }) =>
+      router.push(loginRoute({ redirect: router.currentRoute.value.fullPath })),
+    );
+    throw new BusinessLogicError(
+      APIErrors.NotAuthenticated,
+      "The session has expired",
+    );
+  }
+
   /** Send a GET with the query params, bearer token and extra headers. */
   private async sendGet(options: GetRequestOptions): Promise<Response> {
     // Construct the url, including query parameters
@@ -74,7 +94,10 @@ export class BaseRepository {
 
     // Attach bearer token
     if (options.bearerToken) {
-      headers.append("Authorization", `Bearer ${options.bearerToken}`);
+      headers.append(
+        "Authorization",
+        `Bearer ${await this.freshBearer(options.bearerToken)}`,
+      );
     }
 
     // Attach additional headers
@@ -182,7 +205,10 @@ export class BaseRepository {
 
     // Attach bearer token
     if (options.bearerToken) {
-      headers.append("Authorization", `Bearer ${options.bearerToken}`);
+      headers.append(
+        "Authorization",
+        `Bearer ${await this.freshBearer(options.bearerToken)}`,
+      );
     }
 
     // Attach additional headers
@@ -257,7 +283,10 @@ export class BaseRepository {
 
     // Attach bearer token
     if (options.bearerToken) {
-      headers.append("Authorization", `Bearer ${options.bearerToken}`);
+      headers.append(
+        "Authorization",
+        `Bearer ${await this.freshBearer(options.bearerToken)}`,
+      );
     }
 
     // Attach additional headers
@@ -327,7 +356,10 @@ export class BaseRepository {
 
     // Attach bearer token
     if (options.bearerToken) {
-      headers.append("Authorization", `Bearer ${options.bearerToken}`);
+      headers.append(
+        "Authorization",
+        `Bearer ${await this.freshBearer(options.bearerToken)}`,
+      );
     }
 
     // Attach additional headers
@@ -399,7 +431,10 @@ export class BaseRepository {
 
     // Attach bearer token
     if (options.bearerToken) {
-      headers.append("Authorization", `Bearer ${options.bearerToken}`);
+      headers.append(
+        "Authorization",
+        `Bearer ${await this.freshBearer(options.bearerToken)}`,
+      );
     }
 
     // Attach additional headers

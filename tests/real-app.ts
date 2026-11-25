@@ -40,6 +40,8 @@ interface FakeHttp {
   // Answers every later METHOD request to the API path (no /api prefix) with this body;
   // a string body is sent as raw text.
   on(method: string, path: string, body: unknown, status?: number): void;
+  // Makes every later METHOD request to the API path fail with no answer, as when the page unloads.
+  fail(method: string, path: string): void;
   // Every request the app sent, oldest first.
   requests: FakeRequest[];
 }
@@ -64,6 +66,7 @@ const API_PREFIX = `/${import.meta.env.VITE_API_URL}`;
 // Fakes fetch; an unexpected request gets a 404 and is still recorded.
 function fakeHttp(): FakeHttp {
   const answers = new Map<string, { body: unknown; status: number }>();
+  const failures = new Set<string>();
   const requests: FakeRequest[] = [];
   vi.stubGlobal(
     "fetch",
@@ -82,6 +85,8 @@ function fakeHttp(): FakeHttp {
         headers: new Headers(init.headers),
         body,
       });
+      if (failures.has(`${method} ${path}`))
+        throw new TypeError("Failed to fetch");
       const answer = answers.get(`${method} ${path}`);
       if (!answer) return new Response(null, { status: 404 });
       // A string is a file download, sent as is.
@@ -96,6 +101,9 @@ function fakeHttp(): FakeHttp {
   return {
     on(method, path, body, status = 200) {
       answers.set(`${method.toUpperCase()} ${path}`, { body, status });
+    },
+    fail(method, path) {
+      failures.add(`${method.toUpperCase()} ${path}`);
     },
     requests,
   };

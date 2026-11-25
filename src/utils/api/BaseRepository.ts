@@ -1,7 +1,5 @@
 import { toast } from "vue-sonner";
 
-import { loginRoute } from "@/codeclarity_components/authentication/signin/login-route";
-
 import { APIErrors } from "./ApiErrors";
 
 // Parses a JSON body; a 204 or an empty body gives undefined.
@@ -72,15 +70,7 @@ export class BaseRepository {
   protected async freshBearer(bearerToken: string): Promise<string> {
     // Loaded here because the session module imports the auth store, which imports this one.
     const { bearerFor } = await import("./session");
-    const bearer = await bearerFor(bearerToken);
-    if ("token" in bearer) return bearer.token;
-    void import("@/router").then(({ default: router }) =>
-      router.push(loginRoute({ redirect: router.currentRoute.value.fullPath })),
-    );
-    throw new BusinessLogicError(
-      APIErrors.NotAuthenticated,
-      "The session has expired",
-    );
+    return bearerFor(bearerToken);
   }
 
   /** Send a GET with the query params, bearer token and extra headers. */
@@ -635,6 +625,11 @@ export class ValidationError extends BusinessLogicError {
     }
     return message;
   }
+}
+
+// True when fetch failed before the API answered.
+export function gotNoAnswer(error: unknown): boolean {
+  return !(error instanceof BusinessLogicError || error instanceof HttpError);
 }
 
 /**

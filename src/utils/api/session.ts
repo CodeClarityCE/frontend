@@ -1,13 +1,15 @@
 import { getActivePinia } from "pinia";
 
+import { loginRoute } from "@/codeclarity_components/authentication/signin/login-route";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { logger } from "@/utils/logger";
 
+import { APIErrors } from "./ApiErrors";
 import { BusinessLogicError, HttpError } from "./BaseRepository";
 
 // "refused": the API turned the refresh down, or the refresh token has expired.
-// "no_answer": the refresh request got no response.
+// "no_answer": the refresh got no response, or the API was down (5xx).
 type SessionState = "fresh" | "refreshed" | "refused" | "no_answer";
 
 // A token this close to its expiry is refreshed before use.
@@ -15,15 +17,19 @@ const EXPIRY_MARGIN_MS = 30_000;
 
 let refreshInFlight: Promise<SessionState> | undefined;
 
+// Access tokens a refresh has replaced, so a caller holding one gets the new token.
+const replacedTokens = new Set<string>();
+
 function expiresSoon(expiry: Date | undefined): boolean {
   return (
     expiry !== undefined && expiry.getTime() - Date.now() <= EXPIRY_MARGIN_MS
   );
 }
 
-// True when fetch failed before the API answered.
-function gotNoAnswer(error: unknown): boolean {
-  return !(error instanceof BusinessLogicError || error instanceof HttpError);
+// True when the API answered the refresh with a refusal, not an outage.
+function refusedBy(error: unknown): boolean {
+  if (error instanceof HttpError) return error.code < 500;
+  return error instanceof BusinessLogicError;
 }
 
 async function refresh(): Promise<SessionState> {
@@ -42,11 +48,13 @@ async function refresh(): Promise<SessionState> {
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
+    const oldToken = authStore.getToken;
+    if (oldToken) replacedTokens.add(oldToken);
     authStore.setToken(newToken.token);
     authStore.setTokenExpiry(newToken.token_expiry);
     return "refreshed";
   } catch (error) {
-    if (gotNoAnswer(error)) return "no_answer";
+    if (!refusedBy(error)) return "no_answer";
     logger.warn("Could not refresh the session token", {}, error);
     return "refused";
   }
@@ -65,23 +73,39 @@ export function ensureFreshAccessToken(): Promise<SessionState> {
   return refreshInFlight;
 }
 
-// Clears the session after a refused refresh.
-function signOutLocally(): void {
+// Clears the session and opens the login page; later callers find it already done.
+function signOut(): void {
+  const authStore = useAuthStore();
+  if (!authStore.getAuthenticated && !authStore.getToken) return;
   useUserStore().$reset();
-  useAuthStore().$reset();
+  authStore.$reset();
+  // Loaded here because the router imports every repository through its views.
+  void import("@/router").then(({ default: router }) =>
+    router.push(loginRoute({ redirect: router.currentRoute.value.fullPath })),
+  );
 }
 
-// The bearer to send in place of `bearerToken`: the fresh access token when it is the store's.
-export async function bearerFor(
-  bearerToken: string,
-): Promise<{ token: string } | { signedOut: true }> {
-  if (!getActivePinia() || bearerToken !== useAuthStore().getToken) {
-    return { token: bearerToken };
-  }
+/**
+ * The bearer to send for a request the caller signed with `bearerToken`.
+ * The session's access token is refreshed first when it is about to expire.
+ */
+export async function bearerFor(bearerToken: string): Promise<string> {
+  if (!getActivePinia()) return bearerToken;
+  const authStore = useAuthStore();
+  const ours =
+    bearerToken === authStore.getToken || replacedTokens.has(bearerToken);
+  if (!ours) return bearerToken;
   const state = await ensureFreshAccessToken();
   if (state === "refused") {
-    signOutLocally();
-    return { signedOut: true };
+    signOut();
+    throw new BusinessLogicError(
+      APIErrors.NotAuthenticated,
+      "The session has expired",
+    );
   }
-  return { token: useAuthStore().getToken ?? bearerToken };
+  if (state === "no_answer") {
+    // Same as a request that got no answer: the caller keeps the session.
+    throw new TypeError("Could not refresh the session token");
+  }
+  return authStore.getToken ?? bearerToken;
 }

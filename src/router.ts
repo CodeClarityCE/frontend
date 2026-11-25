@@ -36,7 +36,7 @@ import OrganizationVulnerabilityView from "@/codeclarity_components/vulnerabilit
 import { loadAuthStoreFromLocalStorage, useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
-import { BusinessLogicError, HttpError } from "@/utils/api/BaseRepository";
+import { BusinessLogicError, gotNoAnswer } from "@/utils/api/BaseRepository";
 import { ensureFreshAccessToken } from "@/utils/api/session";
 import { logger } from "@/utils/logger";
 import { pageTitle } from "@/utils/page-title";
@@ -44,11 +44,6 @@ import { pageTitle } from "@/utils/page-title";
 // Helper functions to reduce complexity in beforeEach guard
 // "no_answer": the request got no response, as when the page unloads mid-navigation.
 type FetchResult = "ok" | "failed" | "no_answer";
-
-// True when fetch failed before the API answered.
-function gotNoAnswer(error: unknown): boolean {
-  return !(error instanceof BusinessLogicError || error instanceof HttpError);
-}
 
 async function fetchAuthenticatedUser(
   authStore: ReturnType<typeof useAuthStore>,

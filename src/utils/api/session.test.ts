@@ -1,5 +1,5 @@
 import { waitFor } from "@testing-library/vue";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
 import { useAuthStore } from "@/stores/auth";
@@ -59,19 +59,31 @@ function expectRefreshTokenOnlyInRefreshBody(app: TestApp): void {
 }
 
 describe("session token", () => {
+  let app: TestApp | undefined;
+  const track = (tested: TestApp): void => {
+    app = tested;
+  };
+
+  // No test may send the refresh token anywhere but the refresh body.
+  afterEach(() => {
+    if (app) expectRefreshTokenOnlyInRefreshBody(app);
+    app = undefined;
+  });
+
   it("sends the access token as the bearer, never the refresh token", async () => {
     const app = createTestApp({ signedIn: true });
+    track(app);
     await app.visit("/projects");
 
     await loadOrg();
 
     const [request] = sent(app, "GET", `/org/${org.id}`).slice(-1);
     expect(request?.headers.get("Authorization")).toBe("Bearer access-token");
-    expectRefreshTokenOnlyInRefreshBody(app);
   });
 
   it("refreshes an expired access token once, then sends the new one", async () => {
     const app = await expiredSession();
+    track(app);
     app.http.on("POST", "/auth/refresh", refreshed);
 
     await loadOrg();
@@ -85,11 +97,11 @@ describe("session token", () => {
       "Bearer new-access-token",
     );
     expect(useAuthStore().getToken).toBe("new-access-token");
-    expectRefreshTokenOnlyInRefreshBody(app);
   });
 
   it("refreshes a token that is about to expire", async () => {
     const app = await expiredSession();
+    track(app);
     useAuthStore().setTokenExpiry(new Date(Date.now() + 5000));
     app.http.on("POST", "/auth/refresh", refreshed);
 
@@ -100,6 +112,7 @@ describe("session token", () => {
 
   it("shares one refresh between requests sent at once", async () => {
     const app = await expiredSession();
+    track(app);
     app.http.on("POST", "/auth/refresh", refreshed);
 
     await Promise.all([loadOrg(), loadOrg(), loadOrg()]);
@@ -116,6 +129,7 @@ describe("session token", () => {
 
   it("signs the user out when the API refuses the refresh", async () => {
     const app = await expiredSession();
+    track(app);
     app.http.on(
       "POST",
       "/auth/refresh",
@@ -136,17 +150,49 @@ describe("session token", () => {
 
   it("keeps the session when the refresh gets no answer", async () => {
     const app = await expiredSession();
+    track(app);
     app.http.fail("POST", "/auth/refresh");
 
-    await loadOrg().catch(() => undefined);
+    await expect(loadOrg()).rejects.toThrow(TypeError);
 
+    expect(sent(app, "GET", `/org/${org.id}`)).toHaveLength(0);
     expect(useAuthStore().getAuthenticated).toBe(true);
     expect(useAuthStore().getRefreshToken).toBe("refresh-token");
     expect(app.router.currentRoute.value.path).toBe("/projects");
   });
 
+  it("keeps the session when the API is down during the refresh", async () => {
+    const app = await expiredSession();
+    track(app);
+    app.http.on("POST", "/auth/refresh", {}, 502);
+
+    await expect(loadOrg()).rejects.toThrow(TypeError);
+
+    expect(useAuthStore().getAuthenticated).toBe(true);
+    expect(useAuthStore().getRefreshToken).toBe("refresh-token");
+  });
+
+  it("sends the new token for a request signed with the token a refresh replaced", async () => {
+    const app = await expiredSession();
+    track(app);
+    app.http.on("POST", "/auth/refresh", refreshed);
+    await loadOrg();
+
+    await new OrgRepository().get({
+      bearerToken: "access-token",
+      orgId: org.id,
+    });
+
+    const requests = sent(app, "GET", `/org/${org.id}`);
+    expect(requests.at(-1)?.headers.get("Authorization")).toBe(
+      "Bearer new-access-token",
+    );
+    expect(sent(app, "POST", "/auth/refresh")).toHaveLength(1);
+  });
+
   it("refreshes an expired token before a navigation loads the page", async () => {
     const app = await expiredSession();
+    track(app);
     useUserStore().$reset();
     app.http.on("POST", "/auth/refresh", refreshed);
 
@@ -158,15 +204,16 @@ describe("session token", () => {
       "Bearer new-access-token",
     );
     expect(app.router.currentRoute.value.path).toBe("/projects");
-    expectRefreshTokenOnlyInRefreshBody(app);
   });
 
   it("keeps the session and stays put when a navigation's refresh gets no answer", async () => {
     const app = await expiredSession();
+    track(app);
     app.http.fail("POST", "/auth/refresh");
 
     await app.visit("/projects");
 
     expect(useAuthStore().getAuthenticated).toBe(true);
+    expect(app.router.currentRoute.value.path).toBe("/projects");
   });
 });

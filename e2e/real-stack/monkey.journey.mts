@@ -203,7 +203,29 @@ const MONKEY_REGRESSIONS: {
   steps: number;
   /** What the run found. */
   found: string;
-}[] = [];
+}[] = [
+  {
+    page: "organisation settings",
+    seed: 2001639778,
+    steps: 60,
+    found:
+      "Signed out when reopening the page cut off the default organisation request",
+  },
+  {
+    page: "organisation invites",
+    seed: 2001639778,
+    steps: 60,
+    found:
+      "Signed out when reopening the page cut off the default organisation request",
+  },
+  {
+    page: "organisation members",
+    seed: 2001639778,
+    steps: 60,
+    found:
+      "Signed out when reopening the page cut off the default organisation request",
+  },
+];
 
 // The replay command and the run, for the failure message and the ci-failure issue.
 function describeRun(name: string, run: MonkeyRun, steps: number): string {

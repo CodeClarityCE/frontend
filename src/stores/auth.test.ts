@@ -131,4 +131,27 @@ describe("auth store", () => {
     expect(useAuthStore().getAuthenticated).toBe(false);
     expect(useUserStore().getUser).toBeUndefined();
   });
+
+  it("keeps the session when a page load is cut off before the default org answers", async () => {
+    const app = createTestApp({ signedIn: true });
+    app.http.fail("GET", `/org/${org.id}`);
+
+    await app.visit("/projects");
+
+    expect(useAuthStore().getAuthenticated).toBe(true);
+    const reloaded = createTestApp();
+    reloaded.http.on("GET", "/auth/user", { data: user });
+    reloaded.http.on("GET", `/org/${org.id}`, { data: org });
+    await reloaded.visit("/projects");
+    expect(reloaded.router.currentRoute.value.path).toBe("/projects");
+  });
+
+  it("keeps the session when a page load is cut off before the identity answers", async () => {
+    const app = createTestApp({ signedIn: true });
+    app.http.fail("GET", "/auth/user");
+
+    await app.visit("/projects");
+
+    expect(useAuthStore().getAuthenticated).toBe(true);
+  });
 });

@@ -37,6 +37,8 @@ coverage
 
 # CodeClarity
 package-lock.json
+# Pins the corepack the e2e scripts install.
+!.cloud/corepack/package-lock.json
 tmp
 # TypeScript incremental build state
 *.tsbuildinfo

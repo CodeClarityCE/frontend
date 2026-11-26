@@ -42,8 +42,9 @@ docker run --rm --platform linux/amd64 --ipc=host \
     tar -C /src --exclude=./node_modules --exclude=./dist --exclude=./.git \
       --exclude=./playwright-report --exclude=./test-results -cf - . | tar -xf -
     cp .cloud/docker/pnpm-workspace.yaml pnpm-workspace.yaml
-    npm install -g corepack@0.36.0 --force >/dev/null
-    corepack enable
+    # corepack at the version and hash in .cloud/corepack/package-lock.json.
+    npm ci --prefix .cloud/corepack --ignore-scripts --no-audit --no-fund >/dev/null
+    .cloud/corepack/node_modules/.bin/corepack enable --install-directory /usr/local/bin
     pnpm install --frozen-lockfile
     status=0
     # CI=1 means one worker in the config; a runner has room for more.

@@ -31,6 +31,13 @@ const rotated = {
   },
 };
 
+// An unsigned access token shaped like the API's, for the given user.
+function accessTokenOf(userId: string): string {
+  const part = (value: object): string =>
+    btoa(JSON.stringify(value)).replace(/=+$/, "");
+  return `${part({ alg: "ES512", typ: "at+jwt" })}.${part({ sub: userId, userId })}.sig`;
+}
+
 // An exclusive Web Locks stand-in: each request runs after the previous one under that name.
 function installFakeLocks(): string[] {
   const tails = new Map<string, Promise<unknown>>();
@@ -368,6 +375,29 @@ describe("session token", () => {
     expect(
       sent(app, "GET", `/org/${org.id}`).at(-1)?.headers.get("Authorization"),
     ).toBe("Bearer other-tab-access-token");
+  });
+
+  it("ignores the tokens of another user signed in from another tab", async () => {
+    const app = createTestApp({ signedIn: true });
+    track(app);
+    await app.visit("/projects");
+    useAuthStore().setToken(accessTokenOf("user-x"));
+    const saved = JSON.parse(localStorage.getItem("authStore") ?? "{}") as {
+      token: string;
+    };
+    const otherUser = JSON.stringify({
+      ...saved,
+      token: accessTokenOf("user-y"),
+      refreshToken: "user-y-refresh-token",
+    });
+
+    localStorage.setItem("authStore", otherUser);
+    window.dispatchEvent(
+      new StorageEvent("storage", { key: "authStore", newValue: otherUser }),
+    );
+
+    expect(useAuthStore().getToken).toBe(accessTokenOf("user-x"));
+    expect(useAuthStore().getRefreshToken).toBe("refresh-token");
   });
 });
 

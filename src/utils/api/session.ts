@@ -1,11 +1,7 @@
 import { getActivePinia } from "pinia";
 
 import { loginRoute } from "@/codeclarity_components/authentication/signin/login-route";
-import {
-  isReplacedAccessToken,
-  storedSessionTokens,
-  useAuthStore,
-} from "@/stores/auth";
+import { isReplacedAccessToken, useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { logger } from "@/utils/logger";
 
@@ -45,16 +41,9 @@ function acrossTabs<T>(work: () => Promise<T>): Promise<T> {
   return locks.request(REFRESH_LOCK, { mode: "exclusive" }, work);
 }
 
-// Takes the tokens another tab saved while this one waited for the lock.
-function adoptRotatedTokens(authStore: AuthStore): void {
-  const stored = storedSessionTokens();
-  if (stored && stored.refreshToken !== authStore.getRefreshToken) {
-    authStore.adoptTokens(stored);
-  }
-}
-
 async function refresh(authStore: AuthStore): Promise<SessionState> {
-  adoptRotatedTokens(authStore);
+  // Another tab may have rotated the tokens while this one waited for the lock.
+  authStore.adoptRotatedTokens();
   if (!expiresSoon(authStore.getTokenExpiry)) return "refreshed";
   const refreshToken = authStore.getRefreshToken;
   const refreshExpiry = authStore.getRefreshTokenExpiry;
@@ -109,11 +98,8 @@ function signOut(): void {
   );
 }
 
-/**
- * Signs the user out here and asks the API to end the sign-in, so its
- * refresh token stops working. The local sign-out never waits for the API.
- */
-export function endSession(): void {
+// Signs out here at once, then asks the API to end the sign-in so its refresh token stops working.
+export function endSignIn(): void {
   const authStore = useAuthStore();
   const refreshToken = authStore.getRefreshToken;
   useUserStore().$reset();

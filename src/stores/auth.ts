@@ -125,25 +125,51 @@ export const useAuthStore = defineStore("auth", {
         }),
       });
     },
+    // Takes the tokens another tab saved after rotating them, if they are the same user's.
+    adoptRotatedTokens: function (): void {
+      const stored = storedSessionTokens();
+      if (!this.authenticated || !stored) return;
+      if (stored.refreshToken === this.refreshToken) return;
+      if (!sameUser(stored.token, this.token)) return;
+      this.adoptTokens(stored);
+    },
   },
 });
 
+// The user id an access token names, or undefined when it cannot be read.
+function userIdOf(token: string | undefined): string | undefined {
+  try {
+    const payload = token?.split(".")[1];
+    if (!payload) return undefined;
+    const claims = JSON.parse(
+      atob(payload.replace(/-/g, "+").replace(/_/g, "/")),
+    ) as { sub?: unknown };
+    return typeof claims.sub === "string" ? claims.sub : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+// False only when both tokens name a user and the users differ.
+function sameUser(a: string, b: string | undefined): boolean {
+  const first = userIdOf(a);
+  const second = userIdOf(b);
+  return first === undefined || second === undefined || first === second;
+}
+
 /** The session tokens saved in this browser, which another tab may have rotated. */
-export function storedSessionTokens(): SessionTokens | undefined {
+function storedSessionTokens(): SessionTokens | undefined {
   const { token, tokenExpiry, refreshToken, refreshTokenExpiry } =
     getFromLocalStorageOrDefault();
   if (!token || !tokenExpiry || !refreshToken) return undefined;
   return { token, tokenExpiry, refreshToken, refreshTokenExpiry };
 }
 
-// Takes the tokens another tab saved, when they belong to a newer refresh than ours.
+// Another tab's refresh lands here, so every tab uses the newest tokens.
 function followOtherTabs(store: ReturnType<typeof useAuthStore>): void {
   window.addEventListener("storage", (event) => {
     if (event.key !== storePeristantName || event.newValue === null) return;
-    const stored = storedSessionTokens();
-    if (!store.authenticated || !stored) return;
-    if (stored.refreshToken === store.refreshToken) return;
-    store.adoptTokens(stored);
+    store.adoptRotatedTokens();
   });
 }
 

@@ -27,7 +27,7 @@ import {
   SidebarMenuItem,
 } from "@/shadcn/ui/sidebar";
 import { useUserStore } from "@/stores/user";
-import { endSession } from "@/utils/api/session";
+import { endSignIn } from "@/utils/api/session";
 import { isThemeChoice, useTheme } from "@/utils/theme";
 
 import { initials } from "./initials";
@@ -51,7 +51,7 @@ const reportUrl =
   "https://github.com/CodeClarityCE/codeclarity-dev/issues/new?template=BLANK_ISSUE";
 
 function logout(): void {
-  endSession();
+  endSignIn();
   void router.push("/login");
 }
 

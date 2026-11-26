@@ -36,53 +36,14 @@ import OrganizationVulnerabilityView from "@/codeclarity_components/vulnerabilit
 import { loadAuthStoreFromLocalStorage, useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
-import { BusinessLogicError, HttpError } from "@/utils/api/BaseRepository";
+import { BusinessLogicError, gotNoAnswer } from "@/utils/api/BaseRepository";
+import { ensureFreshAccessToken } from "@/utils/api/session";
 import { logger } from "@/utils/logger";
 import { pageTitle } from "@/utils/page-title";
 
 // Helper functions to reduce complexity in beforeEach guard
 // "no_answer": the request got no response, as when the page unloads mid-navigation.
 type FetchResult = "ok" | "failed" | "no_answer";
-
-// True when fetch failed before the API answered.
-function gotNoAnswer(error: unknown): boolean {
-  return !(error instanceof BusinessLogicError || error instanceof HttpError);
-}
-
-async function refreshTokenIfNeeded(
-  authStore: ReturnType<typeof useAuthStore>,
-  authRepository: AuthRepository,
-): Promise<boolean> {
-  const current = new Date();
-  const tokenExpiry = authStore.getTokenExpiry;
-  if (tokenExpiry && tokenExpiry <= current) {
-    // Clear expired tokens using $patch to avoid exactOptionalPropertyTypes issues
-    authStore.$patch((state) => {
-      delete state.token;
-      delete state.tokenExpiry;
-    });
-
-    // Refresh the token via the refresh token (if its not expired itself)
-    const refreshTokenExpiry = authStore.getRefreshTokenExpiry;
-    const refreshToken = authStore.getRefreshToken;
-    if (refreshTokenExpiry && refreshToken && refreshTokenExpiry > current) {
-      try {
-        const newToken = await authRepository.refresh({
-          data: { refresh_token: refreshToken },
-          handleBusinessErrors: true,
-        });
-        authStore.token = newToken.token;
-        authStore.tokenExpiry = newToken.token_expiry;
-        return true;
-      } catch (error) {
-        logger.warn("Could not refresh the session token", {}, error);
-        return false;
-      }
-    }
-    return false;
-  }
-  return true;
-}
 
 async function fetchAuthenticatedUser(
   authStore: ReturnType<typeof useAuthStore>,
@@ -391,15 +352,11 @@ router.beforeEach(async (to) => {
     });
   };
 
-  // Check if token is present and needs to be refreshed
+  // Refresh an expired access token; with no answer, keep the session and stay put.
   if (loadIdentity) {
-    const refreshSuccess = await refreshTokenIfNeeded(
-      authStore,
-      authRepository,
-    );
-    if (!refreshSuccess) {
-      return signOut();
-    }
+    const session = await ensureFreshAccessToken();
+    if (session === "no_answer") return false;
+    if (session === "refused") return signOut();
   }
 
   // Re-fetched after a page reload, since the SPA state is lost then.

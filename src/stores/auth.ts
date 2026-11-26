@@ -52,7 +52,7 @@ export const useAuthStore = defineStore("auth", {
 
   getters: {
     getToken(state: AuthStoreState): string | undefined {
-      return state.refreshToken;
+      return state.token;
     },
     getRefreshToken(state: AuthStoreState): string | undefined {
       return state.refreshToken;

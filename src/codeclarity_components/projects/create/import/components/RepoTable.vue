@@ -30,6 +30,7 @@ import { computed, type Ref, ref, watch } from "vue";
 
 import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { StatusBadge } from "@/base_components/page";
+import { instanceError } from "@/codeclarity_components/organizations/integrations/integration-errors";
 import type { Repository } from "@/codeclarity_components/projects/project.entity";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
@@ -105,6 +106,7 @@ const INVALID_INTEGRATION = new Set<string>([
 const invalidIntegration = computed(() =>
   INVALID_INTEGRATION.has(errorCode.value ?? ""),
 );
+const unreachableInstance = computed(() => instanceError(errorCode.value));
 
 const columns: DataTableColumn<Repository>[] = [
   {
@@ -248,6 +250,9 @@ function formatDay(date: Date): string {
         <template v-if="invalidIntegration">
           The integration is no longer valid; update it in the organisation
           settings.
+        </template>
+        <template v-else-if="unreachableInstance">
+          {{ unreachableInstance }}
         </template>
       </p>
       <Button

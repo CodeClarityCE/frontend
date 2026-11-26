@@ -4,6 +4,18 @@ import {
   ValidationError,
 } from "@/utils/api/BaseRepository";
 
+/** Explains why the API refused to reach a GitLab instance, or undefined for any other error code. */
+export function instanceError(code: string | undefined): string | undefined {
+  switch (code) {
+    case APIErrors.IntegrationInstanceUrlNotAllowed:
+      return "This GitLab is on a private network or uses http. Ask your CodeClarity operator to allow its host (GITLAB_ALLOWED_PRIVATE_HOSTS).";
+    case APIErrors.IntegrationInstanceUnreachable:
+      return "The GitLab host name could not be resolved. Check the instance URL.";
+    default:
+      return undefined;
+  }
+}
+
 /** Explains why adding or updating a token based integration failed. */
 export function tokenIntegrationError(
   err: unknown,
@@ -15,6 +27,8 @@ export function tokenIntegrationError(
   if (!(err instanceof BusinessLogicError)) {
     return "An error occurred while processing the request.";
   }
+  const instance = instanceError(err.error_code);
+  if (instance) return instance;
   switch (err.error_code) {
     case APIErrors.IntegrationTokenExpired:
     case APIErrors.IntegrationInvalidToken:

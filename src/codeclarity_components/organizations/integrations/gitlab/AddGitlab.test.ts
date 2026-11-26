@@ -21,9 +21,20 @@ function urlOfLength(length: number): string {
   return `${BASE}/${"a".repeat(length - BASE.length - 1)}`;
 }
 
-async function openPage(query = ""): Promise<TestApp> {
+// The API's answer to a refused request.
+const refusal = (code: string) => ({
+  status_code: 400,
+  status: "failure",
+  error_code: code,
+  error_message: code,
+});
+
+async function openPage(
+  query = "",
+  answer: [unknown, number] = [{ status_code: 201, status: "success" }, 200],
+): Promise<TestApp> {
   const app = createTestApp({ signedIn: true });
-  app.http.on("POST", addPath, { status_code: 201, status: "success" });
+  app.http.on("POST", addPath, ...answer);
   await app.visit(`/orgs/add/integrations/${org.id}?provider=GITLAB${query}`);
   render(AddGitlab, { global: app.global });
   return app;
@@ -34,8 +45,11 @@ const sent = (app: TestApp, method: string, path: string): unknown[] =>
     .filter((r) => r.method === method && r.path === path)
     .map((r) => r.body);
 
-async function submitSelfHosted(url: string): Promise<TestApp> {
-  const app = await openPage();
+async function submitSelfHosted(
+  url: string,
+  answer?: [unknown, number],
+): Promise<TestApp> {
+  const app = await openPage("", answer);
   const typist = userEvent.setup();
   await typist.type(
     screen.getByLabelText("GitLab personal access token"),
@@ -113,6 +127,34 @@ describe("AddGitlab instance URL", () => {
     expect(sent(app, "POST", addPath)).toEqual([
       expect.objectContaining({ gitlab_instance_url: url }),
     ]);
+  });
+});
+
+describe("AddGitlab refused instance", () => {
+  it("explains that a private or http instance needs the operator's approval", async () => {
+    await submitSelfHosted("http://gitlab.internal", [
+      refusal("IntegrationInstanceUrlNotAllowed"),
+      400,
+    ]);
+
+    expect(
+      await screen.findByText(
+        "This GitLab is on a private network or uses http. Ask your CodeClarity operator to allow its host (GITLAB_ALLOWED_PRIVATE_HOSTS).",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("asks to check the instance URL when its host name does not resolve", async () => {
+    await submitSelfHosted("https://gitlab.nowhere.example", [
+      refusal("IntegrationInstanceUnreachable"),
+      400,
+    ]);
+
+    expect(
+      await screen.findByText(
+        "The GitLab host name could not be resolved. Check the instance URL.",
+      ),
+    ).toBeInTheDocument();
   });
 });
 

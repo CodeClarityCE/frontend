@@ -180,4 +180,36 @@ describe("RepoTable", () => {
       expect(emitted("onSelectedReposChange")).toHaveLength(1);
     });
   });
+
+  describe("GitLab instance errors", () => {
+    const gitlabReposPath = `/org/${org.id}/integrations/gitlab/gl-1/repositories`;
+
+    it.each([
+      [
+        "IntegrationInstanceUrlNotAllowed",
+        "This GitLab is on a private network or uses http. Ask your CodeClarity operator to allow its host (GITLAB_ALLOWED_PRIVATE_HOSTS).",
+      ],
+      [
+        "IntegrationInstanceUnreachable",
+        "The GitLab host name could not be resolved. Check the instance URL.",
+      ],
+    ])("explains %s", async (code, message) => {
+      app.http.on(
+        "GET",
+        gitlabReposPath,
+        { status_code: 400, error_code: code, error_message: code },
+        400,
+      );
+      render(RepoTable, {
+        props: {
+          integration: "gl-1",
+          getRepos: (options: GetRepositoriesRequestOptions) =>
+            new IntegrationsRepository().getGitlabRepositories(options),
+        },
+        global: app.global,
+      });
+
+      expect(await screen.findByText(message, { exact: false })).toBeTruthy();
+    });
+  });
 });

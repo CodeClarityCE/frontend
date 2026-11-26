@@ -10,7 +10,7 @@ function param(to: RouteLocationNormalized, name: string): string | undefined {
 }
 
 // The organisation page's name, from the route's params.
-function orgPageTitle(to: RouteLocationNormalized): string {
+function orgTitleFromRoute(to: RouteLocationNormalized): string {
   const action = param(to, "action");
   const page = param(to, "page");
   const orgId = param(to, "orgId");
@@ -59,7 +59,7 @@ function pageName(to: RouteLocationNormalized): string | undefined {
       if (page === "reset_password") return "Reset password";
       return "Confirm your email";
     case "orgs":
-      return orgPageTitle(to);
+      return orgTitleFromRoute(to);
     default:
       return typeof to.name === "string" ? fixedNames[to.name] : undefined;
   }

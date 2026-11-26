@@ -240,6 +240,57 @@ describe("BaseImportComponent manual import", () => {
   });
 });
 
+describe("BaseImportComponent manual import validation", () => {
+  const submit = (): Promise<void> =>
+    userEvent.click(screen.getByRole("button", { name: "Import repository" }));
+
+  it("asks for a URL when the field is untouched or blank", async () => {
+    await openImporter();
+
+    await submit();
+    expect(
+      await screen.findByText("A repository URL is required"),
+    ).toBeVisible();
+
+    await userEvent.type(screen.getByLabelText("Repository URL"), "   ");
+    await submit();
+    expect(
+      await screen.findByText("A repository URL is required"),
+    ).toBeVisible();
+  });
+
+  it("asks for a full URL and sends nothing", async () => {
+    const app = await openImporter();
+
+    await userEvent.type(
+      screen.getByLabelText("Repository URL"),
+      "github.com/octo/octo",
+    );
+    await submit();
+
+    expect(
+      await screen.findByText(
+        "Enter the full URL, like https://github.com/owner/repository",
+      ),
+    ).toBeVisible();
+    expect(
+      app.http.requests.filter(
+        (r) => r.method === "POST" && r.path === projectsPath,
+      ),
+    ).toEqual([]);
+  });
+
+  it("rejects a URL over 150 characters", async () => {
+    await openImporter();
+
+    await userEvent.click(screen.getByLabelText("Repository URL"));
+    await userEvent.paste(`https://github.com/octo/${"a".repeat(130)}`);
+    await submit();
+
+    expect(await screen.findByText("At most 150 characters")).toBeVisible();
+  });
+});
+
 describe("stripGitSuffix", () => {
   it.each([
     ["https://github.com/octo/legacy.git", "https://github.com/octo/legacy"],

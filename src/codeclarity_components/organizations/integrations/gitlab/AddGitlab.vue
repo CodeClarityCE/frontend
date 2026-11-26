@@ -66,7 +66,7 @@ const urlError = computed(() => {
   const result = z
     .string()
     .min(1, "Enter the URL of your GitLab instance")
-    .url("Enter a full URL, such as https://gitlab.example.com")
+    .check(z.url("Enter a full URL, such as https://gitlab.example.com"))
     .max(MAX_URL_LENGTH, `Enter a URL of at most ${MAX_URL_LENGTH} characters`)
     .safeParse(instanceUrl.value);
   return result.success ? undefined : result.error.issues[0]?.message;

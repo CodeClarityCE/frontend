@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { ArrowLeft } from "@lucide/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { computed, onBeforeMount, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
@@ -29,6 +28,7 @@ import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { guardFormSubmit } from "@/utils/form/guardSubmit";
+import { requiredMessage, toTypedSchema } from "@/utils/form/toTypedSchema";
 import { successToast } from "@/utils/toasts";
 
 import { LicensePolicyType } from "../license_policy.entity";
@@ -56,7 +56,7 @@ const formDisabled = computed(() => isEdit.value && !policyLoaded.value);
 
 const formSchema = z.object({
   name: z
-    .string({ required_error: "A name is required" })
+    .string({ error: requiredMessage("A name is required") })
     .trim()
     .min(1, "A name is required")
     .min(5, "At least 5 characters")

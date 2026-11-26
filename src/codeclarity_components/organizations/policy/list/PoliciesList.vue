@@ -21,6 +21,7 @@ import { errorToast, successToast } from "@/utils/toasts";
 import type { LicensePolicy } from "../license_policy.entity";
 import { LicensePolicyRepository } from "../license_policy.repository";
 import PolicyTable from "../PolicyTable.vue";
+import { usePolicyList } from "../usePolicyList";
 
 const props = defineProps<{
   page: string;
@@ -33,9 +34,18 @@ const licensePolicyRepository = new LicensePolicyRepository();
 const router = useRouter();
 const authStore = useAuthStore();
 
-const policies = ref<LicensePolicy[]>([]);
-const loaded = ref(false);
-const error = ref("");
+const { policies, loaded, error, loadPolicies } = usePolicyList(
+  (bearerToken) =>
+    licensePolicyRepository.getLicensePolicies({
+      orgId: props.orgId,
+      bearerToken,
+      handleBusinessErrors: true,
+      page: 0,
+      entries_per_page: 100,
+      search_key: "",
+    }),
+  "The license policies could not be loaded.",
+);
 
 const policyToDelete = ref<LicensePolicy | null>(null);
 const deleting = ref(false);
@@ -54,27 +64,6 @@ const createRoute = computed(() => ({
 const licenseCount = computed(
   () => new Set(policies.value.flatMap((policy) => policy.content ?? [])).size,
 );
-
-async function loadPolicies(): Promise<void> {
-  if (!authStore.getToken) return;
-  error.value = "";
-  try {
-    const response = await licensePolicyRepository.getLicensePolicies({
-      orgId: props.orgId,
-      bearerToken: authStore.getToken,
-      handleBusinessErrors: true,
-      page: 0,
-      entries_per_page: 100,
-      search_key: "",
-    });
-    policies.value = response.data ?? [];
-  } catch {
-    // The server's reason can be a raw request path, so it is not shown
-    error.value = "The license policies could not be loaded.";
-  } finally {
-    loaded.value = true;
-  }
-}
 
 function handleEdit(policy: LicensePolicy): void {
   void router.push({

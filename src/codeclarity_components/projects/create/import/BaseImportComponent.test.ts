@@ -240,6 +240,53 @@ describe("BaseImportComponent manual import", () => {
   });
 });
 
+describe("BaseImportComponent import from a refused address", () => {
+  const gitlabReposPath = `/org/${org.id}/integrations/gitlab/gl-1/repositories`;
+
+  it.each([
+    [
+      "IntegrationInstanceUrlNotAllowed",
+      "This GitLab is on a private network or uses http. Ask your CodeClarity operator to allow its host (GITLAB_ALLOWED_PRIVATE_HOSTS).",
+    ],
+    [
+      "IntegrationInstanceUnreachable",
+      "The GitLab host name could not be resolved. Check the instance URL.",
+    ],
+    [
+      "ImportTargetNotAllowed",
+      "The repository URL points at an internal or reserved address.",
+    ],
+  ])("explains %s", async (code, message) => {
+    const app = createTestApp({ signedIn: true });
+    app.http.on("GET", gitlabReposPath, { ...reposPage, data: [] });
+    app.http.on(
+      "POST",
+      projectsPath,
+      { status_code: 400, error_code: code, error_message: code },
+      400,
+    );
+    await app.visit("/projects/add");
+    render(
+      withToaster(BaseImportComponent, {
+        integration: "gl-1",
+        getRepos: (options: GetRepositoriesRequestOptions) =>
+          new IntegrationsRepository().getGitlabRepositories(options),
+      }),
+      { global: app.global },
+    );
+
+    await userEvent.type(
+      await screen.findByLabelText("Repository URL"),
+      "https://gitlab.internal/group/project",
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Import repository" }),
+    );
+
+    expect(await screen.findByText(message)).toBeInTheDocument();
+  });
+});
+
 describe("BaseImportComponent manual import validation", () => {
   const submit = (): Promise<void> =>
     userEvent.click(screen.getByRole("button", { name: "Import repository" }));

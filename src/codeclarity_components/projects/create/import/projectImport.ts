@@ -1,3 +1,4 @@
+import { instanceError } from "@/codeclarity_components/organizations/integrations/integration-errors";
 import type { Repository } from "@/codeclarity_components/projects/project.entity";
 import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
@@ -19,6 +20,9 @@ export function getImportErrorMessage(err: unknown): string {
     return "An error occurred during the project import.";
   }
 
+  const instance = instanceError(err.error_code);
+  if (instance) return instance;
+
   if (err.error_code === APIErrors.AlreadyExists) {
     return "Already imported";
   }
@@ -28,6 +32,10 @@ export function getImportErrorMessage(err: unknown): string {
     err.error_code === APIErrors.EntityNotFound
   ) {
     return "An error occurred during the project import.";
+  }
+
+  if (err.error_code === APIErrors.ImportTargetNotAllowed) {
+    return "The repository URL points at an internal or reserved address.";
   }
 
   if (err.error_code === APIErrors.NotAuthorized) {

@@ -2,6 +2,7 @@ export const APIErrors = {
   ValidationFailed: "ValidationFailed",
   NotAuthenticated: "NotAuthenticated",
   NotAuthorized: "NotAuthorized",
+  OrganizationTokenScopeTooNarrow: "OrganizationTokenScopeTooNarrow",
   Unsupported: "Unsupported",
   UnknownWorkspace: "UnknownWorkspace",
   PluginFailed: "PluginFailed",
@@ -12,6 +13,7 @@ export const APIErrors = {
   RepositoryCannotBeFound: "RepositoryCannotBeFound",
   PasswordsDoNotMatch: "PasswordsDoNotMatch",
   IntegrationNotSupported: "IntegrationNotSupported",
+  ImportTargetNotAllowed: "ImportTargetNotAllowed",
   IntegrationDoesNotExist: "IntegrationDoesNotExist",
   IntegrationTokenExpired: "IntegrationTokenExpired",
   IntegrationTokenRefreshFailed: "IntegrationTokenRefreshFailed",
@@ -48,6 +50,8 @@ export const APIErrors = {
   DatasetNotReady: "DatasetNotReady",
   AnalyzerMissingRequiredPlugins: "AnalyzerMissingRequiredPlugins",
   IntegrationInstanceUrlChanged: "IntegrationInstanceUrlChanged",
+  IntegrationInstanceUrlNotAllowed: "IntegrationInstanceUrlNotAllowed",
+  IntegrationInstanceUnreachable: "IntegrationInstanceUnreachable",
   IntegrationIntegrationTokenMissingPermissions:
     "IntegrationIntegrationTokenMissingPermissions",
   FailedToSendAccountRegistrationVerificationEmail:

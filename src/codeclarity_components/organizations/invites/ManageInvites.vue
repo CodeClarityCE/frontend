@@ -10,7 +10,6 @@ import {
   PageHeading,
 } from "@/base_components/page";
 import OrgHeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
-import router from "@/router";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
 import { useAuthStore } from "@/stores/auth";
@@ -20,6 +19,7 @@ import { SortDirection } from "@/utils/api/PaginatedRequestOptions";
 import { formatDate, formatRelativeTime } from "@/utils/dateUtils";
 import { errorToast, successToast } from "@/utils/toasts";
 
+import { leaveUnlessRole } from "../admin-only";
 import ConfirmDestructiveDialog from "../members/ConfirmDestructiveDialog.vue";
 import { roleLabel } from "../members/member-role";
 import RoleBadge from "../members/RoleBadge.vue";
@@ -153,12 +153,7 @@ async function load(): Promise<void> {
 
 function setOrgInfo(info: Organization): void {
   orgInfo.value = info;
-  if (!isMemberRoleGreaterThan(info.role, MemberRole.USER)) {
-    void router.push({
-      name: "orgs",
-      params: { action: "manage", page: "main", orgId: info.id },
-    });
-  }
+  leaveUnlessRole(info, MemberRole.MODERATOR);
 }
 
 function actionError(code: string, verb: string): string {

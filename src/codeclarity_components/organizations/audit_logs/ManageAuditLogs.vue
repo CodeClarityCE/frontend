@@ -5,11 +5,9 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
+import { leaveUnlessOrgAdmin } from "@/codeclarity_components/organizations/admin-only";
 import type { AuditLog } from "@/codeclarity_components/organizations/audit_logs/AuditLog";
-import {
-  MemberRole,
-  type Organization,
-} from "@/codeclarity_components/organizations/organization.entity";
+import { type Organization } from "@/codeclarity_components/organizations/organization.entity";
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
 import AuditLogsTable from "@/enterprise_components/activity_logs/AuditLogsTable.vue";
@@ -87,12 +85,7 @@ async function load(): Promise<void> {
 
 // Audit logs need an admin, as on the API.
 function setOrgInfo(info: Organization): void {
-  if (info.role !== MemberRole.OWNER && info.role !== MemberRole.ADMIN) {
-    void router.push({
-      name: "orgs",
-      params: { action: "manage", page: "main", orgId: info.id },
-    });
-  }
+  leaveUnlessOrgAdmin(info);
 }
 
 // A new search starts from the first page.

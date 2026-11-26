@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { CircleAlert } from "@lucide/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { type Ref, ref } from "vue";
 import { toast } from "vue-sonner";
@@ -28,6 +27,7 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { guardFormSubmit } from "@/utils/form/guardSubmit";
+import { toTypedSchema } from "@/utils/form/toTypedSchema";
 
 import AuthLayout from "../layout/AuthLayout.vue";
 import TextLink from "../layout/TextLink.vue";
@@ -55,7 +55,7 @@ const formSchema = z
       .string()
       .trim()
       .min(1, "Enter your email")
-      .email("Enter a valid email address"),
+      .check(z.email("Enter a valid email address")),
     first_name: nameSchema,
     last_name: nameSchema,
     handle: z
@@ -77,7 +77,7 @@ const formSchema = z
       ),
   })
   .refine((values) => values.plainPassword === values.plainPasswordConfirm, {
-    message: "The passwords do not match",
+    error: "The passwords do not match",
     path: ["plainPasswordConfirm"],
   });
 type FormValues = z.infer<typeof formSchema>;

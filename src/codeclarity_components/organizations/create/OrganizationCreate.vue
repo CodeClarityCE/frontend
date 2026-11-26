@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ArrowLeft } from "@lucide/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { ref } from "vue";
 import { RouterLink } from "vue-router";
@@ -23,6 +22,7 @@ import { Textarea } from "@/shadcn/ui/textarea";
 import { useAuthStore } from "@/stores/auth";
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { guardFormSubmit } from "@/utils/form/guardSubmit";
+import { requiredMessage, toTypedSchema } from "@/utils/form/toTypedSchema";
 import { errorToast, successToast } from "@/utils/toasts";
 
 import { OrgRepository } from "../organization.repository";
@@ -34,15 +34,15 @@ const submitting = ref(false);
 // The maximum lengths match the API's limits.
 const formSchema = z.object({
   name: z
-    .string({ required_error: "A name is required" })
+    .string({ error: requiredMessage("A name is required") })
     .trim()
-    .min(2, { message: "At least 2 characters" })
-    .max(50, { message: "At most 50 characters" }),
+    .min(2, { error: "At least 2 characters" })
+    .max(50, { error: "At most 50 characters" }),
   description: z
-    .string({ required_error: "A description is required" })
+    .string({ error: requiredMessage("A description is required") })
     .trim()
-    .min(2, { message: "At least 2 characters" })
-    .max(250, { message: "At most 250 characters" }),
+    .min(2, { error: "At least 2 characters" })
+    .max(250, { error: "At most 250 characters" }),
 });
 type FormValues = z.infer<typeof formSchema>;
 

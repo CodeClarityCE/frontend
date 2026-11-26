@@ -28,10 +28,7 @@ import {
 } from "@/codeclarity_components/organizations/analyzers/Analyzer";
 import { AnalyzerRepository } from "@/codeclarity_components/organizations/analyzers/AnalyzerRepository";
 import { IntegrationProvider } from "@/codeclarity_components/organizations/integrations/Integrations";
-import {
-  isMemberRoleGreaterOrEqualTo,
-  MemberRole,
-} from "@/codeclarity_components/organizations/organization.entity";
+import { isOrgAdmin } from "@/codeclarity_components/organizations/organization.entity";
 import type { Project } from "@/codeclarity_components/projects/project.entity";
 import { ProjectRepository } from "@/codeclarity_components/projects/project.repository";
 import router from "@/router";
@@ -431,11 +428,7 @@ const alreadyScheduled = computed(
 );
 
 // Only admins can open the analyzer form, so others get no link to it.
-const canCreateAnalyzer = computed(
-  () =>
-    !!user.defaultOrg &&
-    isMemberRoleGreaterOrEqualTo(user.defaultOrg.role, MemberRole.ADMIN),
-);
+const canCreateAnalyzer = computed(() => isOrgAdmin(user.defaultOrg?.role));
 
 const newAnalyzerRoute = computed(() => ({
   name: "orgs",

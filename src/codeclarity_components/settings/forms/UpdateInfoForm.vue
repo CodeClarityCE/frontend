@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { ref } from "vue";
 import * as z from "zod";
@@ -19,6 +18,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { guardFormSubmit } from "@/utils/form/guardSubmit";
+import { toTypedSchema } from "@/utils/form/toTypedSchema";
 import { errorToast, successToast } from "@/utils/toasts";
 
 const authStore = useAuthStore();

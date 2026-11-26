@@ -63,6 +63,16 @@ export class BaseRepository {
     else return `${this.getBaseUrl()}/${relativeUrl}`;
   }
 
+  /**
+   * The bearer to send: the caller's token, refreshed first when it is the
+   * session's access token and has expired. A refused refresh signs the user out.
+   */
+  protected async freshBearer(bearerToken: string): Promise<string> {
+    // Loaded here because the session module imports the auth store, which imports this one.
+    const { bearerFor } = await import("./session");
+    return bearerFor(bearerToken);
+  }
+
   /** Send a GET with the query params, bearer token and extra headers. */
   private async sendGet(options: GetRequestOptions): Promise<Response> {
     // Construct the url, including query parameters
@@ -74,7 +84,10 @@ export class BaseRepository {
 
     // Attach bearer token
     if (options.bearerToken) {
-      headers.append("Authorization", `Bearer ${options.bearerToken}`);
+      headers.append(
+        "Authorization",
+        `Bearer ${await this.freshBearer(options.bearerToken)}`,
+      );
     }
 
     // Attach additional headers
@@ -182,7 +195,10 @@ export class BaseRepository {
 
     // Attach bearer token
     if (options.bearerToken) {
-      headers.append("Authorization", `Bearer ${options.bearerToken}`);
+      headers.append(
+        "Authorization",
+        `Bearer ${await this.freshBearer(options.bearerToken)}`,
+      );
     }
 
     // Attach additional headers
@@ -257,7 +273,10 @@ export class BaseRepository {
 
     // Attach bearer token
     if (options.bearerToken) {
-      headers.append("Authorization", `Bearer ${options.bearerToken}`);
+      headers.append(
+        "Authorization",
+        `Bearer ${await this.freshBearer(options.bearerToken)}`,
+      );
     }
 
     // Attach additional headers
@@ -327,7 +346,10 @@ export class BaseRepository {
 
     // Attach bearer token
     if (options.bearerToken) {
-      headers.append("Authorization", `Bearer ${options.bearerToken}`);
+      headers.append(
+        "Authorization",
+        `Bearer ${await this.freshBearer(options.bearerToken)}`,
+      );
     }
 
     // Attach additional headers
@@ -399,7 +421,10 @@ export class BaseRepository {
 
     // Attach bearer token
     if (options.bearerToken) {
-      headers.append("Authorization", `Bearer ${options.bearerToken}`);
+      headers.append(
+        "Authorization",
+        `Bearer ${await this.freshBearer(options.bearerToken)}`,
+      );
     }
 
     // Attach additional headers
@@ -600,6 +625,11 @@ export class ValidationError extends BusinessLogicError {
     }
     return message;
   }
+}
+
+// True when fetch failed before the API answered.
+export function gotNoAnswer(error: unknown): boolean {
+  return !(error instanceof BusinessLogicError || error instanceof HttpError);
 }
 
 /**

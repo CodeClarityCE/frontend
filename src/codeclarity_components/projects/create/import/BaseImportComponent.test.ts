@@ -240,6 +240,104 @@ describe("BaseImportComponent manual import", () => {
   });
 });
 
+describe("BaseImportComponent import from a refused address", () => {
+  const gitlabReposPath = `/org/${org.id}/integrations/gitlab/gl-1/repositories`;
+
+  it.each([
+    [
+      "IntegrationInstanceUrlNotAllowed",
+      "This GitLab is on a private network or uses http. Ask your CodeClarity operator to allow its host (GITLAB_ALLOWED_PRIVATE_HOSTS).",
+    ],
+    [
+      "IntegrationInstanceUnreachable",
+      "The GitLab host name could not be resolved. Check the instance URL.",
+    ],
+    [
+      "ImportTargetNotAllowed",
+      "The repository URL points at an internal or reserved address.",
+    ],
+  ])("explains %s", async (code, message) => {
+    const app = createTestApp({ signedIn: true });
+    app.http.on("GET", gitlabReposPath, { ...reposPage, data: [] });
+    app.http.on(
+      "POST",
+      projectsPath,
+      { status_code: 400, error_code: code, error_message: code },
+      400,
+    );
+    await app.visit("/projects/add");
+    render(
+      withToaster(BaseImportComponent, {
+        integration: "gl-1",
+        getRepos: (options: GetRepositoriesRequestOptions) =>
+          new IntegrationsRepository().getGitlabRepositories(options),
+      }),
+      { global: app.global },
+    );
+
+    await userEvent.type(
+      await screen.findByLabelText("Repository URL"),
+      "https://gitlab.internal/group/project",
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Import repository" }),
+    );
+
+    expect(await screen.findByText(message)).toBeInTheDocument();
+  });
+});
+
+describe("BaseImportComponent manual import validation", () => {
+  const submit = (): Promise<void> =>
+    userEvent.click(screen.getByRole("button", { name: "Import repository" }));
+
+  it("asks for a URL when the field is untouched or blank", async () => {
+    await openImporter();
+
+    await submit();
+    expect(
+      await screen.findByText("A repository URL is required"),
+    ).toBeVisible();
+
+    await userEvent.type(screen.getByLabelText("Repository URL"), "   ");
+    await submit();
+    expect(
+      await screen.findByText("A repository URL is required"),
+    ).toBeVisible();
+  });
+
+  it("asks for a full URL and sends nothing", async () => {
+    const app = await openImporter();
+
+    await userEvent.type(
+      screen.getByLabelText("Repository URL"),
+      "github.com/octo/octo",
+    );
+    await submit();
+
+    expect(
+      await screen.findByText(
+        "Enter the full URL, like https://github.com/owner/repository",
+      ),
+    ).toBeVisible();
+    expect(
+      app.http.requests.filter(
+        (r) => r.method === "POST" && r.path === projectsPath,
+      ),
+    ).toEqual([]);
+  });
+
+  it("rejects a URL over 150 characters", async () => {
+    await openImporter();
+
+    await userEvent.click(screen.getByLabelText("Repository URL"));
+    await userEvent.paste(`https://github.com/octo/${"a".repeat(130)}`);
+    await submit();
+
+    expect(await screen.findByText("At most 150 characters")).toBeVisible();
+  });
+});
+
 describe("stripGitSuffix", () => {
   it.each([
     ["https://github.com/octo/legacy.git", "https://github.com/octo/legacy"],

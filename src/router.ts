@@ -36,51 +36,20 @@ import OrganizationVulnerabilityView from "@/codeclarity_components/vulnerabilit
 import { loadAuthStoreFromLocalStorage, useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { APIErrors } from "@/utils/api/ApiErrors";
-import { BusinessLogicError } from "@/utils/api/BaseRepository";
+import { BusinessLogicError, gotNoAnswer } from "@/utils/api/BaseRepository";
+import { ensureFreshAccessToken } from "@/utils/api/session";
 import { logger } from "@/utils/logger";
 import { pageTitle } from "@/utils/page-title";
 
 // Helper functions to reduce complexity in beforeEach guard
-async function refreshTokenIfNeeded(
-  authStore: ReturnType<typeof useAuthStore>,
-  authRepository: AuthRepository,
-): Promise<boolean> {
-  const current = new Date();
-  const tokenExpiry = authStore.getTokenExpiry;
-  if (tokenExpiry && tokenExpiry <= current) {
-    // Clear expired tokens using $patch to avoid exactOptionalPropertyTypes issues
-    authStore.$patch((state) => {
-      delete state.token;
-      delete state.tokenExpiry;
-    });
-
-    // Refresh the token via the refresh token (if its not expired itself)
-    const refreshTokenExpiry = authStore.getRefreshTokenExpiry;
-    const refreshToken = authStore.getRefreshToken;
-    if (refreshTokenExpiry && refreshToken && refreshTokenExpiry > current) {
-      try {
-        const newToken = await authRepository.refresh({
-          data: { refresh_token: refreshToken },
-          handleBusinessErrors: true,
-        });
-        authStore.token = newToken.token;
-        authStore.tokenExpiry = newToken.token_expiry;
-        return true;
-      } catch (error) {
-        logger.warn("Could not refresh the session token", {}, error);
-        return false;
-      }
-    }
-    return false;
-  }
-  return true;
-}
+// "no_answer": the request got no response, as when the page unloads mid-navigation.
+type FetchResult = "ok" | "failed" | "no_answer";
 
 async function fetchAuthenticatedUser(
   authStore: ReturnType<typeof useAuthStore>,
   userStore: ReturnType<typeof useUserStore>,
   authRepository: AuthRepository,
-): Promise<"ok" | "not_activated" | "failed"> {
+): Promise<FetchResult | "not_activated"> {
   const token = authStore.getToken;
   if (!token) {
     return "failed";
@@ -106,6 +75,7 @@ async function fetchAuthenticatedUser(
     ) {
       return "not_activated";
     }
+    if (gotNoAnswer(error)) return "no_answer";
     logger.error("Could not fetch the signed-in user", {}, error);
     return "failed";
   }
@@ -115,11 +85,11 @@ async function fetchDefaultOrg(
   authStore: ReturnType<typeof useAuthStore>,
   userStore: ReturnType<typeof useUserStore>,
   orgRepository: OrgRepository,
-): Promise<boolean> {
+): Promise<FetchResult> {
   const user = userStore.getUser;
   const token = authStore.getToken;
   if (!user?.default_org || !token) {
-    return true;
+    return "ok";
   }
 
   try {
@@ -129,8 +99,9 @@ async function fetchDefaultOrg(
       handleBusinessErrors: true,
     });
     userStore.setDefaultOrg(org);
-    return true;
+    return "ok";
   } catch (error) {
+    if (gotNoAnswer(error)) return "no_answer";
     if (error instanceof BusinessLogicError) {
       const errorCode = error.error_code;
       // It may happen that the org that the user had set as the default org has been deleted
@@ -142,7 +113,7 @@ async function fetchDefaultOrg(
         return await fetchFallbackOrg(authStore, userStore, orgRepository);
       }
     }
-    return false;
+    return "failed";
   }
 }
 
@@ -150,11 +121,11 @@ async function fetchFallbackOrg(
   authStore: ReturnType<typeof useAuthStore>,
   userStore: ReturnType<typeof useUserStore>,
   orgRepository: OrgRepository,
-): Promise<boolean> {
+): Promise<FetchResult> {
   const user = userStore.getUser;
   const token = authStore.getToken;
   if (!user?.default_org || !token) {
-    return false;
+    return "failed";
   }
 
   try {
@@ -164,10 +135,11 @@ async function fetchFallbackOrg(
       handleBusinessErrors: true,
     });
     userStore.setDefaultOrg(org);
-    return true;
+    return "ok";
   } catch (error) {
+    if (gotNoAnswer(error)) return "no_answer";
     logger.error("Could not fetch a fallback organization", {}, error);
-    return false;
+    return "failed";
   }
 }
 
@@ -380,15 +352,11 @@ router.beforeEach(async (to) => {
     });
   };
 
-  // Check if token is present and needs to be refreshed
+  // Refresh an expired access token; with no answer, keep the session and stay put.
   if (loadIdentity) {
-    const refreshSuccess = await refreshTokenIfNeeded(
-      authStore,
-      authRepository,
-    );
-    if (!refreshSuccess) {
-      return signOut();
-    }
+    const session = await ensureFreshAccessToken();
+    if (session === "no_answer") return false;
+    if (session === "refused") return signOut();
   }
 
   // Re-fetched after a page reload, since the SPA state is lost then.
@@ -398,6 +366,7 @@ router.beforeEach(async (to) => {
       userStore,
       authRepository,
     );
+    if (fetchResult === "no_answer") return false;
     if (fetchResult === "not_activated") {
       return signOut("not_activated");
     }
@@ -408,12 +377,14 @@ router.beforeEach(async (to) => {
 
   // Fetch default org info
   if (loadIdentity && userStore.getUser?.default_org) {
-    const orgSuccess = await fetchDefaultOrg(
+    const orgResult = await fetchDefaultOrg(
       authStore,
       userStore,
       orgRepository,
     );
-    if (!orgSuccess) {
+    // Keeps the session and stays put; the next page load asks again.
+    if (orgResult === "no_answer") return false;
+    if (orgResult === "failed") {
       return signOut();
     }
   }

@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { ref } from "vue";
 import * as z from "zod";
@@ -22,6 +21,7 @@ import { APIErrors } from "@/utils/api/ApiErrors";
 import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { guardFormSubmit } from "@/utils/form/guardSubmit";
+import { toTypedSchema } from "@/utils/form/toTypedSchema";
 import { errorToast, successToast } from "@/utils/toasts";
 
 const authStore = useAuthStore();
@@ -38,7 +38,7 @@ const formSchema = z
     password_confirmation: z.string().min(1, "Confirm the new password"),
   })
   .refine((values) => values.password === values.password_confirmation, {
-    message: "The passwords do not match",
+    error: "The passwords do not match",
     path: ["password_confirmation"],
   });
 type FormValues = z.infer<typeof formSchema>;

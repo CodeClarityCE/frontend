@@ -86,3 +86,40 @@ describe("LicensePolicyForm in edit mode", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("LicensePolicyForm validation", () => {
+  // The create form with an empty license list answered.
+  function openCreate(): void {
+    const app = createTestApp({ signedIn: true });
+    app.http.on("GET", "/knowledge/license", { data: [] });
+    render(LicensePolicyForm, {
+      props: { orgId: org.id },
+      global: app.global,
+    });
+  }
+
+  const submit = (): Promise<void> =>
+    userEvent.click(screen.getByRole("button", { name: "Create policy" }));
+
+  it("asks for a name and a license when the form is untouched", async () => {
+    openCreate();
+
+    await submit();
+
+    expect(await screen.findByText("A name is required")).toBeVisible();
+    expect(screen.getByText("Pick at least one license")).toBeVisible();
+  });
+
+  it("counts a blank name as missing and rejects a short one", async () => {
+    openCreate();
+    const name = screen.getByLabelText("Name");
+
+    await userEvent.type(name, "   ");
+    await submit();
+    expect(await screen.findByText("A name is required")).toBeVisible();
+
+    await userEvent.type(name, "abc");
+    await submit();
+    expect(await screen.findByText("At least 5 characters")).toBeVisible();
+  });
+});

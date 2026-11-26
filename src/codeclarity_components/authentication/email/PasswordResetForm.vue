@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { CircleAlert } from "@lucide/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { onMounted, type Ref, ref } from "vue";
 import * as z from "zod";
@@ -26,6 +25,7 @@ import {
   ValidationError,
 } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { toTypedSchema } from "@/utils/form/toTypedSchema";
 
 import AuthLayout from "../layout/AuthLayout.vue";
 import TextLink from "../layout/TextLink.vue";
@@ -49,7 +49,7 @@ const formSchema = z
     new_password_confirmation: z.string(),
   })
   .refine((data) => data.new_password === data.new_password_confirmation, {
-    message: "Passwords must match",
+    error: "Passwords must match",
     path: ["new_password_confirmation"],
   });
 type FormValues = z.infer<typeof formSchema>;

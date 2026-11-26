@@ -11,6 +11,7 @@ import {
 import type { RouteLocationRaw } from "vue-router";
 
 import {
+  isOrgAdmin,
   MemberRole,
   type Organization,
 } from "@/codeclarity_components/organizations/organization.entity";
@@ -126,7 +127,7 @@ const tokens: OrgSettingsSubItem = {
 export function orgSettingsSubItems(
   org: Pick<Organization, "role" | "personal">,
 ): OrgSettingsSubItem[] {
-  const admin = org.role === MemberRole.OWNER || org.role === MemberRole.ADMIN;
+  const admin = isOrgAdmin(org.role);
   const moderator = admin || org.role === MemberRole.MODERATOR;
   const team = moderator && !org.personal;
   return [

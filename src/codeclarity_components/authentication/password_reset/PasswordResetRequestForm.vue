@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { CircleAlert } from "@lucide/vue";
-import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { type Ref, ref } from "vue";
 import * as z from "zod";
@@ -24,6 +23,7 @@ import {
   ValidationError,
 } from "@/utils/api/BaseRepository";
 import { filterUndefined } from "@/utils/form/filterUndefined";
+import { toTypedSchema } from "@/utils/form/toTypedSchema";
 
 import AuthLayout from "../layout/AuthLayout.vue";
 import TextLink from "../layout/TextLink.vue";
@@ -41,10 +41,10 @@ const validationError: Ref<ValidationError | undefined> = ref();
 // Form Validation
 const formSchema = z.object({
   email: z
-    .string({ message: "Please enter your email" })
+    .string({ error: "Please enter your email" })
     .trim()
     .min(1, "Please enter your email")
-    .email("Please enter a valid email"),
+    .check(z.email("Please enter a valid email")),
 });
 type FormValues = z.infer<typeof formSchema>;
 const { handleSubmit } = useForm<FormValues>({

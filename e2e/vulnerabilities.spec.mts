@@ -224,7 +224,7 @@ test.describe("Vulnerability results", () => {
 
     await vulns.pagination().getByRole("button", { name: "Next Page" }).click();
 
-    // Polls, since page 1's cards already say CVE-2025- before the request goes out.
+    // Waits for the request for the second page.
     await expect.poll(() => vulns.lastQuery().get("page")).toBe("1");
     await expect(vulns.cards.first()).toContainText("CVE-2025-");
     await expect(page.getByText("Showing 21 to 40 of 45")).toBeVisible();
@@ -302,7 +302,7 @@ test.describe("Vulnerability results", () => {
     const vulns = new VulnerabilitiesPage(page);
     await vulns.signIn();
     await vulns.gotoResults();
-    // The summary loads above the tabs, so wait for it to make the click scroll the same way every run.
+    // Waits for the cards and the summary above the tabs, so the click scrolls the same way each run.
     await expect(vulns.cards).toHaveCount(4);
     await expect(
       page.getByRole("list", { name: "Vulnerability numbers" }),

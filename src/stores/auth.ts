@@ -33,6 +33,21 @@ class AuthStoreState {
   @IsString()
   socialAuthState?: string;
 }
+/** The tokens a sign-in or refresh hands out; an older API's refresh leaves the refresh token out. */
+export interface SessionTokens {
+  token: string;
+  tokenExpiry: Date;
+  refreshToken?: string | undefined;
+  refreshTokenExpiry?: Date | undefined;
+}
+
+// Access tokens a refresh here or in another tab replaced, so a caller holding one gets the new token.
+const replacedAccessTokens = new Set<string>();
+
+export function isReplacedAccessToken(token: string): boolean {
+  return replacedAccessTokens.has(token);
+}
+
 const defaultValues = (): AuthStoreState => {
   return {
     initialized: false,
@@ -96,8 +111,41 @@ export const useAuthStore = defineStore("auth", {
     setSocialAuthState: function (socialAuthState: string): void {
       this.socialAuthState = socialAuthState;
     },
+    // A patch is saved to storage at once, so other tabs see it before the refresh lock is released.
+    adoptTokens: function (tokens: SessionTokens): void {
+      if (this.token && this.token !== tokens.token) {
+        replacedAccessTokens.add(this.token);
+      }
+      this.$patch({
+        token: tokens.token,
+        tokenExpiry: tokens.tokenExpiry,
+        ...(tokens.refreshToken !== undefined && {
+          refreshToken: tokens.refreshToken,
+          refreshTokenExpiry: tokens.refreshTokenExpiry,
+        }),
+      });
+    },
   },
 });
+
+/** The session tokens saved in this browser, which another tab may have rotated. */
+export function storedSessionTokens(): SessionTokens | undefined {
+  const { token, tokenExpiry, refreshToken, refreshTokenExpiry } =
+    getFromLocalStorageOrDefault();
+  if (!token || !tokenExpiry || !refreshToken) return undefined;
+  return { token, tokenExpiry, refreshToken, refreshTokenExpiry };
+}
+
+// Takes the tokens another tab saved, when they belong to a newer refresh than ours.
+function followOtherTabs(store: ReturnType<typeof useAuthStore>): void {
+  window.addEventListener("storage", (event) => {
+    if (event.key !== storePeristantName || event.newValue === null) return;
+    const stored = storedSessionTokens();
+    if (!store.authenticated || !stored) return;
+    if (stored.refreshToken === store.refreshToken) return;
+    store.adoptTokens(stored);
+  });
+}
 
 export function loadAuthStoreFromLocalStorage(): void {
   const store = useAuthStore();
@@ -109,6 +157,7 @@ export function loadAuthStoreFromLocalStorage(): void {
   store.$subscribe((_mutation, state) => {
     localStorage.setItem(storePeristantName, JSON.stringify(state));
   });
+  followOtherTabs(store);
 
   // Overwrite the reset function to be able to also reset the localstorage
   store.$reset = function (): void {

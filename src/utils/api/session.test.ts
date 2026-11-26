@@ -1,5 +1,6 @@
 import { waitFor } from "@testing-library/vue";
-import { afterEach, describe, expect, it } from "vitest";
+import { createPinia, type Pinia, setActivePinia } from "pinia";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { OrgRepository } from "@/codeclarity_components/organizations/organization.repository";
 import { useAuthStore } from "@/stores/auth";
@@ -12,12 +13,81 @@ import {
   type TestApp,
 } from "../../../tests/real-app";
 
+// What an API from before rotation answers: no new refresh token.
 const refreshed = {
   data: {
     token: "new-access-token",
     token_expiry: "2099-01-01T00:00:00.000Z",
   },
 };
+
+// What a rotating API answers.
+const rotated = {
+  data: {
+    token: "new-access-token",
+    token_expiry: "2099-01-01T00:00:00.000Z",
+    refresh_token: "rotated-refresh-token",
+    refresh_token_expiry: "2099-02-01T00:00:00.000Z",
+  },
+};
+
+// An exclusive Web Locks stand-in: each request runs after the previous one under that name.
+function installFakeLocks(): string[] {
+  const tails = new Map<string, Promise<unknown>>();
+  const requested: string[] = [];
+  const locks = {
+    request(
+      name: string,
+      _options: LockOptions,
+      work: () => Promise<unknown>,
+    ): Promise<unknown> {
+      requested.push(name);
+      const run = (tails.get(name) ?? Promise.resolve()).then(work);
+      tails.set(
+        name,
+        run.catch(() => undefined),
+      );
+      return run;
+    },
+  };
+  Object.defineProperty(navigator, "locks", {
+    value: locks,
+    configurable: true,
+  });
+  return requested;
+}
+
+interface Tab {
+  pinia: Pinia;
+  auth: ReturnType<typeof useAuthStore>;
+  session: typeof import("./session");
+}
+
+// Another browser tab: its own copy of the app's modules and Pinia, sharing storage, fetch and locks.
+async function openTab(): Promise<Tab> {
+  vi.resetModules();
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const stores = await import("@/stores/auth");
+  const session = await import("./session");
+  stores.loadAuthStoreFromLocalStorage();
+  return { pinia, auth: stores.useAuthStore(), session };
+}
+
+// Saves a signed-in session whose access token has just expired, as a tab would have.
+function saveExpiredSession(): void {
+  localStorage.setItem(
+    "authStore",
+    JSON.stringify({
+      initialized: true,
+      token: "access-token",
+      tokenExpiry: new Date(Date.now() - 1000).toISOString(),
+      refreshToken: "refresh-token",
+      refreshTokenExpiry: "2099-01-01T00:00:00.000Z",
+      authenticated: true,
+    }),
+  );
+}
 
 // An authenticated request as components send it, with the store's token.
 function loadOrg(): Promise<unknown> {
@@ -44,13 +114,13 @@ function sent(app: TestApp, method: string, path: string): FakeRequest[] {
   );
 }
 
-// No request but the refresh call may carry the refresh token anywhere.
+// No request but a refresh or sign-out may carry the refresh token anywhere.
 function expectRefreshTokenOnlyInRefreshBody(app: TestApp): void {
   for (const request of app.http.requests) {
     expect(request.headers.get("Authorization") ?? "").not.toContain(
       "refresh-token",
     );
-    if (request.path !== "/auth/refresh") {
+    if (request.path !== "/auth/refresh" && request.path !== "/auth/sign_out") {
       expect(JSON.stringify(request.body ?? null)).not.toContain(
         "refresh-token",
       );
@@ -215,5 +285,151 @@ describe("session token", () => {
 
     expect(useAuthStore().getAuthenticated).toBe(true);
     expect(app.router.currentRoute.value.path).toBe("/projects");
+  });
+
+  it("stores the refresh token each refresh returns and sends it on the next one", async () => {
+    const app = await expiredSession();
+    track(app);
+    app.http.on("POST", "/auth/refresh", rotated);
+    await loadOrg();
+
+    expect(useAuthStore().getRefreshToken).toBe("rotated-refresh-token");
+    expect(useAuthStore().getRefreshTokenExpiry).toEqual(
+      new Date("2099-02-01T00:00:00.000Z"),
+    );
+    expect(localStorage.getItem("authStore")).toContain(
+      "rotated-refresh-token",
+    );
+
+    useAuthStore().setTokenExpiry(new Date(Date.now() - 1000));
+    app.http.on("POST", "/auth/refresh", {
+      data: { ...rotated.data, refresh_token: "third-refresh-token" },
+    });
+    await loadOrg();
+
+    const refreshes = sent(app, "POST", "/auth/refresh");
+    expect(refreshes.map((r) => r.body)).toEqual([
+      { refresh_token: "refresh-token" },
+      { refresh_token: "rotated-refresh-token" },
+    ]);
+    expect(useAuthStore().getRefreshToken).toBe("third-refresh-token");
+  });
+
+  it("keeps the refresh token when the API answers without a new one", async () => {
+    const app = await expiredSession();
+    track(app);
+    app.http.on("POST", "/auth/refresh", refreshed);
+
+    await loadOrg();
+
+    expect(useAuthStore().getToken).toBe("new-access-token");
+    expect(useAuthStore().getRefreshToken).toBe("refresh-token");
+  });
+
+  it("shares one refresh within a tab when the browser has no Web Locks", async () => {
+    expect("locks" in navigator).toBe(false);
+    const app = await expiredSession();
+    track(app);
+    app.http.on("POST", "/auth/refresh", rotated);
+
+    await Promise.all([loadOrg(), loadOrg()]);
+
+    expect(sent(app, "POST", "/auth/refresh")).toHaveLength(1);
+    expect(useAuthStore().getRefreshToken).toBe("rotated-refresh-token");
+  });
+
+  it("uses the tokens another tab saved when it says so", async () => {
+    const app = createTestApp({ signedIn: true });
+    track(app);
+    await app.visit("/projects");
+    const saved = JSON.parse(localStorage.getItem("authStore") ?? "{}") as {
+      token: string;
+    };
+    const newer = JSON.stringify({
+      ...saved,
+      token: "other-tab-access-token",
+      tokenExpiry: "2099-01-01T00:00:00.000Z",
+      refreshToken: "other-tab-refresh-token",
+      refreshTokenExpiry: "2099-02-01T00:00:00.000Z",
+    });
+
+    localStorage.setItem("authStore", newer);
+    window.dispatchEvent(
+      new StorageEvent("storage", { key: "authStore", newValue: newer }),
+    );
+
+    expect(useAuthStore().getToken).toBe("other-tab-access-token");
+    expect(useAuthStore().getRefreshToken).toBe("other-tab-refresh-token");
+    // A request signed with the old token goes out with the new one.
+    await new OrgRepository().get({
+      bearerToken: saved.token,
+      orgId: org.id,
+    });
+    expect(
+      sent(app, "GET", `/org/${org.id}`).at(-1)?.headers.get("Authorization"),
+    ).toBe("Bearer other-tab-access-token");
+  });
+});
+
+describe("session token across tabs", () => {
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, "locks");
+  });
+
+  it("makes one refresh for two tabs refreshing at once, and both get the new tokens", async () => {
+    const app = createTestApp();
+    app.http.on("POST", "/auth/refresh", rotated);
+    const locks = installFakeLocks();
+    saveExpiredSession();
+    const first = await openTab();
+    const second = await openTab();
+
+    setActivePinia(first.pinia);
+    const firstDone = first.session.ensureFreshAccessToken();
+    setActivePinia(second.pinia);
+    const secondDone = second.session.ensureFreshAccessToken();
+
+    expect(await firstDone).toBe("refreshed");
+    expect(await secondDone).toBe("refreshed");
+    expect(
+      app.http.requests.filter((r) => r.path === "/auth/refresh"),
+    ).toHaveLength(1);
+    expect(locks).toHaveLength(2);
+    expect(new Set(locks).size).toBe(1);
+    for (const tab of [first, second]) {
+      expect(tab.auth.getToken).toBe("new-access-token");
+      expect(tab.auth.getRefreshToken).toBe("rotated-refresh-token");
+    }
+  });
+
+  it("refreshes with the token the other tab rotated when its access token expires too", async () => {
+    const app = createTestApp();
+    app.http.on("POST", "/auth/refresh", {
+      data: {
+        ...rotated.data,
+        token_expiry: new Date(Date.now() + 1000).toISOString(),
+      },
+    });
+    installFakeLocks();
+    saveExpiredSession();
+    const first = await openTab();
+    const second = await openTab();
+
+    setActivePinia(first.pinia);
+    await first.session.ensureFreshAccessToken();
+    app.http.on("POST", "/auth/refresh", {
+      data: { ...rotated.data, refresh_token: "third-refresh-token" },
+    });
+    setActivePinia(second.pinia);
+    await second.session.ensureFreshAccessToken();
+
+    const bodies = app.http.requests
+      .filter((r) => r.path === "/auth/refresh")
+      .map((r) => r.body);
+    expect(bodies).toEqual([
+      { refresh_token: "refresh-token" },
+      { refresh_token: "rotated-refresh-token" },
+    ]);
+    expect(second.auth.getRefreshToken).toBe("third-refresh-token");
   });
 });

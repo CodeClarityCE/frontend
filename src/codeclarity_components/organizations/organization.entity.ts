@@ -195,7 +195,7 @@ export function isMemberRoleGreaterThan(
   return memberRole1 < memberRole2;
 }
 
-function isMemberRoleGreaterOrEqualTo(
+export function isMemberRoleGreaterOrEqualTo(
   memberRole1: MemberRole,
   memberRole2: MemberRole,
 ): boolean {

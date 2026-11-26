@@ -5,6 +5,7 @@ import { RouterLink, useRoute } from "vue-router";
 
 import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
+import { leaveUnlessRole } from "@/codeclarity_components/organizations/admin-only";
 import {
   isMemberRoleGreaterThan,
   isOrgAdmin,
@@ -149,12 +150,7 @@ async function load(): Promise<void> {
 
 function setOrgInfo(info: Organization): void {
   orgInfo.value = info;
-  if (!isMemberRoleGreaterThan(info.role, MemberRole.USER)) {
-    void router.push({
-      name: "orgs",
-      params: { action: "manage", page: "main", orgId: info.id },
-    });
-  }
+  leaveUnlessRole(info, MemberRole.MODERATOR);
 }
 
 function askRemove(m: OrganizationMembership): void {

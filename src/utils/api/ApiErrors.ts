@@ -5,7 +5,7 @@ export const APIErrors = {
   OrganizationTokenScopeTooNarrow: "OrganizationTokenScopeTooNarrow",
   Unsupported: "Unsupported",
   UnknownWorkspace: "UnknownWorkspace",
-  PluginFailed: "PluginFailed",
+  PluginFailed: "PluginResultFailed",
   PluginResultNotAvailable: "PluginResultNotAvailable",
   SourceVerdictsNotAvailable: "SourceVerdictsNotAvailable",
   CannotRemoveDefaultPolicy: "CannotRemoveDefaultPolicy",

@@ -3,8 +3,7 @@ import { RefreshCw, Upload } from "@lucide/vue";
 import { RouterLink } from "vue-router";
 
 import {
-  isMemberRoleGreaterOrEqualTo,
-  MemberRole,
+  isOrgAdmin,
   type Organization,
 } from "@/codeclarity_components/organizations/organization.entity";
 import { Button } from "@/shadcn/ui/button";
@@ -36,9 +35,7 @@ const emit = defineEmits<{
     </CardHeader>
     <CardContent class="flex flex-col gap-4">
       <p class="text-sm text-muted-foreground">
-        <template
-          v-if="isMemberRoleGreaterOrEqualTo(defaultOrg.role, MemberRole.ADMIN)"
-        >
+        <template v-if="isOrgAdmin(defaultOrg.role)">
           Add an integration in the organisation settings, then refresh this
           page.
         </template>
@@ -52,7 +49,7 @@ const emit = defineEmits<{
           Upload an archive
         </Button>
         <Button
-          v-if="isMemberRoleGreaterOrEqualTo(defaultOrg.role, MemberRole.ADMIN)"
+          v-if="isOrgAdmin(defaultOrg.role)"
           :as="RouterLink"
           :to="{
             name: 'orgs',

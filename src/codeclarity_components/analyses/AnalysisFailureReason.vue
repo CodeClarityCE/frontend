@@ -1,15 +1,13 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 
-import { type Analysis, AnalysisStatus } from "./analysis.entity";
+import { isFailed } from "@/codeclarity_components/projects/list/analysis-status";
+
+import type { Analysis } from "./analysis.entity";
 
 const props = defineProps<{ analysis: Analysis }>();
 
-const failed = computed(
-  () =>
-    props.analysis.status === AnalysisStatus.FAILURE ||
-    props.analysis.status === AnalysisStatus.FAILED,
-);
+const failed = computed(() => isFailed(props.analysis));
 </script>
 
 <template>

@@ -9,19 +9,15 @@ import {
   OwlEmptyState,
   PageHeading,
 } from "@/base_components/page";
+import { leaveUnlessOrgAdmin } from "@/codeclarity_components/organizations/admin-only";
 import {
   type Analyzer,
   isUnavailable,
   unavailableLabel,
 } from "@/codeclarity_components/organizations/analyzers/Analyzer";
 import { AnalyzerRepository } from "@/codeclarity_components/organizations/analyzers/AnalyzerRepository";
-import {
-  isMemberRoleGreaterOrEqualTo,
-  MemberRole,
-  type Organization,
-} from "@/codeclarity_components/organizations/organization.entity";
+import { type Organization } from "@/codeclarity_components/organizations/organization.entity";
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
-import router from "@/router";
 import { Alert, AlertDescription } from "@/shadcn/ui/alert";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -78,12 +74,7 @@ const columns: DataTableColumn<Analyzer>[] = [
 // Only admins manage analyzers; others go back to the organisation overview.
 function setOrgInfo(_orgInfo: Organization): void {
   orgInfo.value = _orgInfo;
-  if (!isMemberRoleGreaterOrEqualTo(_orgInfo.role, MemberRole.ADMIN)) {
-    void router.push({
-      name: "orgs",
-      params: { action: "manage", page: "main", orgId: _orgInfo.id },
-    });
-  }
+  leaveUnlessOrgAdmin(_orgInfo);
 }
 
 async function fetchAnalyzers(): Promise<void> {

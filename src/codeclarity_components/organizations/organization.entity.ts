@@ -195,9 +195,14 @@ export function isMemberRoleGreaterThan(
   return memberRole1 < memberRole2;
 }
 
-export function isMemberRoleGreaterOrEqualTo(
+function isMemberRoleGreaterOrEqualTo(
   memberRole1: MemberRole,
   memberRole2: MemberRole,
 ): boolean {
   return memberRole1 <= memberRole2;
+}
+
+/** True when the role is an admin or the owner of the org. */
+export function isOrgAdmin(role: MemberRole | null | undefined): boolean {
+  return role != null && isMemberRoleGreaterOrEqualTo(role, MemberRole.ADMIN);
 }

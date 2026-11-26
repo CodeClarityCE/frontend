@@ -10,9 +10,9 @@ import {
 import { useRoute } from "vue-router";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
+import { leaveUnlessOrgAdmin } from "@/codeclarity_components/organizations/admin-only";
 import {
-  isMemberRoleGreaterOrEqualTo,
-  MemberRole,
+  isOrgAdmin,
   type Organization,
 } from "@/codeclarity_components/organizations/organization.entity";
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
@@ -74,13 +74,8 @@ const policyType = computed(() =>
 const canManage = ref(false);
 
 function checkRole(org: Organization): void {
-  canManage.value = isMemberRoleGreaterOrEqualTo(org.role, MemberRole.ADMIN);
-  if (isForm.value && !canManage.value) {
-    void router.replace({
-      name: "orgs",
-      params: { action: "manage", page: "main", orgId: props.orgId },
-    });
-  }
+  canManage.value = isOrgAdmin(org.role);
+  if (isForm.value) leaveUnlessOrgAdmin(org);
 }
 </script>
 <template>

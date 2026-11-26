@@ -5,14 +5,11 @@ import { computed, type Ref, ref } from "vue";
 import { RouterLink } from "vue-router";
 
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
+import { leaveUnlessOrgAdmin } from "@/codeclarity_components/organizations/admin-only";
 import { AnalyzerRepository } from "@/codeclarity_components/organizations/analyzers/AnalyzerRepository";
 import type { Plugin } from "@/codeclarity_components/organizations/analyzers/Plugin";
 import { PluginRepository } from "@/codeclarity_components/organizations/analyzers/PluginRepository";
-import {
-  isMemberRoleGreaterOrEqualTo,
-  MemberRole,
-  type Organization,
-} from "@/codeclarity_components/organizations/organization.entity";
+import { type Organization } from "@/codeclarity_components/organizations/organization.entity";
 import HeaderItem from "@/codeclarity_components/organizations/subcomponents/HeaderItem.vue";
 import router from "@/router";
 import { Button } from "@/shadcn/ui/button";
@@ -77,12 +74,7 @@ const listRoute = {
 
 // Only admins manage analyzers; others go back to the organisation overview.
 function setOrgInfo(orgInfo: Organization): void {
-  if (!isMemberRoleGreaterOrEqualTo(orgInfo.role, MemberRole.ADMIN)) {
-    void router.push({
-      name: "orgs",
-      params: { action: "manage", page: "main", orgId: orgInfo.id },
-    });
-  }
+  leaveUnlessOrgAdmin(orgInfo);
 }
 
 function setNodes(next: AnalyzerNode[]): void {

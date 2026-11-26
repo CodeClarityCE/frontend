@@ -19,6 +19,12 @@ import {
   AnalysisStatus,
 } from "@/codeclarity_components/analyses/analysis.entity";
 import { AnalysisRepository } from "@/codeclarity_components/analyses/analysis.repository";
+import {
+  isCancelled,
+  isFailed,
+  isFinished,
+  isRunning,
+} from "@/codeclarity_components/projects/list/analysis-status";
 import { Project } from "@/codeclarity_components/projects/project.entity";
 import { ProjectRepository } from "@/codeclarity_components/projects/project.repository";
 import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
@@ -100,36 +106,31 @@ const skippedFolders = computed(() => analysisSkippedFolders(analysis.value));
 
 // The analysis status in words, when it has not completed.
 const statusNotice = computed((): { title: string; text: string } | null => {
-  switch (analysis.value.status) {
-    case AnalysisStatus.COMPLETED:
-    case AnalysisStatus.FINISHED:
-      return null;
-    case AnalysisStatus.FAILED:
-    case AnalysisStatus.FAILURE:
-      return {
-        title: "Analysis failed",
-        text:
-          analysis.value.failure_reason ??
-          "The analysis stopped before it finished.",
-      };
-    case AnalysisStatus.CANCELLED:
-      return {
-        title: "Analysis cancelled",
-        text: "The analysis was cancelled before it finished.",
-      };
-    case AnalysisStatus.STARTED:
-    case AnalysisStatus.ONGOING:
-    case AnalysisStatus.UPDATING_DB:
-      return {
-        title: "Analysis running",
-        text: "Results appear here when it finishes. Reload the page to check.",
-      };
-    default:
-      return {
-        title: "Analysis queued",
-        text: "The analysis has not started yet. Reload the page to check.",
-      };
+  const current = analysis.value;
+  if (isFinished(current)) return null;
+  if (isFailed(current)) {
+    return {
+      title: "Analysis failed",
+      text:
+        current.failure_reason ?? "The analysis stopped before it finished.",
+    };
   }
+  if (isCancelled(current)) {
+    return {
+      title: "Analysis cancelled",
+      text: "The analysis was cancelled before it finished.",
+    };
+  }
+  if (isRunning(current)) {
+    return {
+      title: "Analysis running",
+      text: "Results appear here when it finishes. Reload the page to check.",
+    };
+  }
+  return {
+    title: "Analysis queued",
+    text: "The analysis has not started yet. Reload the page to check.",
+  };
 });
 
 async function init(): Promise<void> {
@@ -299,12 +300,7 @@ onBeforeMount(async () => {
         v-else-if="statusNotice"
         role="status"
         aria-label="Analysis status"
-        :variant="
-          analysis.status === AnalysisStatus.FAILURE ||
-          analysis.status === AnalysisStatus.FAILED
-            ? 'destructive'
-            : 'default'
-        "
+        :variant="isFailed(analysis) ? 'destructive' : 'default'"
       >
         <AlertTitle as="h2">{{ statusNotice.title }}</AlertTitle>
         <AlertDescription>{{ statusNotice.text }}</AlertDescription>

@@ -2,6 +2,7 @@ import {
   type Analysis,
   AnalysisStatus,
 } from "@/codeclarity_components/analyses/analysis.entity";
+import { isFinished } from "@/codeclarity_components/projects/list/analysis-status";
 import type { Result } from "@/codeclarity_components/results/result.entity";
 import { ResultsRepository } from "@/codeclarity_components/results/results.repository";
 import { useUserStore } from "@/stores/user";
@@ -200,11 +201,7 @@ export class LanguageDetectionService {
   getMostRecentCompletedAnalysis(analyses: Analysis[]): Analysis | null {
     if (analyses?.length === 0) return null;
 
-    const completedAnalyses = analyses.filter(
-      (analysis) =>
-        analysis.status === AnalysisStatus.COMPLETED ||
-        analysis.status === AnalysisStatus.FINISHED,
-    );
+    const completedAnalyses = analyses.filter(isFinished);
 
     if (completedAnalyses.length === 0) return null;
 

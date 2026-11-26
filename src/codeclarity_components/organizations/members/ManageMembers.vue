@@ -6,8 +6,8 @@ import { RouterLink, useRoute } from "vue-router";
 import { DataTable, type DataTableColumn } from "@/base_components/data-table";
 import { BrandEmphasis, PageHeading } from "@/base_components/page";
 import {
-  isMemberRoleGreaterOrEqualTo,
   isMemberRoleGreaterThan,
+  isOrgAdmin,
   MemberRole,
   type Organization,
 } from "@/codeclarity_components/organizations/organization.entity";
@@ -62,7 +62,7 @@ const canManageMembers = computed(
   () =>
     !!orgInfo.value &&
     !orgInfo.value.personal &&
-    isMemberRoleGreaterOrEqualTo(orgInfo.value.role, MemberRole.ADMIN),
+    isOrgAdmin(orgInfo.value.role),
 );
 
 const columns: DataTableColumn<OrganizationMembership>[] = [

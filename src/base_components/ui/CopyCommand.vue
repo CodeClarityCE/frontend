@@ -17,7 +17,9 @@ let timer: ReturnType<typeof setTimeout> | undefined;
 
 async function copy(): Promise<void> {
   clearTimeout(timer);
-  status.value = (await copyToClipboard(props.command)) ? "Copied" : "";
+  status.value = "";
+  if (!(await copyToClipboard(props.command))) return;
+  status.value = "Copied";
   timer = setTimeout(() => (status.value = ""), 2000);
 }
 

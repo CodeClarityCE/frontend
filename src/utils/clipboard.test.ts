@@ -29,7 +29,7 @@ describe("copyToClipboard", () => {
     vi.unstubAllGlobals();
   });
 
-  it("copies the text and says it worked", async () => {
+  it("copies the text and resolves true", async () => {
     writeText.mockResolvedValue();
 
     await expect(copyToClipboard("npm install ms@^2.1.3")).resolves.toBe(true);

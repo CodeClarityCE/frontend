@@ -153,8 +153,11 @@ HTTP, through `app.http`. A test may wrap `fetch` around it only for what
 `app.http` cannot answer: a held-back answer, a different answer per request,
 or a network failure.
 
-Besides HTTP, only two browser boundaries jsdom cannot run are faked: the file
-download (`@/utils/download`) and PDF font loading (`@/utils/svg-pdf/load-fonts`).
+Besides HTTP, only three browser boundaries jsdom cannot run are faked: the file
+download (`@/utils/download`), PDF font loading (`@/utils/svg-pdf/load-fonts`),
+and Web Locks (`navigator.locks`), which the session tests stand in for to
+refresh across tabs. jsdom has no Web Locks, so every other test runs the
+single-tab fallback.
 Never mock the router, Pinia, a store, a repository, a component or a library.
 
 ```typescript

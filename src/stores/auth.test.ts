@@ -104,11 +104,49 @@ describe("auth store", () => {
     });
     expect(useAuthStore().getAuthenticated).toBe(false);
     expect(useUserStore().getUser).toBeUndefined();
+    // The API ends the sign-in, so its refresh token stops working.
+    await waitFor(() => {
+      expect(app.http.requests).toContainEqual(
+        expect.objectContaining({
+          method: "POST",
+          path: "/auth/sign_out",
+          body: { refresh_token: "refresh-token" },
+        }),
+      );
+    });
 
     shell.unmount();
     const reloaded = createTestApp();
     await reloaded.visit("/projects");
     expect(reloaded.router.currentRoute.value.name).toBe("login");
+  });
+
+  it("signs out even when the API cannot be reached", async () => {
+    const app = createTestApp({ signedIn: true });
+    app.http.fail("POST", "/auth/sign_out");
+    await app.visit("/projects");
+    render(
+      defineComponent(() => () => h(SidebarProvider, () => h(UserMenu))),
+      {
+        global: app.global,
+      },
+    );
+
+    const typist = userEvent.setup();
+    await typist.click(
+      screen.getByRole("button", { name: /open the account menu/ }),
+    );
+    await typist.click(
+      await screen.findByRole("menuitem", { name: "Log out" }),
+    );
+
+    await waitFor(() => {
+      expect(app.router.currentRoute.value.path).toBe("/login");
+    });
+    expect(useAuthStore().getAuthenticated).toBe(false);
+    expect(localStorage.getItem("authStore") ?? "").not.toContain(
+      "refresh-token",
+    );
   });
 
   it("starts signed out when the saved session is corrupt", async () => {

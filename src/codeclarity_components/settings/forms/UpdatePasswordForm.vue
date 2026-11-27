@@ -76,13 +76,22 @@ const onSubmit = guardFormSubmit(form, async (values): Promise<void> => {
   if (!user || !authStore.getToken) return;
   submitting.value = true;
   try {
-    await userRepository.patchPassword({
+    const signIn = await userRepository.patchPassword({
       userId: user.id,
       data: values,
       bearerToken: authStore.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
+    // Every other sign-in has ended; this tab continues with the fresh one.
+    if (signIn) {
+      authStore.adoptTokens({
+        token: signIn.token,
+        tokenExpiry: signIn.token_expiry,
+        refreshToken: signIn.refresh_token,
+        refreshTokenExpiry: signIn.refresh_token_expiry,
+      });
+    }
     form.resetForm({ values: emptyValues });
     successToast("Your password was changed");
   } catch (err) {

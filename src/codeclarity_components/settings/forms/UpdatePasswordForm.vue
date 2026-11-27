@@ -68,7 +68,7 @@ function failureMessage(err: unknown): string {
       return "The current password is incorrect";
     }
   }
-  return "The password could not be changed. Check your current password.";
+  return "The password could not be changed";
 }
 
 const onSubmit = guardFormSubmit(form, async (values): Promise<void> => {

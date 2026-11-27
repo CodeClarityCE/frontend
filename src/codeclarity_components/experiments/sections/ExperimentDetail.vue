@@ -365,6 +365,36 @@ function isNotAuthorized(err: unknown): boolean {
   );
 }
 
+function cancelErrorMessage(err: unknown): string {
+  if (isNotAuthorized(err)) {
+    return "Only organization admins can cancel experiments";
+  }
+  if (
+    err instanceof BusinessLogicError &&
+    err.error_code === APIErrors.ExperimentNotCancellable
+  ) {
+    return "Only a pending or running experiment can be cancelled";
+  }
+  return "Failed to cancel the experiment";
+}
+
+function publishErrorMessage(err: unknown): string {
+  if (isNotAuthorized(err)) {
+    return "Only organization admins can publish experiments";
+  }
+  if (!(err instanceof BusinessLogicError)) {
+    return "Failed to publish the experiment";
+  }
+  switch (err.error_code) {
+    case APIErrors.ExperimentNotPublishable:
+      return "Only a completed experiment can be published";
+    case APIErrors.ExperimentAlreadyPublished:
+      return "This experiment is already published under the current metric version";
+    default:
+      return "Failed to publish the experiment";
+  }
+}
+
 async function cancelExperiment(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
   if (!orgId || !auth.getToken || acting.value) return;
@@ -379,11 +409,7 @@ async function cancelExperiment(): Promise<void> {
     });
     successToast("Experiment cancelled");
   } catch (err) {
-    errorToast(
-      isNotAuthorized(err)
-        ? "Only organization admins can cancel experiments"
-        : "Failed to cancel the experiment",
-    );
+    errorToast(cancelErrorMessage(err));
   } finally {
     acting.value = false;
     confirming.value = null;
@@ -406,11 +432,7 @@ async function publishExperiment(): Promise<void> {
     pickedMetricVersion.value = null;
     successToast("Experiment published");
   } catch (err) {
-    errorToast(
-      isNotAuthorized(err)
-        ? "Only organization admins can publish experiments"
-        : "Failed to publish the experiment",
-    );
+    errorToast(publishErrorMessage(err));
   } finally {
     acting.value = false;
     confirming.value = null;

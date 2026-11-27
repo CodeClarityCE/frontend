@@ -3,6 +3,7 @@ import { Check, Copy } from "@lucide/vue";
 import { onBeforeUnmount, ref } from "vue";
 
 import { Button } from "@/shadcn/ui/button";
+import { copyToClipboard } from "@/utils/clipboard";
 
 // A shell command in monospace with a button that copies it.
 const props = defineProps<{
@@ -11,17 +12,12 @@ const props = defineProps<{
   label?: string;
 }>();
 
-const status = ref<"" | "Copied" | "Could not copy">("");
+const status = ref<"" | "Copied">("");
 let timer: ReturnType<typeof setTimeout> | undefined;
 
 async function copy(): Promise<void> {
   clearTimeout(timer);
-  try {
-    await navigator.clipboard.writeText(props.command);
-    status.value = "Copied";
-  } catch {
-    status.value = "Could not copy";
-  }
+  status.value = (await copyToClipboard(props.command)) ? "Copied" : "";
   timer = setTimeout(() => (status.value = ""), 2000);
 }
 

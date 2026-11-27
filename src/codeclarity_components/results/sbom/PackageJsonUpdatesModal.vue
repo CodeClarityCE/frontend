@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shadcn/ui/dialog";
+import { copyToClipboard } from "@/utils/clipboard";
 import { successToast } from "@/utils/toasts";
 
 import PackageManagerUpdates from "./PackageManagerUpdates.vue";
@@ -53,11 +54,10 @@ const manifests = computed(() =>
   ].join(" and "),
 );
 
-function copy(content: string): void {
-  void navigator.clipboard.writeText(content).then(() => {
-    successToast("Copied to the clipboard");
-    emit("copy-to-clipboard", content);
-  });
+async function copy(content: string): Promise<void> {
+  if (!(await copyToClipboard(content))) return;
+  successToast("Copied to the clipboard");
+  emit("copy-to-clipboard", content);
 }
 </script>
 

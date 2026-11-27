@@ -26,12 +26,11 @@ const result = ref<VulnerabilityNotYetChecked | null>(null);
 
 async function fetch(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !authStore.getToken) return;
+  if (!orgId || !authStore.getAuthenticated) return;
   try {
     result.value = await repository.getNotYetChecked({
       orgId,
       vulnerabilityId: props.vulnerabilityId,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
   } catch (error) {

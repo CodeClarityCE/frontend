@@ -80,12 +80,11 @@ function setOrgInfo(_orgInfo: Organization): void {
 }
 
 async function fetchAnalyzers(): Promise<void> {
-  if (!(authStore.getAuthenticated && authStore.getToken)) return;
+  if (!authStore.getAuthenticated) return;
   error.value = false;
   try {
     const resp = await analyzerRepo.getAnalyzers({
       orgId: props.orgId,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
       page: 0,
       entries_per_page: 0,
@@ -101,13 +100,12 @@ async function fetchAnalyzers(): Promise<void> {
 
 async function confirmDelete(): Promise<void> {
   const target = pendingDelete.value;
-  if (!target || !authStore.getToken) return;
+  if (!target || !authStore.getAuthenticated) return;
   deleting.value = true;
   try {
     await analyzerRepo.deleteAnalyzer({
       orgId: props.orgId,
       analyzer_id: target.id,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     successToast(`Deleted ${target.name}`);

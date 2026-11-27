@@ -183,11 +183,10 @@ function setOrgInfo(org: Organization): void {
 }
 
 async function fetchVcs(): Promise<void> {
-  if (!authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
   try {
     const resp = await integrationRepo.getVCS({
       orgId: props.orgId,
-      bearerToken: authStore.getToken,
       pagination: { page: 0, entries_per_page: 100 },
       handleBusinessErrors: true,
     });
@@ -199,11 +198,10 @@ async function fetchVcs(): Promise<void> {
 }
 
 async function fetchTicketing(): Promise<void> {
-  if (!authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
   try {
     const resp = await ticketsRepo.getIntegrations({
       orgId: props.orgId,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -226,20 +224,18 @@ async function load(): Promise<void> {
 
 async function confirmDelete(): Promise<void> {
   const row = pendingDelete.value;
-  if (!row || !authStore.getToken) return;
+  if (!row || !authStore.getAuthenticated) return;
   deleting.value = true;
   try {
     if (row.provider === IntegrationProvider.CLICKUP) {
       await ticketsRepo.deleteIntegration({
         orgId: props.orgId,
-        bearerToken: authStore.getToken,
         provider: ExternalTicketProvider.CLICKUP,
         handleBusinessErrors: true,
       });
     } else {
       await integrationRepo.deleteIntegration({
         orgId: props.orgId,
-        bearerToken: authStore.getToken,
         integrationId: row.id,
         handleBusinessErrors: true,
       });

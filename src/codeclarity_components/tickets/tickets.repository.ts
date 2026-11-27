@@ -283,7 +283,6 @@ export class TicketsRepository extends BaseRepository {
 
     const response = await this.getRequest<PaginatedResponse<TicketSummary>>({
       queryParams,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -332,7 +331,6 @@ export class TicketsRepository extends BaseRepository {
 
     const response = await this.getRequest<PaginatedResponse<TicketSummary>>({
       queryParams,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -359,7 +357,6 @@ export class TicketsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/tickets/${options.ticketId}`;
 
     const response = await this.getRequest<DataResponse<TicketDetails>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -383,7 +380,6 @@ export class TicketsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/tickets/${options.ticketId}/events`;
 
     const response = await this.getRequest<DataResponse<TicketEvent[]>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -410,7 +406,6 @@ export class TicketsRepository extends BaseRepository {
     const response = await this.getRequest<
       DataResponse<VulnerabilityDetailsReport | null>
     >({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -432,7 +427,6 @@ export class TicketsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/tickets/stats`;
 
     const response = await this.getRequest<DataResponse<TicketDashboardStats>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -455,7 +449,6 @@ export class TicketsRepository extends BaseRepository {
    */
   async getMyWork(options: GetMyWorkRequestOptions): Promise<MyWorkEntry[]> {
     const response = await this.getRequest<{ data: MyWorkEntry[] }>({
-      bearerToken: options.bearerToken,
       queryParams: options.limit ? { limit: options.limit } : {},
       url: this.buildUrl(`/org/${options.orgId}/tickets/my-work`),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -477,7 +470,6 @@ export class TicketsRepository extends BaseRepository {
       CreatedResponse,
       CreateTicketRequest
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -498,7 +490,6 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<CreateRemediationTicketResult>,
       CreateRemediationTicketRequest
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -524,7 +515,6 @@ export class TicketsRepository extends BaseRepository {
       NoDataResponse,
       UpdateTicketRequest
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -547,7 +537,6 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<BulkUpdateResult>,
       BulkUpdateTicketsRequest
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -573,7 +562,6 @@ export class TicketsRepository extends BaseRepository {
       NoDataResponse,
       Record<string, never>
     >({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -596,7 +584,6 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<DuplicateCheckResult>,
       CheckDuplicateRequest
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -625,7 +612,6 @@ export class TicketsRepository extends BaseRepository {
     const response = await this.getRequest<
       DataResponse<IntegrationConfigSummary[]>
     >({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -650,7 +636,6 @@ export class TicketsRepository extends BaseRepository {
       NoDataResponse,
       ConfigureClickUpRequest
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -673,7 +658,6 @@ export class TicketsRepository extends BaseRepository {
       NoDataResponse,
       Record<string, never>
     >({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -694,7 +678,6 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<ConnectionTestResult>,
       IntegrationCredentials
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -720,7 +703,6 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<ConnectionTestResult>,
       Record<string, never>
     >({
-      bearerToken: options.bearerToken,
       data: {},
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -746,7 +728,6 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<IntegrationHierarchyItem[]>
     >({
       headers: credentialHeaders(options.credentials),
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -771,7 +752,6 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<IntegrationHierarchyItem[]>
     >({
       headers: credentialHeaders(options.credentials),
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -796,7 +776,6 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<IntegrationHierarchyItem[]>
     >({
       headers: credentialHeaders(options.credentials),
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -821,7 +800,6 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<IntegrationHierarchyItem[]>
     >({
       headers: credentialHeaders(options.credentials),
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -851,7 +829,6 @@ export class TicketsRepository extends BaseRepository {
       { name: string }
     >({
       headers: credentialHeaders(options.credentials),
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -878,7 +855,6 @@ export class TicketsRepository extends BaseRepository {
       { name: string }
     >({
       headers: credentialHeaders(options.credentials),
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -905,7 +881,6 @@ export class TicketsRepository extends BaseRepository {
       { name: string }
     >({
       headers: credentialHeaders(options.credentials),
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -932,7 +907,6 @@ export class TicketsRepository extends BaseRepository {
       { name: string }
     >({
       headers: credentialHeaders(options.credentials),
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -958,7 +932,6 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<SyncResult>,
       Record<string, never>
     >({
-      bearerToken: options.bearerToken,
       data: {},
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -989,7 +962,6 @@ export class TicketsRepository extends BaseRepository {
       NoDataResponse,
       Record<string, never>
     >({
-      bearerToken: options.bearerToken,
       queryParams,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -1013,7 +985,6 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<BulkSyncResult>,
       { ticket_ids: string[] }
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -1036,7 +1007,6 @@ export class TicketsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/tickets/${options.ticketId}/external-links`;
 
     const response = await this.getRequest<DataResponse<ExternalLink[]>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -1062,7 +1032,6 @@ export class TicketsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/tickets/integrations/clickup/oauth/url`;
 
     const response = await this.getRequest<DataResponse<{ url: string }>>({
-      bearerToken: options.bearerToken,
       queryParams: {
         redirect_uri: options.redirectUri,
       },
@@ -1090,7 +1059,6 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<{ access_token: string }>,
       { code: string; redirect_uri: string }
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -1121,7 +1089,6 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<SyncFromExternalResult>,
       Record<string, never>
     >({
-      bearerToken: options.bearerToken,
       data: {},
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -1148,7 +1115,6 @@ export class TicketsRepository extends BaseRepository {
       DataResponse<BulkSyncFromExternalResult>,
       { ticket_ids: string[] }
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,

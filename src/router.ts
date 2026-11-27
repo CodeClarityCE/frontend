@@ -50,14 +50,12 @@ async function fetchAuthenticatedUser(
   userStore: ReturnType<typeof useUserStore>,
   authRepository: AuthRepository,
 ): Promise<FetchResult | "not_activated"> {
-  const token = authStore.getToken;
-  if (!token) {
+  if (!authStore.getAuthenticated) {
     return "failed";
   }
 
   try {
     const user: AuthenticatedUser = await authRepository.getAuthenticatedUser({
-      bearerToken: token,
       validate: false,
       handleBusinessErrors: true,
     });
@@ -87,14 +85,12 @@ async function fetchDefaultOrg(
   orgRepository: OrgRepository,
 ): Promise<FetchResult> {
   const user = userStore.getUser;
-  const token = authStore.getToken;
-  if (!user?.default_org || !token) {
+  if (!user?.default_org || !authStore.getAuthenticated) {
     return "ok";
   }
 
   try {
     const org: Organization = await orgRepository.get({
-      bearerToken: token,
       orgId: user.default_org.id,
       handleBusinessErrors: true,
     });
@@ -123,14 +119,12 @@ async function fetchFallbackOrg(
   orgRepository: OrgRepository,
 ): Promise<FetchResult> {
   const user = userStore.getUser;
-  const token = authStore.getToken;
-  if (!user?.default_org || !token) {
+  if (!user?.default_org || !authStore.getAuthenticated) {
     return "failed";
   }
 
   try {
     const org: Organization = await orgRepository.get({
-      bearerToken: token,
       orgId: user.default_org.id,
       handleBusinessErrors: true,
     });
@@ -337,7 +331,7 @@ router.beforeEach(async (to) => {
 
   // Signed-in users get their identity on every page; on public pages a failure just signs them out.
   const loadIdentity =
-    authStore.getToken !== undefined &&
+    authStore.getAuthenticated !== undefined &&
     (authRequired || authStore.getAuthenticated);
   const redirect = authRequired ? to.fullPath : undefined;
   const signOut = (

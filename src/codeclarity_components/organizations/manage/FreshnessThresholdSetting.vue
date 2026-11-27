@@ -29,12 +29,11 @@ watch(
 async function save(): Promise<void> {
   const days = Number(value.value);
   invalid.value = !Number.isInteger(days) || days < 1 || days > 365;
-  if (invalid.value || !authStore.getToken || saving.value) return;
+  if (invalid.value || !authStore.getAuthenticated || saving.value) return;
   saving.value = true;
   try {
     await orgRepo.updateSettings({
       orgId: props.orgId,
-      bearerToken: authStore.getToken,
       data: { freshness_threshold_days: days },
       handleBusinessErrors: true,
     });

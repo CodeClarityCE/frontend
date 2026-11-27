@@ -51,8 +51,7 @@ async function loadAdvisories(): Promise<void> {
   checkFailed.value = false;
 
   const org = userStore.getDefaultOrg;
-  const token = authStore.getToken;
-  if (!authStore.getAuthenticated || !token || !org) return;
+  if (!authStore.getAuthenticated || !org) return;
   if (props.analysisID === "" || props.projectID === "") return;
 
   try {
@@ -62,7 +61,6 @@ async function loadAdvisories(): Promise<void> {
         projectId: props.projectID,
         analysisId: props.analysisID,
         workspace: props.workspace,
-        bearerToken: token,
         handleBusinessErrors: true,
         handleHTTPErrors: true,
         handleOtherErrors: true,

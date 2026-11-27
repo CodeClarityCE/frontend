@@ -49,12 +49,11 @@ function failureMessage(err: unknown): string | null {
 }
 
 async function confirm(): Promise<void> {
-  if (!authStore.getToken || busy.value) return;
+  if (!authStore.getAuthenticated || busy.value) return;
   busy.value = true;
   try {
     const options = {
       orgId: props.orgId,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     };
     if (props.action === "delete") await orgRepo.delete(options);

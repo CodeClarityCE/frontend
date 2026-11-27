@@ -168,13 +168,12 @@ const progressPercent = computed(() => {
 
 async function loadExperiment(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken || !experimentId.value) return;
+  if (!orgId || !auth.getAuthenticated || !experimentId.value) return;
 
   try {
     const response = await experimentsRepository.getExperiment({
       orgId,
       experimentId: experimentId.value,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
@@ -203,12 +202,11 @@ async function loadExperiment(): Promise<void> {
 /** Result blocks and the composer offer only what the catalog allows. */
 async function loadFigureCatalog(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken || !experimentId.value) return;
+  if (!orgId || !auth.getAuthenticated || !experimentId.value) return;
   try {
     const response = await experimentsRepository.getFigureCatalog({
       orgId,
       experimentId: experimentId.value,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
@@ -221,13 +219,12 @@ async function loadFigureCatalog(): Promise<void> {
 /** Only a COMPLETED experiment can have Published results. */
 async function loadPublishedVersions(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken || !experimentId.value) return;
+  if (!orgId || !auth.getAuthenticated || !experimentId.value) return;
   if (experiment.value?.status !== ExperimentStatus.COMPLETED) return;
   try {
     const request = {
       orgId,
       experimentId: experimentId.value,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     };
@@ -245,14 +242,13 @@ async function loadPublishedVersions(): Promise<void> {
 /** Results are aggregated from done runs: there is nothing before the first. */
 async function loadResults(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken || !experimentId.value) return;
+  if (!orgId || !auth.getAuthenticated || !experimentId.value) return;
   if ((experiment.value?.run_counts.done ?? 0) === 0) return;
   const requested = selectedVersion.value;
   try {
     const request = {
       orgId,
       experimentId: experimentId.value,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     };
@@ -291,7 +287,7 @@ function exportFilename(file: string): string {
 
 async function downloadExport(file: ExperimentExportFile): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken || exporting.value) return;
+  if (!orgId || !auth.getAuthenticated || exporting.value) return;
   exporting.value = file;
   const metricVersion = resultsVersion.value;
   try {
@@ -300,7 +296,6 @@ async function downloadExport(file: ExperimentExportFile): Promise<void> {
       experimentId: experimentId.value,
       file,
       ...(metricVersion === null ? {} : { metricVersion }),
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
@@ -319,14 +314,13 @@ async function downloadExport(file: ExperimentExportFile): Promise<void> {
 
 async function downloadPackage(metricVersion: number): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken || exporting.value) return;
+  if (!orgId || !auth.getAuthenticated || exporting.value) return;
   exporting.value = "package";
   try {
     const blob = await experimentsRepository.downloadPublishedPackage({
       orgId,
       experimentId: experimentId.value,
       metricVersion,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
@@ -340,13 +334,12 @@ async function downloadPackage(metricVersion: number): Promise<void> {
 
 async function loadRuns(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken || !experimentId.value) return;
+  if (!orgId || !auth.getAuthenticated || !experimentId.value) return;
   try {
     const response = await experimentsRepository.getExperimentRuns({
       orgId,
       experimentId: experimentId.value,
       pagination: { page: runsPage.value, entries_per_page: RUNS_PER_PAGE },
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
@@ -397,13 +390,12 @@ function publishErrorMessage(err: unknown): string {
 
 async function cancelExperiment(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken || acting.value) return;
+  if (!orgId || !auth.getAuthenticated || acting.value) return;
   acting.value = true;
   try {
     await experimentsRepository.cancelExperiment({
       orgId,
       experimentId: experimentId.value,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
@@ -419,13 +411,12 @@ async function cancelExperiment(): Promise<void> {
 
 async function publishExperiment(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken || acting.value) return;
+  if (!orgId || !auth.getAuthenticated || acting.value) return;
   acting.value = true;
   try {
     await experimentsRepository.publishExperiment({
       orgId,
       experimentId: experimentId.value,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
@@ -442,13 +433,12 @@ async function publishExperiment(): Promise<void> {
 
 async function deleteExperiment(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken || acting.value) return;
+  if (!orgId || !auth.getAuthenticated || acting.value) return;
   acting.value = true;
   try {
     await experimentsRepository.deleteExperiment({
       orgId,
       experimentId: experimentId.value,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });

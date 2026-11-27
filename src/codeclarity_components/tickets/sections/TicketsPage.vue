@@ -88,7 +88,7 @@ const ticketsWithExternalLinks = computed(() =>
 // Pulls the status of linked tickets from their external providers.
 async function bulkSyncFromExternal(): Promise<void> {
   const orgId = defaultOrg?.value?.id;
-  if (!orgId || !auth.getToken) return;
+  if (!orgId || !auth.getAuthenticated) return;
   if (ticketsWithExternalLinks.value.length === 0) return;
 
   isBulkSyncing.value = true;
@@ -96,7 +96,6 @@ async function bulkSyncFromExternal(): Promise<void> {
     await ticketsRepository.bulkSyncFromExternal({
       orgId,
       data: { ticket_ids: ticketsWithExternalLinks.value.map((t) => t.id) },
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,

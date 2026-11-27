@@ -51,7 +51,7 @@ const columns: DataTableColumn<AnalysisRun>[] = [
 
 async function fetchRuns(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !authStore.getToken) return;
+  if (!orgId || !authStore.getAuthenticated) return;
 
   loading.value = true;
   try {
@@ -59,7 +59,6 @@ async function fetchRuns(): Promise<void> {
       orgId,
       projectId: props.projectID,
       analysisId: props.analysis.id,
-      bearerToken: authStore.getToken,
     });
     const data = (response.data ?? []) as unknown as Omit<
       AnalysisRun,

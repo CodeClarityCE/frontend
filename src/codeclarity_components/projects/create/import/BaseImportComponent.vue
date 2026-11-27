@@ -133,11 +133,10 @@ const isSubmitting = form.isSubmitting;
 
 const onSubmit = guardFormSubmit(form, async (values) => {
   if (!userStore.getDefaultOrg) return;
-  if (!authStore.getAuthenticated || !authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
   try {
     await importProject(
       userStore.getDefaultOrg.id,
-      authStore.getToken,
       stripGitSuffix(values.repository),
     );
   } catch (err) {
@@ -154,18 +153,13 @@ const onSubmit = guardFormSubmit(form, async (values) => {
  * @param token the user's authentication token
  * @param repo the repo to import
  */
-async function importProject(
-  orgId: string,
-  token: string,
-  repo: string,
-): Promise<void> {
+async function importProject(orgId: string, repo: string): Promise<void> {
   await projectsRepo.createProject({
     orgId: orgId,
     data: {
       integration_id: props.integration,
       url: repo,
     },
-    bearerToken: token,
     handleBusinessErrors: true,
   });
 }
@@ -177,11 +171,10 @@ async function importProject(
  */
 async function importProjectsBulk(): Promise<void> {
   if (!userStore.getDefaultOrg) return;
-  if (!authStore.getAuthenticated || !authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
   if (importing.value) return;
 
   const orgId = userStore.getDefaultOrg.id;
-  const token = authStore.getToken;
   const repos = [...selectedRepos.value];
   const _reposFailedToImport: Record<string, FailedProjectImport> = {};
   reposFailedToImport.value = {};
@@ -191,7 +184,7 @@ async function importProjectsBulk(): Promise<void> {
   try {
     await runWithConcurrency(repos, IMPORT_CONCURRENCY, async (repo) => {
       try {
-        await importProject(orgId, token, repo.url);
+        await importProject(orgId, repo.url);
       } catch (err) {
         _reposFailedToImport[repo.id] = {
           repo: repo,

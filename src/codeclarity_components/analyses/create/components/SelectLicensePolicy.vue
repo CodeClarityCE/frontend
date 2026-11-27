@@ -31,10 +31,7 @@ watch(selectedId, (id) => {
     policies.value.find((policy) => policy.id === id)?.content ?? [];
 });
 
-async function fetchAll(
-  orgId: string,
-  token: string,
-): Promise<LicensePolicy[]> {
+async function fetchAll(orgId: string): Promise<LicensePolicy[]> {
   const all: LicensePolicy[] = [];
   for (let page = 0; ; page++) {
     const response = await repository.getLicensePolicies({
@@ -42,7 +39,6 @@ async function fetchAll(
       page,
       entries_per_page: FETCH_PAGE_SIZE,
       search_key: "",
-      bearerToken: token,
       handleBusinessErrors: true,
     });
     all.push(...response.data);
@@ -54,9 +50,9 @@ async function fetchAll(
 
 async function load(): Promise<void> {
   const orgId = user.defaultOrg?.id;
-  if (!orgId || !auth.getToken) return;
+  if (!orgId || !auth.getAuthenticated) return;
   try {
-    policies.value = await fetchAll(orgId, auth.getToken);
+    policies.value = await fetchAll(orgId);
     selectedId.value =
       policies.value.find((policy) => policy.default)?.id ?? null;
   } catch {

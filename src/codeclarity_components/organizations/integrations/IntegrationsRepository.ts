@@ -93,7 +93,6 @@ export class IntegrationsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/integrations/github/${options.integrationId}`;
 
     const response = await this.getRequest<DataResponse<GithubIntegration>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -112,7 +111,6 @@ export class IntegrationsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/integrations/gitlab/${options.integrationId}`;
 
     const response = await this.getRequest<DataResponse<GitlabIntegration>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -131,7 +129,6 @@ export class IntegrationsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/integrations/vcs`;
 
     const response = await this.getRequest<PaginatedResponse<VCS>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -165,7 +162,6 @@ export class IntegrationsRepository extends BaseRepository {
         sort_key: options.sort.sortKey,
         sort_direction: options.sort.sortDirection,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -200,7 +196,6 @@ export class IntegrationsRepository extends BaseRepository {
         sort_key: options.sort.sortKey,
         sort_direction: options.sort.sortDirection,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -228,7 +223,6 @@ export class IntegrationsRepository extends BaseRepository {
         sort_key: options.sort.sortKey,
         sort_direction: options.sort.sortDirection,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -253,7 +247,6 @@ export class IntegrationsRepository extends BaseRepository {
       GilabIntegrationAdd
     >({
       data: options.data,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -273,7 +266,6 @@ export class IntegrationsRepository extends BaseRepository {
       GitlabIntegrationUpdate
     >({
       data: options.data,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -293,7 +285,6 @@ export class IntegrationsRepository extends BaseRepository {
       GithubIntegrationAdd
     >({
       data: options.data,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -313,7 +304,6 @@ export class IntegrationsRepository extends BaseRepository {
       GithubIntegrationUpdate
     >({
       data: options.data,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -328,7 +318,6 @@ export class IntegrationsRepository extends BaseRepository {
 
     const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
       data: {},
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,

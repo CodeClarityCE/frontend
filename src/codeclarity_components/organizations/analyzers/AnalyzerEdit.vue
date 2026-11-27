@@ -80,7 +80,7 @@ async function submit(): Promise<void> {
   if (
     !isValid.value ||
     workflowError.value ||
-    !authStore.getToken ||
+    !authStore.getAuthenticated ||
     !savedSteps.value ||
     submitting.value
   )
@@ -96,7 +96,6 @@ async function submit(): Promise<void> {
         description: description.value.trim(),
         steps: savedSteps.value,
       },
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     successToast(`Saved ${name.value.trim()}`);
@@ -109,19 +108,17 @@ async function submit(): Promise<void> {
 }
 
 async function init(): Promise<void> {
-  if (!authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
   try {
     if (!analyzerId) throw new Error("No analyzer id");
     // Failures show inline, so the repositories raise no toasts of their own
     const [pluginResp, res] = await Promise.all([
       pluginRepo.geAllPlugins({
-        bearerToken: authStore.getToken,
         handleBusinessErrors: true,
         handleHTTPErrors: true,
       }),
       analyzerRepo.getAnalyzer({
         orgId: props.orgId,
-        bearerToken: authStore.getToken,
         analyzer_id: analyzerId,
         handleBusinessErrors: true,
         handleHTTPErrors: true,

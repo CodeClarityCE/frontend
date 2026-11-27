@@ -34,7 +34,7 @@ onMounted(async () => {
     return;
   }
 
-  if (!auth.getToken) {
+  if (!auth.getAuthenticated) {
     status.value = "error";
     errorMessage.value = "Not authenticated. Please log in and try again.";
     return;
@@ -48,7 +48,6 @@ onMounted(async () => {
         code,
         redirect_uri: `${window.location.origin}/tickets/integrations/clickup/callback`,
       },
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,

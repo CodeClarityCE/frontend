@@ -2,6 +2,7 @@ export const APIErrors = {
   ValidationFailed: "ValidationFailed",
   NotAuthenticated: "NotAuthenticated",
   NotAuthorized: "NotAuthorized",
+  CrossSiteRequestRefused: "CrossSiteRequestRefused",
   AccountNotActivated: "AccountNotActivated",
   OrganizationTokenScopeTooNarrow: "OrganizationTokenScopeTooNarrow",
   Unsupported: "Unsupported",

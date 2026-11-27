@@ -45,7 +45,7 @@ const pending = computed(() => {
 async function detectLanguages(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
   const recent = completed.value;
-  if (!orgId || !authStore.getToken || !recent) return;
+  if (!orgId || !authStore.getAuthenticated || !recent) return;
 
   loading.value = true;
   failed.value = false;
@@ -54,7 +54,6 @@ async function detectLanguages(): Promise<void> {
       orgId,
       props.project.id,
       recent,
-      authStore.getToken,
     );
   } catch {
     failed.value = true;

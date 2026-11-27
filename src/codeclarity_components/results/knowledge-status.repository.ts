@@ -48,7 +48,6 @@ export class KnowledgeStatusRepository extends BaseRepository {
     options: AuthRepoMethodGetRequestOptions,
   ): Promise<DataResponse<KnowledgeStatus>> {
     return this.getRequest<DataResponse<KnowledgeStatus>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl("/knowledge/status"),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -61,7 +60,6 @@ export class KnowledgeStatusRepository extends BaseRepository {
     options: GetKnowledgeSnapshotRequestOptions,
   ): Promise<DataResponse<KnowledgeSnapshot | null>> {
     return this.getRequest<DataResponse<KnowledgeSnapshot | null>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(
         `/org/${options.orgId}/projects/${options.projectId}/analysis/${options.analysisId}/vulnerabilities/knowledge-snapshot`,
       ),

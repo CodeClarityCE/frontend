@@ -59,7 +59,6 @@ export class OrganizationVulnerabilitiesRepository extends BaseRepository {
   ): Promise<OrganizationVulnerabilityList> {
     const { known_exploited, ...filters } = options.filters ?? {};
     return await this.getRequest<OrganizationVulnerabilityList>({
-      bearerToken: options.bearerToken,
       queryParams: {
         page: options.page ?? 0,
         entries_per_page: options.entriesPerPage ?? 50,
@@ -80,7 +79,6 @@ export class OrganizationVulnerabilitiesRepository extends BaseRepository {
     const response = await this.getRequest<{
       data: OrganizationVulnerabilityPage;
     }>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(
         `/org/${options.orgId}/vulnerabilities/${encodeURIComponent(options.vulnerabilityId)}`,
       ),
@@ -96,7 +94,6 @@ export class OrganizationVulnerabilitiesRepository extends BaseRepository {
     options: GetFreshnessOptions,
   ): Promise<OrganizationFreshness> {
     const response = await this.getRequest<{ data: OrganizationFreshness }>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(`/org/${options.orgId}/freshness`),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -112,7 +109,6 @@ export class OrganizationVulnerabilitiesRepository extends BaseRepository {
     const response = await this.getRequest<{
       data: VulnerabilityNotYetChecked;
     }>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(
         `/org/${options.orgId}/vulnerabilities/${encodeURIComponent(options.vulnerabilityId)}/freshness`,
       ),
@@ -126,7 +122,6 @@ export class OrganizationVulnerabilitiesRepository extends BaseRepository {
   /** Open vulnerability instances over time, with introduced and fixed counts. */
   async getTrend(options: GetTrendOptions): Promise<VulnerabilityTrend> {
     const response = await this.getRequest<{ data: VulnerabilityTrend }>({
-      bearerToken: options.bearerToken,
       queryParams: {
         ...options.filters,
         ...(options.periods ? { periods: options.periods } : {}),
@@ -142,7 +137,6 @@ export class OrganizationVulnerabilitiesRepository extends BaseRepository {
   /** The organization's remediations, most urgent first. */
   async getFixNext(options: GetFixNextOptions): Promise<FixNextEntry[]> {
     const response = await this.getRequest<{ data: FixNextEntry[] }>({
-      bearerToken: options.bearerToken,
       queryParams: options.limit ? { limit: options.limit } : {},
       url: this.buildUrl(`/org/${options.orgId}/remediations/fix-next`),
       handleBusinessErrors: options.handleBusinessErrors,

@@ -6,7 +6,7 @@ import * as z from "zod";
 
 import { AuthRepository } from "@/codeclarity_components/authentication/auth.repository";
 import type { AuthenticatedUser } from "@/codeclarity_components/authentication/authenticated_user.entity";
-import type { Token } from "@/codeclarity_components/authentication/token.entity";
+import type { SessionExpiry } from "@/codeclarity_components/authentication/session_expiry.entity";
 import router from "@/router";
 import Alert from "@/shadcn/ui/alert/Alert.vue";
 import AlertDescription from "@/shadcn/ui/alert/AlertDescription.vue";
@@ -87,23 +87,22 @@ async function submit(values: {
   error.value = false;
 
   try {
-    const token: Token = await authRepository.authenticate({
+    const session: SessionExpiry = await authRepository.authenticate({
       data: { email: values.email, password: values.password },
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
 
+    // The API set the session cookies, which this request sends.
     const user: AuthenticatedUser = await authRepository.getAuthenticatedUser({
-      bearerToken: token.token,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
 
-    authStore.setToken(token.token);
-    authStore.setTokenExpiry(token.token_expiry);
-    authStore.setRefreshToken(token.refresh_token);
-    authStore.setRefreshTokenExpiry(token.refresh_token_expiry);
-    authStore.setAuthenticated(true);
+    authStore.startSession(user.id, {
+      tokenExpiry: session.token_expiry,
+      refreshTokenExpiry: session.refresh_token_expiry,
+    });
     userStore.setUser(user);
     void router.push(redirectAfterLogin(router.currentRoute.value.query));
   } catch (_err) {

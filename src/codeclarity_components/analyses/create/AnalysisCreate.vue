@@ -228,7 +228,7 @@ const repositoryUrl = computed(() =>
   project.value?.url.startsWith("http") ? project.value.url : undefined,
 );
 
-async function loadProject(orgId: string, token: string): Promise<void> {
+async function loadProject(orgId: string): Promise<void> {
   if (!projectId) {
     projectMissing.value = true;
     return;
@@ -237,7 +237,6 @@ async function loadProject(orgId: string, token: string): Promise<void> {
     const response = await projectRepository.getProjectById({
       orgId,
       projectId,
-      bearerToken: token,
       handleBusinessErrors: true,
     });
     project.value = response.data;
@@ -246,10 +245,7 @@ async function loadProject(orgId: string, token: string): Promise<void> {
   }
 }
 
-async function fetchAllAnalyzers(
-  orgId: string,
-  token: string,
-): Promise<Analyzer[]> {
+async function fetchAllAnalyzers(orgId: string): Promise<Analyzer[]> {
   const all: Analyzer[] = [];
   for (let page = 0; ; page++) {
     const response = await analyzerRepository.getAnalyzers({
@@ -257,7 +253,6 @@ async function fetchAllAnalyzers(
       page,
       entries_per_page: FETCH_PAGE_SIZE,
       search_key: "",
-      bearerToken: token,
       handleBusinessErrors: true,
     });
     all.push(...response.data);
@@ -267,9 +262,9 @@ async function fetchAllAnalyzers(
   }
 }
 
-async function loadAnalyzers(orgId: string, token: string): Promise<void> {
+async function loadAnalyzers(orgId: string): Promise<void> {
   try {
-    analyzers.value = await fetchAllAnalyzers(orgId, token);
+    analyzers.value = await fetchAllAnalyzers(orgId);
   } catch {
     analyzersFailed.value = true;
   } finally {
@@ -289,8 +284,8 @@ function scheduleRecheck(): void {
   }
   recheckTimer = setTimeout(() => {
     const orgId = user.defaultOrg?.id;
-    if (!orgId || !auth.getToken) return;
-    fetchAllAnalyzers(orgId, auth.getToken)
+    if (!orgId || !auth.getAuthenticated) return;
+    fetchAllAnalyzers(orgId)
       .then((fresh) => {
         analyzers.value = fresh;
       })
@@ -306,12 +301,11 @@ watch(analyzerId, async (id) => {
   analyzer.value = undefined;
   analyzerFailed.value = false;
   const orgId = user.defaultOrg?.id;
-  if (!id || !orgId || !auth.getToken) return;
+  if (!id || !orgId || !auth.getAuthenticated) return;
   try {
     const response = await analyzerRepository.getAnalyzer({
       analyzer_id: id,
       orgId,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
     });
     if (analyzerId.value !== id) return;
@@ -362,7 +356,8 @@ async function submit(): Promise<void> {
   submitted.value = true;
   const orgId = user.defaultOrg?.id;
   if (hasErrors.value || submitting.value) return;
-  if (!orgId || !auth.getToken || !analyzer.value || !project.value) return;
+  if (!orgId || !auth.getAuthenticated || !analyzer.value || !project.value)
+    return;
 
   submitting.value = true;
   failure.value = undefined;
@@ -384,7 +379,6 @@ async function submit(): Promise<void> {
     await analysisRepository.createAnalysis({
       orgId,
       projectId,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       data,
@@ -437,9 +431,9 @@ const newAnalyzerRoute = computed(() => ({
 
 onMounted(() => {
   const orgId = user.defaultOrg?.id;
-  if (!orgId || !auth.getToken) return;
-  void loadProject(orgId, auth.getToken);
-  void loadAnalyzers(orgId, auth.getToken);
+  if (!orgId || !auth.getAuthenticated) return;
+  void loadProject(orgId);
+  void loadAnalyzers(orgId);
 });
 
 const radioClass =

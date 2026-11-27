@@ -48,7 +48,7 @@ async function load(): Promise<void> {
 
 // Loads once the organization and token are known, which can be after mount.
 watch(
-  () => Boolean(defaultOrg?.value?.id && auth.getToken),
+  () => Boolean(defaultOrg?.value?.id && auth.getAuthenticated),
   (ready) => {
     if (ready && !attempted.value) void load();
   },

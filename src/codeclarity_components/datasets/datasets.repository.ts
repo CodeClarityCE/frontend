@@ -53,7 +53,6 @@ export class DatasetsRepository extends BaseRepository {
         page: options.pagination.page,
         entries_per_page: options.pagination.entries_per_page,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -77,7 +76,6 @@ export class DatasetsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/datasets/${options.datasetId}`;
 
     const response = await this.getRequest<DataResponse<Dataset>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -102,7 +100,6 @@ export class DatasetsRepository extends BaseRepository {
         page: options.pagination.page,
         entries_per_page: options.pagination.entries_per_page,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -129,7 +126,6 @@ export class DatasetsRepository extends BaseRepository {
       CreatedResponse,
       CreateDatasetRequest
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -149,7 +145,6 @@ export class DatasetsRepository extends BaseRepository {
       NoDataResponse,
       Record<string, never>
     >({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,

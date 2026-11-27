@@ -315,10 +315,10 @@ function describePoint(index: number): string {
   return `${preview.value?.labels[index] ?? ""}: ${values}`;
 }
 
-function requestContext(): { orgId: string; bearerToken: string } | null {
+function requestContext(): { orgId: string } | null {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken) return null;
-  return { orgId, bearerToken: auth.getToken };
+  if (!orgId || !auth.getAuthenticated) return null;
+  return { orgId };
 }
 
 function selectMetric(id: string): void {

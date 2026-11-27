@@ -7,7 +7,6 @@ import { PreviewBadge, StatTile } from "@/base_components/page";
 import { type Analysis } from "@/codeclarity_components/analyses/analysis.entity";
 import { type Project } from "@/codeclarity_components/projects/project.entity";
 import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
-import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 
 import ResultTimestamp from "../components/ResultTimestamp.vue";
@@ -22,7 +21,6 @@ const props = defineProps<{
 }>();
 
 const userStore = useUserStore();
-const authStore = useAuthStore();
 const resultsRepository = new ResultsRepository();
 
 interface Finding {
@@ -68,7 +66,6 @@ async function load(): Promise<void> {
       projectId: props.project.id,
       analysisId: props.analysis.id,
       type: "codeql",
-      bearerToken: authStore.getToken ?? "",
       runIndex: props.runIndex,
       handleBusinessErrors: true,
       handleHTTPErrors: true,

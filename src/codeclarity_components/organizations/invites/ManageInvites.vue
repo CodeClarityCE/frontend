@@ -121,12 +121,11 @@ function inviterName(i: Invitation): string {
   return `${i.created_by.first_name} ${i.created_by.last_name}`;
 }
 
-async function fetchAll(token: string): Promise<Invitation[]> {
+async function fetchAll(): Promise<Invitation[]> {
   const all: Invitation[] = [];
   for (let page = 0; ; page++) {
     const response = await orgRepository.getInvitations({
       orgId: props.orgId,
-      bearerToken: token,
       pagination: { page, entries_per_page: FETCH_PAGE_SIZE },
       search: { searchKey: "" },
       sort: { sortKey: "invited_on", sortDirection: SortDirection.DESC },
@@ -138,11 +137,11 @@ async function fetchAll(token: string): Promise<Invitation[]> {
 }
 
 async function load(): Promise<void> {
-  if (!authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
   hasError.value = false;
   errorCode.value = undefined;
   try {
-    invitations.value = await fetchAll(authStore.getToken);
+    invitations.value = await fetchAll();
   } catch (err) {
     hasError.value = true;
     if (err instanceof BusinessLogicError) errorCode.value = err.error_code;
@@ -167,13 +166,12 @@ function actionError(code: string, verb: string): string {
 }
 
 async function resend(i: Invitation): Promise<void> {
-  if (!authStore.getToken || resending.value) return;
+  if (!authStore.getAuthenticated || resending.value) return;
   resending.value = i.id;
   try {
     await orgRepository.resendOrgInvitationEmail({
       orgId: props.orgId,
       invitationId: i.id,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     successToast(`Invitation emailed again to ${i.user_email}`);
@@ -193,13 +191,12 @@ function askRevoke(i: Invitation): void {
 
 async function confirmRevoke(): Promise<void> {
   const target = revoking.value;
-  if (!target || !authStore.getToken) return;
+  if (!target || !authStore.getAuthenticated) return;
   revokeBusy.value = true;
   try {
     await orgRepository.revokeInvitation({
       orgId: props.orgId,
       invitationId: target.id,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     successToast(`Revoked the invitation to ${target.user_email}`);

@@ -31,7 +31,7 @@ const stats: Ref<TicketDashboardStats | null> = ref(null);
 
 async function fetch(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !authStore.getAuthenticated || !authStore.getToken) return;
+  if (!orgId || !authStore.getAuthenticated) return;
 
   loading.value = true;
   error.value = false;
@@ -39,7 +39,6 @@ async function fetch(): Promise<void> {
   try {
     const resp = await ticketsRepository.getDashboardStats({
       orgId,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     stats.value = resp.data;

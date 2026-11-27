@@ -67,13 +67,12 @@ const columns: DataTableColumn<Experiment>[] = [
   },
 ];
 
-async function fetchAll(orgId: string, token: string): Promise<Experiment[]> {
+async function fetchAll(orgId: string): Promise<Experiment[]> {
   const all: Experiment[] = [];
   for (let page = 0; ; page++) {
     const response = await experimentsRepository.getExperiments({
       orgId,
       pagination: { page, entries_per_page: FETCH_PAGE_SIZE },
-      bearerToken: token,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
@@ -84,10 +83,10 @@ async function fetchAll(orgId: string, token: string): Promise<Experiment[]> {
 
 async function load(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken) return;
+  if (!orgId || !auth.getAuthenticated) return;
 
   try {
-    experiments.value = await fetchAll(orgId, auth.getToken);
+    experiments.value = await fetchAll(orgId);
     hasError.value = false;
   } catch {
     // The page shows the error inline, so no toast repeats it.

@@ -88,14 +88,13 @@ function inviteError(code: string, address: string): string {
 
 async function submit(): Promise<void> {
   submitted.value = true;
-  if (emailError.value || busy.value || !authStore.getToken) return;
+  if (emailError.value || busy.value || !authStore.getAuthenticated) return;
   busy.value = true;
   serverError.value = undefined;
   try {
     await orgRepo.inviteUser({
       orgId: props.orgId,
       data: { user_email: email.value.trim(), role: Number(role.value) },
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });

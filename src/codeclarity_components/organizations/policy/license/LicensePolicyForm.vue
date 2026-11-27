@@ -120,7 +120,8 @@ const listRoute = computed(() => ({
 const onSubmit = guardFormSubmit(
   { handleSubmit, isSubmitting, values },
   async (form): Promise<void> => {
-    if (!authStore.getToken || submitting.value || formDisabled.value) return;
+    if (!authStore.getAuthenticated || submitting.value || formDisabled.value)
+      return;
     submitting.value = true;
     failure.value = "";
     const data = {
@@ -137,7 +138,6 @@ const onSubmit = guardFormSubmit(
           orgId: props.orgId,
           policyId: policyId.value,
           data,
-          bearerToken: authStore.getToken,
           handleBusinessErrors: true,
         });
         successToast("License policy saved");
@@ -145,7 +145,6 @@ const onSubmit = guardFormSubmit(
         await licensePolicyRepository.createPolicy({
           orgId: props.orgId,
           data,
-          bearerToken: authStore.getToken,
           handleBusinessErrors: true,
         });
         successToast("License policy created");
@@ -164,7 +163,6 @@ const onSubmit = guardFormSubmit(
 async function loadLicenses(): Promise<void> {
   try {
     const response = await licenseRepository.getAllLicenses({
-      bearerToken: authStore.getToken ?? "",
       handleBusinessErrors: true,
     });
     licenses.value = response.data;
@@ -176,7 +174,7 @@ async function loadLicenses(): Promise<void> {
 }
 
 async function loadPolicy(): Promise<void> {
-  if (!isEdit.value || !authStore.getToken) return;
+  if (!isEdit.value || !authStore.getAuthenticated) return;
   if (!policyId.value) {
     failure.value = "The license policy could not be loaded.";
     return;
@@ -185,7 +183,6 @@ async function loadPolicy(): Promise<void> {
     const response = await licensePolicyRepository.getLicensePolicy({
       orgId: props.orgId,
       policyId: policyId.value,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     const policy = response.data;

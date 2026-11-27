@@ -73,7 +73,6 @@ export class ProjectRepository extends BaseRepository {
         sort_key: options.sort.sortKey,
         sort_direction: options.sort.sortDirection,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -92,7 +91,6 @@ export class ProjectRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}`;
 
     const response = await this.getRequest<DataResponse<Project>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -157,7 +155,6 @@ export class ProjectRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}`;
 
     const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -172,7 +169,6 @@ export class ProjectRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/projects`;
 
     const response = await this.postRequest<CreatedResponse, CreateProject>({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,

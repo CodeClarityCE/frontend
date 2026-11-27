@@ -35,7 +35,6 @@ export class NotificationRepository extends BaseRepository {
         page: options.page,
         entries_per_page: options.entries_per_page,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -59,7 +58,6 @@ export class NotificationRepository extends BaseRepository {
       //     entries_per_page: options.entries_per_page,
       //     search_key: options.search_key
       // },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -78,7 +76,6 @@ export class NotificationRepository extends BaseRepository {
     const RELATIVE_URL = `/notifications/${options.notification_id}`;
 
     const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -95,7 +92,6 @@ export class NotificationRepository extends BaseRepository {
     const RELATIVE_URL = `/notifications`;
 
     const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,

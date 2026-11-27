@@ -78,14 +78,13 @@ const availableProviders = [
 
 async function loadIntegrations(): Promise<void> {
   const orgId = defaultOrg?.value?.id;
-  if (!orgId || !auth.getToken) return;
+  if (!orgId || !auth.getAuthenticated) return;
 
   isLoading.value = true;
   loadFailed.value = false;
   try {
     const response = await ticketsRepository.getIntegrations({
       orgId,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -100,14 +99,13 @@ async function loadIntegrations(): Promise<void> {
 
 async function testConnection(provider: ExternalTicketProvider): Promise<void> {
   const orgId = defaultOrg?.value?.id;
-  if (!orgId || !auth.getToken) return;
+  if (!orgId || !auth.getAuthenticated) return;
 
   testingProvider.value = provider;
   try {
     const response = await ticketsRepository.testIntegration({
       orgId,
       provider,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -126,14 +124,13 @@ async function testConnection(provider: ExternalTicketProvider): Promise<void> {
 async function confirmDisconnect(): Promise<void> {
   const provider = pendingDisconnect.value;
   const orgId = defaultOrg?.value?.id;
-  if (!provider || !orgId || !auth.getToken) return;
+  if (!provider || !orgId || !auth.getAuthenticated) return;
 
   deletingProvider.value = provider;
   try {
     await ticketsRepository.deleteIntegration({
       orgId,
       provider,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,

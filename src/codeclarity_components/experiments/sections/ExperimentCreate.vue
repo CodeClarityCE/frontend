@@ -190,14 +190,13 @@ function describedBy(field: keyof FormErrors, hint?: string): string {
 }
 
 /** Every page: a READY dataset (or the preselected one) may be past the first. */
-async function loadDatasets(orgId: string, token: string): Promise<void> {
+async function loadDatasets(orgId: string): Promise<void> {
   try {
     const ready: Dataset[] = [];
     for (let page = 0, totalPages = 1; page < totalPages; page++) {
       const response = await datasetsRepository.getDatasets({
         orgId,
         pagination: { page, entries_per_page: DATASETS_PAGE_SIZE },
-        bearerToken: token,
         handleBusinessErrors: true,
         handleHTTPErrors: true,
       });
@@ -214,14 +213,13 @@ async function loadDatasets(orgId: string, token: string): Promise<void> {
   }
 }
 
-async function loadAnalyzers(orgId: string, token: string): Promise<void> {
+async function loadAnalyzers(orgId: string): Promise<void> {
   try {
     const response = await analyzerRepository.getAnalyzers({
       orgId,
       page: 0,
       entries_per_page: 0,
       search_key: "",
-      bearerToken: token,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
@@ -234,11 +232,10 @@ async function loadAnalyzers(orgId: string, token: string): Promise<void> {
 }
 
 /** Without it the estimate leaves fix probes out. */
-async function loadEstimateBasis(orgId: string, token: string): Promise<void> {
+async function loadEstimateBasis(orgId: string): Promise<void> {
   try {
     const response = await experimentsRepository.getEstimateBasis({
       orgId,
-      bearerToken: token,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
@@ -250,12 +247,12 @@ async function loadEstimateBasis(orgId: string, token: string): Promise<void> {
 
 async function load(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken) return;
+  if (!orgId || !auth.getAuthenticated) return;
   try {
     await Promise.all([
-      loadDatasets(orgId, auth.getToken),
-      loadAnalyzers(orgId, auth.getToken),
-      loadEstimateBasis(orgId, auth.getToken),
+      loadDatasets(orgId),
+      loadAnalyzers(orgId),
+      loadEstimateBasis(orgId),
     ]);
   } finally {
     loading.value = false;
@@ -283,7 +280,8 @@ function createErrorMessage(err: unknown): string {
 async function submit(): Promise<void> {
   submitted.value = true;
   const orgId = userStore.getDefaultOrg?.id;
-  if (!isValid.value || !orgId || !auth.getToken || submitting.value) return;
+  if (!isValid.value || !orgId || !auth.getAuthenticated || submitting.value)
+    return;
 
   submitting.value = true;
   try {
@@ -300,7 +298,6 @@ async function submit(): Promise<void> {
           ? {}
           : { analysis_budget: budgetValue.value }),
       },
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });

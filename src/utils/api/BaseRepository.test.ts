@@ -14,7 +14,6 @@ class ProbeRepository extends BaseRepository {
   send(): Promise<unknown> {
     return this.postRequest({
       url: this.buildUrl("/probe"),
-      bearerToken: "token",
       data: { a: 1 },
     });
   }
@@ -22,7 +21,6 @@ class ProbeRepository extends BaseRepository {
   remove(): Promise<unknown> {
     return this.deleteRequest({
       url: this.buildUrl("/probe"),
-      bearerToken: "token",
       data: undefined,
     });
   }
@@ -30,7 +28,6 @@ class ProbeRepository extends BaseRepository {
   load(handleBusinessErrors?: boolean): Promise<unknown> {
     return this.getRequest({
       url: this.buildUrl("/probe"),
-      bearerToken: "token",
       handleBusinessErrors,
     });
   }

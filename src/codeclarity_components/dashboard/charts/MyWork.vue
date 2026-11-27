@@ -30,14 +30,13 @@ const error = ref(false);
 
 async function fetch(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !authStore.getToken) return;
+  if (!orgId || !authStore.getAuthenticated) return;
   loading.value = true;
   error.value = false;
   try {
     shownOrg.value = orgId;
     entries.value = await repository.getMyWork({
       orgId,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
   } catch {

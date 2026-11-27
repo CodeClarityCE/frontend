@@ -123,12 +123,11 @@ function describedBy(field: keyof FormErrors, hint?: string): string {
 
 async function loadIntegrations(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken) return;
+  if (!orgId || !auth.getAuthenticated) return;
   try {
     const response = await integrationsRepository.getVCS({
       orgId,
       pagination: { page: 0, entries_per_page: 100 },
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
@@ -157,7 +156,8 @@ async function loadIntegrations(): Promise<void> {
 async function submit(): Promise<void> {
   submitted.value = true;
   const orgId = userStore.getDefaultOrg?.id;
-  if (!isValid.value || !orgId || !auth.getToken || submitting.value) return;
+  if (!isValid.value || !orgId || !auth.getAuthenticated || submitting.value)
+    return;
 
   submitting.value = true;
   try {
@@ -171,7 +171,6 @@ async function submit(): Promise<void> {
         min_stars: Number(minStars.value),
         languages: selectedLanguages.value,
       },
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });

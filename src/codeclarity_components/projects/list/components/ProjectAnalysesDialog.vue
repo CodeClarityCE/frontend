@@ -102,7 +102,7 @@ function resultsLink(analysis: Analysis): Record<string, unknown> {
 
 async function deleteAnalysis(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!toDelete.value || !orgId || !authStore.getToken) return;
+  if (!toDelete.value || !orgId || !authStore.getAuthenticated) return;
 
   deleting.value = true;
   try {
@@ -110,7 +110,6 @@ async function deleteAnalysis(): Promise<void> {
       orgId,
       projectId: props.project.id,
       analysisId: toDelete.value.id,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     successToast("Analysis deleted");

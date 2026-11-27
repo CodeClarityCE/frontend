@@ -1,13 +1,8 @@
 import { Type } from "class-transformer";
-import { IsDate, IsDefined, IsString } from "class-validator";
+import { IsDate, IsDefined } from "class-validator";
 
-export class Token {
-  @IsString()
-  token!: string;
-
-  @IsString()
-  refresh_token!: string;
-
+/** When a sign-in's tokens end; the API keeps the tokens themselves in HttpOnly cookies. */
+export class SessionExpiry {
   @IsDefined()
   @IsDate()
   @Type(() => Date)

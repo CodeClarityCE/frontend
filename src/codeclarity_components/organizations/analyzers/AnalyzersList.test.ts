@@ -175,6 +175,28 @@ describe("AnalyzersList", () => {
     ).toBeInTheDocument();
   });
 
+  it("explains that an analyzer with analyses cannot be deleted", async () => {
+    const app = await openList();
+    app.http.on(
+      "DELETE",
+      `${listPath}/a-2`,
+      {
+        status_code: 400,
+        error_code: "AnalyzerHasAnalyses",
+        error_message: "",
+      },
+      400,
+    );
+
+    await deleteLicensesOnly();
+
+    expect(
+      await screen.findByText(
+        "Licenses only has analyses, so it cannot be deleted",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("sends members who are not admins back to the overview", async () => {
     const app = await openList(sample, MemberRole.USER);
 

@@ -110,7 +110,7 @@ async function submit(values: {
     error.value = true;
 
     if (_err instanceof BusinessLogicError) {
-      if (_err.error_code === "AccountNotActivated") {
+      if (_err.error_code === APIErrors.AccountNotActivated) {
         void router.replace(
           loginRoute({
             notice: "not_activated",

@@ -1,7 +1,7 @@
-import { render, screen, within } from "@testing-library/vue";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/vue";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createTestApp } from "../../../../tests/real-app";
+import { createTestApp, withToaster } from "../../../../tests/real-app";
 
 import PackageJsonUpdatesModal from "./PackageJsonUpdatesModal.vue";
 import type { PackageUpdate } from "./utils/packageManagerUtils";
@@ -122,5 +122,57 @@ describe("PackageJsonUpdatesModal", () => {
     });
 
     expect(dialog.textContent).not.toContain("could not tell");
+  });
+
+  describe("when the browser refuses the clipboard write", () => {
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown): void => {
+      unhandled.push(reason);
+    };
+
+    afterEach(() => {
+      process.off("unhandledRejection", onUnhandled);
+      unhandled.length = 0;
+      vi.unstubAllGlobals();
+    });
+
+    it("says it couldn't copy instead of failing", async () => {
+      process.on("unhandledRejection", onUnhandled);
+      const writeText = vi
+        .fn<(text: string) => Promise<void>>()
+        .mockRejectedValue(
+          new DOMException(
+            "Failed to execute 'writeText' on 'Clipboard': Write permission denied.",
+            "NotAllowedError",
+          ),
+        );
+      vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
+      const app = createTestApp({ signedIn: true });
+      render(
+        withToaster(PackageJsonUpdatesModal, {
+          open: true,
+          updates: [lodash],
+          packageManager: "npm",
+        }),
+        { global: app.global },
+      );
+      const dialog = await screen.findByRole("dialog", {
+        name: "Update direct dependencies",
+      });
+
+      await fireEvent.click(
+        within(dialog).getByRole("button", { name: "Copy commands" }),
+      );
+
+      expect(writeText).toHaveBeenCalledWith("npm install lodash@^4.17.21");
+      expect(
+        await screen.findByText(
+          "Couldn't copy. Select the text and copy it yourself.",
+        ),
+      ).toBeTruthy();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(unhandled).toEqual([]);
+      expect(app.http.requests.some((r) => r.path === "/logs")).toBe(false);
+    });
   });
 });

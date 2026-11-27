@@ -1,5 +1,8 @@
+import { screen } from "@testing-library/vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { createTestApp, withToaster } from "../../../tests/real-app";
 
 import CopyCommand from "./CopyCommand.vue";
 
@@ -35,12 +38,20 @@ describe("CopyCommand", () => {
   it("says when the clipboard refuses the copy", async () => {
     writeText.mockRejectedValueOnce(new Error("denied"));
     vi.stubGlobal("navigator", { clipboard: { writeText } });
-    const wrapper = mount(CopyCommand, { props: { command: "ls" } });
+    const wrapper = mount(withToaster(CopyCommand, { command: "ls" }), {
+      attachTo: document.body,
+      global: createTestApp().global,
+    });
 
     await wrapper.get("button").trigger("click");
     await flushPromises();
 
     expect(wrapper.get("button").attributes("aria-label")).toBe("Copy command");
-    expect(wrapper.get('[role="status"]').text()).toBe("Could not copy");
+    expect(wrapper.get('[role="status"]').text()).toBe("");
+    expect(
+      await screen.findByText(
+        "Couldn't copy. Select the text and copy it yourself.",
+      ),
+    ).toBeTruthy();
   });
 });

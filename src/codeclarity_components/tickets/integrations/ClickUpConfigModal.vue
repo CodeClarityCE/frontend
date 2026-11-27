@@ -26,6 +26,7 @@ import { Spinner } from "@/shadcn/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
+import { copyToClipboard } from "@/utils/clipboard";
 
 import {
   ExternalTicketProvider,
@@ -140,20 +141,16 @@ function getOAuthRedirectUri(): string {
 }
 
 async function copyRedirectUri(): Promise<void> {
-  try {
-    await navigator.clipboard.writeText(getOAuthRedirectUri());
-    testResult.value = {
-      success: true,
-      message: "Redirect URL copied to clipboard!",
-    };
-    setTimeout(() => {
-      if (testResult.value?.message === "Redirect URL copied to clipboard!") {
-        testResult.value = null;
-      }
-    }, 2000);
-  } catch {
-    testResult.value = { success: false, message: "Failed to copy URL" };
-  }
+  if (!(await copyToClipboard(getOAuthRedirectUri()))) return;
+  testResult.value = {
+    success: true,
+    message: "Redirect URL copied to clipboard!",
+  };
+  setTimeout(() => {
+    if (testResult.value?.message === "Redirect URL copied to clipboard!") {
+      testResult.value = null;
+    }
+  }, 2000);
 }
 
 async function startOAuthFlow(): Promise<void> {

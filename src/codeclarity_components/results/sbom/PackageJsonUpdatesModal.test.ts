@@ -44,6 +44,58 @@ describe("PackageJsonUpdatesModal", () => {
     expect(dialog.textContent).toContain("package.json changes");
   });
 
+  it.each([
+    [
+      "npm",
+      "package.json",
+      "npm install",
+      "package-lock.json",
+      "npm install writes the new ranges to package.json too.",
+    ],
+    [
+      "yarn",
+      "package.json",
+      "yarn install",
+      "yarn.lock",
+      "yarn add writes the new ranges to package.json too.",
+    ],
+    [
+      "pnpm",
+      "package.json",
+      "pnpm install",
+      "pnpm-lock.yaml",
+      "pnpm add writes the new ranges to package.json too.",
+    ],
+    [
+      "bun",
+      "package.json",
+      "bun install",
+      "bun.lock",
+      "bun add writes the new ranges to package.json too.",
+    ],
+    [
+      "composer",
+      "composer.json",
+      "composer update --lock",
+      "composer.lock",
+      "composer require writes the new constraints to composer.json too.",
+    ],
+  ])(
+    "names %s's manifest, install command, lockfile and help",
+    async (manager, manifest, install, lockfile, help) => {
+      const dialog = await show({ updates: [lodash], packageManager: manager });
+      const text = (dialog.textContent ?? "").replace(/\s+/g, " ");
+
+      expect(text).toContain(`${manifest} changes`);
+      expect(text).toContain(
+        `Merge it into ${manifest}, then run ${install} to update the lockfile.`,
+      );
+      expect(text).toContain(
+        `The commands update ${lockfile} for you. ${help}`,
+      );
+    },
+  );
+
   it("gives npm and Composer their own commands in a mixed workspace", async () => {
     const dialog = await show({
       updates: [lodash, monolog],

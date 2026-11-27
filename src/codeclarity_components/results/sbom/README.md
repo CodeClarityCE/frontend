@@ -30,10 +30,7 @@ Package manager-specific operations:
 
 - `toPackageManager()` - Map the SBOM's value to a known manager, or null
 - `generateUpdateCommands()` - Generate commands for npm/yarn/pnpm/bun/composer
-- `getManifestName()` - Get the manifest, package.json or composer.json
-- `getPackageManagerIcon()` - Get appropriate logo icons
-- `getLockfileName()` - Get correct lockfile name
-- `getInstallCommand()` - Get install command for package manager
+- `MANAGERS` - Each manager's icon, manifest, lockfile, install command and help text
 
 #### `/exports/sbomExportUtils.ts`
 
@@ -88,13 +85,10 @@ const actionableDeps = getDirectDependenciesNeedingUpdates(dependencies);
 ### Using Package Manager Utilities
 
 ```typescript
-import {
-  generateUpdateCommands,
-  getPackageManagerIcon,
-} from "./utils/packageManagerUtils";
+import { generateUpdateCommands, MANAGERS } from "./utils/packageManagerUtils";
 
 const commands = generateUpdateCommands("yarn", updates);
-const icon = getPackageManagerIcon("npm");
+const icon = MANAGERS.npm.icon;
 ```
 
 ## Data Flow

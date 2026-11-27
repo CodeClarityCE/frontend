@@ -15,9 +15,8 @@ import { successToast } from "@/utils/toasts";
 
 import PackageManagerUpdates from "./PackageManagerUpdates.vue";
 import {
-  getManifestName,
-  getPackageManagerIcon,
   groupUpdatesByManager,
+  MANAGERS,
   type PackageUpdate,
 } from "./utils/packageManagerUtils";
 
@@ -48,7 +47,7 @@ const manifests = computed(() =>
   [
     ...new Set(
       groups.value.map((g) =>
-        g.manager ? getManifestName(g.manager) : "package.json",
+        g.manager ? MANAGERS[g.manager].manifest : "package.json",
       ),
     ),
   ].join(" and "),
@@ -93,7 +92,7 @@ function copy(content: string): void {
           >
             <Icon
               v-if="group.manager"
-              :icon="getPackageManagerIcon(group.manager)"
+              :icon="MANAGERS[group.manager].icon"
               aria-hidden="true"
               class="size-4"
             />

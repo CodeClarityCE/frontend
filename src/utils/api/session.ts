@@ -87,7 +87,7 @@ export function ensureFreshAccessToken(): Promise<SessionState> {
 }
 
 // Clears the session and opens the login page; later callers find it already done.
-function signOut(): void {
+export function signOut(): void {
   const authStore = useAuthStore();
   if (!authStore.getAuthenticated && !authStore.getToken) return;
   useUserStore().$reset();

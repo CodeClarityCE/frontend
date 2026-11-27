@@ -377,6 +377,55 @@ describe("session token", () => {
     ).toBe("Bearer other-tab-access-token");
   });
 
+  it("signs out when another tab signs out, without a request", async () => {
+    const app = createTestApp({ signedIn: true });
+    track(app);
+    await app.visit("/projects");
+    const saved = localStorage.getItem("authStore");
+    app.http.requests.length = 0;
+
+    // What a browser delivers here when the other tab's sign-out clears the saved session.
+    localStorage.removeItem("authStore");
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: "authStore",
+        oldValue: saved,
+        newValue: null,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(app.router.currentRoute.value.name).toBe("login");
+    });
+    expect(useAuthStore().getAuthenticated).toBe(false);
+    expect(useAuthStore().getToken).toBeUndefined();
+    expect(useUserStore().getUser).toBeUndefined();
+    expect(app.http.requests).toEqual([]);
+  });
+
+  it("stays signed in when another tab signs a different user out", async () => {
+    const app = createTestApp({ signedIn: true });
+    track(app);
+    await app.visit("/projects");
+    useAuthStore().setToken(accessTokenOf("user-x"));
+    const otherUser = JSON.stringify({
+      authenticated: true,
+      token: accessTokenOf("user-y"),
+      refreshToken: "user-y-refresh-token",
+    });
+
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: "authStore",
+        oldValue: otherUser,
+        newValue: null,
+      }),
+    );
+
+    expect(useAuthStore().getAuthenticated).toBe(true);
+    expect(useAuthStore().getToken).toBe(accessTokenOf("user-x"));
+  });
+
   it("ignores the tokens of another user signed in from another tab", async () => {
     const app = createTestApp({ signedIn: true });
     track(app);

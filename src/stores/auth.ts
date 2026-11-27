@@ -165,11 +165,31 @@ function storedSessionTokens(): SessionTokens | undefined {
   return { token, tokenExpiry, refreshToken, refreshTokenExpiry };
 }
 
-// Another tab's refresh lands here, so every tab uses the newest tokens.
+// The access token in a saved session, or undefined when there is none.
+function tokenIn(saved: string | null): string | undefined {
+  try {
+    const state = JSON.parse(saved ?? "null") as { token?: unknown } | null;
+    return typeof state?.token === "string" ? state.token : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+// Another tab's refresh or sign-out lands here, so every tab follows it.
 function followOtherTabs(store: ReturnType<typeof useAuthStore>): void {
   window.addEventListener("storage", (event) => {
-    if (event.key !== storePeristantName || event.newValue === null) return;
-    store.adoptRotatedTokens();
+    if (event.key !== storePeristantName) return;
+    if (storedSessionTokens()) {
+      store.adoptRotatedTokens();
+      return;
+    }
+    // The saved session is gone: the other tab signed this user out.
+    if (!store.authenticated) return;
+    if (!sameUser(tokenIn(event.oldValue) ?? "", store.token)) return;
+    // Loaded here because the session module imports this store.
+    void import("@/utils/api/session").then(({ signOut }) => {
+      signOut();
+    });
   });
 }
 

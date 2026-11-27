@@ -1,6 +1,6 @@
 import type { RouteLocationNormalized } from "vue-router";
 
-import { orgView } from "@/codeclarity_components/organizations/org-route";
+import { orgTitle } from "@/codeclarity_components/organizations/org-route";
 
 const APP = "CodeClarity";
 
@@ -9,44 +9,16 @@ function param(to: RouteLocationNormalized, name: string): string | undefined {
   return typeof value === "string" && value !== "" ? value : undefined;
 }
 
-// The organisation page's name, matching its heading.
-function orgTitle(to: RouteLocationNormalized): string {
+// The organisation page's name, from the route's params.
+function orgTitleFromRoute(to: RouteLocationNormalized): string {
   const action = param(to, "action");
   const page = param(to, "page");
   const orgId = param(to, "orgId");
-  const view = orgView({
+  return orgTitle({
     ...(action && { action }),
     ...(page && { page }),
     ...(orgId && { orgId }),
   });
-  const verb = action === "edit" ? "Edit" : "New";
-  switch (view) {
-    case "create":
-      return "New organisation";
-    case "list":
-      return "Organisations";
-    case "overview":
-      return "Organisation overview";
-    case "members":
-      return "Members";
-    case "invites":
-      return "Invitations";
-    case "logs":
-      return "Audit logs";
-    case "tokens":
-      return "Organization tokens";
-    case "integrations":
-      return "Integrations";
-    case "analyzers":
-      return action === "manage" ? "Analyzers" : `${verb} analyzer`;
-    case "policies":
-      if (action === "manage") return "Policies";
-      return page?.includes("vulnerability")
-        ? `${verb} vulnerability policy`
-        : `${verb} license policy`;
-    default:
-      return "Organisation not found";
-  }
 }
 
 // Pages whose name does not depend on the URL.
@@ -87,7 +59,7 @@ function pageName(to: RouteLocationNormalized): string | undefined {
       if (page === "reset_password") return "Reset password";
       return "Confirm your email";
     case "orgs":
-      return orgTitle(to);
+      return orgTitleFromRoute(to);
     default:
       return typeof to.name === "string" ? fixedNames[to.name] : undefined;
   }

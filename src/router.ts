@@ -71,7 +71,7 @@ async function fetchAuthenticatedUser(
   } catch (error) {
     if (
       error instanceof BusinessLogicError &&
-      error.error_code === "AccountNotActivated"
+      error.error_code === APIErrors.AccountNotActivated
     ) {
       return "not_activated";
     }

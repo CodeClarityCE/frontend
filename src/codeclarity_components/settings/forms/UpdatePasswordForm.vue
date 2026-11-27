@@ -64,8 +64,11 @@ function failureMessage(err: unknown): string {
     if (err.error_code === APIErrors.PasswordsDoNotMatch) {
       return "The passwords do not match";
     }
+    if (err.error_code === APIErrors.IncorrectCurrentPassword) {
+      return "The current password is incorrect";
+    }
   }
-  return "The password could not be changed. Check your current password.";
+  return "The password could not be changed";
 }
 
 const onSubmit = guardFormSubmit(form, async (values): Promise<void> => {

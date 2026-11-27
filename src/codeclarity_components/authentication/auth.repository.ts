@@ -77,6 +77,20 @@ export class AuthRepository extends BaseRepository {
     return Entity.unMarshal<RefreshToken>(response.data, RefreshToken);
   }
 
+  async signOut(options: RefreshTokenRequestOptions): Promise<NoDataResponse> {
+    const RELATIVE_URL = `/auth/sign_out`;
+
+    const response = await this.postRequest<NoDataResponse, RefreshTokenBody>({
+      data: options.data,
+      url: this.buildUrl(RELATIVE_URL),
+      handleBusinessErrors: options.handleBusinessErrors,
+      handleHTTPErrors: options.handleHTTPErrors,
+      handleOtherErrors: options.handleOtherErrors,
+    });
+
+    return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
+  }
+
   async getAuthenticatedUser(
     options: GetAuthenticatedUserRequestOptions,
   ): Promise<AuthenticatedUser> {

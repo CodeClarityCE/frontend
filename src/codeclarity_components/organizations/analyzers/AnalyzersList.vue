@@ -30,6 +30,8 @@ import {
   DialogTitle,
 } from "@/shadcn/ui/dialog";
 import { useAuthStore } from "@/stores/auth";
+import { APIErrors } from "@/utils/api/ApiErrors";
+import { BusinessLogicError } from "@/utils/api/BaseRepository";
 import { formatShortDate } from "@/utils/dateUtils";
 import { errorToast, successToast } from "@/utils/toasts";
 
@@ -111,8 +113,13 @@ async function confirmDelete(): Promise<void> {
     successToast(`Deleted ${target.name}`);
     pendingDelete.value = null;
     await fetchAnalyzers();
-  } catch {
-    errorToast(`Failed to delete ${target.name}`);
+  } catch (err) {
+    errorToast(
+      err instanceof BusinessLogicError &&
+        err.error_code === APIErrors.AnalyzerHasAnalyses
+        ? `${target.name} has analyses, so it cannot be deleted`
+        : `Failed to delete ${target.name}`,
+    );
   } finally {
     deleting.value = false;
   }

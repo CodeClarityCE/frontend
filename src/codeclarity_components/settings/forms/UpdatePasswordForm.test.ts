@@ -2,14 +2,22 @@ import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/vue";
 import { describe, expect, it } from "vitest";
 
-import { createTestApp } from "../../../../tests/real-app";
+import { useAuthStore } from "@/stores/auth";
+
+import {
+  createTestApp,
+  type TestApp,
+  user,
+  withToaster,
+} from "../../../../tests/real-app";
 
 import UpdatePasswordForm from "./UpdatePasswordForm.vue";
 
-async function renderForm(): Promise<void> {
+async function renderForm(): Promise<TestApp> {
   const app = createTestApp({ signedIn: true });
   await app.visit("/settings");
-  render(UpdatePasswordForm, { global: app.global });
+  render(withToaster(UpdatePasswordForm), { global: app.global });
+  return app;
 }
 
 const submit = (): Promise<void> =>
@@ -58,5 +66,73 @@ describe("UpdatePasswordForm validation", () => {
     expect(
       await screen.findByText("The passwords do not match"),
     ).toBeInTheDocument();
+  });
+
+  it("says when the current password is wrong", async () => {
+    const app = await renderForm();
+    app.http.on(
+      "PATCH",
+      `/users/${user.id}/update_password`,
+      {
+        status_code: 400,
+        error_code: "IncorrectCurrentPassword",
+        error_message: "",
+      },
+      400,
+    );
+
+    await userEvent.type(screen.getByLabelText("Current password"), "wrong");
+    await userEvent.type(screen.getByLabelText("New password"), "abcdefghij1");
+    await userEvent.type(
+      screen.getByLabelText("Confirm new password"),
+      "abcdefghij1",
+    );
+    await submit();
+
+    expect(
+      await screen.findByText("The current password is incorrect"),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("UpdatePasswordForm sign-in", () => {
+  async function changePassword(answer: unknown): Promise<void> {
+    const app = createTestApp({ signedIn: true });
+    app.http.on("PATCH", `/users/${user.id}/update_password`, answer);
+    await app.visit("/settings");
+    render(withToaster(UpdatePasswordForm), { global: app.global });
+
+    await userEvent.type(screen.getByLabelText("Current password"), "old");
+    await userEvent.type(screen.getByLabelText("New password"), "abcdefghij1");
+    await userEvent.type(
+      screen.getByLabelText("Confirm new password"),
+      "abcdefghij1",
+    );
+    await submit();
+    await screen.findByText("Your password was changed");
+  }
+
+  it("keeps this tab signed in with the fresh sign-in the API returns", async () => {
+    await changePassword({
+      data: {
+        token: "fresh-access-token",
+        token_expiry: "2099-01-01T00:00:00.000Z",
+        refresh_token: "fresh-refresh-token",
+        refresh_token_expiry: "2099-02-01T00:00:00.000Z",
+      },
+    });
+
+    expect(useAuthStore().getToken).toBe("fresh-access-token");
+    expect(useAuthStore().getRefreshToken).toBe("fresh-refresh-token");
+    expect(useAuthStore().getRefreshTokenExpiry).toEqual(
+      new Date("2099-02-01T00:00:00.000Z"),
+    );
+  });
+
+  it("keeps the current tokens when the API returns no sign-in", async () => {
+    await changePassword({ status_code: 200, status: "success" });
+
+    expect(useAuthStore().getToken).toBe("access-token");
+    expect(useAuthStore().getRefreshToken).toBe("refresh-token");
   });
 });

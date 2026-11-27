@@ -1,7 +1,7 @@
 import { getActivePinia } from "pinia";
 
 import { loginRoute } from "@/codeclarity_components/authentication/signin/login-route";
-import { useAuthStore } from "@/stores/auth";
+import { isReplacedAccessToken, useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { logger } from "@/utils/logger";
 
@@ -12,13 +12,15 @@ import { BusinessLogicError, HttpError } from "./BaseRepository";
 // "no_answer": the refresh got no response, or the API was down (5xx).
 type SessionState = "fresh" | "refreshed" | "refused" | "no_answer";
 
+type AuthStore = ReturnType<typeof useAuthStore>;
+
 // A token this close to its expiry is refreshed before use.
 const EXPIRY_MARGIN_MS = 30_000;
 
-let refreshInFlight: Promise<SessionState> | undefined;
+// One tab at a time may refresh, since a refresh token works only once.
+const REFRESH_LOCK = "codeclarity-session-refresh";
 
-// Access tokens a refresh has replaced, so a caller holding one gets the new token.
-const replacedTokens = new Set<string>();
+let refreshInFlight: Promise<SessionState> | undefined;
 
 function expiresSoon(expiry: Date | undefined): boolean {
   return (
@@ -32,8 +34,17 @@ function refusedBy(error: unknown): boolean {
   return error instanceof BusinessLogicError;
 }
 
-async function refresh(): Promise<SessionState> {
-  const authStore = useAuthStore();
+// Runs the work while holding the tabs' refresh lock; without Web Locks, in this tab only.
+function acrossTabs<T>(work: () => Promise<T>): Promise<T> {
+  const locks = (navigator as Partial<Navigator>).locks;
+  if (!locks) return work();
+  return locks.request(REFRESH_LOCK, { mode: "exclusive" }, work);
+}
+
+async function refresh(authStore: AuthStore): Promise<SessionState> {
+  // Another tab may have rotated the tokens while this one waited for the lock.
+  authStore.adoptRotatedTokens();
+  if (!expiresSoon(authStore.getTokenExpiry)) return "refreshed";
   const refreshToken = authStore.getRefreshToken;
   const refreshExpiry = authStore.getRefreshTokenExpiry;
   if (!refreshToken || !refreshExpiry || refreshExpiry <= new Date()) {
@@ -43,15 +54,17 @@ async function refresh(): Promise<SessionState> {
   const { AuthRepository } =
     await import("@/codeclarity_components/authentication/auth.repository");
   try {
-    const newToken = await new AuthRepository().refresh({
+    const next = await new AuthRepository().refresh({
       data: { refresh_token: refreshToken },
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
-    const oldToken = authStore.getToken;
-    if (oldToken) replacedTokens.add(oldToken);
-    authStore.setToken(newToken.token);
-    authStore.setTokenExpiry(newToken.token_expiry);
+    authStore.adoptTokens({
+      token: next.token,
+      tokenExpiry: next.token_expiry,
+      refreshToken: next.refresh_token,
+      refreshTokenExpiry: next.refresh_token_expiry,
+    });
     return "refreshed";
   } catch (error) {
     if (!refusedBy(error)) return "no_answer";
@@ -67,14 +80,14 @@ export function ensureFreshAccessToken(): Promise<SessionState> {
   if (!authStore.getToken || !expiresSoon(authStore.getTokenExpiry)) {
     return Promise.resolve("fresh");
   }
-  refreshInFlight ??= refresh().finally(() => {
+  refreshInFlight ??= acrossTabs(() => refresh(authStore)).finally(() => {
     refreshInFlight = undefined;
   });
   return refreshInFlight;
 }
 
 // Clears the session and opens the login page; later callers find it already done.
-function signOut(): void {
+export function signOut(): void {
   const authStore = useAuthStore();
   if (!authStore.getAuthenticated && !authStore.getToken) return;
   useUserStore().$reset();
@@ -85,6 +98,27 @@ function signOut(): void {
   );
 }
 
+// Signs out here at once, then asks the API to end the sign-in so its refresh token stops working.
+export function endSignIn(): void {
+  const authStore = useAuthStore();
+  const refreshToken = authStore.getRefreshToken;
+  useUserStore().$reset();
+  authStore.$reset();
+  if (!refreshToken) return;
+  void import("@/codeclarity_components/authentication/auth.repository")
+    .then(({ AuthRepository }) =>
+      new AuthRepository().signOut({
+        data: { refresh_token: refreshToken },
+        handleBusinessErrors: true,
+        handleHTTPErrors: true,
+        handleOtherErrors: true,
+      }),
+    )
+    .catch((error: unknown) => {
+      logger.warn("Could not end the session on the server", {}, error);
+    });
+}
+
 /**
  * The bearer to send for a request the caller signed with `bearerToken`.
  * The session's access token is refreshed first when it is about to expire.
@@ -93,7 +127,7 @@ export async function bearerFor(bearerToken: string): Promise<string> {
   if (!getActivePinia()) return bearerToken;
   const authStore = useAuthStore();
   const ours =
-    bearerToken === authStore.getToken || replacedTokens.has(bearerToken);
+    bearerToken === authStore.getToken || isReplacedAccessToken(bearerToken);
   if (!ours) return bearerToken;
   const state = await ensureFreshAccessToken();
   if (state === "refused") {

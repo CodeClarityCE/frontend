@@ -26,8 +26,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/shadcn/ui/sidebar";
-import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
+import { endSignIn } from "@/utils/api/session";
 import { isThemeChoice, useTheme } from "@/utils/theme";
 
 import { initials } from "./initials";
@@ -35,7 +35,6 @@ import { themeOptions } from "./theme-options";
 
 const router = useRouter();
 const userStore = useUserStore();
-const authStore = useAuthStore();
 
 const fullName = computed(() => {
   const user = userStore.getUser;
@@ -52,8 +51,7 @@ const reportUrl =
   "https://github.com/CodeClarityCE/codeclarity-dev/issues/new?template=BLANK_ISSUE";
 
 function logout(): void {
-  userStore.$reset();
-  authStore.$reset();
+  endSignIn();
   void router.push("/login");
 }
 

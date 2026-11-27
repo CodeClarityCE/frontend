@@ -615,6 +615,25 @@ describe("ExperimentDetail", () => {
     );
   });
 
+  it("explains that a finished experiment cannot be cancelled", async () => {
+    getExperiment.mockResolvedValue({ data: experiment("RUNNING") });
+    cancelExperiment.mockResolvedValue(
+      apiError("ExperimentNotCancellable", 400),
+    );
+    const wrapper = await mountDetail();
+    await flushPromises();
+
+    await wrapper.find('[data-testid="experiment-cancel"]').trigger("click");
+    await wrapper
+      .find('[data-testid="experiment-cancel-confirm"]')
+      .trigger("click");
+    await flushPromises();
+
+    expect(toasts()).toContain(
+      "Only a pending or running experiment can be cancelled",
+    );
+  });
+
   it("deletes after confirmation and goes back to the list", async () => {
     getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
     const wrapper = await mountDetail();
@@ -843,6 +862,30 @@ describe("ExperimentDetail", () => {
       expect(toasts()).toContain(
         "Only organization admins can publish experiments",
       );
+    });
+
+    it.each([
+      [
+        "ExperimentNotPublishable",
+        "Only a completed experiment can be published",
+      ],
+      [
+        "ExperimentAlreadyPublished",
+        "This experiment is already published under the current metric version",
+      ],
+    ])("explains a %s answer", async (code, message) => {
+      getExperiment.mockResolvedValue({
+        data: experiment("COMPLETED", { run_counts: done }),
+      });
+      publishExperiment.mockResolvedValue(apiError(code, 400));
+      const wrapper = await mountDetail();
+      await flushPromises();
+
+      await find(wrapper, "experiment-publish").trigger("click");
+      await find(wrapper, "experiment-publish-confirm").trigger("click");
+      await flushPromises();
+
+      expect(toasts()).toContain(message);
     });
   });
 

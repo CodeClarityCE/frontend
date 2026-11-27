@@ -54,3 +54,36 @@ export function orgView(params: {
     return formPages[page]!;
   return "notFound";
 }
+
+// Each page's name, matching its heading.
+const viewTitles: Record<OrgView, string> = {
+  create: "New organisation",
+  list: "Organisations",
+  overview: "Organisation overview",
+  members: "Members",
+  invites: "Invitations",
+  logs: "Audit logs",
+  tokens: "Organization tokens",
+  integrations: "Integrations",
+  analyzers: "Analyzers",
+  policies: "Policies",
+  notFound: "Organisation not found",
+};
+
+// The name of the page a /orgs URL opens; analyzer and policy forms say "New" or "Edit".
+export function orgTitle(params: {
+  action?: string;
+  page?: string;
+  orgId?: string;
+}): string {
+  const view = orgView(params);
+  const { action, page } = params;
+  if (action === "manage") return viewTitles[view];
+  const verb = action === "edit" ? "Edit" : "New";
+  if (view === "analyzers") return `${verb} analyzer`;
+  if (view === "policies") {
+    const kind = page?.includes("vulnerability") ? "vulnerability" : "license";
+    return `${verb} ${kind} policy`;
+  }
+  return viewTitles[view];
+}

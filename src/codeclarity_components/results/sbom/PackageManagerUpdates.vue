@@ -7,11 +7,7 @@ import { Button } from "@/shadcn/ui/button";
 
 import {
   generateUpdateCommands,
-  getInstallCommand,
-  getLockfileName,
-  getManifestName,
-  getPackageManagerHelpText,
-  getPackageManagerIcon,
+  MANAGERS,
   type PackageManager,
   type PackageUpdate,
 } from "./utils/packageManagerUtils";
@@ -36,7 +32,7 @@ const updateCommands = computed(() =>
   props.manager ? generateUpdateCommands(props.manager, props.updates) : [],
 );
 const manifest = computed(() =>
-  props.manager ? getManifestName(props.manager) : "package.json",
+  props.manager ? MANAGERS[props.manager].manifest : "package.json",
 );
 const isComposer = computed(() => props.manager === "composer");
 const heading = computed(() => (props.grouped ? "h4" : "h3"));
@@ -103,7 +99,7 @@ const lists = computed(() =>
       >
         <Icon
           v-if="manager"
-          :icon="getPackageManagerIcon(manager)"
+          :icon="MANAGERS[manager].icon"
           aria-hidden="true"
           class="size-4"
         />
@@ -153,7 +149,7 @@ const lists = computed(() =>
     <p v-if="manager" class="text-muted-foreground">
       Merge it into {{ manifest }}, then run
       <code class="rounded-sm bg-muted px-1 font-mono">{{
-        getInstallCommand(manager)
+        MANAGERS[manager].install
       }}</code>
       to update the lockfile.
     </p>
@@ -165,9 +161,8 @@ const lists = computed(() =>
   >
     <component :is="heading" class="font-semibold">Keep the lockfile</component>
     <p>
-      The commands update {{ getLockfileName(manager) }} for you.
-      {{ getPackageManagerHelpText(manager) }} Delete it only to fix a
-      resolution problem.
+      The commands update {{ MANAGERS[manager].lockfile }} for you.
+      {{ MANAGERS[manager].help }} Delete it only to fix a resolution problem.
     </p>
   </section>
 </template>

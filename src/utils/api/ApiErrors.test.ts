@@ -17,4 +17,9 @@ describe("APIErrors", () => {
   ])("knows the %s code", (code) => {
     expect(Object.values(APIErrors)).toContain(code);
   });
+
+  // The API's PluginFailed error sends this code (api src/types/error.types.ts).
+  it("uses the code the API sends when a plugin failed", () => {
+    expect(APIErrors.PluginFailed).toBe("PluginResultFailed");
+  });
 });

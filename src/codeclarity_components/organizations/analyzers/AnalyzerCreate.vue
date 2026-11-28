@@ -104,7 +104,7 @@ async function submit(): Promise<void> {
   if (
     !isValid.value ||
     workflowError.value ||
-    !authStore.getToken ||
+    !authStore.getAuthenticated ||
     submitting.value
   )
     return;
@@ -121,7 +121,6 @@ async function submit(): Promise<void> {
         language_config: languageConfig.value,
         logo: logo.value,
       },
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     successToast(`Created ${name.value.trim()}`);
@@ -134,11 +133,9 @@ async function submit(): Promise<void> {
 }
 
 async function init(): Promise<void> {
-  if (!authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
   try {
-    const resp = await pluginRepo.geAllPlugins({
-      bearerToken: authStore.getToken,
-    });
+    const resp = await pluginRepo.geAllPlugins({});
     plugins.value = resp.data;
     setNodes(initializeDefaultNodes(plugins.value));
   } catch {

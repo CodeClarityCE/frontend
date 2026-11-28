@@ -9,16 +9,13 @@ export async function switchDefaultOrg(orgId: string): Promise<void> {
   const userStore = useUserStore();
   const authStore = useAuthStore();
   const user = userStore.getUser;
-  const token = authStore.getToken;
-  if (!user || !token) throw new Error("Not signed in");
+  if (!user || !authStore.getAuthenticated) throw new Error("Not signed in");
   // Read it first, so a link to an organization the user is not in changes nothing.
   const org = await new OrgRepository().get({
-    bearerToken: token,
     handleBusinessErrors: true,
     orgId,
   });
   await new UserRepository().setDefaultOrg({
-    bearerToken: token,
     userId: user.id,
     data: { default_org: orgId },
     handleBusinessErrors: true,

@@ -81,12 +81,11 @@ const exporting = ref(false);
 // Counts requests so an answer for an earlier selection is dropped.
 let latestRequest = 0;
 
-function context(): { orgId: string; token: string } | null {
+function context(): { orgId: string } | null {
   const org = userStore.getDefaultOrg;
-  const token = authStore.getToken;
-  if (!org || !authStore.getAuthenticated || !token) return null;
+  if (!org || !authStore.getAuthenticated) return null;
   if (props.projectID === "" || props.analysisID === "") return null;
-  return { orgId: org.id, token };
+  return { orgId: org.id };
 }
 
 // The API pages at 100, so every page is fetched to have all dependencies.
@@ -99,7 +98,6 @@ async function fetchAllDependencies(): Promise<SbomDependency[]> {
       projectId: props.projectID,
       analysisId: props.analysisID,
       workspace: selected_workspace.value,
-      bearerToken: ctx.token,
       pagination: { page, entries_per_page: 100 },
       sort: { sortKey: "name", sortDirection: "ASC" },
       active_filters: "",
@@ -125,7 +123,6 @@ async function fetchVulnerabilityStats(): Promise<AnalysisStats | null> {
       projectId: props.projectID,
       analysisId: props.analysisID,
       workspace: selected_workspace.value,
-      bearerToken: ctx.token,
       ecosystem_filter: ecosystemFilter.value ?? undefined,
       handleBusinessErrors: true,
     });
@@ -146,7 +143,6 @@ async function load(): Promise<void> {
         projectId: props.projectID,
         analysisId: props.analysisID,
         workspace: selected_workspace.value,
-        bearerToken: ctx.token,
         ecosystem_filter: ecosystemFilter.value ?? undefined,
         handleBusinessErrors: true,
       }),

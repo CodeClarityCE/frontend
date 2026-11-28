@@ -152,13 +152,12 @@ onMounted(() => {
 
 async function fetchOrgInfo(): Promise<void> {
   if (!userEmailHash.value || !orgId.value || !inviteToken.value) return;
-  if (!authStore.getAuthenticated || !authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
 
   fetchFailed.value = false;
   fetchErrorCode.value = undefined;
   try {
     orgInfo.value = await orgRepository.getOrgInfoAsInvitedMember({
-      bearerToken: authStore.getToken,
       orgId: orgId.value,
       inviteToken: inviteToken.value,
       userEmailHash: userEmailHash.value,
@@ -175,14 +174,13 @@ async function fetchOrgInfo(): Promise<void> {
 
 async function joinOrg(): Promise<void> {
   if (!userEmailHash.value || !orgId.value || !inviteToken.value) return;
-  if (!authStore.getAuthenticated || !authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
 
   joining.value = true;
   joinFailed.value = false;
   joinErrorCode.value = undefined;
   try {
     await orgRepository.joinOrgViaInvitation({
-      bearerToken: authStore.getToken,
       orgId: orgId.value,
       data: {
         token: inviteToken.value,

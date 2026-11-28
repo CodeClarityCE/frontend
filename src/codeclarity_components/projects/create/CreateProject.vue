@@ -65,7 +65,7 @@ const methodTitle = computed(() => {
 // Methods
 async function fetchVcsIntegrations(refresh = false): Promise<void> {
   if (!defaultOrg!.value!.id) return;
-  if (!(authStore.getAuthenticated && authStore.getToken)) return;
+  if (!authStore.getAuthenticated) return;
 
   error.value = false;
   errorCode.value = undefined;
@@ -74,7 +74,6 @@ async function fetchVcsIntegrations(refresh = false): Promise<void> {
   try {
     const resp = await integrationRepo.getVCS({
       orgId: defaultOrg!.value!.id,
-      bearerToken: authStore.getToken,
       pagination: {
         page: 0,
         entries_per_page: 100,

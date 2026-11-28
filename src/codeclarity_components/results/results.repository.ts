@@ -146,7 +146,6 @@ export class ResultsRepository extends BaseRepository {
 
     const response = await this.getRequest<DataResponse<SbomStats>>({
       queryParams,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -172,7 +171,6 @@ export class ResultsRepository extends BaseRepository {
 
     const response = await this.getRequest<DataResponse<WorkspacesOutput>>({
       queryParams,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -210,7 +208,6 @@ export class ResultsRepository extends BaseRepository {
 
     const response = await this.getRequest<PaginatedResponse<Dependency>>({
       queryParams,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -239,7 +236,6 @@ export class ResultsRepository extends BaseRepository {
 
     const response = await this.getRequest<DataResponse<DependencyDetails>>({
       queryParams,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -268,7 +264,6 @@ export class ResultsRepository extends BaseRepository {
 
     const response = await this.getRequest<DataResponse<GraphDependency[]>>({
       queryParams,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -306,7 +301,6 @@ export class ResultsRepository extends BaseRepository {
 
     const response = await this.getRequest<PaginatedResponse<License>>({
       queryParams,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -342,7 +336,6 @@ export class ResultsRepository extends BaseRepository {
 
     const response = await this.getRequest<DataResponse<AnalysisStats>>({
       queryParams,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -363,7 +356,6 @@ export class ResultsRepository extends BaseRepository {
 
     return await this.getBlobRequest({
       queryParams: { format: options.format },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -378,7 +370,6 @@ export class ResultsRepository extends BaseRepository {
 
     return this.getRequest<DataResponse<MaliciousPackageAdvisory[]>>({
       queryParams: { workspace: options.workspace },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -419,7 +410,6 @@ export class ResultsRepository extends BaseRepository {
       PaginatedResponse<VulnerabilityMerged>
     >({
       queryParams,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -449,7 +439,6 @@ export class ResultsRepository extends BaseRepository {
 
     const response = await this.getRequest<DataResponse<VulnerabilityDetails>>({
       queryParams,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -480,7 +469,6 @@ export class ResultsRepository extends BaseRepository {
 
     const response = await this.getRequest<DataResponse<Result>>({
       queryParams,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,

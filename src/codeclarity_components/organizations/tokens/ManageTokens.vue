@@ -90,12 +90,10 @@ function isExpired(token: OrganizationTokenSummary): boolean {
 }
 
 async function loadTokens(): Promise<void> {
-  const bearerToken = authStore.getToken;
-  if (!bearerToken) return;
+  if (!authStore.getAuthenticated) return;
   try {
     tokens.value = await tokenRepo.list({
       orgId: props.orgId,
-      bearerToken,
       handleBusinessErrors: true,
     });
     listFailed.value = false;
@@ -111,16 +109,14 @@ function askRevoke(token: OrganizationTokenSummary): void {
 }
 
 async function revoke(): Promise<void> {
-  const bearerToken = authStore.getToken;
   const token = toRevoke.value;
-  if (!bearerToken || !token || revoking.value) return;
+  if (!authStore.getAuthenticated || !token || revoking.value) return;
   revoking.value = true;
   revokeFailed.value = false;
   try {
     await tokenRepo.revoke({
       orgId: props.orgId,
       tokenId: token.id,
-      bearerToken,
       handleBusinessErrors: true,
     });
     revokeOpen.value = false;
@@ -136,14 +132,13 @@ onMounted(() => void loadTokens());
 
 async function create(): Promise<void> {
   nameMissing.value = name.value.trim() === "";
-  const bearerToken = authStore.getToken;
-  if (nameMissing.value || !bearerToken || creating.value) return;
+  if (nameMissing.value || !authStore.getAuthenticated || creating.value)
+    return;
   creating.value = true;
   failed.value = false;
   try {
     created.value = await tokenRepo.create({
       orgId: props.orgId,
-      bearerToken,
       data: {
         name: name.value.trim(),
         scope: scope.value,

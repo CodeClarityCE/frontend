@@ -4,7 +4,7 @@ import { useAuthStore } from "@/stores/auth";
 
 // Loads a list of policies and keeps its loaded flag and a plain error message.
 export function usePolicyList<T>(
-  fetchPolicies: (bearerToken: string) => Promise<{ data?: T[] | null }>,
+  fetchPolicies: () => Promise<{ data?: T[] | null }>,
   failureMessage: string,
 ): {
   policies: Ref<T[]>;
@@ -18,10 +18,10 @@ export function usePolicyList<T>(
   const error = ref("");
 
   async function loadPolicies(): Promise<void> {
-    if (!authStore.getToken) return;
+    if (!authStore.getAuthenticated) return;
     error.value = "";
     try {
-      const response = await fetchPolicies(authStore.getToken);
+      const response = await fetchPolicies();
       policies.value = response.data ?? [];
     } catch {
       // The server's reason can be a raw request path, so it is not shown

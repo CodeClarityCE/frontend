@@ -19,7 +19,6 @@ export class DashboardRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/dashboard/overall_license_dist`;
 
     const response = await this.getRequest<DataResponse<LicenseDist>>({
-      bearerToken: options.bearerToken,
       queryParams: {
         integrationIds: options.integrationIds,
       },
@@ -43,7 +42,6 @@ export class DashboardRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/dashboard/overall_cia_impact`;
 
     const response = await this.getRequest<DataResponse<CIAImpact[]>>({
-      bearerToken: options.bearerToken,
       queryParams: {
         integrationIds: options.integrationIds,
       },

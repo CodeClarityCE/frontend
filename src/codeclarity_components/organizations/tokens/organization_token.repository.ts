@@ -37,7 +37,6 @@ export class OrganizationTokenRepository extends BaseRepository {
       DataResponse<CreatedOrganizationToken>,
       OrganizationTokenCreate
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(`/org/${options.orgId}/tokens`),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -57,7 +56,6 @@ export class OrganizationTokenRepository extends BaseRepository {
     const response = await this.getRequest<
       DataResponse<OrganizationTokenSummary[]>
     >({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(`/org/${options.orgId}/tokens`),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -75,7 +73,6 @@ export class OrganizationTokenRepository extends BaseRepository {
   ): Promise<NoDataResponse> {
     const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
       data: {},
-      bearerToken: options.bearerToken,
       url: this.buildUrl(`/org/${options.orgId}/tokens/${options.tokenId}`),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,

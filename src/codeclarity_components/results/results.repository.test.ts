@@ -9,7 +9,6 @@ const ids = {
   orgId: org.id,
   projectId: "project-1",
   analysisId: "analysis-1",
-  bearerToken: "token",
   handleBusinessErrors: true,
 };
 

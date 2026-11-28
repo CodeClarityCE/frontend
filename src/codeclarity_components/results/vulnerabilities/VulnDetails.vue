@@ -61,12 +61,11 @@ async function getFinding(): Promise<void> {
   const query = new URLSearchParams(window.location.search);
   const findingID = query.get("finding_id");
   const org = userStore.getDefaultOrg;
-  const token = authStore.getToken;
   if (!findingID || !hasIds) {
     notFound.value = true;
     return;
   }
-  if (!org || !token) return;
+  if (!org || !authStore.getAuthenticated) return;
   try {
     const res = await resultsRepository.getFinding({
       orgId: org.id,
@@ -75,7 +74,6 @@ async function getFinding(): Promise<void> {
       vulnerability_id: findingID,
       dependency: query.get("dependency"),
       version: query.get("version"),
-      bearerToken: token,
       runIndex: props.runIndex,
       handleBusinessErrors: true,
       workspace: workspaceFromQuery(query.get("workspace")),

@@ -12,17 +12,30 @@ const email = process.env.CONTRACT_EMAIL ?? "john.doe@codeclarity.io";
 const password = process.env.CONTRACT_PASSWORD ?? "ThisIs4Str0ngP4ssW0rd?";
 const dir = dirname(fileURLToPath(import.meta.url));
 
-async function call(path: string, token?: string): Promise<unknown> {
+// Sends a request on the sign-in's cookie, with the header the API requires on it.
+async function call(path: string, cookie: string): Promise<unknown> {
   const response = await fetch(`${api}${path}`, {
-    method: token ? "GET" : "POST",
-    headers: {
-      "content-type": "application/json",
-      ...(token ? { authorization: `Bearer ${token}` } : {}),
-    },
-    body: token ? undefined : JSON.stringify({ email, password }),
+    headers: { cookie, "x-codeclarity-csrf": "1" },
   });
   if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`);
   return response.json();
+}
+
+// Signs in and returns the access cookie the API set.
+async function signIn(): Promise<string> {
+  const response = await fetch(`${api}/auth/authenticate`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!response.ok) {
+    throw new Error(`/auth/authenticate: HTTP ${response.status}`);
+  }
+  const access = response.headers
+    .getSetCookie()
+    .find((c) => c.startsWith("__Host-Http-cc_access="));
+  if (!access) throw new Error("The sign-in set no access cookie.");
+  return access.split(";")[0]!;
 }
 
 interface List {
@@ -33,10 +46,9 @@ interface List {
   }[];
 }
 
-const auth = (await call("/auth/authenticate")) as { data: { token: string } };
-const token = auth.data.token;
+const cookie = await signIn();
 
-const orgs = (await call("/org?page=0&entries_per_page=50", token)) as List;
+const orgs = (await call("/org?page=0&entries_per_page=50", cookie)) as List;
 const orgIds = process.env.CONTRACT_ORG
   ? [process.env.CONTRACT_ORG]
   : orgs.data.map((m) => m.organization!.id);
@@ -47,7 +59,7 @@ let policy: string | undefined;
 for (const id of orgIds) {
   const policies = (await call(
     `/org/${id}/policies/license_policy?page=0&entries_per_page=1`,
-    token,
+    cookie,
   )) as List;
   const [first] = policies.data;
   if (first) {
@@ -68,7 +80,7 @@ let ticketPaths: Record<string, [string, string]> = {};
 for (const id of orgIds) {
   const tickets = (await call(
     `/org/${id}/tickets?page=0&entries_per_page=1`,
-    token,
+    cookie,
   )) as TicketList;
   const first = tickets.data[0];
   if (first) {
@@ -95,7 +107,7 @@ let anyPath: string | undefined;
 for (const id of orgIds) {
   const projects = (await call(
     `/org/${id}/projects?page=0&entries_per_page=50`,
-    token,
+    cookie,
   )) as List;
   for (const project of projects.data) {
     for (const analysis of project.analyses ?? []) {
@@ -125,11 +137,11 @@ let vulnerabilityPath: string | undefined;
 for (const id of orgIds) {
   const list = (await call(
     `/org/${id}/vulnerabilities?page=0&entries_per_page=50`,
-    token,
+    cookie,
   )) as { data: { vulnerability_id: string }[] };
   for (const { vulnerability_id } of list.data) {
     const path = `/org/${id}/vulnerabilities/${encodeURIComponent(vulnerability_id)}`;
-    const { data } = (await call(path, token)) as VulnerabilityPage;
+    const { data } = (await call(path, cookie)) as VulnerabilityPage;
     const rich =
       data.details.weaknesses.length > 0 &&
       data.projects.some(
@@ -197,7 +209,7 @@ const captures: Record<string, [string, string]> = {
 };
 
 for (const [name, [endpoint, path]] of Object.entries(captures)) {
-  const response = redactProjectNames(await call(path, token));
+  const response = redactProjectNames(await call(path, cookie));
   const file = join(dir, `${name}.json`);
   writeFileSync(file, `${JSON.stringify({ endpoint, response }, null, 2)}\n`);
   process.stdout.write(`wrote ${file}\n`);

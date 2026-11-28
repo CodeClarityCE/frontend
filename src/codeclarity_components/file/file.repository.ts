@@ -37,17 +37,13 @@ export class FileRepository extends BaseRepository {
     // Use native fetch for multipart/form-data (don't set Content-Type, browser handles it)
     const url = this.buildUrl(RELATIVE_URL);
 
-    const headers: HeadersInit = {
-      Accept: "application/json",
-    };
-
-    if (options.bearerToken) {
-      headers.Authorization = `Bearer ${await this.freshBearer(options.bearerToken)}`;
-    }
+    const headers = new Headers({ Accept: "application/json" });
+    await this.attachSession(headers, {});
 
     const response = await fetch(url, {
       method: "PATCH",
       headers,
+      credentials: "same-origin",
       body: formData,
     });
 
@@ -67,7 +63,6 @@ export class FileRepository extends BaseRepository {
     projectId: string;
     orgId: string;
     file: File;
-    bearerToken: string;
     onProgress?: (progress: number) => void;
     chunkSize?: number;
   }): Promise<void> {
@@ -91,7 +86,6 @@ export class FileRepository extends BaseRepository {
         chunkIndex: i,
         isLast,
         hash,
-        bearerToken: options.bearerToken,
         handleBusinessErrors: true,
       });
 
@@ -120,13 +114,11 @@ export class FileRepository extends BaseRepository {
     orgId: string;
     projectId: string;
     fileId: string;
-    bearerToken: string;
   }): Promise<NoDataResponse> {
     const RELATIVE_URL = `/org/${options.orgId}/file/${options.projectId}/${options.fileId}`;
 
     const response = await this.deleteRequest<NoDataResponse, object>({
       url: this.buildUrl(RELATIVE_URL),
-      bearerToken: options.bearerToken,
       data: {},
       handleBusinessErrors: true,
     });

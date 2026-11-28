@@ -126,7 +126,7 @@ function analysesCount(project: Project): string {
   return `${count} ${count === 1 ? "analysis" : "analyses"}`;
 }
 
-async function fetchAll(org: string, token: string): Promise<Project[]> {
+async function fetchAll(org: string): Promise<Project[]> {
   const all: Project[] = [];
   for (let page = 0; ; page++) {
     const response = await projectRepository.getProjects({
@@ -137,7 +137,6 @@ async function fetchAll(org: string, token: string): Promise<Project[]> {
         sortKey: ProjectsSortInterface.NAME,
         sortDirection: SortDirection.ASC,
       },
-      bearerToken: token,
       handleBusinessErrors: true,
     });
     all.push(...response.data);
@@ -146,10 +145,10 @@ async function fetchAll(org: string, token: string): Promise<Project[]> {
 }
 
 async function load(): Promise<void> {
-  if (!orgId.value || !authStore.getToken) return;
+  if (!orgId.value || !authStore.getAuthenticated) return;
 
   try {
-    projects.value = await fetchAll(orgId.value, authStore.getToken);
+    projects.value = await fetchAll(orgId.value);
     hasError.value = false;
     // Keep the open dialog in step with the reloaded project.
     if (analysesOf.value) {
@@ -185,14 +184,13 @@ function resultsLink(project: Project): Record<string, unknown> | undefined {
 
 async function deleteProject(): Promise<void> {
   const project = toDelete.value;
-  if (!project || !orgId.value || !authStore.getToken) return;
+  if (!project || !orgId.value || !authStore.getAuthenticated) return;
 
   deleting.value = true;
   try {
     await projectRepository.deleteProject({
       orgId: orgId.value,
       projectId: project.id,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     successToast(`Deleted ${project.name}`);

@@ -2,6 +2,9 @@ import { toast } from "vue-sonner";
 
 import { APIErrors } from "./ApiErrors";
 
+/** The header the API requires on every request it judges on the session cookies. */
+export const CSRF_HEADER = "X-CodeClarity-CSRF";
+
 // Parses a JSON body; a 204 or an empty body gives undefined.
 async function readBody(response: Response): Promise<unknown> {
   if (response.status === 204) return undefined;
@@ -64,16 +67,22 @@ export class BaseRepository {
   }
 
   /**
-   * The bearer to send: the caller's token, refreshed first when it is the
-   * session's access token and has expired. A refused refresh signs the user out.
+   * Prepares a request for the web sign-in: adds the header the API requires
+   * on cookie requests (ADR 0025), and refreshes the cookies first when the
+   * access token is about to expire. A refused refresh signs the user out.
    */
-  protected async freshBearer(bearerToken: string): Promise<string> {
+  protected async attachSession(
+    headers: Headers,
+    options: { skipSessionRefresh?: boolean | undefined },
+  ): Promise<void> {
+    headers.append(CSRF_HEADER, "1");
+    if (options.skipSessionRefresh) return;
     // Loaded here because the session module imports the auth store, which imports this one.
-    const { bearerFor } = await import("./session");
-    return bearerFor(bearerToken);
+    const { ensureFreshSession } = await import("./session");
+    await ensureFreshSession();
   }
 
-  /** Send a GET with the query params, bearer token and extra headers. */
+  /** Send a GET with the query params, the session's cookies and extra headers. */
   private async sendGet(options: GetRequestOptions): Promise<Response> {
     // Construct the url, including query parameters
     const url = new URL(options.url);
@@ -82,13 +91,8 @@ export class BaseRepository {
     // Construct headers
     const headers = new Headers();
 
-    // Attach bearer token
-    if (options.bearerToken) {
-      headers.append(
-        "Authorization",
-        `Bearer ${await this.freshBearer(options.bearerToken)}`,
-      );
-    }
+    // A web sign-in travels in its cookies, with the header the API requires.
+    await this.attachSession(headers, options);
 
     // Attach additional headers
     if (options.headers) {
@@ -97,7 +101,11 @@ export class BaseRepository {
       }
     }
 
-    return fetch(url.toString(), { method: "GET", headers });
+    return fetch(url.toString(), {
+      method: "GET",
+      headers,
+      credentials: "same-origin",
+    });
   }
 
   /**
@@ -139,7 +147,7 @@ export class BaseRepository {
 
   /**
    * Get Request for a file: same as getRequest, but resolves to the response
-   * body as a Blob (exports, downloads that need the bearer token).
+   * body as a Blob (exports, downloads that need the session).
    * Error responses go through the usual error handling.
    *
    * @param {GetRequestOptions} options Get request options
@@ -193,13 +201,8 @@ export class BaseRepository {
     headers.append("Accepts", "application/json");
     headers.append("Content-Type", "application/json");
 
-    // Attach bearer token
-    if (options.bearerToken) {
-      headers.append(
-        "Authorization",
-        `Bearer ${await this.freshBearer(options.bearerToken)}`,
-      );
-    }
+    // A web sign-in travels in its cookies, with the header the API requires.
+    await this.attachSession(headers, options);
 
     // Attach additional headers
     if (options.headers) {
@@ -212,6 +215,7 @@ export class BaseRepository {
     const fetchOptions: RequestInit = {
       method: "POST",
       headers: headers,
+      credentials: "same-origin",
     };
 
     if (options.data) {
@@ -271,13 +275,8 @@ export class BaseRepository {
       headers.append("Content-Type", "application/json");
     }
 
-    // Attach bearer token
-    if (options.bearerToken) {
-      headers.append(
-        "Authorization",
-        `Bearer ${await this.freshBearer(options.bearerToken)}`,
-      );
-    }
+    // A web sign-in travels in its cookies, with the header the API requires.
+    await this.attachSession(headers, options);
 
     // Attach additional headers
     if (options.headers) {
@@ -290,6 +289,7 @@ export class BaseRepository {
     const fetchOptions: RequestInit = {
       method: "DELETE",
       headers: headers,
+      credentials: "same-origin",
     };
 
     if (options.data) {
@@ -344,13 +344,8 @@ export class BaseRepository {
     headers.append("Accepts", "application/json");
     headers.append("Content-Type", "application/json");
 
-    // Attach bearer token
-    if (options.bearerToken) {
-      headers.append(
-        "Authorization",
-        `Bearer ${await this.freshBearer(options.bearerToken)}`,
-      );
-    }
+    // A web sign-in travels in its cookies, with the header the API requires.
+    await this.attachSession(headers, options);
 
     // Attach additional headers
     if (options.headers) {
@@ -363,6 +358,7 @@ export class BaseRepository {
     const fetchOptions: RequestInit = {
       method: "PUT",
       headers: headers,
+      credentials: "same-origin",
     };
 
     if (options.data) {
@@ -419,13 +415,8 @@ export class BaseRepository {
     headers.append("Accepts", "application/json");
     headers.append("Content-Type", "application/json");
 
-    // Attach bearer token
-    if (options.bearerToken) {
-      headers.append(
-        "Authorization",
-        `Bearer ${await this.freshBearer(options.bearerToken)}`,
-      );
-    }
+    // A web sign-in travels in its cookies, with the header the API requires.
+    await this.attachSession(headers, options);
 
     // Attach additional headers
     if (options.headers) {
@@ -438,6 +429,7 @@ export class BaseRepository {
     const fetchOptions: RequestInit = {
       method: "PATCH",
       headers: headers,
+      credentials: "same-origin",
     };
 
     if (options.data) {
@@ -664,7 +656,8 @@ type QueryParams = Record<
 interface RequestOptions {
   url: string;
   headers?: Headers;
-  bearerToken?: string;
+  // Set only on the refresh itself, which must not wait for a refresh.
+  skipSessionRefresh?: boolean | undefined;
   queryParams?: QueryParams;
   handleBusinessErrors?: boolean | undefined;
   handleHTTPErrors?: boolean | undefined;
@@ -697,7 +690,7 @@ interface ErrorHandlerOptions {
   defaultBusinessLogicErrorHandlerTextPrefix?: string;
 }
 
-interface RepoMethodOptions {
+export interface RepoMethodOptions {
   headers?: Headers;
   queryParams?: QueryParams;
   handleBusinessErrors?: boolean | undefined;
@@ -706,9 +699,8 @@ interface RepoMethodOptions {
   defaultBusinessLogicErrorHandlerTextPrefix?: string;
 }
 
-interface AuthenticatedRepoMethodOptions extends RepoMethodOptions {
-  bearerToken: string;
-}
+// Requests on the web sign-in; its cookies go with every request.
+interface AuthenticatedRepoMethodOptions extends RepoMethodOptions {}
 
 export interface RepoMethodPostRequestOptions<P> extends RepoMethodOptions {
   data: P;

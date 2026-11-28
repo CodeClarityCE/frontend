@@ -43,14 +43,13 @@ const roleLabels: Record<MemberRole, string> = {
 
 async function fetchOrgInfo(): Promise<void> {
   if (!props.orgId) return;
-  if (authStore.getAuthenticated && authStore.getToken) {
+  if (authStore.getAuthenticated) {
     loading.value = true;
     error.value = false;
     errorCode.value = "";
     try {
       const org = await orgRepo.get({
         orgId: props.orgId,
-        bearerToken: authStore.getToken,
         handleBusinessErrors: true,
       });
       orgInfo.value = org;

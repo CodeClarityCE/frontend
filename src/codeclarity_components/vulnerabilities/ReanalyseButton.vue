@@ -21,13 +21,12 @@ const state = ref<"idle" | "sending" | "started" | "failed">("idle");
 
 async function reanalyse(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !authStore.getToken) return;
+  if (!orgId || !authStore.getAuthenticated) return;
   state.value = "sending";
   try {
     await analysisRepository.reanalyse({
       orgId,
       projectId: props.projectId,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     state.value = "started";

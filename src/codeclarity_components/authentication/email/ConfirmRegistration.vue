@@ -34,7 +34,6 @@ async function init(): Promise<void> {
   try {
     await userRepository.confirmRegistration({
       userId: searchParams.get("userid") ?? "",
-      bearerToken: "",
       data: {
         token: searchParams.get("token") ?? "",
         user_id_hash: searchParams.get("userid") ?? "",

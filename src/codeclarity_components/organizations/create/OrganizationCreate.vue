@@ -19,7 +19,6 @@ import {
 import { Input } from "@/shadcn/ui/input";
 import { Spinner } from "@/shadcn/ui/spinner";
 import { Textarea } from "@/shadcn/ui/textarea";
-import { useAuthStore } from "@/stores/auth";
 import { filterUndefined } from "@/utils/form/filterUndefined";
 import { guardFormSubmit } from "@/utils/form/guardSubmit";
 import { requiredMessage, toTypedSchema } from "@/utils/form/toTypedSchema";
@@ -27,7 +26,6 @@ import { errorToast, successToast } from "@/utils/toasts";
 
 import { OrgRepository } from "../organization.repository";
 
-const authStore = useAuthStore();
 const orgRepo: OrgRepository = new OrgRepository();
 const submitting = ref(false);
 
@@ -57,7 +55,6 @@ const onSubmit = guardFormSubmit(form, async (values) => {
   submitting.value = true;
   try {
     const created = await orgRepo.create({
-      bearerToken: authStore.getToken ?? "",
       data: {
         name: values.name,
         description: values.description,

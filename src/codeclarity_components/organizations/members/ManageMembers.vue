@@ -118,12 +118,11 @@ function canRemove(m: OrganizationMembership): boolean {
   return !isMemberRoleGreaterThan(m.role, orgInfo.value.role);
 }
 
-async function fetchAll(token: string): Promise<OrganizationMembership[]> {
+async function fetchAll(): Promise<OrganizationMembership[]> {
   const all: OrganizationMembership[] = [];
   for (let page = 0; ; page++) {
     const response = await orgRepo.getOrgMembers({
       orgId,
-      bearerToken: token,
       search: { searchKey: "" },
       pagination: { page, entries_per_page: FETCH_PAGE_SIZE },
       sort: { sortKey: "role", sortDirection: SortDirection.ASC },
@@ -135,11 +134,11 @@ async function fetchAll(token: string): Promise<OrganizationMembership[]> {
 }
 
 async function load(): Promise<void> {
-  if (!orgId || !authStore.getToken) return;
+  if (!orgId || !authStore.getAuthenticated) return;
   hasError.value = false;
   errorCode.value = undefined;
   try {
-    members.value = await fetchAll(authStore.getToken);
+    members.value = await fetchAll();
   } catch (err) {
     hasError.value = true;
     if (err instanceof BusinessLogicError) errorCode.value = err.error_code;
@@ -173,13 +172,12 @@ function removeError(code: string): string {
 
 async function confirmRemove(): Promise<void> {
   const target = removing.value;
-  if (!target || !authStore.getToken) return;
+  if (!target || !authStore.getAuthenticated) return;
   removeBusy.value = true;
   try {
     await orgRepo.revokeMembership({
       orgId,
       userId: target.user.id,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     successToast(`Removed ${fullName(target)}`);

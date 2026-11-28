@@ -44,8 +44,7 @@ async function exportVerdicts(
   format: SourceVerdictExportFormat,
 ): Promise<void> {
   const org = userStore.getDefaultOrg;
-  const token = authStore.getToken;
-  if (!org || !token || exporting.value) return;
+  if (!org || !authStore.getAuthenticated || exporting.value) return;
   exporting.value = true;
   try {
     const blob = await resultsRepository.downloadSourceVerdicts({
@@ -53,7 +52,6 @@ async function exportVerdicts(
       projectId: props.projectID,
       analysisId: props.analysisID,
       format,
-      bearerToken: token,
       handleBusinessErrors: true,
     });
     saveBlob(blob, `source-verdicts-${props.analysisID}.${format}`);

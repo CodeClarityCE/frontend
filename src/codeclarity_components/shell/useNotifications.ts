@@ -1,6 +1,5 @@
 import { computed, type ComputedRef, type Ref, ref, watch } from "vue";
 
-import { useAuthStore } from "@/stores/auth";
 import {
   getUpgradeType,
   isGreaterThan,
@@ -131,7 +130,6 @@ export interface NotificationsState {
 
 // Loads the user's notifications and exposes search, filter, paging and dismiss.
 export function useNotifications(): NotificationsState {
-  const authStore = useAuthStore();
   const repository = new NotificationRepository();
 
   const all = ref<Notification[]>([]);
@@ -194,7 +192,6 @@ export function useNotifications(): NotificationsState {
     try {
       // Load up to 100 so sorting and filtering see the whole list.
       const resp = await repository.getNotifications({
-        bearerToken: authStore.getToken!,
         handleBusinessErrors: true,
         page: 0,
         entries_per_page: 100,
@@ -210,7 +207,6 @@ export function useNotifications(): NotificationsState {
   async function dismiss(notificationId: string): Promise<void> {
     try {
       await repository.deleteNotification({
-        bearerToken: authStore.getToken!,
         handleBusinessErrors: true,
         notification_id: notificationId,
       });
@@ -223,7 +219,6 @@ export function useNotifications(): NotificationsState {
   async function dismissAll(): Promise<void> {
     try {
       await repository.deleteAllNotifications({
-        bearerToken: authStore.getToken!,
         handleBusinessErrors: true,
       });
     } catch {

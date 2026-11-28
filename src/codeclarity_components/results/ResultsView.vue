@@ -195,7 +195,7 @@ async function getProject(projectID: string): Promise<void> {
       throw new Error("No default org");
     }
 
-    if (authStore.getToken == null) {
+    if (authStore.getAuthenticated == null) {
       throw new Error("No token");
     }
 
@@ -206,7 +206,6 @@ async function getProject(projectID: string): Promise<void> {
     res = await projectRepository.getProjectById({
       orgId: userStore.getDefaultOrg.id,
       projectId: projectID,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     project.value = res.data;
@@ -225,7 +224,7 @@ async function getAnalysis(
       throw new Error("No default org");
     }
 
-    if (authStore.getToken == null) {
+    if (authStore.getAuthenticated == null) {
       throw new Error("No token");
     }
 
@@ -233,7 +232,6 @@ async function getAnalysis(
       orgId: userStore.getDefaultOrg.id,
       projectId: projectID,
       analysisId: analysisID,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     analysis.value = res.data;

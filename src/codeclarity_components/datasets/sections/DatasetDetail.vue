@@ -121,14 +121,13 @@ function runExperiment(): void {
 
 async function loadDataset(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken || !datasetId.value) return;
+  if (!orgId || !auth.getAuthenticated || !datasetId.value) return;
 
   const wasBuilding = dataset.value?.status === DatasetStatus.BUILDING;
   try {
     const response = await datasetsRepository.getDataset({
       orgId,
       datasetId: datasetId.value,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
@@ -159,25 +158,21 @@ async function loadDataset(): Promise<void> {
 
 async function loadEntries(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken || !datasetId.value) return;
+  if (!orgId || !auth.getAuthenticated || !datasetId.value) return;
   try {
-    entries.value = await fetchAllEntries(orgId, auth.getToken);
+    entries.value = await fetchAllEntries(orgId);
   } catch {
     errorToast("Failed to load the dataset repositories");
   }
 }
 
-async function fetchAllEntries(
-  orgId: string,
-  token: string,
-): Promise<DatasetEntry[]> {
+async function fetchAllEntries(orgId: string): Promise<DatasetEntry[]> {
   const all: DatasetEntry[] = [];
   for (let page = 0; ; page++) {
     const response = await datasetsRepository.getDatasetEntries({
       orgId,
       datasetId: datasetId.value,
       pagination: { page, entries_per_page: FETCH_PAGE_SIZE },
-      bearerToken: token,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
@@ -192,9 +187,9 @@ async function fetchAllEntries(
  */
 async function importAsProjects(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  const token = auth.getToken;
   const integrationId = dataset.value?.integration_id;
-  if (!orgId || !token || !integrationId || importing.value) return;
+  if (!orgId || !auth.getAuthenticated || !integrationId || importing.value)
+    return;
 
   importing.value = true;
   confirming.value = null;
@@ -202,14 +197,13 @@ async function importAsProjects(): Promise<void> {
   const failures: FailedEntryImport[] = [];
   let alreadyImported = 0;
   try {
-    const all = await fetchAllEntries(orgId, token);
+    const all = await fetchAllEntries(orgId);
     importProgress.value = { done: 0, total: all.length };
     await runWithConcurrency(all, IMPORT_CONCURRENCY, async (entry) => {
       try {
         await projectRepository.createProject({
           orgId,
           data: { integration_id: integrationId, url: entry.git_url },
-          bearerToken: token,
           handleBusinessErrors: true,
           handleHTTPErrors: true,
         });
@@ -251,13 +245,12 @@ async function importAsProjects(): Promise<void> {
 
 async function deleteDataset(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken || deleting.value) return;
+  if (!orgId || !auth.getAuthenticated || deleting.value) return;
   deleting.value = true;
   try {
     await datasetsRepository.deleteDataset({
       orgId,
       datasetId: datasetId.value,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });

@@ -23,13 +23,12 @@ const error = ref(false);
 
 async function fetch(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !authStore.getToken) return;
+  if (!orgId || !authStore.getAuthenticated) return;
   loading.value = true;
   error.value = false;
   try {
     freshness.value = await repository.getFreshness({
       orgId,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
   } catch {

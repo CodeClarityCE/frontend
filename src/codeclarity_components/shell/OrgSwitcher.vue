@@ -44,10 +44,9 @@ const currentName = computed(
 );
 
 async function loadOrgs(): Promise<void> {
-  if (!authStore.getAuthenticated || !authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
   try {
     const response = await orgRepository.getMany({
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
       pagination: { page: 0, entries_per_page: 50 },
     });
@@ -62,7 +61,11 @@ async function loadOrgs(): Promise<void> {
 }
 
 async function switchOrg(org: OrgOption): Promise<void> {
-  if (!userStore.getUser || !authStore.getToken || org.id === currentId.value)
+  if (
+    !userStore.getUser ||
+    !authStore.getAuthenticated ||
+    org.id === currentId.value
+  )
     return;
   try {
     await switchDefaultOrg(org.id);

@@ -52,7 +52,6 @@ export class LanguageDetectionService {
     projectId: string,
     analysisId: string,
     sbomType: "js-sbom" | "php-sbom",
-    bearerToken: string,
   ): Promise<DetectedLanguage | null> {
     try {
       const result = await this.resultsRepository.getResultByType({
@@ -60,7 +59,6 @@ export class LanguageDetectionService {
         projectId,
         analysisId,
         type: sbomType,
-        bearerToken,
         handleBusinessErrors: true,
       });
       if (this.hasActualDependencies(result.data)) {
@@ -100,17 +98,11 @@ export class LanguageDetectionService {
     orgId: string,
     projectId: string,
     analysis: Analysis,
-    bearerToken: string,
   ): Promise<DetectedLanguage[]> {
     const cache = cacheFor(useUserStore().getUser?.id);
     const cached = cache.get(analysis.id);
     if (cached) return cached;
-    const detection = this.fetchProjectLanguages(
-      orgId,
-      projectId,
-      analysis,
-      bearerToken,
-    );
+    const detection = this.fetchProjectLanguages(orgId, projectId, analysis);
     cache.set(analysis.id, detection);
     // A failed detection may be retried later.
     detection.catch(() => cache.delete(analysis.id));
@@ -121,7 +113,6 @@ export class LanguageDetectionService {
     orgId: string,
     projectId: string,
     analysis: Analysis,
-    bearerToken: string,
   ): Promise<DetectedLanguage[]> {
     const detectedLanguages: DetectedLanguage[] = [];
 
@@ -135,7 +126,6 @@ export class LanguageDetectionService {
         projectId,
         analysis.id,
         "js-sbom",
-        bearerToken,
       );
       if (jsLang) detectedLanguages.push(jsLang);
     }
@@ -147,7 +137,6 @@ export class LanguageDetectionService {
         projectId,
         analysis.id,
         "php-sbom",
-        bearerToken,
       );
       if (phpLang) detectedLanguages.push(phpLang);
     }

@@ -33,6 +33,8 @@ export interface FakeRequest {
   // The URL's query parameters.
   query: URLSearchParams;
   headers: Headers;
+  // Whether the browser would send the session cookies.
+  credentials: RequestCredentials | undefined;
   body: unknown;
 }
 
@@ -83,6 +85,7 @@ function fakeHttp(): FakeHttp {
         path,
         query: url.searchParams,
         headers: new Headers(init.headers),
+        credentials: init.credentials,
         body,
       });
       if (failures.has(`${method} ${path}`))
@@ -133,11 +136,10 @@ function signIn(http: FakeHttp): void {
   loadAuthStoreFromLocalStorage();
   const auth = useAuthStore();
   const expiry = new Date(Date.now() + 3_600_000);
-  auth.setToken("access-token");
-  auth.setTokenExpiry(expiry);
-  auth.setRefreshToken("refresh-token");
-  auth.setRefreshTokenExpiry(expiry);
-  auth.setAuthenticated(true);
+  auth.startSession(user.id, {
+    tokenExpiry: expiry,
+    refreshTokenExpiry: expiry,
+  });
   http.on("GET", "/auth/user", { data: user });
   http.on("GET", `/org/${org.id}`, { data: org });
 }

@@ -123,19 +123,22 @@ export class ShellPage {
   /** Signs the user in and answers every API call with fixtures. */
   async signIn(): Promise<void> {
     const expiry = new Date(Date.now() + 86_400_000).toISOString();
-    await this.page.addInitScript((e) => {
-      localStorage.setItem(
-        "authStore",
-        JSON.stringify({
-          initialized: true,
-          authenticated: true,
-          token: "t",
-          tokenExpiry: e,
-          refreshToken: "t",
-          refreshTokenExpiry: e,
-        }),
-      );
-    }, expiry);
+    // The tokens themselves would be HttpOnly cookies, which the mocked API never reads.
+    await this.page.addInitScript(
+      ({ e, id }) => {
+        localStorage.setItem(
+          "authStore",
+          JSON.stringify({
+            initialized: true,
+            authenticated: true,
+            userId: id,
+            tokenExpiry: e,
+            refreshTokenExpiry: e,
+          }),
+        );
+      },
+      { e: expiry, id: user.id },
+    );
     await this.page.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       const path = url.pathname.replace(/^\/api/, "");

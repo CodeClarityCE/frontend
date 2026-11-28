@@ -1,7 +1,7 @@
 import type { App, ComponentPublicInstance } from "vue";
 
 import { useAuthStore } from "@/stores/auth";
-import { BaseRepository } from "@/utils/api/BaseRepository";
+import { BaseRepository, CSRF_HEADER } from "@/utils/api/BaseRepository";
 
 type ReportLevel = "error" | "warn";
 type LogLevel = ReportLevel | "info" | "debug";
@@ -56,13 +56,14 @@ function toFields(context: LogContext): ReportFields {
 // Posts error reports to the API's POST /logs route with a plain fetch,
 // so a failed report never redirects to the login page or shows a toast.
 class LogsRepository extends BaseRepository {
-  send(report: ErrorReport, bearerToken: string): Promise<Response> {
+  send(report: ErrorReport): Promise<Response> {
     return fetch(this.buildUrl("/logs"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${bearerToken}`,
+        [CSRF_HEADER]: "1",
       },
+      credentials: "same-origin",
       body: JSON.stringify(report),
     });
   }
@@ -85,24 +86,22 @@ function isDuplicate(level: ReportLevel, msg: string): boolean {
   return false;
 }
 
-// The session token, or undefined when signed out or before the store exists.
-function sessionToken(): string | undefined {
+// True while a user is signed in; false before the store exists.
+function signedIn(): boolean {
   try {
-    const auth = useAuthStore();
-    return auth.getAuthenticated ? auth.getToken : undefined;
+    return useAuthStore().getAuthenticated;
   } catch {
-    return undefined;
+    return false;
   }
 }
 
 function report(level: ReportLevel, msg: string, context: LogContext): void {
-  const token = sessionToken();
-  if (!token) return;
+  if (!signedIn()) return;
   const text = msg.slice(0, MAX_MESSAGE_LENGTH);
   if (isDuplicate(level, text)) return;
   // Fire and forget: a failed report is dropped, never logged again.
   new LogsRepository()
-    .send({ level, msg: text, fields: toFields(context) }, token)
+    .send({ level, msg: text, fields: toFields(context) })
     .catch(() => undefined);
 }
 

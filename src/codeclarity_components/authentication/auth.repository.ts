@@ -1,11 +1,11 @@
-import { RefreshToken } from "@/codeclarity_components/authentication/refresh_token.entity";
-import { Token } from "@/codeclarity_components/authentication/token.entity";
+import { SessionExpiry } from "@/codeclarity_components/authentication/session_expiry.entity";
 
 import { Entity } from "../../utils/api/BaseEntity";
 import {
   type AuthRepoMethodGetRequestOptions,
   BaseRepository,
   type EmptyPostData,
+  type RepoMethodOptions,
   type RepoMethodPostRequestOptions,
 } from "../../utils/api/BaseRepository";
 import { CreatedResponse } from "../../utils/api/responses/CreatedResponse";
@@ -17,10 +17,9 @@ import { AuthenticatedUser } from "./authenticated_user.entity";
 import type { PasswordResetBody } from "./password_reset.http";
 import type { PasswordResetRequestBody } from "./password_reset_request.http";
 import type { RegisterBody } from "./register.http";
-import type { RefreshTokenBody } from "./token_refresh.http";
 
 export interface AuthenticateRequestOptions extends RepoMethodPostRequestOptions<AuthenticateBody> {}
-export interface RefreshTokenRequestOptions extends RepoMethodPostRequestOptions<RefreshTokenBody> {}
+export interface SessionRequestOptions extends RepoMethodOptions {}
 export interface GetAuthenticatedUserRequestOptions extends AuthRepoMethodGetRequestOptions {
   validate?: boolean;
 }
@@ -29,11 +28,14 @@ export interface PasswordResetRequestOptions extends RepoMethodPostRequestOption
 export interface PasswordResetOptions extends RepoMethodPostRequestOptions<PasswordResetBody> {}
 
 export class AuthRepository extends BaseRepository {
-  async authenticate(options: AuthenticateRequestOptions): Promise<Token> {
+  /** Signs in; the API sets the tokens as HttpOnly cookies and answers with their expiry. */
+  async authenticate(
+    options: AuthenticateRequestOptions,
+  ): Promise<SessionExpiry> {
     const RELATIVE_URL = `/auth/authenticate`;
 
     const response = await this.postRequest<
-      DataResponse<Token>,
+      DataResponse<SessionExpiry>,
       AuthenticateBody
     >({
       data: options.data,
@@ -43,7 +45,7 @@ export class AuthRepository extends BaseRepository {
       handleOtherErrors: options.handleOtherErrors,
     });
 
-    return Entity.unMarshal<Token>(response.data, Token);
+    return Entity.unMarshal<SessionExpiry>(response.data, SessionExpiry);
   }
 
   async register(options: RegisterRequestOptions): Promise<CreatedResponse> {
@@ -60,29 +62,33 @@ export class AuthRepository extends BaseRepository {
     return Entity.unMarshal<CreatedResponse>(response, CreatedResponse);
   }
 
-  async refresh(options: RefreshTokenRequestOptions): Promise<RefreshToken> {
+  /** Trades the refresh cookie for new session cookies. */
+  async refresh(options: SessionRequestOptions): Promise<SessionExpiry> {
     const RELATIVE_URL = `/auth/refresh`;
 
     const response = await this.postRequest<
-      DataResponse<RefreshToken>,
+      DataResponse<SessionExpiry>,
       EmptyPostData
     >({
-      data: options.data,
+      data: {},
       url: this.buildUrl(RELATIVE_URL),
+      skipSessionRefresh: true,
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
       handleOtherErrors: options.handleOtherErrors,
     });
 
-    return Entity.unMarshal<RefreshToken>(response.data, RefreshToken);
+    return Entity.unMarshal<SessionExpiry>(response.data, SessionExpiry);
   }
 
-  async signOut(options: RefreshTokenRequestOptions): Promise<NoDataResponse> {
+  /** Ends the sign-in of the refresh cookie; the API clears both cookies. */
+  async signOut(options: SessionRequestOptions): Promise<NoDataResponse> {
     const RELATIVE_URL = `/auth/sign_out`;
 
-    const response = await this.postRequest<NoDataResponse, RefreshTokenBody>({
-      data: options.data,
+    const response = await this.postRequest<NoDataResponse, EmptyPostData>({
+      data: {},
       url: this.buildUrl(RELATIVE_URL),
+      skipSessionRefresh: true,
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
       handleOtherErrors: options.handleOtherErrors,
@@ -97,7 +103,6 @@ export class AuthRepository extends BaseRepository {
     const RELATIVE_URL = `/auth/user`;
 
     const response = await this.getRequest<DataResponse<AuthenticatedUser>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,

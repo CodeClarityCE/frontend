@@ -225,6 +225,13 @@ const MONKEY_REGRESSIONS: {
     found:
       "Signed out when reopening the page cut off the default organisation request",
   },
+  {
+    page: "results",
+    seed: 278338753,
+    steps: 60,
+    found:
+      "Copy commands in the update dependencies dialog threw when the browser denied the clipboard write",
+  },
 ];
 
 // The replay command and the run, for the failure message and the ci-failure issue.

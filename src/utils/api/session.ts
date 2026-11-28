@@ -1,7 +1,7 @@
 import { getActivePinia } from "pinia";
 
 import { loginRoute } from "@/codeclarity_components/authentication/signin/login-route";
-import { isReplacedAccessToken, useAuthStore } from "@/stores/auth";
+import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
 import { logger } from "@/utils/logger";
 
@@ -17,7 +17,7 @@ type AuthStore = ReturnType<typeof useAuthStore>;
 // A token this close to its expiry is refreshed before use.
 const EXPIRY_MARGIN_MS = 30_000;
 
-// One tab at a time may refresh, since a refresh token works only once.
+// One tab at a time may refresh, since the refresh cookie works only once.
 const REFRESH_LOCK = "codeclarity-session-refresh";
 
 let refreshInFlight: Promise<SessionState> | undefined;
@@ -42,42 +42,36 @@ function acrossTabs<T>(work: () => Promise<T>): Promise<T> {
 }
 
 async function refresh(authStore: AuthStore): Promise<SessionState> {
-  // Another tab may have rotated the tokens while this one waited for the lock.
-  authStore.adoptRotatedTokens();
+  // Another tab may have refreshed the shared cookies while this one waited for the lock.
+  authStore.adoptRotatedSession();
   if (!expiresSoon(authStore.getTokenExpiry)) return "refreshed";
-  const refreshToken = authStore.getRefreshToken;
   const refreshExpiry = authStore.getRefreshTokenExpiry;
-  if (!refreshToken || !refreshExpiry || refreshExpiry <= new Date()) {
-    return "refused";
-  }
+  if (!refreshExpiry || refreshExpiry <= new Date()) return "refused";
   // Loaded here so this module stays free of the repositories it serves.
   const { AuthRepository } =
     await import("@/codeclarity_components/authentication/auth.repository");
   try {
     const next = await new AuthRepository().refresh({
-      data: { refresh_token: refreshToken },
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
-    authStore.adoptTokens({
-      token: next.token,
+    authStore.adoptSession({
       tokenExpiry: next.token_expiry,
-      refreshToken: next.refresh_token,
       refreshTokenExpiry: next.refresh_token_expiry,
     });
     return "refreshed";
   } catch (error) {
     if (!refusedBy(error)) return "no_answer";
-    logger.warn("Could not refresh the session token", {}, error);
+    logger.warn("Could not refresh the session", {}, error);
     return "refused";
   }
 }
 
-// Refreshes the access token when it has expired or is about to; concurrent callers share one refresh.
+// Refreshes the session cookies when the access token has expired or is about to; concurrent callers share one refresh.
 export function ensureFreshAccessToken(): Promise<SessionState> {
   if (!getActivePinia()) return Promise.resolve("fresh");
   const authStore = useAuthStore();
-  if (!authStore.getToken || !expiresSoon(authStore.getTokenExpiry)) {
+  if (!authStore.getAuthenticated || !expiresSoon(authStore.getTokenExpiry)) {
     return Promise.resolve("fresh");
   }
   refreshInFlight ??= acrossTabs(() => refresh(authStore)).finally(() => {
@@ -89,7 +83,7 @@ export function ensureFreshAccessToken(): Promise<SessionState> {
 // Clears the session and opens the login page; later callers find it already done.
 export function signOut(): void {
   const authStore = useAuthStore();
-  if (!authStore.getAuthenticated && !authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
   useUserStore().$reset();
   authStore.$reset();
   // Loaded here because the router imports every repository through its views.
@@ -98,17 +92,16 @@ export function signOut(): void {
   );
 }
 
-// Signs out here at once, then asks the API to end the sign-in so its refresh token stops working.
+// Signs out here at once, then asks the API to end the sign-in and clear its cookies.
 export function endSignIn(): void {
   const authStore = useAuthStore();
-  const refreshToken = authStore.getRefreshToken;
+  const wasSignedIn = authStore.getAuthenticated;
   useUserStore().$reset();
   authStore.$reset();
-  if (!refreshToken) return;
+  if (!wasSignedIn) return;
   void import("@/codeclarity_components/authentication/auth.repository")
     .then(({ AuthRepository }) =>
       new AuthRepository().signOut({
-        data: { refresh_token: refreshToken },
         handleBusinessErrors: true,
         handleHTTPErrors: true,
         handleOtherErrors: true,
@@ -120,15 +113,10 @@ export function endSignIn(): void {
 }
 
 /**
- * The bearer to send for a request the caller signed with `bearerToken`.
- * The session's access token is refreshed first when it is about to expire.
+ * Makes sure the session cookies are fresh before a request: refreshes them
+ * when the access token is about to expire. A refused refresh signs the user out.
  */
-export async function bearerFor(bearerToken: string): Promise<string> {
-  if (!getActivePinia()) return bearerToken;
-  const authStore = useAuthStore();
-  const ours =
-    bearerToken === authStore.getToken || isReplacedAccessToken(bearerToken);
-  if (!ours) return bearerToken;
+export async function ensureFreshSession(): Promise<void> {
   const state = await ensureFreshAccessToken();
   if (state === "refused") {
     signOut();
@@ -141,5 +129,4 @@ export async function bearerFor(bearerToken: string): Promise<string> {
     // Same as a request that got no answer: the caller keeps the session.
     throw new TypeError("Could not refresh the session token");
   }
-  return authStore.getToken ?? bearerToken;
 }

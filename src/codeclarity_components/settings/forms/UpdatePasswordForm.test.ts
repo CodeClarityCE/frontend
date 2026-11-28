@@ -112,27 +112,23 @@ describe("UpdatePasswordForm sign-in", () => {
     await screen.findByText("Your password was changed");
   }
 
-  it("keeps this tab signed in with the fresh sign-in the API returns", async () => {
+  it("keeps this tab signed in with the fresh sign-in the API set as cookies", async () => {
     await changePassword({
       data: {
-        token: "fresh-access-token",
         token_expiry: "2099-01-01T00:00:00.000Z",
-        refresh_token: "fresh-refresh-token",
         refresh_token_expiry: "2099-02-01T00:00:00.000Z",
       },
     });
 
-    expect(useAuthStore().getToken).toBe("fresh-access-token");
-    expect(useAuthStore().getRefreshToken).toBe("fresh-refresh-token");
+    expect(useAuthStore().getAuthenticated).toBe(true);
+    expect(useAuthStore().getTokenExpiry).toEqual(
+      new Date("2099-01-01T00:00:00.000Z"),
+    );
     expect(useAuthStore().getRefreshTokenExpiry).toEqual(
       new Date("2099-02-01T00:00:00.000Z"),
     );
-  });
-
-  it("keeps the current tokens when the API returns no sign-in", async () => {
-    await changePassword({ status_code: 200, status: "success" });
-
-    expect(useAuthStore().getToken).toBe("access-token");
-    expect(useAuthStore().getRefreshToken).toBe("refresh-token");
+    expect(localStorage.getItem("authStore")).not.toMatch(
+      /"(token|refreshToken)"/,
+    );
   });
 });

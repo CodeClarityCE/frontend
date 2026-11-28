@@ -12,6 +12,8 @@ import { installLogger, logger } from "./logger";
 interface SentReport {
   url: string;
   authorization: string | null;
+  csrf: string | null;
+  credentials: RequestCredentials | undefined;
   body: { level: string; msg: string; fields?: Record<string, unknown> };
 }
 
@@ -19,6 +21,8 @@ function sentReports(): SentReport[] {
   return vi.mocked(fetch).mock.calls.map(([url, init]) => ({
     url: url as string,
     authorization: new Headers(init?.headers).get("Authorization"),
+    csrf: new Headers(init?.headers).get("X-CodeClarity-CSRF"),
+    credentials: init?.credentials,
     body: JSON.parse(init?.body as string) as SentReport["body"],
   }));
 }
@@ -26,7 +30,6 @@ function sentReports(): SentReport[] {
 function signIn(): void {
   const auth = useAuthStore();
   auth.setAuthenticated(true);
-  auth.setToken("session-token");
 }
 
 // Renders the app's toaster, so a toast would show up as a list item.
@@ -64,12 +67,14 @@ describe("logger", () => {
     vi.unstubAllEnvs();
   });
 
-  it("sends an error report to the API with the session token", () => {
+  it("sends an error report to the API on the session cookies", () => {
     logger.error("Could not load the project");
 
     const [report] = sentReports();
     expect(report?.url).toBe("https://localhost:3000/api/logs");
-    expect(report?.authorization).toBe("Bearer session-token");
+    expect(report?.authorization).toBeNull();
+    expect(report?.csrf).toBe("1");
+    expect(report?.credentials).toBe("same-origin");
     expect(report?.body).toMatchObject({
       level: "error",
       msg: "Could not load the project",

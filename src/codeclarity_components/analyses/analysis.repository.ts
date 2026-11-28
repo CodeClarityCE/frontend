@@ -70,7 +70,6 @@ export class AnalysisRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analyses`;
 
     const response = await this.postRequest<CreatedResponse, CreateAnalysis>({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -86,7 +85,6 @@ export class AnalysisRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analyses/reanalyse`;
 
     const response = await this.postRequest<CreatedResponse, EmptyPostData>({
-      bearerToken: options.bearerToken,
       data: {},
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -108,7 +106,6 @@ export class AnalysisRepository extends BaseRepository {
         entries_per_page: options.entries_per_page,
         search_key: options.search_key,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -127,7 +124,6 @@ export class AnalysisRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analyses/${options.analysisId}`;
 
     const response = await this.getRequest<DataResponse<Analysis>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -146,7 +142,6 @@ export class AnalysisRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analyses/${options.analysisId}/chart`;
 
     const response = await this.getRequest<DataResponse<object[]>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -166,7 +161,6 @@ export class AnalysisRepository extends BaseRepository {
 
     const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
       data: {},
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -182,7 +176,6 @@ export class AnalysisRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analyses/scheduled`;
 
     const response = await this.getRequest<DataResponse<Analysis[]>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -201,7 +194,6 @@ export class AnalysisRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analyses/${options.analysisId}/schedule`;
 
     const response = await this.putRequest<NoDataResponse, UpdateSchedule>({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -219,7 +211,6 @@ export class AnalysisRepository extends BaseRepository {
 
     const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
       data: {},
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -235,7 +226,6 @@ export class AnalysisRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/projects/${options.projectId}/analyses/${options.analysisId}/runs`;
 
     const response = await this.getRequest<DataResponse<Analysis[]>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,

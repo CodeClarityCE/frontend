@@ -74,7 +74,7 @@ const authStore = useAuthStore();
 async function loadGraph(): Promise<void> {
   const target = `${props.dependency.name}@${props.dependency.version}`;
   try {
-    if (!userStore.getDefaultOrg || !authStore.getToken)
+    if (!userStore.getDefaultOrg || !authStore.getAuthenticated)
       throw new Error("Missing auth context");
     const res = await resultsRepository.getDependencyGraph({
       orgId: userStore.getDefaultOrg.id,
@@ -82,7 +82,6 @@ async function loadGraph(): Promise<void> {
       analysisId: props.analysisID,
       workspace: props.workspace,
       dependency: target,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });

@@ -149,7 +149,7 @@ const onSubmit = guardFormSubmit(form, async (values) => {
     return;
   }
 
-  if (!authStore.getToken) {
+  if (!authStore.getAuthenticated) {
     uploadError.value = "Not authenticated.";
     return;
   }
@@ -167,7 +167,6 @@ const onSubmit = guardFormSubmit(form, async (values) => {
         name: values.name,
         description: values.description ?? "",
       },
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
@@ -180,7 +179,6 @@ const onSubmit = guardFormSubmit(form, async (values) => {
       projectId,
       orgId: defaultOrg.value.id,
       file: selectedFile.value,
-      bearerToken: authStore.getToken,
       onProgress: (progress) => {
         uploadProgress.value = progress;
       },

@@ -22,7 +22,6 @@ describe("TicketsRepository.getTicketEvents", () => {
     const response = await repository.getTicketEvents({
       orgId: "org-1",
       ticketId: "t-1",
-      bearerToken: "token",
     });
 
     expect(response.data.map((e) => e.event_type)).toEqual(["REOPENED"]);

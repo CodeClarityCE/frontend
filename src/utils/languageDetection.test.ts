@@ -39,8 +39,8 @@ describe("LanguageDetectionService", () => {
     const service = new LanguageDetectionService();
     const analysis = analysisWith("an-1");
 
-    await service.detectProjectLanguages("o", "p", analysis, "t");
-    const again = await service.detectProjectLanguages("o", "p", analysis, "t");
+    await service.detectProjectLanguages("o", "p", analysis);
+    const again = await service.detectProjectLanguages("o", "p", analysis);
 
     expect(again.map((l) => l.name)).toEqual(["JavaScript"]);
     expect(resultRequests(app)).toBe(1);
@@ -53,10 +53,10 @@ describe("LanguageDetectionService", () => {
     const app = await signedInWithSbom();
     const service = new LanguageDetectionService();
     const analysis = analysisWith("an-2");
-    await service.detectProjectLanguages("o", "p", analysis, "t");
+    await service.detectProjectLanguages("o", "p", analysis);
 
     useUserStore().setUser({ ...user, id: "another-user" } as never);
-    await service.detectProjectLanguages("o", "p", analysis, "t");
+    await service.detectProjectLanguages("o", "p", analysis);
 
     expect(resultRequests(app)).toBe(2);
   });
@@ -71,7 +71,6 @@ describe("LanguageDetectionService", () => {
       "o",
       "p",
       analysisWith("an-3"),
-      "t",
     );
 
     expect(found).toEqual([]);

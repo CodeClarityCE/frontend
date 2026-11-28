@@ -16,7 +16,6 @@ export class PluginRepository extends BaseRepository {
     const RELATIVE_URL = `/plugin`;
 
     const response = await this.getRequest<PaginatedResponse<Plugin>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -35,7 +34,6 @@ export class PluginRepository extends BaseRepository {
     const RELATIVE_URL = `/plugin`;
 
     const response = await this.getRequest<PaginatedResponse<Plugin>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,

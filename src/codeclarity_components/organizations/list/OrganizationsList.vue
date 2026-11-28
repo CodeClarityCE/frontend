@@ -74,12 +74,11 @@ function memberCount(m: OrganizationMembership): number {
 }
 
 async function load(): Promise<void> {
-  if (!authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
   try {
     const all: OrganizationMembership[] = [];
     for (let page = 0; ; page++) {
       const response = await orgRepo.getMany({
-        bearerToken: authStore.getToken,
         handleBusinessErrors: true,
         pagination: { page, entries_per_page: FETCH_PAGE_SIZE },
       });

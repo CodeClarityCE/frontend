@@ -16,7 +16,6 @@ export class LicenseRepository extends BaseRepository {
     const RELATIVE_URL = `/knowledge/license`;
 
     const response = await this.getRequest<PaginatedResponse<License>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -35,7 +34,6 @@ export class LicenseRepository extends BaseRepository {
     const RELATIVE_URL = `/knowledge/license`;
 
     const response = await this.getRequest<PaginatedResponse<License>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,

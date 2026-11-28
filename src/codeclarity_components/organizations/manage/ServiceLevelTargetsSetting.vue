@@ -65,12 +65,11 @@ async function save(): Promise<void> {
     low: parse(fields.value.low),
   };
   invalid.value = Object.values(days).some((d) => d === undefined);
-  if (invalid.value || !authStore.getToken || saving.value) return;
+  if (invalid.value || !authStore.getAuthenticated || saving.value) return;
   saving.value = true;
   try {
     await orgRepo.updateSettings({
       orgId: props.orgId,
-      bearerToken: authStore.getToken,
       data: {
         service_level_targets_enabled: on.value,
         service_level_targets: days,

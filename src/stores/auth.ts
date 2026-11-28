@@ -8,23 +8,21 @@ import { OptionalDateTransform } from "@/utils/OptionalDate";
 
 const storePeristantName = "authStore";
 
+// The API keeps the tokens in HttpOnly cookies (ADR 0025); this state holds no secret.
 class AuthStoreState {
   @Type(() => Boolean)
   initialized!: boolean;
 
-  @IsOptional()
-  @IsString()
-  token?: string;
-
   @OptionalDateTransform("tokenExpiry")
   tokenExpiry?: Date;
 
-  @IsOptional()
-  @IsString()
-  refreshToken?: string;
-
   @OptionalDateTransform("refreshTokenExpiry")
   refreshTokenExpiry?: Date;
+
+  // The signed-in user, so a tab can tell whether another tab's sign-in is the same user's.
+  @IsOptional()
+  @IsString()
+  userId?: string;
 
   @Type(() => Boolean)
   authenticated!: boolean;
@@ -33,28 +31,19 @@ class AuthStoreState {
   @IsString()
   socialAuthState?: string;
 }
-/** The tokens a sign-in or refresh hands out; an older API's refresh leaves the refresh token out. */
-export interface SessionTokens {
-  token: string;
+
+/** When the tokens of a sign-in or refresh end. */
+export interface SessionTimes {
   tokenExpiry: Date;
-  refreshToken?: string | undefined;
-  refreshTokenExpiry?: Date | undefined;
-}
-
-// Access tokens a refresh here or in another tab replaced, so a caller holding one gets the new token.
-const replacedAccessTokens = new Set<string>();
-
-export function isReplacedAccessToken(token: string): boolean {
-  return replacedAccessTokens.has(token);
+  refreshTokenExpiry: Date;
 }
 
 const defaultValues = (): AuthStoreState => {
   return {
     initialized: false,
-    token: undefined,
     tokenExpiry: undefined,
-    refreshToken: undefined,
     refreshTokenExpiry: undefined,
+    userId: undefined,
     authenticated: false,
     socialAuthState: undefined,
   };
@@ -66,17 +55,14 @@ export const useAuthStore = defineStore("auth", {
   },
 
   getters: {
-    getToken(state: AuthStoreState): string | undefined {
-      return state.token;
-    },
-    getRefreshToken(state: AuthStoreState): string | undefined {
-      return state.refreshToken;
-    },
     getTokenExpiry(state: AuthStoreState): Date | undefined {
       return state.tokenExpiry;
     },
     getRefreshTokenExpiry(state: AuthStoreState): Date | undefined {
       return state.refreshTokenExpiry;
+    },
+    getUserId(state: AuthStoreState): string | undefined {
+      return state.userId;
     },
     getAuthenticated(state: AuthStoreState): boolean {
       return state.authenticated;
@@ -90,18 +76,6 @@ export const useAuthStore = defineStore("auth", {
   },
 
   actions: {
-    setToken: function (token: string): void {
-      this.token = token;
-    },
-    setRefreshToken: function (refreshToken: string): void {
-      this.refreshToken = refreshToken;
-    },
-    setTokenExpiry: function (tokenExpiry: Date): void {
-      this.tokenExpiry = tokenExpiry;
-    },
-    setRefreshTokenExpiry: function (refreshTokenExpiry: Date): void {
-      this.refreshTokenExpiry = refreshTokenExpiry;
-    },
     setAuthenticated: function (authenticated: boolean): void {
       this.authenticated = authenticated;
     },
@@ -111,81 +85,70 @@ export const useAuthStore = defineStore("auth", {
     setSocialAuthState: function (socialAuthState: string): void {
       this.socialAuthState = socialAuthState;
     },
-    // A patch is saved to storage at once, so other tabs see it before the refresh lock is released.
-    adoptTokens: function (tokens: SessionTokens): void {
-      if (this.token && this.token !== tokens.token) {
-        replacedAccessTokens.add(this.token);
-      }
+    // Records a new sign-in of the user, whose tokens the API set as cookies.
+    startSession: function (userId: string, times: SessionTimes): void {
       this.$patch({
-        token: tokens.token,
-        tokenExpiry: tokens.tokenExpiry,
-        ...(tokens.refreshToken !== undefined && {
-          refreshToken: tokens.refreshToken,
-          refreshTokenExpiry: tokens.refreshTokenExpiry,
-        }),
+        authenticated: true,
+        userId,
+        tokenExpiry: times.tokenExpiry,
+        refreshTokenExpiry: times.refreshTokenExpiry,
       });
     },
-    // Takes the tokens another tab saved after rotating them, if they are the same user's.
-    adoptRotatedTokens: function (): void {
-      const stored = storedSessionTokens();
+    // A patch is saved to storage at once, so other tabs see it before the refresh lock is released.
+    adoptSession: function (times: SessionTimes): void {
+      this.$patch({
+        tokenExpiry: times.tokenExpiry,
+        refreshTokenExpiry: times.refreshTokenExpiry,
+      });
+    },
+    // Takes the times another tab saved after refreshing the same user's cookies.
+    adoptRotatedSession: function (): void {
+      const stored = storedSession();
       if (!this.authenticated || !stored) return;
-      if (stored.refreshToken === this.refreshToken) return;
-      if (!sameUser(stored.token, this.token)) return;
-      this.adoptTokens(stored);
+      if (stored.userId !== this.userId) return;
+      if (stored.tokenExpiry.getTime() === this.tokenExpiry?.getTime()) return;
+      this.adoptSession(stored);
     },
   },
 });
 
-// The user id an access token names, or undefined when it cannot be read.
-function userIdOf(token: string | undefined): string | undefined {
-  try {
-    const payload = token?.split(".")[1];
-    if (!payload) return undefined;
-    const claims = JSON.parse(
-      atob(payload.replace(/-/g, "+").replace(/_/g, "/")),
-    ) as { sub?: unknown };
-    return typeof claims.sub === "string" ? claims.sub : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-// False only when both tokens name a user and the users differ.
-function sameUser(a: string, b: string | undefined): boolean {
-  const first = userIdOf(a);
-  const second = userIdOf(b);
-  return first === undefined || second === undefined || first === second;
-}
-
-/** The session tokens saved in this browser, which another tab may have rotated. */
-function storedSessionTokens(): SessionTokens | undefined {
-  const { token, tokenExpiry, refreshToken, refreshTokenExpiry } =
+/** The session saved in this browser, which another tab may have refreshed. */
+function storedSession(): (SessionTimes & { userId: string }) | undefined {
+  const { authenticated, userId, tokenExpiry, refreshTokenExpiry } =
     getFromLocalStorageOrDefault();
-  if (!token || !tokenExpiry || !refreshToken) return undefined;
-  return { token, tokenExpiry, refreshToken, refreshTokenExpiry };
+  if (!authenticated || !userId || !tokenExpiry || !refreshTokenExpiry) {
+    return undefined;
+  }
+  return { userId, tokenExpiry, refreshTokenExpiry };
 }
 
-// The access token in a saved session, or undefined when there is none.
-function tokenIn(saved: string | null): string | undefined {
+// The user a saved session names, or undefined when there is none.
+function userIn(saved: string | null): string | undefined {
   try {
-    const state = JSON.parse(saved ?? "null") as { token?: unknown } | null;
-    return typeof state?.token === "string" ? state.token : undefined;
+    const state = JSON.parse(saved ?? "null") as { userId?: unknown } | null;
+    return typeof state?.userId === "string" ? state.userId : undefined;
   } catch {
     return undefined;
   }
 }
 
-// Another tab's refresh or sign-out lands here, so every tab follows it.
+// Another tab's refresh, sign-in or sign-out lands here, so every tab follows it.
 function followOtherTabs(store: ReturnType<typeof useAuthStore>): void {
   window.addEventListener("storage", (event) => {
     if (event.key !== storePeristantName) return;
-    if (storedSessionTokens()) {
-      store.adoptRotatedTokens();
+    if (!store.authenticated) return;
+    const stored = storedSession();
+    if (stored) {
+      // The cookies are shared, so another user's sign-in replaces this tab's: start over as them.
+      if (stored.userId !== store.userId) {
+        window.location.reload();
+        return;
+      }
+      store.adoptRotatedSession();
       return;
     }
     // The saved session is gone: the other tab signed this user out.
-    if (!store.authenticated) return;
-    if (!sameUser(tokenIn(event.oldValue) ?? "", store.token)) return;
+    if (userIn(event.oldValue) !== store.userId) return;
     // Loaded here because the session module imports this store.
     void import("@/utils/api/session").then(({ signOut }) => {
       signOut();
@@ -193,9 +156,32 @@ function followOtherTabs(store: ReturnType<typeof useAuthStore>): void {
   });
 }
 
+// True for a session saved before ADR 0025, which held the tokens themselves.
+function holdsTokens(saved: string): boolean {
+  try {
+    const state = JSON.parse(saved) as Record<string, unknown> | null;
+    return state !== null && ("token" in state || "refreshToken" in state);
+  } catch {
+    return false;
+  }
+}
+
+// Deletes an old saved session unread, so its tokens leave the browser; the user signs in once.
+function deleteSessionWithTokens(): void {
+  try {
+    const saved = localStorage.getItem(storePeristantName);
+    if (saved !== null && holdsTokens(saved)) {
+      localStorage.removeItem(storePeristantName);
+    }
+  } catch {
+    // Blocked storage holds no old session.
+  }
+}
+
 export function loadAuthStoreFromLocalStorage(): void {
   const store = useAuthStore();
 
+  deleteSessionWithTokens();
   const peristedState = getFromLocalStorageOrDefault();
   store.$patch(peristedState);
   store.setInitialized(true);

@@ -711,7 +711,7 @@ onUnmounted(() => clearTimeout(pollTimer));
                   {{ selectedVersion.metric_version }} and will not change.
                 </p>
                 <div v-if="selectedVersion" class="flex items-center gap-2">
-                  <Label for="experiment-version" class="text-sm">
+                  <Label for="experiment-version" class="text-sm leading-5">
                     Version
                   </Label>
                   <Select

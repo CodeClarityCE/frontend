@@ -411,7 +411,9 @@ const LINK =
       <div class="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle class="text-base">Dependency composition</CardTitle>
+            <CardTitle class="text-base leading-normal"
+              >Dependency composition</CardTitle
+            >
           </CardHeader>
           <CardContent>
             <ColumnChart
@@ -427,7 +429,9 @@ const LINK =
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle class="text-base">Health factors</CardTitle>
+            <CardTitle class="text-base leading-normal"
+              >Health factors</CardTitle
+            >
           </CardHeader>
           <CardContent class="flex flex-col gap-6">
             <dl class="flex flex-col gap-2 text-sm">

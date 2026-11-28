@@ -90,7 +90,7 @@ const {
       <template v-else>
         <Card class="rounded-card shadow-card">
           <CardHeader>
-            <CardTitle class="text-base">Fix next</CardTitle>
+            <CardTitle class="text-base leading-normal">Fix next</CardTitle>
             <CardDescription>
               Remediations ranked by the worst severity they resolve, then known
               exploited or high EPSS, then prod over dev only, then how many
@@ -103,7 +103,7 @@ const {
         </Card>
         <Card class="rounded-card shadow-card">
           <CardHeader>
-            <CardTitle class="text-base">My work</CardTitle>
+            <CardTitle class="text-base leading-normal">My work</CardTitle>
             <CardDescription>
               Open tickets assigned to you: overdue first, then due soon, then
               by Fix next rank

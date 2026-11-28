@@ -47,7 +47,9 @@ defineProps<{
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
     <Card class="rounded-card shadow-card lg:col-span-2">
       <CardHeader>
-        <CardTitle class="text-base">Open vulnerabilities over time</CardTitle>
+        <CardTitle class="text-base leading-normal"
+          >Open vulnerabilities over time</CardTitle
+        >
         <CardDescription>
           Vulnerability instances in each project's current analysis at the end
           of each period, and how many were introduced and fixed
@@ -59,7 +61,9 @@ defineProps<{
     </Card>
     <Card class="rounded-card shadow-card">
       <CardHeader>
-        <CardTitle class="text-base">Vulnerabilities summary</CardTitle>
+        <CardTitle class="text-base leading-normal"
+          >Vulnerabilities summary</CardTitle
+        >
         <CardDescription
           >Current threats affecting your projects</CardDescription
         >
@@ -74,7 +78,7 @@ defineProps<{
     </Card>
     <Card class="rounded-card shadow-card">
       <CardHeader>
-        <CardTitle class="text-base">Tickets</CardTitle>
+        <CardTitle class="text-base leading-normal">Tickets</CardTitle>
         <CardDescription
           >Track vulnerability remediation progress</CardDescription
         >
@@ -85,7 +89,7 @@ defineProps<{
     </Card>
     <Card class="rounded-card shadow-card">
       <CardHeader>
-        <CardTitle class="text-base">Stale projects</CardTitle>
+        <CardTitle class="text-base leading-normal">Stale projects</CardTitle>
         <CardDescription>Projects not analysed lately</CardDescription>
       </CardHeader>
       <CardContent>
@@ -94,7 +98,9 @@ defineProps<{
     </Card>
     <Card class="rounded-card shadow-card">
       <CardHeader>
-        <CardTitle class="text-base">Open source licenses</CardTitle>
+        <CardTitle class="text-base leading-normal"
+          >Open source licenses</CardTitle
+        >
         <CardDescription>Licenses across your dependencies</CardDescription>
       </CardHeader>
       <CardContent>
@@ -103,7 +109,7 @@ defineProps<{
     </Card>
     <Card class="rounded-card shadow-card">
       <CardHeader>
-        <CardTitle class="text-base">Impact analysis</CardTitle>
+        <CardTitle class="text-base leading-normal">Impact analysis</CardTitle>
         <CardDescription>
           Mean impact of vulnerabilities on your projects
         </CardDescription>

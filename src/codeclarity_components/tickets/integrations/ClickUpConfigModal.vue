@@ -831,7 +831,10 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
 
             <div class="flex items-center space-x-2">
               <Checkbox id="auto-sync" v-model="autoSyncOnCreate" />
-              <Label for="auto-sync" class="text-sm font-normal cursor-pointer">
+              <Label
+                for="auto-sync"
+                class="text-sm leading-5 font-normal cursor-pointer"
+              >
                 Auto-sync new tickets to ClickUp
               </Label>
             </div>
@@ -840,7 +843,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
               <Checkbox id="sync-status" v-model="syncStatusChanges" />
               <Label
                 for="sync-status"
-                class="text-sm font-normal cursor-pointer"
+                class="text-sm leading-5 font-normal cursor-pointer"
               >
                 Sync status changes to ClickUp
               </Label>
@@ -1195,7 +1198,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
                 <Checkbox id="auto-sync-oauth" v-model="autoSyncOnCreate" />
                 <Label
                   for="auto-sync-oauth"
-                  class="text-sm font-normal cursor-pointer"
+                  class="text-sm leading-5 font-normal cursor-pointer"
                 >
                   Auto-sync new tickets to ClickUp
                 </Label>
@@ -1205,7 +1208,7 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
                 <Checkbox id="sync-status-oauth" v-model="syncStatusChanges" />
                 <Label
                   for="sync-status-oauth"
-                  class="text-sm font-normal cursor-pointer"
+                  class="text-sm leading-5 font-normal cursor-pointer"
                 >
                   Sync status changes to ClickUp
                 </Label>

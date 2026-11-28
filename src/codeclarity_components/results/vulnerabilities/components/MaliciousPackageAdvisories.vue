@@ -100,7 +100,7 @@ watch(
     class="border-2"
   >
     <TriangleAlert aria-hidden="true" class="size-5" />
-    <AlertTitle class="text-base font-semibold">
+    <AlertTitle class="text-base leading-normal font-semibold">
       Malicious packages found
     </AlertTitle>
     <AlertDescription class="text-foreground">

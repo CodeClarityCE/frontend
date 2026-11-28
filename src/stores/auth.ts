@@ -166,15 +166,22 @@ function holdsTokens(saved: string): boolean {
   }
 }
 
+// Deletes an old saved session unread, so its tokens leave the browser; the user signs in once.
+function deleteSessionWithTokens(): void {
+  try {
+    const saved = localStorage.getItem(storePeristantName);
+    if (saved !== null && holdsTokens(saved)) {
+      localStorage.removeItem(storePeristantName);
+    }
+  } catch {
+    // Blocked storage holds no old session.
+  }
+}
+
 export function loadAuthStoreFromLocalStorage(): void {
   const store = useAuthStore();
 
-  // An old saved session is deleted unread, so its tokens leave the browser; the user signs in once.
-  const saved = localStorage.getItem(storePeristantName);
-  if (saved !== null && holdsTokens(saved)) {
-    localStorage.removeItem(storePeristantName);
-  }
-
+  deleteSessionWithTokens();
   const peristedState = getFromLocalStorageOrDefault();
   store.$patch(peristedState);
   store.setInitialized(true);

@@ -26,8 +26,7 @@ const duplicate = ref<CreateRemediationTicketResult["duplicate"]>(null);
 
 async function create(allowDuplicate = false): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  const token = authStore.getToken;
-  if (!orgId || !token) return;
+  if (!orgId || !authStore.getAuthenticated) return;
   busy.value = true;
   failed.value = false;
   try {
@@ -35,7 +34,6 @@ async function create(allowDuplicate = false): Promise<void> {
     const response = await repository.createRemediationTicket({
       orgId,
       projectId: props.projectId,
-      bearerToken: token,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       data: {

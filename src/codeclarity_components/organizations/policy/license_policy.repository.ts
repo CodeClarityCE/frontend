@@ -52,7 +52,6 @@ export class LicensePolicyRepository extends BaseRepository {
         entries_per_page: options.entries_per_page,
         search_key: options.search_key,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -73,7 +72,6 @@ export class LicensePolicyRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/policies/license_policy/${options.policyId}`;
 
     const response = await this.getRequest<DataResponse<LicensePolicy>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -90,7 +88,6 @@ export class LicensePolicyRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/policies/license_policy`;
 
     const response = await this.postRequest<CreatedResponse, CreatePolicy>({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -108,7 +105,6 @@ export class LicensePolicyRepository extends BaseRepository {
 
     const response = await this.patchRequest<NoDataResponse, PolicyUpdate>({
       data: options.data,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -125,7 +121,6 @@ export class LicensePolicyRepository extends BaseRepository {
 
     const response = await this.deleteRequest<NoDataResponse, undefined>({
       data: undefined,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,

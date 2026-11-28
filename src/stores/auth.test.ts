@@ -11,10 +11,9 @@ import { useUserStore } from "@/stores/user";
 
 import { createTestApp, org, type TestApp, user } from "../../tests/real-app";
 
+// What the API answers a sign-in: the times only, the tokens are in its Set-Cookie headers.
 const tokens = {
-  token: "access-token",
   token_expiry: "2099-01-01T00:00:00.000Z",
-  refresh_token: "refresh-token",
   refresh_token_expiry: "2099-01-01T00:00:00.000Z",
 };
 
@@ -58,6 +57,57 @@ describe("auth store", () => {
       email: "john.doe@codeclarity.io",
       password: "secret",
     });
+  });
+
+  it("keeps no token where a script could read it after signing in", async () => {
+    const app = createTestApp();
+    app.http.on("POST", "/auth/authenticate", { data: tokens });
+    app.http.on("GET", "/auth/user", { data: user });
+    app.http.on("GET", `/org/${org.id}`, { data: org });
+    await app.visit("/login");
+
+    await signInWithForm(app);
+    await waitFor(() => {
+      expect(useAuthStore().getAuthenticated).toBe(true);
+    });
+
+    const saved = JSON.parse(
+      localStorage.getItem("authStore") ?? "{}",
+    ) as Record<string, unknown>;
+    expect(Object.keys(saved).sort()).toEqual([
+      "authenticated",
+      "initialized",
+      "refreshTokenExpiry",
+      "tokenExpiry",
+      "userId",
+    ]);
+    expect(sessionStorage.length).toBe(0);
+    expect(document.cookie).toBe("");
+    // The identity request after sign-in rides on the cookies the API set.
+    const identity = app.http.requests.find((r) => r.path === "/auth/user");
+    expect(identity?.credentials).toBe("same-origin");
+    expect(identity?.headers.get("Authorization")).toBeNull();
+  });
+
+  it("deletes a session saved with its tokens before the upgrade, so the visitor signs in once", async () => {
+    localStorage.setItem(
+      "authStore",
+      JSON.stringify({
+        initialized: true,
+        authenticated: true,
+        token: "old-access-token",
+        tokenExpiry: "2099-01-01T00:00:00.000Z",
+        refreshToken: "old-refresh-token",
+        refreshTokenExpiry: "2099-01-01T00:00:00.000Z",
+      }),
+    );
+
+    const app = createTestApp();
+    await app.visit("/projects");
+
+    expect(localStorage.getItem("authStore") ?? "").not.toContain("old-");
+    expect(useAuthStore().getAuthenticated).toBe(false);
+    expect(app.router.currentRoute.value.name).toBe("login");
   });
 
   it("keeps the visitor signed in after a reload and fetches their identity again", async () => {
@@ -104,13 +154,14 @@ describe("auth store", () => {
     });
     expect(useAuthStore().getAuthenticated).toBe(false);
     expect(useUserStore().getUser).toBeUndefined();
-    // The API ends the sign-in, so its refresh token stops working.
+    // The API ends the sign-in of the refresh cookie it receives, and clears both cookies.
     await waitFor(() => {
       expect(app.http.requests).toContainEqual(
         expect.objectContaining({
           method: "POST",
           path: "/auth/sign_out",
-          body: { refresh_token: "refresh-token" },
+          credentials: "same-origin",
+          body: {},
         }),
       );
     });

@@ -71,9 +71,7 @@ export function useTicketsData(
 
   const viewMode = ref<"list" | "kanban">("list");
 
-  const isReady = computed(
-    () => defaultOrg?.value && auth.getAuthenticated && auth.getToken,
-  );
+  const isReady = computed(() => defaultOrg?.value && auth.getAuthenticated);
 
   const isEmpty = computed(
     () => loaded.value && !hasError.value && tickets.value.length === 0,
@@ -106,15 +104,11 @@ export function useTicketsData(
       .length,
   }));
 
-  async function fetchAll(
-    orgId: string,
-    token: string,
-  ): Promise<TicketSummary[]> {
+  async function fetchAll(orgId: string): Promise<TicketSummary[]> {
     const all: TicketSummary[] = [];
     for (let page = 0; ; page++) {
       const request = {
         orgId,
-        bearerToken: token,
         pagination: { page, entries_per_page: FETCH_PAGE_SIZE },
         sort: { sortKey: "created_on", sortDirection: "DESC" },
         handleBusinessErrors: true,
@@ -132,11 +126,11 @@ export function useTicketsData(
 
   async function loadTickets(): Promise<void> {
     const orgId = defaultOrg?.value?.id;
-    if (!auth.getAuthenticated || !orgId || !auth.getToken) return;
+    if (!auth.getAuthenticated || !orgId || !auth.getAuthenticated) return;
 
     isLoading.value = true;
     try {
-      tickets.value = await fetchAll(orgId, auth.getToken);
+      tickets.value = await fetchAll(orgId);
       hasError.value = false;
     } catch {
       hasError.value = true;
@@ -148,14 +142,13 @@ export function useTicketsData(
 
   async function loadTicketDetail(ticketId: string): Promise<void> {
     const orgId = defaultOrg?.value?.id;
-    if (!auth.getAuthenticated || !orgId || !auth.getToken) return;
+    if (!auth.getAuthenticated || !orgId || !auth.getAuthenticated) return;
 
     isLoadingDetail.value = true;
     try {
       const response = await ticketsRepository.getTicketById({
         orgId,
         ticketId,
-        bearerToken: auth.getToken,
         handleBusinessErrors: true,
       });
       selectedTicket.value = response.data;
@@ -176,14 +169,13 @@ export function useTicketsData(
 
   async function loadVulnerabilityDetails(ticketId: string): Promise<void> {
     const orgId = defaultOrg?.value?.id;
-    if (!auth.getAuthenticated || !orgId || !auth.getToken) return;
+    if (!auth.getAuthenticated || !orgId || !auth.getAuthenticated) return;
 
     isLoadingVulnDetails.value = true;
     try {
       const response = await ticketsRepository.getVulnerabilityDetails({
         orgId,
         ticketId,
-        bearerToken: auth.getToken,
         handleBusinessErrors: true,
         handleHTTPErrors: true,
         handleOtherErrors: true,
@@ -201,13 +193,13 @@ export function useTicketsData(
     newStatus: TicketStatus,
   ): Promise<boolean> {
     const orgId = defaultOrg?.value?.id;
-    if (!auth.getAuthenticated || !orgId || !auth.getToken) return false;
+    if (!auth.getAuthenticated || !orgId || !auth.getAuthenticated)
+      return false;
 
     try {
       await ticketsRepository.updateTicket({
         orgId,
         ticketId,
-        bearerToken: auth.getToken,
         data: { status: newStatus },
         handleBusinessErrors: true,
       });

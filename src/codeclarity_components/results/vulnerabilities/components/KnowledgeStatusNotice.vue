@@ -77,7 +77,7 @@ const asOfDay = computed(() =>
 );
 
 // Reads the snapshot stored with this analysis, or null when there is none or it cannot be read.
-async function loadSnapshot(token: string): Promise<KnowledgeSnapshot | null> {
+async function loadSnapshot(): Promise<KnowledgeSnapshot | null> {
   const org = userStore.getDefaultOrg;
   if (!org || props.analysisID === "" || props.projectID === "") return null;
   try {
@@ -85,7 +85,6 @@ async function loadSnapshot(token: string): Promise<KnowledgeSnapshot | null> {
       orgId: org.id,
       projectId: props.projectID,
       analysisId: props.analysisID,
-      bearerToken: token,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -99,10 +98,9 @@ async function loadSnapshot(token: string): Promise<KnowledgeSnapshot | null> {
 
 // The notice is advisory, so a failed lookup must never affect the page.
 onMounted(async () => {
-  const token = authStore.getToken;
-  if (!authStore.getAuthenticated || !token) return;
+  if (!authStore.getAuthenticated) return;
   try {
-    const stored = await loadSnapshot(token);
+    const stored = await loadSnapshot();
     // A snapshot that could not read any source says nothing, so current status is shown instead.
     if (stored?.sources.some((source) => source.status !== "unknown")) {
       snapshot.value = stored;
@@ -110,7 +108,6 @@ onMounted(async () => {
       return;
     }
     const response = await new KnowledgeStatusRepository().getStatus({
-      bearerToken: token,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,

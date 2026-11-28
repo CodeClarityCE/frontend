@@ -39,13 +39,12 @@ watch(
 
 async function update(dueDate: string | null): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !authStore.getToken || saving.value) return;
+  if (!orgId || !authStore.getAuthenticated || saving.value) return;
   saving.value = true;
   try {
     await ticketsRepository.updateTicket({
       orgId,
       ticketId: props.ticketId,
-      bearerToken: authStore.getToken,
       data: { due_date: dueDate },
       handleBusinessErrors: true,
     });

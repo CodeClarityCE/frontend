@@ -53,7 +53,6 @@ export class AnalyzerRepository extends BaseRepository {
         entries_per_page: options.entries_per_page,
         search_key: options.search_key,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -77,7 +76,6 @@ export class AnalyzerRepository extends BaseRepository {
       //     entries_per_page: options.entries_per_page,
       //     search_key: options.search_key
       // },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -96,7 +94,6 @@ export class AnalyzerRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/analyzers`;
 
     const response = await this.postRequest<CreatedResponse, CreateAnalyzer>({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -113,7 +110,6 @@ export class AnalyzerRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/analyzers/${options.analyzer_id}`;
 
     const response = await this.putRequest<NoDataResponse, CreateAnalyzer>({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -130,7 +126,6 @@ export class AnalyzerRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/analyzers/${options.analyzer_id}`;
 
     const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,

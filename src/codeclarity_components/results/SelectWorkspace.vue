@@ -156,13 +156,12 @@ watch(selected_workspace, emitPackageManager);
 
 async function getSbomWorkspaces(): Promise<void> {
   if (!userStore.getDefaultOrg) return;
-  if (!(authStore.getAuthenticated && authStore.getToken)) return;
+  if (!authStore.getAuthenticated) return;
   try {
     const res = await sbomRepo.getSbomWorkspaces({
       orgId: userStore.getDefaultOrg.id,
       projectId: props.projectID,
       analysisId: props.analysisID,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     workspaces.value = res.data;

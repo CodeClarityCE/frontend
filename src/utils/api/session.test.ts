@@ -11,32 +11,16 @@ import {
   type FakeRequest,
   org,
   type TestApp,
+  user,
 } from "../../../tests/real-app";
 
-// What an API from before rotation answers: no new refresh token.
+// What the API answers a refresh: the times only, the tokens are in its Set-Cookie headers.
 const refreshed = {
   data: {
-    token: "new-access-token",
     token_expiry: "2099-01-01T00:00:00.000Z",
-  },
-};
-
-// What a rotating API answers.
-const rotated = {
-  data: {
-    token: "new-access-token",
-    token_expiry: "2099-01-01T00:00:00.000Z",
-    refresh_token: "rotated-refresh-token",
     refresh_token_expiry: "2099-02-01T00:00:00.000Z",
   },
 };
-
-// An unsigned access token shaped like the API's, for the given user.
-function accessTokenOf(userId: string): string {
-  const part = (value: object): string =>
-    btoa(JSON.stringify(value)).replace(/=+$/, "");
-  return `${part({ alg: "ES512", typ: "at+jwt" })}.${part({ sub: userId, userId })}.sig`;
-}
 
 // An exclusive Web Locks stand-in: each request runs after the previous one under that name.
 function installFakeLocks(): string[] {
@@ -87,19 +71,17 @@ function saveExpiredSession(): void {
     "authStore",
     JSON.stringify({
       initialized: true,
-      token: "access-token",
+      userId: user.id,
       tokenExpiry: new Date(Date.now() - 1000).toISOString(),
-      refreshToken: "refresh-token",
       refreshTokenExpiry: "2099-01-01T00:00:00.000Z",
       authenticated: true,
     }),
   );
 }
 
-// An authenticated request as components send it, with the store's token.
+// An authenticated request as components send it.
 function loadOrg(): Promise<unknown> {
   return new OrgRepository().get({
-    bearerToken: useAuthStore().getToken ?? "",
     orgId: org.id,
     handleBusinessErrors: true,
     handleHTTPErrors: true,
@@ -110,7 +92,10 @@ function loadOrg(): Promise<unknown> {
 async function expiredSession(): Promise<TestApp> {
   const app = createTestApp({ signedIn: true });
   await app.visit("/projects");
-  useAuthStore().setTokenExpiry(new Date(Date.now() - 1000));
+  useAuthStore().adoptSession({
+    tokenExpiry: new Date(Date.now() - 1000),
+    refreshTokenExpiry: new Date("2099-01-01T00:00:00.000Z"),
+  });
   app.http.requests.length = 0;
   return app;
 }
@@ -121,44 +106,50 @@ function sent(app: TestApp, method: string, path: string): FakeRequest[] {
   );
 }
 
-// No request but a refresh or sign-out may carry the refresh token anywhere.
-function expectRefreshTokenOnlyInRefreshBody(app: TestApp): void {
+// Every request goes out with the cookies and the CSRF header, never with a token of its own.
+function expectCookieRequests(app: TestApp): void {
   for (const request of app.http.requests) {
-    expect(request.headers.get("Authorization") ?? "").not.toContain(
-      "refresh-token",
-    );
-    if (request.path !== "/auth/refresh" && request.path !== "/auth/sign_out") {
-      expect(JSON.stringify(request.body ?? null)).not.toContain(
-        "refresh-token",
-      );
-    }
+    expect(request.credentials).toBe("same-origin");
+    expect(request.headers.get("X-CodeClarity-CSRF")).toBe("1");
+    expect(request.headers.get("Authorization")).toBeNull();
   }
 }
 
-describe("session token", () => {
+// What a script on the page could read: nothing that looks like a token.
+function expectNoTokenInStorage(): void {
+  const saved = JSON.parse(localStorage.getItem("authStore") ?? "{}") as Record<
+    string,
+    unknown
+  >;
+  expect(Object.keys(saved)).not.toContain("token");
+  expect(Object.keys(saved)).not.toContain("refreshToken");
+  expect(JSON.stringify(saved)).not.toMatch(/eyJ|refresh-token/);
+  expect(sessionStorage.length).toBe(0);
+}
+
+describe("web sign-in session", () => {
   let app: TestApp | undefined;
   const track = (tested: TestApp): void => {
     app = tested;
   };
 
-  // No test may send the refresh token anywhere but the refresh body.
   afterEach(() => {
-    if (app) expectRefreshTokenOnlyInRefreshBody(app);
+    if (app) expectCookieRequests(app);
     app = undefined;
   });
 
-  it("sends the access token as the bearer, never the refresh token", async () => {
+  it("sends requests with the session cookies and the CSRF header", async () => {
     const app = createTestApp({ signedIn: true });
     track(app);
     await app.visit("/projects");
 
     await loadOrg();
 
-    const [request] = sent(app, "GET", `/org/${org.id}`).slice(-1);
-    expect(request?.headers.get("Authorization")).toBe("Bearer access-token");
+    expect(sent(app, "GET", `/org/${org.id}`)).not.toHaveLength(0);
+    expectNoTokenInStorage();
   });
 
-  it("refreshes an expired access token once, then sends the new one", async () => {
+  it("refreshes an expired access token once, then sends the request", async () => {
     const app = await expiredSession();
     track(app);
     app.http.on("POST", "/auth/refresh", refreshed);
@@ -167,24 +158,42 @@ describe("session token", () => {
 
     const refreshes = sent(app, "POST", "/auth/refresh");
     expect(refreshes).toHaveLength(1);
-    expect(refreshes[0]?.body).toEqual({ refresh_token: "refresh-token" });
-    expect(refreshes[0]?.headers.get("Authorization")).toBeNull();
-    const [request] = sent(app, "GET", `/org/${org.id}`);
-    expect(request?.headers.get("Authorization")).toBe(
-      "Bearer new-access-token",
+    expect(refreshes[0]?.body).toEqual({});
+    expect(app.http.requests.map((r) => r.path)).toEqual([
+      "/auth/refresh",
+      `/org/${org.id}`,
+    ]);
+    expect(useAuthStore().getTokenExpiry).toEqual(
+      new Date(refreshed.data.token_expiry),
     );
-    expect(useAuthStore().getToken).toBe("new-access-token");
+    expect(useAuthStore().getRefreshTokenExpiry).toEqual(
+      new Date(refreshed.data.refresh_token_expiry),
+    );
+    expectNoTokenInStorage();
   });
 
   it("refreshes a token that is about to expire", async () => {
     const app = await expiredSession();
     track(app);
-    useAuthStore().setTokenExpiry(new Date(Date.now() + 5000));
+    useAuthStore().adoptSession({
+      tokenExpiry: new Date(Date.now() + 5000),
+      refreshTokenExpiry: new Date("2099-01-01T00:00:00.000Z"),
+    });
     app.http.on("POST", "/auth/refresh", refreshed);
 
     await loadOrg();
 
     expect(sent(app, "POST", "/auth/refresh")).toHaveLength(1);
+  });
+
+  it("does not refresh a fresh access token", async () => {
+    const app = createTestApp({ signedIn: true });
+    track(app);
+    await app.visit("/projects");
+
+    await loadOrg();
+
+    expect(sent(app, "POST", "/auth/refresh")).toHaveLength(0);
   });
 
   it("shares one refresh between requests sent at once", async () => {
@@ -195,13 +204,7 @@ describe("session token", () => {
     await Promise.all([loadOrg(), loadOrg(), loadOrg()]);
 
     expect(sent(app, "POST", "/auth/refresh")).toHaveLength(1);
-    const requests = sent(app, "GET", `/org/${org.id}`);
-    expect(requests).toHaveLength(3);
-    for (const request of requests) {
-      expect(request.headers.get("Authorization")).toBe(
-        "Bearer new-access-token",
-      );
-    }
+    expect(sent(app, "GET", `/org/${org.id}`)).toHaveLength(3);
   });
 
   it("signs the user out when the API refuses the refresh", async () => {
@@ -217,12 +220,26 @@ describe("session token", () => {
     await expect(loadOrg()).rejects.toThrow();
 
     expect(useAuthStore().getAuthenticated).toBe(false);
-    expect(useAuthStore().getToken).toBeUndefined();
+    expect(useAuthStore().getTokenExpiry).toBeUndefined();
     expect(useUserStore().getUser).toBeUndefined();
     expect(sent(app, "GET", `/org/${org.id}`)).toHaveLength(0);
     await waitFor(() => {
       expect(app.router.currentRoute.value.name).toBe("login");
     });
+  });
+
+  it("signs out without a request when the sign-in's 7 days are over", async () => {
+    const app = await expiredSession();
+    track(app);
+    useAuthStore().adoptSession({
+      tokenExpiry: new Date(Date.now() - 1000),
+      refreshTokenExpiry: new Date(Date.now() - 1000),
+    });
+
+    await expect(loadOrg()).rejects.toThrow();
+
+    expect(app.http.requests).toEqual([]);
+    expect(useAuthStore().getAuthenticated).toBe(false);
   });
 
   it("keeps the session when the refresh gets no answer", async () => {
@@ -234,7 +251,6 @@ describe("session token", () => {
 
     expect(sent(app, "GET", `/org/${org.id}`)).toHaveLength(0);
     expect(useAuthStore().getAuthenticated).toBe(true);
-    expect(useAuthStore().getRefreshToken).toBe("refresh-token");
     expect(app.router.currentRoute.value.path).toBe("/projects");
   });
 
@@ -246,25 +262,6 @@ describe("session token", () => {
     await expect(loadOrg()).rejects.toThrow(TypeError);
 
     expect(useAuthStore().getAuthenticated).toBe(true);
-    expect(useAuthStore().getRefreshToken).toBe("refresh-token");
-  });
-
-  it("sends the new token for a request signed with the token a refresh replaced", async () => {
-    const app = await expiredSession();
-    track(app);
-    app.http.on("POST", "/auth/refresh", refreshed);
-    await loadOrg();
-
-    await new OrgRepository().get({
-      bearerToken: "access-token",
-      orgId: org.id,
-    });
-
-    const requests = sent(app, "GET", `/org/${org.id}`);
-    expect(requests.at(-1)?.headers.get("Authorization")).toBe(
-      "Bearer new-access-token",
-    );
-    expect(sent(app, "POST", "/auth/refresh")).toHaveLength(1);
   });
 
   it("refreshes an expired token before a navigation loads the page", async () => {
@@ -276,9 +273,9 @@ describe("session token", () => {
     await app.visit("/projects");
 
     expect(sent(app, "POST", "/auth/refresh")).toHaveLength(1);
-    const [identity] = sent(app, "GET", "/auth/user");
-    expect(identity?.headers.get("Authorization")).toBe(
-      "Bearer new-access-token",
+    const paths = app.http.requests.map((r) => r.path);
+    expect(paths.indexOf("/auth/refresh")).toBeLessThan(
+      paths.indexOf("/auth/user"),
     );
     expect(app.router.currentRoute.value.path).toBe("/projects");
   });
@@ -294,69 +291,44 @@ describe("session token", () => {
     expect(app.router.currentRoute.value.path).toBe("/projects");
   });
 
-  it("stores the refresh token each refresh returns and sends it on the next one", async () => {
-    const app = await expiredSession();
-    track(app);
-    app.http.on("POST", "/auth/refresh", rotated);
-    await loadOrg();
-
-    expect(useAuthStore().getRefreshToken).toBe("rotated-refresh-token");
-    expect(useAuthStore().getRefreshTokenExpiry).toEqual(
-      new Date("2099-02-01T00:00:00.000Z"),
-    );
-    expect(localStorage.getItem("authStore")).toContain(
-      "rotated-refresh-token",
-    );
-
-    useAuthStore().setTokenExpiry(new Date(Date.now() - 1000));
-    app.http.on("POST", "/auth/refresh", {
-      data: { ...rotated.data, refresh_token: "third-refresh-token" },
-    });
-    await loadOrg();
-
-    const refreshes = sent(app, "POST", "/auth/refresh");
-    expect(refreshes.map((r) => r.body)).toEqual([
-      { refresh_token: "refresh-token" },
-      { refresh_token: "rotated-refresh-token" },
-    ]);
-    expect(useAuthStore().getRefreshToken).toBe("third-refresh-token");
-  });
-
-  it("keeps the refresh token when the API answers without a new one", async () => {
+  it("refreshes again once the refreshed access token expires", async () => {
     const app = await expiredSession();
     track(app);
     app.http.on("POST", "/auth/refresh", refreshed);
+    await loadOrg();
+    await loadOrg();
+    expect(sent(app, "POST", "/auth/refresh")).toHaveLength(1);
 
+    useAuthStore().adoptSession({
+      tokenExpiry: new Date(Date.now() - 1000),
+      refreshTokenExpiry: new Date("2099-02-01T00:00:00.000Z"),
+    });
     await loadOrg();
 
-    expect(useAuthStore().getToken).toBe("new-access-token");
-    expect(useAuthStore().getRefreshToken).toBe("refresh-token");
+    expect(sent(app, "POST", "/auth/refresh")).toHaveLength(2);
   });
 
   it("shares one refresh within a tab when the browser has no Web Locks", async () => {
     expect("locks" in navigator).toBe(false);
     const app = await expiredSession();
     track(app);
-    app.http.on("POST", "/auth/refresh", rotated);
+    app.http.on("POST", "/auth/refresh", refreshed);
 
     await Promise.all([loadOrg(), loadOrg()]);
 
     expect(sent(app, "POST", "/auth/refresh")).toHaveLength(1);
-    expect(useAuthStore().getRefreshToken).toBe("rotated-refresh-token");
   });
 
-  it("uses the tokens another tab saved when it says so", async () => {
+  it("takes the times another tab saved after refreshing the shared cookies", async () => {
     const app = createTestApp({ signedIn: true });
     track(app);
     await app.visit("/projects");
     const saved = JSON.parse(localStorage.getItem("authStore") ?? "{}") as {
-      token: string;
+      userId: string;
     };
     const newer = JSON.stringify({
       ...saved,
-      token: "other-tab-access-token",
       tokenExpiry: "2099-01-01T00:00:00.000Z",
-      refreshToken: "other-tab-refresh-token",
       refreshTokenExpiry: "2099-02-01T00:00:00.000Z",
     });
 
@@ -365,16 +337,9 @@ describe("session token", () => {
       new StorageEvent("storage", { key: "authStore", newValue: newer }),
     );
 
-    expect(useAuthStore().getToken).toBe("other-tab-access-token");
-    expect(useAuthStore().getRefreshToken).toBe("other-tab-refresh-token");
-    // A request signed with the old token goes out with the new one.
-    await new OrgRepository().get({
-      bearerToken: saved.token,
-      orgId: org.id,
-    });
-    expect(
-      sent(app, "GET", `/org/${org.id}`).at(-1)?.headers.get("Authorization"),
-    ).toBe("Bearer other-tab-access-token");
+    expect(useAuthStore().getTokenExpiry).toEqual(
+      new Date("2099-01-01T00:00:00.000Z"),
+    );
   });
 
   it("signs out when another tab signs out, without a request", async () => {
@@ -398,7 +363,6 @@ describe("session token", () => {
       expect(app.router.currentRoute.value.name).toBe("login");
     });
     expect(useAuthStore().getAuthenticated).toBe(false);
-    expect(useAuthStore().getToken).toBeUndefined();
     expect(useUserStore().getUser).toBeUndefined();
     expect(app.http.requests).toEqual([]);
   });
@@ -407,11 +371,9 @@ describe("session token", () => {
     const app = createTestApp({ signedIn: true });
     track(app);
     await app.visit("/projects");
-    useAuthStore().setToken(accessTokenOf("user-x"));
     const otherUser = JSON.stringify({
       authenticated: true,
-      token: accessTokenOf("user-y"),
-      refreshToken: "user-y-refresh-token",
+      userId: "user-y",
     });
 
     window.dispatchEvent(
@@ -423,41 +385,37 @@ describe("session token", () => {
     );
 
     expect(useAuthStore().getAuthenticated).toBe(true);
-    expect(useAuthStore().getToken).toBe(accessTokenOf("user-x"));
   });
 
-  it("ignores the tokens of another user signed in from another tab", async () => {
+  it("starts over when another tab signs a different user in, since the cookies are shared", async () => {
+    const reload = vi.fn();
+    vi.stubGlobal("location", { ...window.location, reload });
     const app = createTestApp({ signedIn: true });
     track(app);
     await app.visit("/projects");
-    useAuthStore().setToken(accessTokenOf("user-x"));
     const saved = JSON.parse(localStorage.getItem("authStore") ?? "{}") as {
-      token: string;
+      userId: string;
     };
-    const otherUser = JSON.stringify({
-      ...saved,
-      token: accessTokenOf("user-y"),
-      refreshToken: "user-y-refresh-token",
-    });
+    const otherUser = JSON.stringify({ ...saved, userId: "user-y" });
 
     localStorage.setItem("authStore", otherUser);
     window.dispatchEvent(
       new StorageEvent("storage", { key: "authStore", newValue: otherUser }),
     );
 
-    expect(useAuthStore().getToken).toBe(accessTokenOf("user-x"));
-    expect(useAuthStore().getRefreshToken).toBe("refresh-token");
+    expect(reload).toHaveBeenCalled();
+    vi.unstubAllGlobals();
   });
 });
 
-describe("session token across tabs", () => {
+describe("web sign-in session across tabs", () => {
   afterEach(() => {
     Reflect.deleteProperty(navigator, "locks");
   });
 
-  it("makes one refresh for two tabs refreshing at once, and both get the new tokens", async () => {
+  it("makes one refresh for two tabs refreshing at once, and both get the new times", async () => {
     const app = createTestApp();
-    app.http.on("POST", "/auth/refresh", rotated);
+    app.http.on("POST", "/auth/refresh", refreshed);
     const locks = installFakeLocks();
     saveExpiredSession();
     const first = await openTab();
@@ -476,16 +434,17 @@ describe("session token across tabs", () => {
     expect(locks).toHaveLength(2);
     expect(new Set(locks).size).toBe(1);
     for (const tab of [first, second]) {
-      expect(tab.auth.getToken).toBe("new-access-token");
-      expect(tab.auth.getRefreshToken).toBe("rotated-refresh-token");
+      expect(tab.auth.getTokenExpiry).toEqual(
+        new Date(refreshed.data.token_expiry),
+      );
     }
   });
 
-  it("refreshes with the token the other tab rotated when its access token expires too", async () => {
+  it("refreshes again in the second tab once the first tab's refreshed token expires too", async () => {
     const app = createTestApp();
     app.http.on("POST", "/auth/refresh", {
       data: {
-        ...rotated.data,
+        ...refreshed.data,
         token_expiry: new Date(Date.now() + 1000).toISOString(),
       },
     });
@@ -496,19 +455,15 @@ describe("session token across tabs", () => {
 
     setActivePinia(first.pinia);
     await first.session.ensureFreshAccessToken();
-    app.http.on("POST", "/auth/refresh", {
-      data: { ...rotated.data, refresh_token: "third-refresh-token" },
-    });
+    app.http.on("POST", "/auth/refresh", refreshed);
     setActivePinia(second.pinia);
     await second.session.ensureFreshAccessToken();
 
-    const bodies = app.http.requests
-      .filter((r) => r.path === "/auth/refresh")
-      .map((r) => r.body);
-    expect(bodies).toEqual([
-      { refresh_token: "refresh-token" },
-      { refresh_token: "rotated-refresh-token" },
-    ]);
-    expect(second.auth.getRefreshToken).toBe("third-refresh-token");
+    expect(
+      app.http.requests.filter((r) => r.path === "/auth/refresh"),
+    ).toHaveLength(2);
+    expect(second.auth.getTokenExpiry).toEqual(
+      new Date(refreshed.data.token_expiry),
+    );
   });
 });

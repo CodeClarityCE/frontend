@@ -62,7 +62,7 @@ export function useDashboardData(): {
   state.page = "home";
 
   const isReady = computed(
-    () => !!(defaultOrg?.value && auth.getAuthenticated && auth.getToken),
+    () => !!(defaultOrg?.value && auth.getAuthenticated),
   );
   // Starts loading when it can, so the empty state never flashes first.
   const isLoading = ref(isReady.value);
@@ -78,12 +78,10 @@ export function useDashboardData(): {
 
   const requestOptions = (): {
     orgId: string;
-    bearerToken: string;
     handleBusinessErrors: boolean;
     integrationIds: string[];
   } => ({
     orgId: defaultOrg?.value?.id ?? "",
-    bearerToken: auth.getToken ?? "",
     handleBusinessErrors: true,
     integrationIds: activeIntegrationIds.value,
   });
@@ -125,7 +123,7 @@ export function useDashboardData(): {
   const hasData = computed(() => hasProjects.value && hasAnalyses.value);
 
   async function loadDashboardData(): Promise<void> {
-    if (!isReady.value || !defaultOrg?.value || !auth.getToken) return;
+    if (!isReady.value || !defaultOrg?.value || !auth.getAuthenticated) return;
 
     isLoading.value = true;
     hasError.value = false;
@@ -133,12 +131,10 @@ export function useDashboardData(): {
     const [orgResponse, integrationsResponse] = await Promise.allSettled([
       new OrgRepository().getOrgMetaData({
         orgId: defaultOrg?.value.id,
-        bearerToken: auth.getToken,
         handleBusinessErrors: true,
       }),
       new IntegrationsRepository().getVCS({
         orgId: defaultOrg?.value.id,
-        bearerToken: auth.getToken,
         pagination: { page: 0, entries_per_page: 100 },
         handleBusinessErrors: true,
       }),

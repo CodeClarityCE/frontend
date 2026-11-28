@@ -13,8 +13,8 @@ import type { PasswordDeleteBody } from "../settings/forms/password_delete.http"
 import { AuthenticatedUser } from "./authenticated_user.entity";
 import type { ConfirmRegistrationBody } from "./confirm_registration.http";
 import type { PasswordPatchBody } from "./password_patch.http";
+import { SessionExpiry } from "./session_expiry.entity";
 import type { SocialSetupBody } from "./social_setup.http";
-import { Token } from "./token.entity";
 
 export interface SetDefaultOrgRequestOptions extends AuthRepoMethodPatchRequestOptions<UpdateDefaultOrgBody> {
   userId: string;
@@ -45,7 +45,6 @@ export class UserRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.userId}`;
 
     const response = await this.getRequest<DataResponse<AuthenticatedUser>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -67,7 +66,6 @@ export class UserRepository extends BaseRepository {
       NoDataResponse,
       UpdateDefaultOrgBody
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -84,7 +82,6 @@ export class UserRepository extends BaseRepository {
     const RELATIVE_URL = `/users/${options.userId}/update_personal`;
 
     const response = await this.patchRequest<NoDataResponse, SocialSetupBody>({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -95,17 +92,16 @@ export class UserRepository extends BaseRepository {
     return Entity.unMarshal<NoDataResponse>(response, NoDataResponse);
   }
 
-  /** Changes the password; returns the caller's fresh sign-in, which an older API does not send. */
+  /** Changes the password; the caller's fresh sign-in comes back in new cookies, with its expiry. */
   async patchPassword(
     options: PatchUserPasswordRequestOptions,
-  ): Promise<Token | undefined> {
+  ): Promise<SessionExpiry> {
     const RELATIVE_URL = `/users/${options.userId}/update_password`;
 
     const response = await this.patchRequest<
-      Partial<DataResponse<Token>>,
+      DataResponse<SessionExpiry>,
       PasswordPatchBody
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -113,8 +109,7 @@ export class UserRepository extends BaseRepository {
       handleOtherErrors: options.handleOtherErrors,
     });
 
-    if (!response.data) return undefined;
-    return Entity.unMarshal<Token>(response.data, Token);
+    return Entity.unMarshal<SessionExpiry>(response.data, SessionExpiry);
   }
 
   async deleteUser(options: DeleteUserRequestOptions): Promise<NoDataResponse> {
@@ -124,7 +119,6 @@ export class UserRepository extends BaseRepository {
       NoDataResponse,
       PasswordDeleteBody
     >({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -144,7 +138,6 @@ export class UserRepository extends BaseRepository {
       NoDataResponse,
       ConfirmRegistrationBody
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,

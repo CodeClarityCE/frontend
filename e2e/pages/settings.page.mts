@@ -43,6 +43,15 @@ export class SettingsPage {
         method === "DELETE" ? "delete" : (path.split("/").pop() ?? "");
       const failure = options.fail?.[key];
       if (failure) return route.fulfill({ status: 400, json: failure });
+      // A password change answers the fresh sign-in's expiry; its tokens would be cookies.
+      if (key === "update_password") {
+        const expiry = new Date(Date.now() + 86_400_000).toISOString();
+        return route.fulfill({
+          json: {
+            data: { token_expiry: expiry, refresh_token_expiry: expiry },
+          },
+        });
+      }
       return route.fulfill({ json: { status_code: 200, status: "success" } });
     });
   }

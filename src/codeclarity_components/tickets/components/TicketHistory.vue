@@ -24,7 +24,7 @@ const loadFailed = ref(false);
 
 async function loadEvents(): Promise<void> {
   const orgId = defaultOrg?.value?.id;
-  if (!orgId || !auth.getToken) return;
+  if (!orgId || !auth.getAuthenticated) return;
 
   isLoading.value = true;
   loadFailed.value = false;
@@ -32,7 +32,6 @@ async function loadEvents(): Promise<void> {
     const response = await ticketsRepository.getTicketEvents({
       orgId,
       ticketId: props.ticket.id,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,

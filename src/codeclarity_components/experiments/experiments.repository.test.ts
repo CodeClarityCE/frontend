@@ -6,7 +6,7 @@ import { ExperimentRunStatus, ExperimentStatus } from "./experiment.entity";
 import { ExperimentsRepository } from "./experiments.repository";
 
 const base = "/org/org-1/experiments/exp-1";
-const auth = { orgId: "org-1", experimentId: "exp-1", bearerToken: "token" };
+const auth = { orgId: "org-1", experimentId: "exp-1" };
 
 const experiment = {
   id: "exp-1",
@@ -77,7 +77,6 @@ describe("ExperimentsRepository", () => {
     const response = await new ExperimentsRepository().getExperiments({
       orgId: "org-1",
       pagination: { page: 1, entries_per_page: 20 },
-      bearerToken: "token",
     });
 
     expect(response.data.map((e) => e.name)).toEqual(["top100 head"]);
@@ -87,7 +86,7 @@ describe("ExperimentsRepository", () => {
     const request = app.http.requests[0]!;
     expect(request.query.get("page")).toBe("1");
     expect(request.query.get("entries_per_page")).toBe("20");
-    expect(request.headers.get("Authorization")).toBe("Bearer token");
+    expect(request.headers.get("X-CodeClarity-CSRF")).toBe("1");
   });
 
   it("gets one experiment", async () => {
@@ -125,7 +124,6 @@ describe("ExperimentsRepository", () => {
     const response = await new ExperimentsRepository().createExperiment({
       orgId: "org-1",
       data,
-      bearerToken: "token",
     });
 
     expect(response.id).toBe("exp-1");
@@ -222,7 +220,7 @@ describe("ExperimentsRepository", () => {
   });
 
   it.each(["runs.csv", "vulnerabilities.csv", "results.json"] as const)(
-    "downloads the %s export as an authenticated blob",
+    "downloads the %s export as a blob on the session",
     async (file) => {
       const app = createTestApp();
       app.http.on("GET", `${base}/export/${file}`, "contents");
@@ -235,7 +233,7 @@ describe("ExperimentsRepository", () => {
       expect(await blob.text()).toBe("contents");
       const request = app.http.requests[0]!;
       expect(request.query.has("metric_version")).toBe(false);
-      expect(request.headers.get("Authorization")).toBe("Bearer token");
+      expect(request.headers.get("X-CodeClarity-CSRF")).toBe("1");
     },
   );
 });

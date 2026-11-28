@@ -35,10 +35,9 @@ const router = useRouter();
 const authStore = useAuthStore();
 
 const { policies, loaded, error, loadPolicies } = usePolicyList(
-  (bearerToken) =>
+  () =>
     licensePolicyRepository.getLicensePolicies({
       orgId: props.orgId,
-      bearerToken,
       handleBusinessErrors: true,
       page: 0,
       entries_per_page: 100,
@@ -75,13 +74,12 @@ function handleEdit(policy: LicensePolicy): void {
 
 async function confirmDelete(): Promise<void> {
   const policy = policyToDelete.value;
-  if (!policy || !authStore.getToken) return;
+  if (!policy || !authStore.getAuthenticated) return;
   deleting.value = true;
   try {
     await licensePolicyRepository.deletePolicy({
       orgId: props.orgId,
       policyId: policy.id,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });

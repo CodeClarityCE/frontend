@@ -145,7 +145,6 @@ export class ExperimentsRepository extends BaseRepository {
         page: options.pagination.page,
         entries_per_page: options.pagination.entries_per_page,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -170,7 +169,6 @@ export class ExperimentsRepository extends BaseRepository {
     const response = await this.getRequest<
       DataResponse<ExperimentEstimateBasis>
     >({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(`/org/${options.orgId}/experiments/estimate`),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -188,7 +186,6 @@ export class ExperimentsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}`;
 
     const response = await this.getRequest<DataResponse<Experiment>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -213,7 +210,6 @@ export class ExperimentsRepository extends BaseRepository {
         page: options.pagination.page,
         entries_per_page: options.pagination.entries_per_page,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -240,7 +236,6 @@ export class ExperimentsRepository extends BaseRepository {
       CreatedResponse,
       CreateExperimentRequest
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -260,7 +255,6 @@ export class ExperimentsRepository extends BaseRepository {
       NoDataResponse,
       Record<string, never>
     >({
-      bearerToken: options.bearerToken,
       data: {},
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -280,7 +274,6 @@ export class ExperimentsRepository extends BaseRepository {
       NoDataResponse,
       Record<string, never>
     >({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -297,7 +290,6 @@ export class ExperimentsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/results`;
 
     const response = await this.getRequest<DataResponse<ExperimentResults>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -321,7 +313,6 @@ export class ExperimentsRepository extends BaseRepository {
       DataResponse<PublishedVersionStamp>,
       Record<string, never>
     >({
-      bearerToken: options.bearerToken,
       data: {},
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -341,7 +332,6 @@ export class ExperimentsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/published`;
 
     const response = await this.getRequest<DataResponse<PublishedVersion[]>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -360,7 +350,6 @@ export class ExperimentsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/results/progress`;
 
     const response = await this.getRequest<DataResponse<LoadProgress>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -379,7 +368,6 @@ export class ExperimentsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/metric-version`;
 
     const response = await this.getRequest<DataResponse<CurrentMetricVersion>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -398,7 +386,6 @@ export class ExperimentsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/published/${options.metricVersion}`;
 
     const response = await this.getRequest<DataResponse<ExperimentResults>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -422,7 +409,6 @@ export class ExperimentsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/export/${options.file}${version}`;
 
     return await this.getBlobRequest({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -437,7 +423,6 @@ export class ExperimentsRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/experiments/${options.experimentId}/published/${options.metricVersion}/package.zip`;
 
     return await this.getBlobRequest({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -450,7 +435,6 @@ export class ExperimentsRepository extends BaseRepository {
     options: GetFiguresRequestOptions,
   ): Promise<DataResponse<FigureCatalog>> {
     const response = await this.getRequest<DataResponse<FigureCatalog>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(this.experimentUrl(options, "figure-catalog")),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -466,7 +450,6 @@ export class ExperimentsRepository extends BaseRepository {
     options: GetFiguresRequestOptions,
   ): Promise<DataResponse<Figure[]>> {
     const response = await this.getRequest<DataResponse<Figure[]>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(this.experimentUrl(options, "figures")),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -486,7 +469,6 @@ export class ExperimentsRepository extends BaseRepository {
       DataResponse<FigureData>,
       { definition: FigureDefinition }
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(this.experimentUrl(options, "figure-data")),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -504,7 +486,6 @@ export class ExperimentsRepository extends BaseRepository {
     options: GetFigureDataRequestOptions,
   ): Promise<DataResponse<FigureData>> {
     const response = await this.getRequest<DataResponse<FigureData>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(
         this.experimentUrl(options, `figures/${options.figureId}/data`),
       ),
@@ -521,7 +502,6 @@ export class ExperimentsRepository extends BaseRepository {
   /** Ties a Figure to a Published results version, or unties it with null. */
   async moveFigureToVersion(options: MoveFigureRequestOptions): Promise<void> {
     await this.putRequest<NoDataResponse, { metric_version: number | null }>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(
         this.experimentUrl(
           options,
@@ -542,7 +522,6 @@ export class ExperimentsRepository extends BaseRepository {
       CreatedResponse,
       { name: string; definition: FigureDefinition }
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(this.experimentUrl(options, "figures")),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -559,7 +538,6 @@ export class ExperimentsRepository extends BaseRepository {
       NoDataResponse,
       { name?: string; definition?: FigureDefinition }
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(
         this.experimentUrl(options, `figures/${options.figureId}`),
@@ -578,7 +556,6 @@ export class ExperimentsRepository extends BaseRepository {
       NoDataResponse,
       Record<string, never>
     >({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(
         this.experimentUrl(options, `figures/${options.figureId}`),
       ),

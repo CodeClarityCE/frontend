@@ -58,7 +58,6 @@ describe("DatasetsRepository", () => {
     const response = await new DatasetsRepository().getDatasets({
       orgId: "org-1",
       pagination: { page: 2, entries_per_page: 20 },
-      bearerToken: "token",
     });
 
     expect(response.data.map((d) => d.name)).toEqual(["top100"]);
@@ -68,7 +67,7 @@ describe("DatasetsRepository", () => {
     const request = app.http.requests[0]!;
     expect(request.query.get("page")).toBe("2");
     expect(request.query.get("entries_per_page")).toBe("20");
-    expect(request.headers.get("Authorization")).toBe("Bearer token");
+    expect(request.headers.get("X-CodeClarity-CSRF")).toBe("1");
   });
 
   it("drops a dataset the API sent without its required fields", async () => {
@@ -82,7 +81,6 @@ describe("DatasetsRepository", () => {
     const response = await new DatasetsRepository().getDatasets({
       orgId: "org-1",
       pagination: { page: 0, entries_per_page: 20 },
-      bearerToken: "token",
     });
 
     expect(response.data.map((d) => d.id)).toEqual(["ds-1"]);
@@ -95,7 +93,6 @@ describe("DatasetsRepository", () => {
     const response = await new DatasetsRepository().getDataset({
       orgId: "org-1",
       datasetId: "ds-1",
-      bearerToken: "token",
     });
 
     expect(response.data.name).toBe("top100");
@@ -109,7 +106,6 @@ describe("DatasetsRepository", () => {
       orgId: "org-1",
       datasetId: "ds-1",
       pagination: { page: 0, entries_per_page: 500 },
-      bearerToken: "token",
     });
 
     expect(response.data.map((e) => e.full_name)).toEqual(["vuejs/core"]);
@@ -130,7 +126,6 @@ describe("DatasetsRepository", () => {
     const response = await new DatasetsRepository().createDataset({
       orgId: "org-1",
       data,
-      bearerToken: "token",
     });
 
     expect(response.id).toBe("ds-1");
@@ -147,7 +142,6 @@ describe("DatasetsRepository", () => {
     await new DatasetsRepository().deleteDataset({
       orgId: "org-1",
       datasetId: "ds-1",
-      bearerToken: "token",
     });
 
     expect(app.http.requests[0]).toMatchObject({

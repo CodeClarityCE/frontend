@@ -38,12 +38,11 @@ const message = computed(() => {
 
 async function poll(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !auth.getToken) return;
+  if (!orgId || !auth.getAuthenticated) return;
   try {
     const response = await experimentsRepository.getLoadProgress({
       orgId,
       experimentId: props.experimentId,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });

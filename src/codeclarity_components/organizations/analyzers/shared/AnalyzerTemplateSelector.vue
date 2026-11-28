@@ -42,12 +42,11 @@ const selected = computed({
 });
 
 async function loadTemplates(): Promise<void> {
-  if (!authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
   loading.value = true;
   error.value = false;
   try {
     const response = await templatesRepo.getTemplates({
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });

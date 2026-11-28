@@ -141,13 +141,13 @@ function setOrgInfo(org: Organization): void {
 }
 
 async function setAutoResolve(enabled: boolean): Promise<void> {
-  if (!authStore.getToken || !orgInfo.value || savingSettings.value) return;
+  if (!authStore.getAuthenticated || !orgInfo.value || savingSettings.value)
+    return;
   autoResolveTickets.value = enabled;
   savingSettings.value = true;
   try {
     await orgRepo.updateSettings({
       orgId: orgInfo.value.id,
-      bearerToken: authStore.getToken,
       data: { auto_resolve_tickets: enabled },
       handleBusinessErrors: true,
     });

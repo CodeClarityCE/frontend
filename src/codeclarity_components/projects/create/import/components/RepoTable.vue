@@ -184,7 +184,7 @@ async function fetchRepos(
   forceRefresh = false,
 ): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  if (!orgId || !authStore.getAuthenticated || !authStore.getToken) return;
+  if (!orgId || !authStore.getAuthenticated) return;
 
   error.value = false;
   errorCode.value = undefined;
@@ -205,7 +205,6 @@ async function fetchRepos(
             props.config.defaultSortKey ?? GetRepositoriesSortInterface.CREATED,
           sortDirection: SortDirection.DESC,
         },
-        bearerToken: authStore.getToken,
         handleBusinessErrors: true,
       });
       all.push(...response.data);

@@ -97,9 +97,7 @@ test.describe("Deep links through login", () => {
         return route.fulfill({
           json: {
             data: {
-              token: "t",
               token_expiry: expiry,
-              refresh_token: "t",
               refresh_token_expiry: expiry,
             },
           },
@@ -145,9 +143,7 @@ test.describe("Deep links through login", () => {
         return route.fulfill({
           json: {
             data: {
-              token: "t",
               token_expiry: expiry,
-              refresh_token: "t",
               refresh_token_expiry: expiry,
             },
           },
@@ -209,9 +205,7 @@ test.describe("Unactivated accounts", () => {
         return route.fulfill({
           json: {
             data: {
-              token: "t",
               token_expiry: expiry,
-              refresh_token: "t",
               refresh_token_expiry: expiry,
             },
           },

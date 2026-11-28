@@ -84,7 +84,7 @@ export function useResearchOverview(): {
     ).slice(0, RECENT_COUNT),
   );
 
-  async function loadPublished(orgId: string, token: string): Promise<void> {
+  async function loadPublished(orgId: string): Promise<void> {
     // Only a COMPLETED Experiment can have Published results.
     const completed = newestFirst(
       experiments.value.filter((e) => e.status === ExperimentStatus.COMPLETED),
@@ -95,7 +95,6 @@ export function useResearchOverview(): {
         const response = await experimentsRepository.getPublishedVersions({
           orgId,
           experimentId: experiment.id,
-          bearerToken: token,
           handleBusinessErrors: true,
           handleHTTPErrors: true,
         });
@@ -107,11 +106,10 @@ export function useResearchOverview(): {
     ).slice(0, RECENT_COUNT);
   }
 
-  async function loadExperiments(orgId: string, token: string): Promise<void> {
+  async function loadExperiments(orgId: string): Promise<void> {
     const response = await experimentsRepository.getExperiments({
       orgId,
       pagination: { page: 0, entries_per_page: EXPERIMENTS_PAGE_SIZE },
-      bearerToken: token,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });
@@ -120,45 +118,43 @@ export function useResearchOverview(): {
 
   async function reload(): Promise<void> {
     const orgId = userStore.getDefaultOrg?.id;
-    const token = auth.getToken;
-    if (!orgId || !token) return;
+    if (!orgId || !auth.getAuthenticated) return;
 
     try {
       const [datasets] = await Promise.all([
         datasetsRepository.getDatasets({
           orgId,
           pagination: { page: 0, entries_per_page: 1 },
-          bearerToken: token,
           handleBusinessErrors: true,
           handleHTTPErrors: true,
         }),
-        loadExperiments(orgId, token),
+        loadExperiments(orgId),
       ]);
       hasDatasets.value = datasets.total_entries > 0;
-      await loadPublished(orgId, token);
+      await loadPublished(orgId);
       hasError.value = false;
     } catch {
       hasError.value = true;
     } finally {
       loaded.value = true;
-      schedulePoll(orgId, token);
+      schedulePoll(orgId);
     }
   }
 
   // Refreshes progress only; the lists below it change when a run ends.
-  function schedulePoll(orgId: string, token: string): void {
+  function schedulePoll(orgId: string): void {
     clearTimeout(pollTimer);
     if (inProgress.value.length === 0) return;
     pollTimer = setTimeout(() => {
       const wasActive = inProgress.value.length;
-      void loadExperiments(orgId, token)
+      void loadExperiments(orgId)
         .then(async () => {
           if (inProgress.value.length !== wasActive) {
-            await loadPublished(orgId, token);
+            await loadPublished(orgId);
           }
         })
         .catch(() => undefined)
-        .finally(() => schedulePoll(orgId, token));
+        .finally(() => schedulePoll(orgId));
     }, POLL_INTERVAL_MS);
   }
 

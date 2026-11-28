@@ -86,7 +86,7 @@ function validate(value: string): string | undefined {
 }
 
 async function submit(): Promise<void> {
-  if (!orgId || !authStore.getToken) return;
+  if (!orgId || !authStore.getAuthenticated) return;
   busy.value = true;
   apiError.value = undefined;
   const data = {
@@ -99,7 +99,6 @@ async function submit(): Promise<void> {
       await integrationRepo.updateGitlabIntegration({
         orgId,
         integrationId: updateId,
-        bearerToken: authStore.getToken,
         data,
         handleBusinessErrors: true,
         handleHTTPErrors: true,
@@ -108,7 +107,6 @@ async function submit(): Promise<void> {
     } else {
       await integrationRepo.addGitlabIntegration({
         orgId,
-        bearerToken: authStore.getToken,
         data,
         handleBusinessErrors: true,
         handleHTTPErrors: true,
@@ -132,12 +130,11 @@ async function submit(): Promise<void> {
 }
 
 async function loadStoredUrl(): Promise<void> {
-  if (!updateId || !orgId || !authStore.getToken) return;
+  if (!updateId || !orgId || !authStore.getAuthenticated) return;
   try {
     const integration = await integrationRepo.getGitlabIntegration({
       orgId,
       integrationId: updateId,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     storedUrl.value = integration.service_domain.replace(/\/+$/, "");

@@ -59,13 +59,12 @@ function onOpenChange(value: boolean): void {
 
 const onSubmit = guardFormSubmit(form, async (values): Promise<void> => {
   const user = userStore.user;
-  if (!user || !authStore.getToken) return;
+  if (!user || !authStore.getAuthenticated) return;
   submitting.value = true;
   try {
     await userRepository.deleteUser({
       userId: user.id,
       data: { password: values.password },
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
     });

@@ -52,20 +52,19 @@ const workspace = workspaceFromQuery(route.query.workspace);
 async function getDependency(): Promise<void> {
   const packageId = route.query.package_id ?? null;
   const org = userStore.getDefaultOrg;
-  const token = authStore.getToken;
   if (typeof packageId !== "string" || !packageId || !hasIds) {
     notFound.value = true;
     loading.value = false;
     return;
   }
   try {
-    if (!org || !token) throw new Error("Missing organisation or token");
+    if (!org || !authStore.getAuthenticated)
+      throw new Error("Missing organisation or session");
     const res = await resultsRepository.getDependency({
       orgId: org.id,
       projectId: props.projectID,
       analysisId: props.analysisID,
       dependency: packageId,
-      bearerToken: token,
       workspace,
       runIndex: props.runIndex,
       handleBusinessErrors: true,

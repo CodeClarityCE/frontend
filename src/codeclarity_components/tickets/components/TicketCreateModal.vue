@@ -100,8 +100,7 @@ async function checkDuplicate(): Promise<void> {
   if (!props.vulnerability?.vulnerability_id || !props.projectId) return;
 
   const orgId = userStore.getDefaultOrg?.id;
-  const token = authStore.getToken;
-  if (!orgId || !token) return;
+  if (!orgId || !authStore.getAuthenticated) return;
 
   isCheckingDuplicate.value = true;
   duplicateTicket.value = null;
@@ -109,7 +108,6 @@ async function checkDuplicate(): Promise<void> {
   try {
     const response = await ticketsRepository.checkDuplicate({
       orgId,
-      bearerToken: token,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       data: {
@@ -134,8 +132,7 @@ async function checkDuplicate(): Promise<void> {
 
 async function handleSubmit(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  const token = authStore.getToken;
-  if (!orgId || !token) {
+  if (!orgId || !authStore.getAuthenticated) {
     error.value = "Not authenticated";
     return;
   }
@@ -151,7 +148,6 @@ async function handleSubmit(): Promise<void> {
   try {
     const result = await ticketsRepository.createTicket({
       orgId,
-      bearerToken: token,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       data: {

@@ -59,14 +59,14 @@ const errorOptions = {
   handleOtherErrors: true,
 } as const;
 
-// Runs one request with the token, toasting on failure.
+// Runs one request while signed in, toasting on failure.
 async function run(
   failure: string,
-  request: (bearerToken: string) => Promise<unknown>,
+  request: () => Promise<unknown>,
 ): Promise<boolean> {
-  if (!auth.getToken) return false;
+  if (!auth.getAuthenticated) return false;
   try {
-    await request(auth.getToken);
+    await request();
     return true;
   } catch {
     errorToast(failure);
@@ -75,11 +75,10 @@ async function run(
 }
 
 async function loadIntegrations(): Promise<void> {
-  if (!auth.getToken) return;
+  if (!auth.getAuthenticated) return;
   try {
     const response = await repository.getIntegrations({
       orgId: props.orgId,
-      bearerToken: auth.getToken,
       ...errorOptions,
     });
     integrations.value = response.data.filter((i) => i.enabled);
@@ -90,12 +89,11 @@ async function loadIntegrations(): Promise<void> {
 
 async function syncToProvider(provider: ExternalTicketProvider): Promise<void> {
   isSyncing.value = true;
-  const ok = await run("Failed to sync the ticket", (bearerToken) =>
+  const ok = await run("Failed to sync the ticket", () =>
     repository.syncTicket({
       orgId: props.orgId,
       ticketId: props.ticket.id,
       provider,
-      bearerToken,
       ...errorOptions,
     }),
   );
@@ -105,12 +103,11 @@ async function syncToProvider(provider: ExternalTicketProvider): Promise<void> {
 
 async function unlink(linkId: string): Promise<void> {
   isUnlinking.value = linkId;
-  const ok = await run("Failed to unlink the ticket", (bearerToken) =>
+  const ok = await run("Failed to unlink the ticket", () =>
     repository.unlinkTicket({
       orgId: props.orgId,
       ticketId: props.ticket.id,
       linkId,
-      bearerToken,
       ...errorOptions,
     }),
   );
@@ -119,14 +116,13 @@ async function unlink(linkId: string): Promise<void> {
 }
 
 async function syncFromExternal(linkId: string): Promise<void> {
-  if (!auth.getToken) return;
+  if (!auth.getAuthenticated) return;
   isSyncingFromExternal.value = linkId;
   try {
     const result = await repository.syncFromExternal({
       orgId: props.orgId,
       ticketId: props.ticket.id,
       linkId,
-      bearerToken: auth.getToken,
       ...errorOptions,
     });
     if (result.data.updated) emit("updated");
@@ -139,12 +135,11 @@ async function syncFromExternal(linkId: string): Promise<void> {
 
 async function updateStatus(status: TicketStatus): Promise<void> {
   isUpdatingStatus.value = true;
-  const ok = await run("Failed to update the ticket status", (bearerToken) =>
+  const ok = await run("Failed to update the ticket status", () =>
     repository.updateTicket({
       orgId: props.orgId,
       ticketId: props.ticket.id,
       data: { status },
-      bearerToken,
       ...errorOptions,
     }),
   );

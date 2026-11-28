@@ -40,8 +40,12 @@ let latestRequest = 0;
 // Every license of the analysis; the API pages at 100.
 async function load(): Promise<void> {
   const org = userStore.getDefaultOrg;
-  const token = authStore.getToken;
-  if (!org || !token || props.projectID === "" || props.analysisID === "")
+  if (
+    !org ||
+    !authStore.getAuthenticated ||
+    props.projectID === "" ||
+    props.analysisID === ""
+  )
     return;
   const request = ++latestRequest;
   const fetchPage = (
@@ -52,7 +56,6 @@ async function load(): Promise<void> {
       projectId: props.projectID,
       analysisId: props.analysisID,
       workspace: selected_workspace.value,
-      bearerToken: token,
       pagination: { page, entries_per_page: 100 },
       sort: { sortKey: "type", sortDirection: SortDirection.DESC },
       active_filters: "",

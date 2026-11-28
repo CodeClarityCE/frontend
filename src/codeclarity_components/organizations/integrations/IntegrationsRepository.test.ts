@@ -31,14 +31,13 @@ describe("IntegrationsRepository.getPopularGithubRepositories", () => {
         languages: ["TypeScript", "PHP"],
         pagination: { page: 0, entries_per_page: 100 },
         search: { searchKey: "vue" },
-        bearerToken: "token",
         handleBusinessErrors: true,
         sort: { sortKey: "stars", sortDirection: "DESC" },
       });
 
     expect(result.total_entries).toBe(0);
     const request = app.http.requests.find((r) => r.path === popularPath);
-    expect(request?.headers.get("Authorization")).toBe("Bearer token");
+    expect(request?.headers.get("X-CodeClarity-CSRF")).toBe("1");
     expect(Object.fromEntries(request!.query)).toEqual({
       page: "0",
       entries_per_page: "100",

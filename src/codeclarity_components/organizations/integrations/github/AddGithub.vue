@@ -48,7 +48,7 @@ function validate(value: string): string | undefined {
 }
 
 async function submit(): Promise<void> {
-  if (!orgId || !authStore.getToken) return;
+  if (!orgId || !authStore.getAuthenticated) return;
   busy.value = true;
   apiError.value = undefined;
   const data = {
@@ -60,7 +60,6 @@ async function submit(): Promise<void> {
       await integrationRepo.updateGithubIntegration({
         orgId,
         integrationId: updateId,
-        bearerToken: authStore.getToken,
         data,
         handleBusinessErrors: true,
         handleHTTPErrors: true,
@@ -69,7 +68,6 @@ async function submit(): Promise<void> {
     } else {
       await integrationRepo.addGithubIntegration({
         orgId,
-        bearerToken: authStore.getToken,
         data,
         handleBusinessErrors: true,
         handleHTTPErrors: true,

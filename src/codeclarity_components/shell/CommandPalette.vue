@@ -133,10 +133,9 @@ function actions(): Action[] {
 // Loads the searchable records each time the palette opens, so they stay current.
 async function loadRecords(): Promise<void> {
   const orgId = userStore.getDefaultOrg?.id;
-  const bearerToken = authStore.getToken;
-  if (!orgId || !bearerToken) return;
+  if (!orgId || !authStore.getAuthenticated) return;
   const pagination = { page: 0, entries_per_page: 50 };
-  const common = { orgId, bearerToken, pagination, handleBusinessErrors: true };
+  const common = { orgId, pagination, handleBusinessErrors: true };
 
   const [ds, exps, projs] = await Promise.allSettled([
     new DatasetsRepository().getDatasets(common),

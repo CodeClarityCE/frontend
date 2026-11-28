@@ -35,7 +35,7 @@ const errorCode = ref<string>();
 const deleting = ref(false);
 
 async function fetchIntegration(): Promise<void> {
-  if (!integrationId || !authStore.getToken) return;
+  if (!integrationId || !authStore.getAuthenticated) return;
   loading.value = true;
   error.value = false;
   errorCode.value = undefined;
@@ -43,7 +43,6 @@ async function fetchIntegration(): Promise<void> {
     integration.value = await integrationRepo.getGithubIntegration({
       orgId: props.orgId,
       integrationId,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
   } catch (err) {
@@ -55,13 +54,12 @@ async function fetchIntegration(): Promise<void> {
 }
 
 async function deleteIntegration(): Promise<void> {
-  if (!integrationId || !authStore.getToken) return;
+  if (!integrationId || !authStore.getAuthenticated) return;
   deleting.value = true;
   try {
     await integrationRepo.deleteIntegration({
       orgId: props.orgId,
       integrationId,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
     });
     successToast("Deleted the GitHub integration");

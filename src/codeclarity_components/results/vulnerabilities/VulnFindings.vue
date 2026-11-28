@@ -191,8 +191,12 @@ let latestRequest = 0;
 
 async function load(): Promise<void> {
   const org = userStore.getDefaultOrg;
-  const token = authStore.getToken;
-  if (!org || !token || props.analysisID === "" || props.projectID === "")
+  if (
+    !org ||
+    !authStore.getAuthenticated ||
+    props.analysisID === "" ||
+    props.projectID === ""
+  )
     return;
   const request = ++latestRequest;
   const sort = sorting.value[0] ?? { id: "severity", desc: true };
@@ -202,7 +206,6 @@ async function load(): Promise<void> {
       projectId: props.projectID,
       analysisId: props.analysisID,
       workspace: props.workspace,
-      bearerToken: token,
       pagination: { page: pageIndex.value, entries_per_page: PAGE_SIZE },
       sort: {
         sortKey: sort.id,

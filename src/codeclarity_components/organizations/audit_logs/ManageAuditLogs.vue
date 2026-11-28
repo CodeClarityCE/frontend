@@ -51,15 +51,13 @@ const emptyText = computed(() =>
 let latestRequest = 0;
 
 async function load(): Promise<void> {
-  const token = authStore.getToken;
-  if (!orgId || !token) return;
+  if (!orgId || !authStore.getAuthenticated) return;
   const request = ++latestRequest;
   const sort = sorting.value[0] ?? { id: "created_on", desc: true };
   loading.value = true;
   try {
     const response = await orgRepo.getOrgAuditLogs({
       orgId,
-      bearerToken: token,
       search: { searchKey: debouncedSearch.value.trim() },
       pagination: { page: pageIndex.value, entries_per_page: PAGE_SIZE },
       sort: {

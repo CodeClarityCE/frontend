@@ -155,8 +155,7 @@ async function copyRedirectUri(): Promise<void> {
 
 async function startOAuthFlow(): Promise<void> {
   const orgId = userStore.defaultOrg?.id;
-  const token = auth.getToken;
-  if (!orgId || !token) return;
+  if (!orgId || !auth.getAuthenticated) return;
 
   isConnectingOAuth.value = true;
   testResult.value = null;
@@ -165,7 +164,6 @@ async function startOAuthFlow(): Promise<void> {
     const response = await ticketsRepository.getClickUpOAuthUrl({
       orgId,
       redirectUri: getOAuthRedirectUri(),
-      bearerToken: token,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -187,7 +185,11 @@ async function startOAuthFlow(): Promise<void> {
 }
 
 async function fetchWorkspaces(): Promise<void> {
-  if (!userStore.defaultOrg?.id || !auth.getToken || !canFetchWorkspaces.value)
+  if (
+    !userStore.defaultOrg?.id ||
+    !auth.getAuthenticated ||
+    !canFetchWorkspaces.value
+  )
     return;
 
   isLoadingWorkspaces.value = true;
@@ -200,7 +202,6 @@ async function fetchWorkspaces(): Promise<void> {
       orgId: userStore.defaultOrg.id,
       provider: ExternalTicketProvider.CLICKUP,
       data: { api_key: apiKey.value },
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -217,7 +218,6 @@ async function fetchWorkspaces(): Promise<void> {
       orgId: userStore.defaultOrg.id,
       provider: ExternalTicketProvider.CLICKUP,
       credentials: credentials.value,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -244,7 +244,8 @@ async function fetchWorkspaces(): Promise<void> {
 }
 
 async function fetchSpaces(): Promise<void> {
-  if (!userStore.defaultOrg?.id || !auth.getToken || !workspaceId.value) return;
+  if (!userStore.defaultOrg?.id || !auth.getAuthenticated || !workspaceId.value)
+    return;
 
   isLoadingSpaces.value = true;
   spaces.value = [];
@@ -260,7 +261,6 @@ async function fetchSpaces(): Promise<void> {
       provider: ExternalTicketProvider.CLICKUP,
       credentials: credentials.value,
       parentId: workspaceId.value,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -274,7 +274,8 @@ async function fetchSpaces(): Promise<void> {
 }
 
 async function fetchFolders(): Promise<void> {
-  if (!userStore.defaultOrg?.id || !auth.getToken || !spaceId.value) return;
+  if (!userStore.defaultOrg?.id || !auth.getAuthenticated || !spaceId.value)
+    return;
 
   isLoadingFolders.value = true;
   folders.value = [];
@@ -288,7 +289,6 @@ async function fetchFolders(): Promise<void> {
       provider: ExternalTicketProvider.CLICKUP,
       credentials: credentials.value,
       parentId: spaceId.value,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -313,7 +313,8 @@ async function fetchListsFromSpace(): Promise<void> {
 }
 
 async function fetchLists(): Promise<void> {
-  if (!userStore.defaultOrg?.id || !auth.getToken || !folderId.value) return;
+  if (!userStore.defaultOrg?.id || !auth.getAuthenticated || !folderId.value)
+    return;
 
   isLoadingLists.value = true;
   lists.value = [];
@@ -325,7 +326,6 @@ async function fetchLists(): Promise<void> {
       provider: ExternalTicketProvider.CLICKUP,
       credentials: credentials.value,
       parentId: folderId.value,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -342,7 +342,7 @@ async function fetchLists(): Promise<void> {
 async function createSpace(): Promise<void> {
   if (
     !userStore.defaultOrg?.id ||
-    !auth.getToken ||
+    !auth.getAuthenticated ||
     !workspaceId.value ||
     !newSpaceName.value.trim() ||
     isCreatingSpace.value
@@ -357,7 +357,6 @@ async function createSpace(): Promise<void> {
       credentials: credentials.value,
       parentId: workspaceId.value,
       data: { name: newSpaceName.value.trim() },
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -382,7 +381,7 @@ async function createSpace(): Promise<void> {
 async function createFolder(): Promise<void> {
   if (
     !userStore.defaultOrg?.id ||
-    !auth.getToken ||
+    !auth.getAuthenticated ||
     !spaceId.value ||
     !newFolderName.value.trim() ||
     isCreatingFolder.value
@@ -397,7 +396,6 @@ async function createFolder(): Promise<void> {
       credentials: credentials.value,
       parentId: spaceId.value,
       data: { name: newFolderName.value.trim() },
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -422,7 +420,7 @@ async function createFolder(): Promise<void> {
 async function createList(): Promise<void> {
   if (
     !userStore.defaultOrg?.id ||
-    !auth.getToken ||
+    !auth.getAuthenticated ||
     !newListName.value.trim() ||
     isCreatingList.value
   )
@@ -439,7 +437,6 @@ async function createList(): Promise<void> {
         credentials: credentials.value,
         parentId: folderId.value,
         data: { name: newListName.value.trim() },
-        bearerToken: auth.getToken,
         handleBusinessErrors: true,
         handleHTTPErrors: true,
         handleOtherErrors: true,
@@ -452,7 +449,6 @@ async function createList(): Promise<void> {
         credentials: credentials.value,
         parentId: spaceId.value,
         data: { name: newListName.value.trim() },
-        bearerToken: auth.getToken,
         handleBusinessErrors: true,
         handleHTTPErrors: true,
         handleOtherErrors: true,
@@ -479,13 +475,12 @@ async function createList(): Promise<void> {
 }
 
 async function testConnection(): Promise<void> {
-  if (!userStore.defaultOrg?.id || !auth.getToken) return;
+  if (!userStore.defaultOrg?.id || !auth.getAuthenticated) return;
 
   isTesting.value = true;
   const request = {
     orgId: userStore.defaultOrg.id,
     provider: ExternalTicketProvider.CLICKUP,
-    bearerToken: auth.getToken,
     handleBusinessErrors: true,
     handleHTTPErrors: true,
     handleOtherErrors: true,
@@ -522,8 +517,7 @@ async function testConnection(): Promise<void> {
 
 async function saveConfiguration(): Promise<void> {
   const orgId = userStore.defaultOrg?.id;
-  const token = auth.getToken;
-  if (!orgId || !token || !canSave.value) return;
+  if (!orgId || !auth.getAuthenticated || !canSave.value) return;
 
   isSaving.value = true;
   try {
@@ -549,7 +543,6 @@ async function saveConfiguration(): Promise<void> {
         auto_sync_on_create: autoSyncOnCreate.value,
         sync_status_changes: syncStatusChanges.value,
       },
-      bearerToken: token,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -604,7 +597,7 @@ onMounted(async (): Promise<void> => {
 });
 
 async function loadExistingConfigWorkspaces(): Promise<void> {
-  if (!userStore.defaultOrg?.id || !auth.getToken) return;
+  if (!userStore.defaultOrg?.id || !auth.getAuthenticated) return;
 
   isLoadingWorkspaces.value = true;
   testResult.value = null;
@@ -613,7 +606,6 @@ async function loadExistingConfigWorkspaces(): Promise<void> {
     const response = await ticketsRepository.getWorkspaces({
       orgId: userStore.defaultOrg.id,
       provider: ExternalTicketProvider.CLICKUP,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -641,7 +633,8 @@ async function loadExistingConfigWorkspaces(): Promise<void> {
 }
 
 async function fetchWorkspacesWithOAuth(): Promise<void> {
-  if (!userStore.defaultOrg?.id || !auth.getToken || !accessToken.value) return;
+  if (!userStore.defaultOrg?.id || !auth.getAuthenticated || !accessToken.value)
+    return;
 
   isLoadingWorkspaces.value = true;
   testResult.value = null;
@@ -652,7 +645,6 @@ async function fetchWorkspacesWithOAuth(): Promise<void> {
       orgId: userStore.defaultOrg.id,
       provider: ExternalTicketProvider.CLICKUP,
       credentials: credentials.value,
-      bearerToken: auth.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,

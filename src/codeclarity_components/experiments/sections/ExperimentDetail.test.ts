@@ -132,6 +132,7 @@ function serveExperimentApi(app: TestApp): void {
         path,
         query: url.searchParams,
         headers: new Headers(init.headers),
+        credentials: init.credentials,
         body:
           typeof init.body === "string"
             ? (JSON.parse(init.body) as unknown)
@@ -2649,20 +2650,23 @@ describe("ExperimentDetail", () => {
     ["exposures.csv", "top4-head-exposures.csv"],
     ["fixes.csv", "top4-head-fixes.csv"],
     ["results.json", "top4-head-results.json"],
-  ])("downloads %s with the bearer token and saves it", async (file, name) => {
-    const blob = new Blob(["x"]);
-    getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
-    downloadExperimentExport.mockResolvedValue(blob);
-    const wrapper = await mountDetail();
-    await flushPromises();
+  ])(
+    "downloads %s with the session cookies and saves it",
+    async (file, name) => {
+      const blob = new Blob(["x"]);
+      getExperiment.mockResolvedValue({ data: experiment("COMPLETED") });
+      downloadExperimentExport.mockResolvedValue(blob);
+      const wrapper = await mountDetail();
+      await flushPromises();
 
-    await wrapper.find(`[data-testid="export-${file}"]`).trigger("click");
-    await flushPromises();
+      await wrapper.find(`[data-testid="export-${file}"]`).trigger("click");
+      await flushPromises();
 
-    const [request] = sent(app, "GET", `/export/${file}`);
-    expect(request?.headers.get("Authorization")).toMatch(/^Bearer \S+$/);
-    expect(await savedAs(name)).toBe("x");
-  });
+      const [request] = sent(app, "GET", `/export/${file}`);
+      expect(request?.headers.get("X-CodeClarity-CSRF")).toBe("1");
+      expect(await savedAs(name)).toBe("x");
+    },
+  );
 
   describe("replication package", () => {
     const version = {
@@ -2687,7 +2691,7 @@ describe("ExperimentDetail", () => {
       await flushPromises();
 
       const [request] = sent(app, "GET", "/published/3/package.zip");
-      expect(request?.headers.get("Authorization")).toMatch(/^Bearer \S+$/);
+      expect(request?.headers.get("X-CodeClarity-CSRF")).toBe("1");
       expect(await savedAs("top4-head-v3-package.zip")).toBe("zip");
     });
 

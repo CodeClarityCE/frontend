@@ -98,7 +98,6 @@ export class OrgRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}`;
 
     const response = await this.getRequest<DataResponse<Organization>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -119,7 +118,6 @@ export class OrgRepository extends BaseRepository {
         page: options.pagination.page,
         entries_per_page: options.pagination.entries_per_page,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -133,7 +131,6 @@ export class OrgRepository extends BaseRepository {
     const RELATIVE_URL = `/org`;
 
     const response = await this.postRequest<CreatedResponse, CreateOrg>({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -149,7 +146,6 @@ export class OrgRepository extends BaseRepository {
 
     const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
       data: {},
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -163,7 +159,6 @@ export class OrgRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/leave_org`;
 
     const response = await this.postRequest<NoDataResponse, EmptyPostData>({
-      bearerToken: options.bearerToken,
       data: {},
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -189,7 +184,6 @@ export class OrgRepository extends BaseRepository {
         sort_key: options.sort.sortKey,
         sort_direction: options.sort.sortDirection,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -206,7 +200,6 @@ export class OrgRepository extends BaseRepository {
 
     const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
       data: {},
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -222,7 +215,6 @@ export class OrgRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/create_invite`;
 
     const response = await this.postRequest<NoDataResponse, CreateInvite>({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
@@ -246,7 +238,6 @@ export class OrgRepository extends BaseRepository {
         sort_key: options.sort.sortKey,
         sort_direction: options.sort.sortDirection,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -271,7 +262,6 @@ export class OrgRepository extends BaseRepository {
 
     const response = await this.deleteRequest<NoDataResponse, EmptyPostData>({
       data: {},
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -288,7 +278,6 @@ export class OrgRepository extends BaseRepository {
 
     const response = await this.postRequest<NoDataResponse, EmptyPostData>({
       data: {},
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -306,7 +295,6 @@ export class OrgRepository extends BaseRepository {
     const response = await this.getRequest<
       DataResponse<OrganizationInfoForInvitee>
     >({
-      bearerToken: options.bearerToken,
       queryParams: {
         token: options.inviteToken,
         user_email_hash: options.userEmailHash,
@@ -330,7 +318,6 @@ export class OrgRepository extends BaseRepository {
 
     const response = await this.postRequest<NoDataResponse, JoinOrg>({
       data: options.data,
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -353,7 +340,6 @@ export class OrgRepository extends BaseRepository {
         sort_key: options.sort.sortKey,
         sort_direction: options.sort.sortDirection,
       },
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -377,7 +363,6 @@ export class OrgRepository extends BaseRepository {
     const RELATIVE_URL = `/org/${options.orgId}/meta_data`;
 
     const response = await this.getRequest<DataResponse<OrganizationMetaData>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -398,7 +383,6 @@ export class OrgRepository extends BaseRepository {
       NoDataResponse,
       OrganizationSettingsUpdate
     >({
-      bearerToken: options.bearerToken,
       data: options.data,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,

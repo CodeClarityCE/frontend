@@ -46,13 +46,12 @@ const isTesting = ref(false);
 const testResult = ref<{ success: boolean; message: string } | null>(null);
 
 async function fetchClickUpConfig(): Promise<void> {
-  if (!authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
   loading.value = true;
   error.value = false;
   try {
     const response = await ticketsRepository.getIntegrations({
       orgId: props.orgId,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -69,14 +68,13 @@ async function fetchClickUpConfig(): Promise<void> {
 }
 
 async function testConnection(): Promise<void> {
-  if (!authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
   isTesting.value = true;
   testResult.value = null;
   try {
     const response = await ticketsRepository.testIntegration({
       orgId: props.orgId,
       provider: ExternalTicketProvider.CLICKUP,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,
@@ -101,13 +99,12 @@ async function testConnection(): Promise<void> {
 }
 
 async function deleteIntegration(): Promise<void> {
-  if (!authStore.getToken) return;
+  if (!authStore.getAuthenticated) return;
   isDeleting.value = true;
   try {
     await ticketsRepository.deleteIntegration({
       orgId: props.orgId,
       provider: ExternalTicketProvider.CLICKUP,
-      bearerToken: authStore.getToken,
       handleBusinessErrors: true,
       handleHTTPErrors: true,
       handleOtherErrors: true,

@@ -60,8 +60,7 @@ let latestRequest = 0;
 
 async function loadStats(): Promise<void> {
   const org = userStore.getDefaultOrg;
-  const token = authStore.getToken;
-  if (!org || !authStore.getAuthenticated || !token) return;
+  if (!org || !authStore.getAuthenticated) return;
   if (props.projectID === "" || props.analysisID === "") return;
   const request = ++latestRequest;
   try {
@@ -70,7 +69,6 @@ async function loadStats(): Promise<void> {
       projectId: props.projectID,
       analysisId: props.analysisID,
       workspace: selected_workspace.value,
-      bearerToken: token,
       ecosystem_filter: ecosystemFilter.value ?? undefined,
       show_blacklisted: props.showBlacklisted,
       handleBusinessErrors: true,

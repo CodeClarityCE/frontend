@@ -28,7 +28,6 @@ export class AnalyzerTemplatesRepository extends BaseRepository {
     const RELATIVE_URL = "/analyzer-templates";
 
     return await this.getRequest<DataResponse<AnalyzerTemplate[]>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,
@@ -42,7 +41,6 @@ export class AnalyzerTemplatesRepository extends BaseRepository {
     const RELATIVE_URL = `/analyzer-templates/${options.language}`;
 
     return await this.getRequest<DataResponse<AnalyzerTemplate>>({
-      bearerToken: options.bearerToken,
       url: this.buildUrl(RELATIVE_URL),
       handleBusinessErrors: options.handleBusinessErrors,
       handleHTTPErrors: options.handleHTTPErrors,

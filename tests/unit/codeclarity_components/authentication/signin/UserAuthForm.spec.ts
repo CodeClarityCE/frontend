@@ -7,9 +7,7 @@ import UserAuthForm from "@/codeclarity_components/authentication/signin/UserAut
 import { createTestApp, org, type TestApp, user } from "../../../../real-app";
 
 const tokens = {
-  token: "access-token",
   token_expiry: "2099-01-01T00:00:00.000Z",
-  refresh_token: "refresh-token",
   refresh_token_expiry: "2099-01-01T00:00:00.000Z",
 };
 
@@ -125,7 +123,7 @@ describe("UserAuthForm.vue", () => {
 
     it("shows a general error when the server answers something unexpected", async () => {
       const app = await openLogin();
-      app.http.on("POST", "/auth/authenticate", { data: { token: 42 } });
+      app.http.on("POST", "/auth/authenticate", { data: { token_expiry: 42 } });
 
       await signIn();
 

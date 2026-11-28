@@ -121,7 +121,10 @@ const linkClass =
     <div v-else class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <Card class="rounded-card shadow-card lg:col-span-2">
         <CardHeader class="flex-row flex-wrap items-center gap-x-3">
-          <CardTitle id="dashboard-in-progress" class="text-base">
+          <CardTitle
+            id="dashboard-in-progress"
+            class="text-base leading-normal"
+          >
             Experiments in progress
           </CardTitle>
           <PreviewBadge />
@@ -194,7 +197,10 @@ const linkClass =
 
       <Card class="rounded-card shadow-card">
         <CardHeader class="flex-row flex-wrap items-center gap-x-3">
-          <CardTitle id="dashboard-recently-finished" class="text-base">
+          <CardTitle
+            id="dashboard-recently-finished"
+            class="text-base leading-normal"
+          >
             Recently finished
           </CardTitle>
           <PreviewBadge />
@@ -238,7 +244,10 @@ const linkClass =
 
       <Card class="rounded-card shadow-card">
         <CardHeader class="flex-row flex-wrap items-center gap-x-3">
-          <CardTitle id="dashboard-recent-published" class="text-base">
+          <CardTitle
+            id="dashboard-recent-published"
+            class="text-base leading-normal"
+          >
             Recent Published results
           </CardTitle>
           <PreviewBadge />

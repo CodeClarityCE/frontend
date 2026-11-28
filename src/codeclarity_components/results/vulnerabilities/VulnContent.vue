@@ -284,7 +284,7 @@ const impactMeans = computed(() => [
       <div class="grid gap-4 lg:grid-cols-2">
         <Card class="lg:col-span-2">
           <CardHeader>
-            <CardTitle class="text-base">
+            <CardTitle class="text-base leading-normal">
               Vulnerabilities by severity
             </CardTitle>
           </CardHeader>
@@ -302,7 +302,9 @@ const impactMeans = computed(() => [
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle class="text-base">Security impact</CardTitle>
+            <CardTitle class="text-base leading-normal"
+              >Security impact</CardTitle
+            >
           </CardHeader>
           <CardContent>
             <p class="mb-3 text-sm text-muted-foreground">
@@ -324,7 +326,7 @@ const impactMeans = computed(() => [
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle class="text-base">OWASP Top 10</CardTitle>
+            <CardTitle class="text-base leading-normal">OWASP Top 10</CardTitle>
           </CardHeader>
           <CardContent>
             <ul
